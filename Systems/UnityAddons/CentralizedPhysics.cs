@@ -1,0 +1,768 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+public class NDRigidbody
+{
+    public Rigidbody2D rigid2;
+    public Rigidbody rigid3;
+    public bool is2D { get { return rigid2 != null; } }
+    public bool is3D { get { return rigid3 != null; } }
+
+    public GameObject gameObject
+    {
+        get
+        {
+            if (is2D)
+            {
+                if (rigid2.gameObject != null)
+                    return rigid2.gameObject;
+                else return null;
+            }
+            else
+            {
+                if (rigid3.gameObject != null)
+                    return rigid3.gameObject;
+                else return null;
+            }
+        }
+    }
+    public Transform transform
+    {
+        get
+        {
+            if (is2D) return rigid2.transform;
+            else return rigid3.transform;
+        }
+    }
+    public string tag
+    {
+        get
+        {
+            if (is2D) return rigid2.tag;
+            else return rigid3.tag;
+        }
+    }
+    public int layer { get { return gameObject.layer; } }
+    public Vector3 velocity
+    {
+        get
+        {
+            if (is2D) return rigid2.velocity;
+            else return rigid3.velocity;
+        }
+
+        set
+        {
+            if (is2D)
+            {
+                if (rigid2.bodyType != RigidbodyType2D.Static)
+                    rigid2.velocity = value;
+            }
+            else rigid3.velocity = value;
+        }
+    }
+    public Vector3 angularVelocity
+    {
+        get
+        {
+            if (is2D) return new Vector3(0f, 0f, rigid2.angularVelocity);
+            else return rigid3.angularVelocity;
+        }
+
+        set
+        {
+            if (is2D)
+            {
+                if (rigid2.bodyType != RigidbodyType2D.Static)
+                    rigid2.angularVelocity = value.z;
+            }
+            else rigid3.angularVelocity = value;
+        }
+    }
+    public bool isKinematic
+    {
+        get
+        {
+            if (is2D) return rigid2.isKinematic;
+            else return rigid3.isKinematic;
+        }
+
+        set
+        {
+            if (is2D) rigid2.isKinematic = value;
+            else rigid3.isKinematic = value;
+        }
+    }
+    public RigidbodyConstraints constraints
+    {
+        get
+        {
+            if (is2D)
+            {
+                RigidbodyConstraints cons3 = new RigidbodyConstraints();
+                if ((rigid2.constraints & RigidbodyConstraints2D.FreezePositionX) != 0)
+                    cons3 |= RigidbodyConstraints.FreezePositionX;
+                if ((rigid2.constraints & RigidbodyConstraints2D.FreezePositionY) != 0)
+                    cons3 |= RigidbodyConstraints.FreezePositionY;
+                if ((rigid2.constraints & RigidbodyConstraints2D.FreezeRotation) != 0)
+                    cons3 |= RigidbodyConstraints.FreezeRotationZ;
+                return cons3;
+            }
+            else return rigid3.constraints;
+        }
+
+        set
+        {
+            if (is2D)
+            {
+                RigidbodyConstraints2D cons2 = new RigidbodyConstraints2D();
+                if ((value & RigidbodyConstraints.FreezePositionX) != 0)
+                    cons2 |= RigidbodyConstraints2D.FreezePositionX;
+                if ((value & RigidbodyConstraints.FreezePositionY) != 0)
+                    cons2 |= RigidbodyConstraints2D.FreezePositionY;
+                if ((value & RigidbodyConstraints.FreezeRotationZ) != 0)
+                    cons2 |= RigidbodyConstraints2D.FreezeRotation;
+                rigid2.constraints = cons2;
+            }
+            else rigid3.constraints = value;
+        }
+    }
+    public Vector3 worldCenterOfMass
+    {
+        get
+        {
+            if (is2D) return rigid2.worldCenterOfMass;
+            else return rigid3.worldCenterOfMass;
+        }
+    }
+    public Vector3 position
+    {
+        get
+        {
+            if (is2D) return rigid2.position;
+            else return rigid3.position;
+        }
+    }
+    public Quaternion rotation
+    {
+        get
+        {
+            if (is2D) return Quaternion.Euler(0f, 0f, rigid2.rotation);
+            else return rigid3.rotation;
+        }
+    }
+
+    public Bounds GetBounds()
+    {
+        if (is2D) return rigid2.GetBounds();
+        else return rigid3.GetBounds();
+    }
+
+    public Vector3 Cast(Vector3 speed)
+    {
+        if (is2D)
+        {
+            List<RaycastHit2D> hits = new List<RaycastHit2D>();
+            rigid2.Cast(speed, hits);
+            return speed * hits[0].fraction;
+        }
+        else
+        {
+            rigid3.SweepTest(speed, out RaycastHit hit);
+            return speed.normalized * hit.distance;
+        }
+    }
+
+    public bool IsNull()
+    {
+        return (rigid2 == null) && (rigid3 == null);
+    }
+
+    public NDRigidbody(Rigidbody2D rigid)
+    {
+        rigid2 = rigid;
+        rigid3 = null;
+    }
+
+    public NDRigidbody(Rigidbody rigid)
+    {
+        rigid2 = null;
+        rigid3 = rigid;
+    }
+
+    public static NDRigidbody GetNDRigidbodyFrom(GameObject go, Scope scope = Scope.inThis)
+    {
+        NDRigidbody result = null;
+        Rigidbody rigid3;
+        switch (scope)
+        {
+            case Scope.inParents:
+                rigid3 = go.GetComponentInParent<Rigidbody>();
+                break;
+            case Scope.inChildren:
+                rigid3 = go.GetComponentInChildren<Rigidbody>();
+                break;
+            default:
+                rigid3 = go.GetComponent<Rigidbody>();
+                break;
+        }
+        if (rigid3 != null) result = new NDRigidbody(rigid3);
+        else
+        {
+            Rigidbody2D rigid2;
+            switch (scope)
+            {
+                case Scope.inParents:
+                    rigid2 = go.GetComponentInParent<Rigidbody2D>();
+                    break;
+                case Scope.inChildren:
+                    rigid2 = go.GetComponentInChildren<Rigidbody2D>();
+                    break;
+                default:
+                    rigid2 = go.GetComponent<Rigidbody2D>();
+                    break;
+            }
+            if (rigid2 != null) result = new NDRigidbody(rigid2);
+            else result = null;
+        }
+        return result;
+    }
+
+    public bool IsEqual(NDRigidbody other)
+    {
+        return (other.rigid2 == rigid2) && (other.rigid3 == rigid3);
+    }
+
+    public enum Scope { inThis, inParents, inChildren }
+}
+
+[System.Serializable]
+public struct NDCollider
+{
+    public Collider2D col2;
+    public Collider col3;
+    public bool is2D { get { return col2 != null; } }
+    public bool is3D { get { return col3 != null; } }
+    public bool enabled
+    {
+        get
+        {
+            if (IsNull()) return false;
+            if (is2D) return col2.enabled;
+            else return col3.enabled;
+        }
+    }
+
+    NDRigidbody _attachedRigidbody;
+    public NDRigidbody attachedRigidbody
+    {
+        get
+        {
+            if (IsNull()) return null;
+            if (is2D)
+            {
+                if (col2.attachedRigidbody != null)
+                {
+                    if ((_attachedRigidbody == null) || (_attachedRigidbody.rigid2 != col2.attachedRigidbody))
+                        _attachedRigidbody = new NDRigidbody(col2.attachedRigidbody);
+                    return _attachedRigidbody;
+                }
+                else return null;
+            }
+            else if (is3D)
+            {
+                if (col3.attachedRigidbody != null)
+                {
+                    if ((_attachedRigidbody == null) || (_attachedRigidbody.rigid3 != col3.attachedRigidbody))
+                        _attachedRigidbody = new NDRigidbody(col3.attachedRigidbody);
+                    return _attachedRigidbody;
+                }
+                else return null;
+            }
+            else return null;
+        }
+    }
+    public GameObject gameObject
+    {
+        get
+        {
+            if (IsNull()) return null;
+            if (is2D)
+            {
+                if (col2.gameObject != null)
+                    return col2.gameObject;
+                else return null;
+            }
+            else
+            {
+                if (col3.gameObject != null)
+                    return col3.gameObject;
+                else return null;
+            }
+        }
+    }
+
+    public Transform transform
+    {
+        get
+        {
+            if (IsNull()) return null;
+            if (is2D) return col2.transform;
+            else return col3.transform;
+        }
+    }
+
+    public Bounds bounds
+    {
+        get
+        {
+            if (IsNull()) return default;
+            if (is2D) return col2.bounds;
+            else return col3.bounds;
+        }
+    }
+
+    public string tag
+    {
+        get
+        {
+            if (IsNull()) return null;
+            if (is2D) return col2.tag;
+            else return col3.tag;
+        }
+    }
+    public int layer { get { return gameObject.layer; } }
+
+    public NDCollider(Collider2D col)
+    {
+        col2 = col;
+        col3 = null;
+        _attachedRigidbody = new NDRigidbody(col2.attachedRigidbody);
+    }
+
+    public NDCollider(Collider col)
+    {
+        col2 = null;
+        col3 = col;
+        _attachedRigidbody = new NDRigidbody(col3.attachedRigidbody);
+    }
+
+    public static NDCollider GetNDColliderFrom(GameObject go, Scope scope = Scope.inThis)
+    {
+        NDCollider result = new NDCollider();
+        Collider col3;
+        switch (scope)
+        {
+            case Scope.inParents:
+                col3 = go.GetComponentInParent<Collider>();
+                break;
+            case Scope.inChildren:
+                col3 = go.GetComponentInChildren<Collider>();
+                break;
+            default:
+                col3 = go.GetComponent<Collider>();
+                break;
+        }
+        if (col3 != null) result = new NDCollider(col3);
+        else
+        {
+            Collider2D col2;
+            switch (scope)
+            {
+                case Scope.inParents:
+                    col2 = go.GetComponentInParent<Collider2D>();
+                    break;
+                case Scope.inChildren:
+                    col2 = go.GetComponentInChildren<Collider2D>();
+                    break;
+                default:
+                    col2 = go.GetComponent<Collider2D>();
+                    break;
+            }
+            if (col2 != null) result = new NDCollider(col2);
+            else result = new NDCollider();
+        }
+        return result;
+    }
+
+    public static NDCollider GetNDColliderFrom(Transform tr, Scope scope = Scope.inThis)
+    {
+        return GetNDColliderFrom(tr.gameObject, scope);
+    }
+
+    public static NDCollider[] GetNDCollidersFrom(GameObject go, Scope scope = Scope.inThis)
+    {
+        List<NDCollider> result = new List<NDCollider>();
+        Collider[] col3s;
+        switch (scope)
+        {
+            case Scope.inParents:
+                col3s = go.GetComponentsInParent<Collider>();
+                break;
+            case Scope.inChildren:
+                col3s = go.GetComponentsInChildren<Collider>();
+                break;
+            default:
+                col3s = go.GetComponents<Collider>();
+                break;
+        }
+        foreach (Collider col in col3s) result.Add(new NDCollider(col));
+
+        Collider2D[] col2s;
+        switch (scope)
+        {
+            case Scope.inParents:
+                col2s = go.GetComponentsInParent<Collider2D>();
+                break;
+            case Scope.inChildren:
+                col2s = go.GetComponentsInChildren<Collider2D>();
+                break;
+            default:
+                col2s = go.GetComponents<Collider2D>();
+                break;
+        }
+        foreach (Collider2D col in col2s) result.Add(new NDCollider(col));
+
+        return result.ToArray();
+    }
+
+    public static NDCollider[] GetNDCollidersFrom(Transform tr, Scope scope = Scope.inThis)
+    {
+        return GetNDCollidersFrom(tr.gameObject, scope);
+    }
+
+    public LayerMask GetLayerCollisionMask()
+    {
+        if (is2D) return Physics2D.GetLayerCollisionMask(layer);
+        else
+        {
+            int finalMask = 0;
+            for (int i = 0; i < 32; i++)
+                if (!Physics.GetIgnoreLayerCollision(layer, i)) finalMask = finalMask | (1 << i);
+            return finalMask;
+        }
+    }
+
+    public bool IsEqual(NDCollider other)
+    {
+        return (other.col2 == col2) && (other.col3 == col3);
+    }
+
+    public bool IsNull()
+    {
+        return (col2 == null) && (col3 == null);
+    }
+
+    public enum Scope { inThis, inParents, inChildren }
+}
+
+public static class NDPhysics
+{
+    public static NDCollider[] OverlapRadiusAll(Vector3 position, float radius, LayerMask layerMask, bool is2D)
+    {
+        NDCollider[] result = null;
+        if (is2D)
+        {
+            Collider2D[] inRange = Physics2D.OverlapCircleAll(position, radius, layerMask);
+            result = new NDCollider[inRange.Length];
+            for (int i = 0; i < inRange.Length; i++)
+                result[i] = new NDCollider(inRange[i]);
+        }
+        else
+        {
+            Collider[] inRange = Physics.OverlapSphere(position, radius, layerMask);
+            result = new NDCollider[inRange.Length];
+            for (int i = 0; i < inRange.Length; i++)
+                result[i] = new NDCollider(inRange[i]);
+        }
+        return result;
+    }
+
+    public static LayerMask GetLayerCollisionMask(int layer, bool is2D)
+    {
+        LayerMask layerMask = default;
+        if (is2D)
+        {
+            for (int i = 0; i < 32; i++)
+                if (!Physics2D.GetIgnoreLayerCollision(layer, i))
+                    layerMask |= 1 << i;
+        }
+        else
+        {
+            for (int i = 0; i < 32; i++)
+                if (!Physics.GetIgnoreLayerCollision(layer, i))
+                    layerMask |= 1 << i;
+        }
+        return layerMask;
+    }
+
+    public static NDRigidbody[] GetRigidbodies(this NDCollider[] colliders)
+    {
+        List<NDRigidbody> rigids = new List<NDRigidbody>();
+        foreach (NDCollider col in colliders)
+        {
+            NDRigidbody rigid = col.attachedRigidbody;
+            if ((rigid != null) && (!rigids.Contains(rigid))) rigids.Add(rigid);
+        }
+        return rigids.ToArray();
+    }
+
+    public static bool NDContains(this List<NDCollider> colliders, NDCollider collider)
+    {
+        foreach (NDCollider col in colliders)
+            if (collider.IsEqual(col)) return true;
+        return false;
+    }
+
+    public static bool NDContains(this NDCollider[] colliders, NDCollider collider)
+    {
+        foreach (NDCollider col in colliders)
+            if (collider.IsEqual(col)) return true;
+        return false;
+    }
+
+    public static bool Raycast(Vector3 position, Vector3 direction, out NDRaycastHit hit, float distance, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D hit2 = Physics2D.Raycast(position, direction, distance);
+            hit = new NDRaycastHit(hit2);
+            return hit2;
+        }
+        else
+        {
+            bool didHit = Physics.Raycast(position, direction, out RaycastHit hit3, distance);
+            hit = new NDRaycastHit(hit3);
+            return didHit;
+        }
+    }
+
+    public static bool Raycast(Vector3 position, Vector3 direction, out NDRaycastHit hit, float distance, LayerMask mask, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D hit2 = Physics2D.Raycast(position, direction, distance, mask);
+            hit = new NDRaycastHit(hit2);
+            return hit2;
+        }
+        else
+        {
+            bool didHit = Physics.Raycast(position, direction, out RaycastHit hit3, distance, mask);
+            hit = new NDRaycastHit(hit3);
+            return didHit;
+        }
+    }
+}
+
+public struct NDRaycastHit
+{
+    public RaycastHit2D hit2;
+    public RaycastHit hit3;
+    readonly bool is2D;
+    public bool is3D { get { return !is2D; } }
+    public NDCollider collider
+    {
+        get
+        {
+            if (is2D) return new NDCollider(hit2.collider);
+            else return new NDCollider(hit3.collider);
+        }
+    }
+    public float distance
+    {
+        get
+        {
+            if (is2D) return hit2.distance;
+            else return hit3.distance;
+        }
+    }
+    public Vector3 normal
+    {
+        get
+        {
+            if (is2D) return hit2.normal;
+            else return hit3.normal;
+        }
+    }
+    public Vector3 point
+    {
+        get
+        {
+            if (is2D) return hit2.point;
+            else return hit3.point;
+        }
+    }
+    NDRigidbody _rigidbody;
+    public NDRigidbody rigidbody
+    {
+        get
+        {
+            if (is2D)
+            {
+                if (hit2.rigidbody != null)
+                {
+                    if ((_rigidbody == null) || (_rigidbody.rigid2 != hit2.rigidbody))
+                        _rigidbody = new NDRigidbody(hit2.rigidbody);
+                    return _rigidbody;
+                }
+                else return null;
+            }
+            else
+            {
+                if (hit3.rigidbody != null)
+                {
+                    if ((_rigidbody == null) || (_rigidbody.rigid3 != hit3.rigidbody))
+                        _rigidbody = new NDRigidbody(hit3.rigidbody);
+                    return _rigidbody;
+                }
+                else return null;
+            }
+        }
+    }
+    public Transform transform
+    {
+        get
+        {
+            if (is2D) return hit2.transform;
+            else return hit3.transform;
+        }
+    }
+
+    public NDRaycastHit(RaycastHit2D hit)
+    {
+        hit2 = hit;
+        hit3 = default;
+        _rigidbody = new NDRigidbody(hit2.rigidbody);
+        is2D = true;
+    }
+
+    public NDRaycastHit(RaycastHit hit)
+    {
+        hit2 = default;
+        hit3 = hit;
+        _rigidbody = new NDRigidbody(hit3.rigidbody);
+        is2D = false;
+    }
+}
+
+public class NDCollision
+{
+    public Collision2D collision2;
+    public Collision collision3;
+    public bool wasOnStay;
+    public bool is2D { get { return collision2 != null; } }
+    public bool is3D { get { return collision3 != null; } }
+    public NDContactPoint[] contacts
+    {
+        get
+        {
+            if (is2D)
+            {
+                ContactPoint2D[] con2 = new ContactPoint2D[collision2.contactCount];
+                collision2.GetContacts(con2);
+                NDContactPoint[] result = new NDContactPoint[con2.Length];
+                for (int i = 0; i < con2.Length; i++)
+                    result[i] = new NDContactPoint(con2[i]);
+                return result;
+            }
+            else
+            {
+                ContactPoint[] con3 = new ContactPoint[collision3.contactCount];
+                collision3.GetContacts(con3);
+                NDContactPoint[] result = new NDContactPoint[con3.Length];
+                for (int i = 0; i < con3.Length; i++)
+                    result[i] = new NDContactPoint(con3[i]);
+                return result;
+            }
+        }
+    }
+    public Transform transform
+    {
+        get
+        {
+            if (is2D) return collision2.transform;
+            else return collision3.transform;
+        }
+    }
+
+    public NDCollision(Collision2D collision, bool wasOnStay = false)
+    {
+        collision2 = collision;
+        collision3 = null;
+        this.wasOnStay = wasOnStay;
+    }
+
+    public NDCollision(Collision collision, bool wasOnStay = false)
+    {
+        collision2 = null;
+        collision3 = collision;
+        this.wasOnStay = wasOnStay;
+    }
+
+    public bool IsEqual(NDCollision other)
+    {
+        return (other.collision2 == collision2) && (other.collision3 == collision3) && (other.wasOnStay == wasOnStay);
+    }
+}
+
+public struct NDContactPoint
+{
+    ContactPoint2D con2;
+    ContactPoint con3;
+    readonly bool is2D;
+    public bool is3D { get { return !is2D; } }
+    public NDCollider collider
+    {
+        get
+        {
+            if (is2D) return new NDCollider(con2.collider);
+            else return new NDCollider(con3.thisCollider);
+        }
+    }
+    public Vector3 normal
+    {
+        get
+        {
+            if (is2D) return con2.normal;
+            else return con3.normal;
+        }
+    }
+    public NDCollider otherCollider
+    {
+        get
+        {
+            if (is2D) return new NDCollider(con2.otherCollider);
+            else return new NDCollider(con3.otherCollider);
+        }
+    }
+    public Vector3 point
+    {
+        get
+        {
+            if (is2D) return con2.point;
+            else return con3.point;
+        }
+    }
+    public float separation
+    {
+        get
+        {
+            if (is2D) return con2.separation;
+            else return con3.separation;
+        }
+    }
+
+    public NDContactPoint(ContactPoint2D contact)
+    {
+        con2 = contact;
+        con3 = new ContactPoint();
+        is2D = true;
+    }
+
+    public NDContactPoint(ContactPoint contact)
+    {
+        con2 = new ContactPoint2D();
+        con3 = contact;
+        is2D = false;
+    }
+}
