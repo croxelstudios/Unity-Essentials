@@ -1,8 +1,12 @@
 ﻿using UnityEngine;
+using Sirenix.OdinInspector;
 
 public class Animator_SetFloatParameter : MonoBehaviour
 {
     [SerializeField]
+    bool useAvailableChildAnimator = false;
+    [SerializeField]
+    [EnableIf("@useAvailableChildAnimator == false")]
     Animator animator = null;
     [SerializeField]
     string parameter = "Speed";
@@ -11,6 +15,8 @@ public class Animator_SetFloatParameter : MonoBehaviour
 
     public void SetFloat(float input)
     {
+        if (useAvailableChildAnimator && ((animator == null) || animator.isActiveAndEnabled == false))
+            animator = GetComponentInChildren<Animator>();
         if ((animator != null) && animator.isActiveAndEnabled)
         {
             if (clampAnimationTime)
