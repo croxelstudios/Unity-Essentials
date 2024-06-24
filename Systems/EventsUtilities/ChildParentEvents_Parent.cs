@@ -12,6 +12,7 @@ public class ChildParentEvents_Parent : MonoBehaviour
 
     void SearchChildEvents()
     {
+        CreateListIfNull();
         childEvents.Clear();
         childEvents.AddRange(GetComponentsInChildren<ChildParentEvents_Child>(true));
     }
@@ -26,9 +27,10 @@ public class ChildParentEvents_Parent : MonoBehaviour
                 return;
             }
 
-            foreach (ChildParentEvents_Child childEvent in childEvents)
-                if (childEvent.IsActiveAndEnabled() && (childEvent.childEvents != null) && (index < childEvent.childEvents.Length))
-                    childEvent.childEvents[index]?.Invoke();
+            if (childEvents != null)
+                foreach (ChildParentEvents_Child childEvent in childEvents)
+                    if (childEvent.IsActiveAndEnabled() && (childEvent.childEvents != null) && (index < childEvent.childEvents.Length))
+                        childEvent.childEvents[index]?.Invoke();
         }
     }
 
@@ -36,10 +38,11 @@ public class ChildParentEvents_Parent : MonoBehaviour
     {
         if (this.IsActiveAndEnabled())
         {
-            foreach (ChildParentEvents_Child childEvent in childEvents)
-                if (childEvent.IsActiveAndEnabled() && (childEvent.childEvents != null))
-                    foreach (DXEvent e in childEvent.childEvents)
-                        e?.Invoke();
+            if (childEvents != null)
+                foreach (ChildParentEvents_Child childEvent in childEvents)
+                    if (childEvent.IsActiveAndEnabled() && (childEvent.childEvents != null))
+                        foreach (DXEvent e in childEvent.childEvents)
+                            e?.Invoke();
         }
     }
 
@@ -53,23 +56,32 @@ public class ChildParentEvents_Parent : MonoBehaviour
 
     public void SetChild(int index)
     {
+        CreateListIfNull();
         currentChild = Mathf.Clamp(index, 0, childEvents.Count - 1);
     }
 
     public void SetRandomChild()
     {
+        CreateListIfNull();
         currentChild = Random.Range(0, childEvents.Count);
     }
 
     public void AddChild(ChildParentEvents_Child child)
     {
+        CreateListIfNull();
         if (!childEvents.Contains(child))
             childEvents.Add(child);
     }
 
     public void RemoveChild(ChildParentEvents_Child child)
     {
+        CreateListIfNull();
         if (childEvents.Contains(child))
             childEvents.Remove(child);
+    }
+
+    void CreateListIfNull()
+    {
+        if (childEvents == null) childEvents = new List<ChildParentEvents_Child>();
     }
 }

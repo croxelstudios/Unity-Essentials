@@ -17,10 +17,15 @@ public class ConstantRotation : MonoBehaviour
     [ShowIf("@randomize")]
     Vector2 speedRange = new Vector2(0f, 1f);
     [SerializeField]
+    bool deactivationResetsRotation = false;
+    [SerializeField]
     protected TimeMode timeMode = TimeMode.FixedUpdate;
+
+    Quaternion accumulatedRotation;
 
     void OnEnable()
     {
+        accumulatedRotation = Quaternion.identity;
         if (randomize)
         {
             if (randomAxis)
@@ -31,6 +36,12 @@ public class ConstantRotation : MonoBehaviour
             speed = Random.Range(speedRange.x, speedRange.y);
         }
         axis = axis.normalized;
+    }
+
+    void OnDisable()
+    {
+        if (deactivationResetsRotation)
+            transform.Rotate(Quaternion.Inverse(accumulatedRotation).eulerAngles);
     }
 
     void Update()
@@ -47,6 +58,8 @@ public class ConstantRotation : MonoBehaviour
 
     void UpdateActions(float deltaTime)
     {
-        transform.Rotate(axis * speed * deltaTime);
+        Vector3 finalRotation = axis * speed * deltaTime;
+        accumulatedRotation = Quaternion.Euler(finalRotation) * accumulatedRotation;
+        transform.Rotate(finalRotation);
     }
 }

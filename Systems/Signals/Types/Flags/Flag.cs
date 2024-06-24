@@ -11,10 +11,10 @@ public class Flag : BaseSignal //Change type here
     [SerializeField]
     bool resetValueOnStart = true;
     [SerializeField]
+    bool checkMultipleConditions = false;
+    [SerializeField]
     [ShowIf("CanShowStartValue")]
     bool startValue = false; //Change type here
-    [SerializeField]
-    bool checkMultipleConditions = false;
     [HideIf("CanShowStartValue")]
     [OnValueChanged("SetFlagOnCurrentTagAndValue")]
     public bool currentValue = false; //Change type here
@@ -81,7 +81,6 @@ public class Flag : BaseSignal //Change type here
             if (currentValue) whenTrue?.Invoke();
             else whenFalse?.Invoke();
         }
-
     }
 
     public void SetFlag(bool value) //Change type here
