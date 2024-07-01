@@ -257,7 +257,11 @@ public class BInputEventLauncher : MonoBehaviour
 
         for (int n = 0; n < joysticks.Length; n++)
         {
-            if (joysticks[n].sendWhenZeroToo) joysticks[n].JoystickValue?.Invoke(Vector2.zero);
+            if (joysticks[n].sendWhenZeroToo)
+            {
+                joysticks[n].JoystickValue?.Invoke(Vector2.zero);
+                joysticks[n].JoystickMagnitude?.Invoke(0f);
+            }
             if (joysticks[n].isPressed)
             {
                 joysticks[n].SetState(false);

@@ -5,13 +5,15 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-//PROBLEMS:
-//PressButton() doesn't seem to work
 public class RavioliButton : RavioliButton_Button
 {
     //TO DO: Add support for autocalculate direction of button from relative position to make dynamic selection systems
     [SizedFoldoutGroup("Group options")]
     public Transform buttonsParent = null;
+    [SerializeField]
+    [SizedFoldoutGroup("Group options")]
+    int _buttonSelectionLimit = 255;
+    public int buttonSelectionLimit { get { return _buttonSelectionLimit; } set { _buttonSelectionLimit = value; } }
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
     bool loopButtons = true;
@@ -43,7 +45,7 @@ public class RavioliButton : RavioliButton_Button
     [SizedFoldoutGroup("Group options")]
     [ShowIf("@useSelector")]
     Transform selector = null;
-    bool canUseSelector { get {return useSelector && selector; } }
+    bool canUseSelector { get { return useSelector && selector; } }
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
     [ShowIf("@useSelector")]
@@ -76,8 +78,8 @@ public class RavioliButton : RavioliButton_Button
     //[Tooltip("Whether the button should launch the onSelect event on first selection or not")]
     //public bool launchFirstSelectedEvent = false;
 
-    //Group
     bool groupInitialized = false;
+    ProgrammedSelectButtonAction programmedSelection;
     int buttonsInitCount = -1;
     List<RavioliButton_Button> buttons;
     Vector3 tmpSpd;
@@ -123,21 +125,19 @@ public class RavioliButton : RavioliButton_Button
         FinalizeMovementBehaviors();
     }
 
-    public override void PressButtonWith(int id, bool pressParentGroups)
+    public override void PressButtonWith_Internal(int id)
     {
-        base.PressButtonWith(id, pressParentGroups);
-        if ((!pressParentGroups) && (currentButton != null))
-        {
-            currentButton.PressButtonWith(id, pressParentGroups);
-            pressedButtonID?.Invoke(buttons.IndexOf(currentButton));
-        }
+        if (currentButton == null)
+            base.PressButtonWith_Internal(id);
+        else currentButton.PressButtonWith_Internal(id);
     }
 
-    public void PressButtonGroup(int id)
+    public void PressButtonGroup(int id, int buttonId)
     {
-        if (id < buttonActions.Length) buttonActions[id]?.Invoke();
         foreach (RavioliButton group in groups)
-            group.PressButtonGroup(id);
+            group.PressButtonGroup(id, transform.GetSiblingIndex());
+        if (id < buttonActions.Length) buttonActions[id]?.Invoke();
+        pressedButtonID?.Invoke(buttonId);
     }
 
     void InitButtonsList()
@@ -198,8 +198,8 @@ public class RavioliButton : RavioliButton_Button
     void UpdateCurrentButton(int id)
     {
         UpdateCurrentButton(
-            (id >= buttons.Count) ?
-                buttons[buttons.Count - 1]
+            (id >= ButtonsLimit()) ?
+                buttons[ButtonsLimit() - 1]
             :
                 ((id < 0) ?
                     buttons[0]
@@ -222,13 +222,18 @@ public class RavioliButton : RavioliButton_Button
         if (button && button.overrideCarouselBehaviour) return button.carouselBehaviourOverride;
         else return carouselBehaviour;
     }
+
+    int ButtonsLimit()
+    {
+        return Mathf.Min(buttonSelectionLimit, buttons.Count);
+    }
     #endregion
 
     #region Actions
     public void PressAllButtonsWith(int id)
     {
-        for (int i = 0; i < buttons.Count; i++)
-            buttons[i].PressButtonWith(id, false);
+        for (int i = 0; i < ButtonsLimit(); i++)
+            buttons[i].PressButtonWith(id);
     }
 
     public void PressAllButtons()
@@ -246,8 +251,8 @@ public class RavioliButton : RavioliButton_Button
         if (currentButton != null)
         {
             int id = buttons.IndexOf(currentButton);
-            int next = (int)(loopButtons ? Mathf.Repeat(id + 1f, buttons.Count) :
-                Mathf.Clamp(id + 1, 0f, buttons.Count - 1f));
+            int next = (int)(loopButtons ? Mathf.Repeat(id + 1f, ButtonsLimit()) :
+                Mathf.Clamp(id + 1, 0f, ButtonsLimit() - 1f));
             SelectButton(next, doMovement);
         }
     }
@@ -262,8 +267,8 @@ public class RavioliButton : RavioliButton_Button
         if (currentButton != null)
         {
             int id = buttons.IndexOf(currentButton);
-            int previous = (int)(loopButtons ? Mathf.Repeat(id - 1f, buttons.Count) :
-                Mathf.Clamp(id - 1, 0f, buttons.Count - 1f));
+            int previous = (int)(loopButtons ? Mathf.Repeat(id - 1f, ButtonsLimit()) :
+                Mathf.Clamp(id - 1, 0f, ButtonsLimit() - 1f));
             SelectButton(previous, doMovement);
         }
     }
@@ -281,14 +286,20 @@ public class RavioliButton : RavioliButton_Button
     public void SelectButton(int id, bool doMovement)
     {
         if (this.IsActiveAndEnabled())
-            SelectButton(buttons[id], doMovement);
+        {
+            if (!groupInitialized)
+                programmedSelection.ProgramSelection(this, id, doMovement);
+            else SelectButton(buttons[id], doMovement);
+        }
     }
 
     public void SelectButton(RavioliButton_Button button, bool doMovement = true)
     {
         if (this.IsActiveAndEnabled())
         {
-            if ((button != currentButton) || launchRedundantSelections)
+            if (!groupInitialized)
+                programmedSelection.ProgramSelection(this, button, doMovement);
+            else if ((button != currentButton) || launchRedundantSelections)
             {
                 currentButton.TryDeselect();
                 UpdateCurrentButton(button);
@@ -416,7 +427,7 @@ public class RavioliButton : RavioliButton_Button
         if (pID < 0) pID = cID;
         int dif = pID - cID;
         int absDif = Mathf.Abs(dif);
-        if (absDif < (buttons.Count / 2)) return dif;
+        if ((_buttonSelectionLimit < buttons.Count) || (absDif < (buttons.Count / 2))) return dif;
         else return (buttons.Count - absDif) * (-(int)Mathf.Sign(dif));
     }
 
@@ -466,6 +477,7 @@ public class RavioliButton : RavioliButton_Button
             {
                 groupInitialized = true;
                 ResetButtons();
+                programmedSelection.Execute();
             }
         }
     }
@@ -501,6 +513,55 @@ public class RavioliButton : RavioliButton_Button
         else buttons.Remove(button);
     }
     #endregion
+
+    struct ProgrammedSelectButtonAction
+    {
+        public bool isProgrammed;
+        public bool useButtonID;
+        public int buttonID;
+        public RavioliButton_Button button;
+        public bool doMovement;
+        public RavioliButton group;
+
+        public ProgrammedSelectButtonAction(bool isProgrammed, int buttonID,
+            RavioliButton_Button button, bool doMovement, RavioliButton group)
+        {
+            this.isProgrammed = isProgrammed;
+            this.useButtonID = button == null;
+            this.buttonID = buttonID;
+            this.button = button;
+            this.doMovement = doMovement;
+            this.group = group;
+        }
+
+        public void Execute()
+        {
+            if (isProgrammed)
+            {
+                if (useButtonID) group.SelectButton(buttonID, doMovement);
+                else group.SelectButton(button, doMovement);
+                isProgrammed = false;
+            }
+        }
+
+        public void ProgramSelection(RavioliButton group, int id, bool doMovement)
+        {
+            isProgrammed = true;
+            useButtonID = true;
+            buttonID = id;
+            this.doMovement = doMovement;
+            this.group = group;
+        }
+
+        public void ProgramSelection(RavioliButton group, RavioliButton_Button button, bool doMovement)
+        {
+            isProgrammed = true;
+            useButtonID = true;
+            this.button = button;
+            this.doMovement = doMovement;
+            this.group = group;
+        }
+    }
 }
 
 public class RavioliButton_Button : MonoBehaviour
@@ -548,16 +609,19 @@ public class RavioliButton_Button : MonoBehaviour
     #region Internal functions
     void AddMyselfToParentGroups()
     {
-        RavioliButton[] grs = FindObjectsOfType<RavioliButton>();
-        List<RavioliButton> lGrs = new List<RavioliButton>();
-        foreach (RavioliButton gr in grs)
-            if (gr.buttonsParent == transform.parent)
-                lGrs.Add(gr);
+        if ((groups == null) || (groups.Length <= 0))
+        {
+            RavioliButton[] grs = FindObjectsOfType<RavioliButton>();
+            List<RavioliButton> lGrs = new List<RavioliButton>();
+            foreach (RavioliButton gr in grs)
+                if (gr.buttonsParent == transform.parent)
+                    lGrs.Add(gr);
 
-        groups = lGrs.ToArray();
+            groups = lGrs.ToArray();
 
-        foreach (RavioliButton gr in groups)
-            gr.AddButton(this);
+            foreach (RavioliButton gr in groups)
+                gr.AddButton(this);
+        }
     }
 
     void RemoveFromAllGroups()
@@ -586,35 +650,50 @@ public class RavioliButton_Button : MonoBehaviour
         }
     }
 
-    public virtual void PressButtonWith(int id, bool pressParentGroups)
+    public virtual void PressButtonWith_Internal(int id)
     {
-        if ((!pressParentGroups) || (groups == null) || (groups.Length == 0))
-        {
-            if (this.IsActiveAndEnabled() && (id < buttonActions.Length))
-                buttonActions[id]?.Invoke();
-        }
-        else
-        {
-            PressButtonWith(id, false);
-            foreach (RavioliButton group in groups)
-                group.PressButtonGroup(id);
-        }
+        foreach (RavioliButton group in groups)
+            group.PressButtonGroup(id, transform.GetSiblingIndex());
+
+        if (id < buttonActions.Length)
+            buttonActions[id]?.Invoke();
     }
     #endregion
 
     #region Actions
     public void Select()
     {
-        foreach (RavioliButton group in groups)
+        if (this.IsActiveAndEnabled())
         {
-            group.SelectButton(transform.GetSiblingIndex());
-            group.Select();
+            AddMyselfToParentGroups();
+            foreach (RavioliButton group in groups)
+            {
+                group.SelectButton(transform.GetSiblingIndex());
+                group.Select();
+            }
+        }
+    }
+
+    public void SelectInstant()
+    {
+        if (this.IsActiveAndEnabled())
+        {
+            AddMyselfToParentGroups();
+            foreach (RavioliButton group in groups)
+            {
+                group.SelectButtonInstant(transform.GetSiblingIndex());
+                group.SelectInstant();
+            }
         }
     }
 
     public void PressButtonWith(int id)
     {
-        PressButtonWith(id, true);
+        if (this.IsActiveAndEnabled())
+        {
+            AddMyselfToParentGroups();
+            PressButtonWith_Internal(id);
+        }
     }
 
     public void PressButton()

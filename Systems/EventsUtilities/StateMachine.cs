@@ -7,8 +7,7 @@ using UnityEditorInternal;
 
 public class StateMachine : MonoBehaviour
 {
-    [SerializeField]
-    StateMachine connectedStateMachine = null;
+    public StateMachine connectedStateMachine = null;
     [SerializeField]
     [HideInInspector]
     int _currentState = 0;
@@ -18,6 +17,17 @@ public class StateMachine : MonoBehaviour
     private void Awake()
     {
         _initialState = _currentState;
+    }
+
+    public void UpdateStatesFromConnectedMachine()
+    {
+        states = new State[connectedStateMachine.states.Length];
+        stateNames = new string[states.Length];
+        for (int i = 0; i < states.Length; i++)
+        {
+            states[i].name = connectedStateMachine.states[i].name;
+            stateNames[i] = states[i].name;
+        }
     }
 
     public int currentState
@@ -180,6 +190,9 @@ public class StateMachine_Inspector : Editor
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
+        if (obj.connectedStateMachine != null)
+            if (GUILayout.Button("Update states from connected machine"))
+                obj.UpdateStatesFromConnectedMachine();
         obj.currentState = StringPopupAttribute.IntPopup(obj.currentState, target,
             new StringPopupAttribute("stateNames"/*, "stringPairArray"*/), "Current State",
             EditorGUILayout.GetControlRect(), currentState);

@@ -101,7 +101,7 @@ public class BTriggerManager : MonoBehaviour
 
     protected virtual bool CheckCollision(GameObject other)
     {
-        if (detectionTags.Contains(other.tag) || detectionTags == null || detectionTags.Length == 0)
+        if (detectionTags == null || detectionTags.Contains(other.tag) || detectionTags.Length == 0)
             return true;
         else if (checkRigidbodyTag)
         {

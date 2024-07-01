@@ -10,7 +10,7 @@ public class ChildParentEvents_Child : MonoBehaviour
 
     void OnEnable()
     {
-        parents = GetComponentsInParent<ChildParentEvents_Parent>();
+        GetParents();
         for (int i = 0; i < parents.Length; i++)
             parents[i].AddChild(this);
     }
@@ -19,6 +19,12 @@ public class ChildParentEvents_Child : MonoBehaviour
     {
         for (int i = 0; i < parents.Length; i++)
             parents[i].RemoveChild(this);
+    }
+
+    void GetParents()
+    {
+        if (parents == null)
+            parents = GetComponentsInParent<ChildParentEvents_Parent>();
     }
 
     public void CallParentEvent(int index)
@@ -31,6 +37,7 @@ public class ChildParentEvents_Child : MonoBehaviour
                 return;
             }
 
+            GetParents();
             foreach (ChildParentEvents_Parent parent in parents)
                 if (parent.IsActiveAndEnabled() && (parent.parentEvents != null) && (index < parent.parentEvents.Length))
                     parent.parentEvents[index]?.Invoke();
@@ -41,6 +48,7 @@ public class ChildParentEvents_Child : MonoBehaviour
     {
         if (this.IsActiveAndEnabled())
         {
+            GetParents();
             foreach (ChildParentEvents_Parent parent in parents)
                 if (parent.IsActiveAndEnabled() && (parent.parentEvents != null))
                     foreach (DXEvent e in parent.parentEvents)

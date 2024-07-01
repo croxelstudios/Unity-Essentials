@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using UnityEngine.Rendering;
+using Random = UnityEngine.Random;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -31,7 +33,7 @@ public class TransformShake : MonoBehaviour
         set { _intensity = value; }
     }
     [SerializeField]
-    bool only2D = false;
+    Axes axes = new Axes(true, true, true);
     [SerializeField]
     TimeMode timeMode = TimeMode.Update;
     [SerializeField]
@@ -165,11 +167,8 @@ public class TransformShake : MonoBehaviour
     Vector3 SetNewRandomTarget(float amount)
     {
         float doubleAmount = amount * 2f;
-        return only2D ?
-            (Vector3)(new Vector2((Random.value * doubleAmount) - amount,
-            (Random.value * doubleAmount) - amount)) :
-            new Vector3((Random.value * doubleAmount) - amount, (Random.value * doubleAmount) - amount,
-            (Random.value * doubleAmount) - amount);
+        return new Vector3(axes.x ? (Random.value * doubleAmount) - amount : 0f, axes.y ? (Random.value * doubleAmount) - amount : 0f,
+            axes.z ? (Random.value * doubleAmount) - amount : 0f);
     }
 
     IEnumerator BackToDefault()
@@ -190,5 +189,20 @@ public class TransformShake : MonoBehaviour
     {
         //return smooth / amount; //Relative
         return smooth; //Absolute
+    }
+
+    [Serializable]
+    struct Axes
+    {
+        public bool x;
+        public bool y;
+        public bool z;
+
+        public Axes(bool x, bool y, bool z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
     }
 }
