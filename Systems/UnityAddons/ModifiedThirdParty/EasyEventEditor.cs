@@ -45,6 +45,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System;
+using Object = UnityEngine.Object;
 
 namespace Merlin
 {
@@ -95,6 +97,7 @@ namespace Merlin
             }
         }
 
+        
         static EasyEventEditorHandler()
         {
             EditorApplication.update += OnEditorUpdate;
@@ -130,7 +133,7 @@ namespace Merlin
             // Save for later in case we need to lookup the function to populate the attributes
             attributeUtilityType = scriptAttributeUtilityType;
 
-            FieldInfo info = scriptAttributeUtilityType.GetField("s_DrawerTypeForType", BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo info = scriptAttributeUtilityType.GetField("k_DrawerTypeForType", BindingFlags.NonPublic | BindingFlags.Static);
 
             if (info == null)
             {
@@ -235,7 +238,7 @@ namespace Merlin
                 }
             }
         }
-
+        
         // Applies patch to Unity's builtin tracking for Drawers to redirect any drawers for Unity Events to our EasyEventDrawer instead.
         private static void ApplyEventDrawerPatch(bool enableOverride)
         {
@@ -244,10 +247,11 @@ namespace Merlin
 
             if (enableOverride)
             {
-                System.Type[] mapArgs = drawerTypeMap.FieldType.GetGenericArguments();
+                Type[] mapArgs = drawerTypeMap.FieldType.GetGenericArguments();
+                mapArgs = mapArgs[0].GetGenericArguments();
 
-                System.Type keyType = mapArgs[0];
-                System.Type valType = mapArgs[1];
+                Type keyType = mapArgs[0];
+                Type valType = mapArgs[1].GetElementType();
 
                 if (keyType == null || valType == null)
                 {
@@ -255,8 +259,8 @@ namespace Merlin
                     return;
                 }
 
-                FieldInfo drawerField = valType.GetField("drawer", BindingFlags.Public | BindingFlags.Instance);
-                FieldInfo typeField = valType.GetField("type", BindingFlags.Public | BindingFlags.Instance);
+                FieldInfo drawerField = valType.GetField("drawerType", BindingFlags.Public | BindingFlags.Instance);
+                FieldInfo typeField = valType.GetFields()[1];
 
                 if (drawerField == null || typeField == null)
                 {
@@ -264,11 +268,13 @@ namespace Merlin
                     return;
                 }
 
-                IDictionary drawerTypeMapDict = drawerTypeMap.GetValue(null) as IDictionary;
+                object obj = drawerTypeMap.GetValue(null);
+                IDictionary drawerTypeMapDict =
+                    (IDictionary)drawerTypeMap.FieldType.GetProperty("Value").GetValue(obj);
 
                 if (drawerTypeMapDict == null)
                 {
-                    MethodInfo popAttributesFunc = attributeUtilityType.GetMethod("BuildDrawerTypeForTypeDictionary", BindingFlags.NonPublic | BindingFlags.Static);
+                    MethodInfo popAttributesFunc = attributeUtilityType.GetMethod("TryExtractDrawerTypeForTypeFromCache", BindingFlags.NonPublic | BindingFlags.Static);
 
                     if (popAttributesFunc == null)
                     {
@@ -276,10 +282,13 @@ namespace Merlin
                         return;
                     }
 
-                    popAttributesFunc.Invoke(null, new object[] { });
+                    Type foo = typeof(EasyEventEditorDrawer);
+                    popAttributesFunc.Invoke(null, new object[] { false, false, foo, foo });
 
                     // Try again now that this should be populated
-                    drawerTypeMapDict = drawerTypeMap.GetValue(null) as IDictionary;
+                    obj = drawerTypeMap.GetValue(null);
+                    drawerTypeMapDict =
+                        (IDictionary)drawerTypeMap.FieldType.GetProperty("Value").GetValue(obj);
                     if (drawerTypeMapDict == null)
                     {
                         Debug.LogError("Could not get dictionary for drawer types!");
@@ -288,31 +297,34 @@ namespace Merlin
                 }
 
                 // Replace EventDrawer handles with our custom drawer
-                List<object> keysToRecreate = new List<object>();
+                Dictionary<object, int> keysToRecreate = new Dictionary<object, int>();
 
                 foreach (DictionaryEntry entry in drawerTypeMapDict)
                 {
-                    System.Type drawerType = (System.Type)drawerField.GetValue(entry.Value);
-
-                    if (drawerType.Name == "UnityEventDrawer")
+                    IList list = (IList)entry.Value;
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        keysToRecreate.Add(entry.Key);
+                        System.Type drawerType = (System.Type)drawerField.GetValue(list[i]);
+
+                        if (drawerType.Name == "UnityEventDrawer")
+                        {
+                            keysToRecreate.Add(entry.Key, i);
+                        }
                     }
                 }
 
-                foreach (object keyToKill in keysToRecreate)
-                {
-                    drawerTypeMapDict.Remove(keyToKill);
-                }
-
                 // Recreate these key-value pairs since they are structs
-                foreach (object keyToRecreate in keysToRecreate)
+                foreach (KeyValuePair<object, int> keyToRecreate in keysToRecreate)
                 {
                     object newValMapping = System.Activator.CreateInstance(valType);
-                    typeField.SetValue(newValMapping, (System.Type)keyToRecreate);
+
+                    IList dicList = ((IList)drawerTypeMapDict[keyToRecreate.Key]);
+                    typeField.SetValue(newValMapping, typeField.GetValue(dicList[keyToRecreate.Value]));
                     drawerField.SetValue(newValMapping, typeof(EasyEventEditorDrawer));
 
-                    drawerTypeMapDict.Add(keyToRecreate, newValMapping);
+                    dicList[keyToRecreate.Value] = newValMapping;
+                    drawerTypeMapDict.Remove(keyToRecreate.Key);
+                    drawerTypeMapDict.Add(keyToRecreate.Key, dicList);
                 }
             }
             else
@@ -332,6 +344,8 @@ namespace Merlin
             // Clear caches to force event drawers to refresh immediately.
             ClearPropertyCaches();
         }
+
+
 
         public static void ApplyEventPropertyDrawerPatch(bool forceApply = false)
         {
@@ -420,7 +434,7 @@ namespace Merlin
                     if (EditorGUI.EndChangeCheck())
                     {
                         EasyEventEditorHandler.SetEditorSettings(settings);
-                        EasyEventEditorHandler.ApplyEventPropertyDrawerPatch(true);
+                        //EasyEventEditorHandler.ApplyEventPropertyDrawerPatch(true); //APPLY
                     }
 
                 },

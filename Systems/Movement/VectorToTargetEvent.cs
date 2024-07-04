@@ -89,6 +89,9 @@ public class VectorToTargetEvent : MonoBehaviour
     [Tooltip("Minimum distance to the target before the resulting vector becomes zero.")]
     float margin = 0.01f;
     [SerializeField]
+    [ShowIf("@move && !rotate")]
+    bool reorientTransform = false;
+    [SerializeField]
     [ShowIf("move")]
     [Tooltip("Resulting movement vector in units per second")]
     DXVectorEvent vector = null;
@@ -407,7 +410,10 @@ public class VectorToTargetEvent : MonoBehaviour
                     vector?.Invoke(result);
                     if (moveTransform)
                         origin.Translate(result * deltaTime, local ? Space.Self : Space.World);
+                    if (reorientTransform)
+                        origin.forward = result;
                 }
+
             }
 
             if (rotate)

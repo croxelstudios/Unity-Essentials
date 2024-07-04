@@ -12,7 +12,9 @@ public struct TransformData
         get { return Quaternion.Euler(eulerAngles); }
         set { eulerAngles = value.eulerAngles; }
     }
-    public Vector3 lossyScale
+    public Vector3 lossyScale;
+    //TO DO: Doesn't work when rotated
+    /*
     {
         get
         {
@@ -20,6 +22,7 @@ public struct TransformData
             else return Vector3.Scale(localScale, parent.lossyScale);
         }
     }
+    */
     public Transform parent;
 
     public TransformData(Transform source, bool locally = false)
@@ -28,14 +31,14 @@ public struct TransformData
         {
             position = source.localPosition;
             eulerAngles = source.localEulerAngles;
-            localScale = source.localScale;
         }
         else
         {
             position = source.position;
             eulerAngles = source.eulerAngles;
-            localScale = source.lossyScale;
         }
+        localScale = source.localScale;
+        lossyScale = source.lossyScale;
         parent = source.parent;
     }
 
@@ -43,7 +46,7 @@ public struct TransformData
     {
         this.position = position;
         eulerAngles = rotation.eulerAngles;
-        this.localScale = localScale;
+        lossyScale = this.localScale = localScale;
         parent = null;
     }
 
@@ -51,7 +54,7 @@ public struct TransformData
     {
         this.position = position;
         this.eulerAngles = eulerAngles;
-        this.localScale = localScale;
+        lossyScale = this.localScale = localScale;
         parent = null;
     }
 
@@ -60,6 +63,7 @@ public struct TransformData
         this.position = position;
         eulerAngles = rotation.eulerAngles;
         this.localScale = localScale;
+        lossyScale = Vector3.Scale(localScale, parent.lossyScale);
         this.parent = parent;
     }
 
@@ -68,6 +72,7 @@ public struct TransformData
         this.position = position;
         this.eulerAngles = eulerAngles;
         this.localScale = localScale;
+        lossyScale = Vector3.Scale(localScale, parent.lossyScale);
         this.parent = parent;
     }
 

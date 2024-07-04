@@ -17,14 +17,14 @@ public class CustomTag_Colored : CustomTag
 
     public void UpdateTagList()
     {
-        tagList = coloredTagList;
+        item.tagList = coloredTagList;
         LaunchEvents();
     }
 
     public void LaunchEvents()
     {
-        launchTagID?.Invoke(customTag);
-        launchColor?.Invoke(coloredTagList.coloredTags[customTag].color);
+        launchTagID?.Invoke(item.customTag);
+        launchColor?.Invoke(coloredTagList.coloredTags[item.customTag].color);
     }
 
     [StringPopup(new string[] { "tagList", "tags" })]
@@ -47,7 +47,7 @@ public class CustomTag_Colored_Inspector : OdinEditor
     protected override void OnEnable()
     {
         coloredTagList = Tree.GetPropertyAtPath("coloredTagList");
-        customTag = serializedObject.FindProperty("customTag");
+        customTag = serializedObject.FindProperty("item").FindPropertyRelative("customTag");
         launchTagID = Tree.GetPropertyAtPath("launchTagID");
         launchColor = Tree.GetPropertyAtPath("launchColor");
     }

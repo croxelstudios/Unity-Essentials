@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 
 //TO DO: Micro-optimize by saving the button values in a static dictionary so that
 //other launchers with the same input are not checking it twice (or a similar solution)
-public class BInputEventLauncher : MonoBehaviour
+public class BInputEventLauncherr : MonoBehaviour
 {
     [SerializeField]
     ScaledTimeMode checkTime = ScaledTimeMode.Update;

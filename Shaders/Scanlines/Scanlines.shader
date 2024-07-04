@@ -2,7 +2,7 @@
 
 	Properties
 	{
-		_MainTex("_Color", 2D) = "white" {}
+		_Texture2D("Texture", 2D) = "white" {}
 		_AmountOfLines("Amount of Lines", Float) = 4
 		_Hardness("Hardness", Float) = 0.9
 		_Speed("Displacement Speed", Float) = 0.1
@@ -37,7 +37,7 @@
 				float4 scr_pos : TEXCOORD1;
 			};
 
-			sampler2D _MainTex;
+			sampler2D _Texture2D;
 			float _AmountOfLines;
 			float _Hardness;
 			float _Speed;
@@ -56,7 +56,7 @@
 
 			half4 frag(v2f i) : COLOR
 			{
-				half4 color = tex2D(_MainTex, i.uv); //TO DO: Add _Color functionality maybe
+				half4 color = tex2D(_Texture2D, i.uv); //TO DO: Add _Color functionality maybe
 				//Get line size in pixels, use _LineWidth directly for measuring in pixels instead of percentage
 				fixed lineSize = _ScreenParams.y / _AmountOfLines;
 				//Displacement in pixels per second

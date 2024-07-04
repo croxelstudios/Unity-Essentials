@@ -2,36 +2,83 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using Unity.VisualScripting;
 
 public class CustomTag : MonoBehaviour
 {
     //[SerializeField]
     //bool _enabled = true;
     //public new bool enabled { get { return _enabled; } set { _enabled = value; } }
-    public StringList tagList;
-    [StringPopup(new string[] { "tagList", "tags" })]
-    public int customTag;
+    public CustomTagItem item;
 
+    #region Statics
     public static Dictionary<StringList, Dictionary<int, List<CustomTag>>> activeTagged { get; private set; }
+    
+    public static void AddActiveTaggedObj(CustomTagItem item, CustomTag customTag)
+    {
+        if (activeTagged == null)
+            activeTagged = new Dictionary<StringList, Dictionary<int, List<CustomTag>>>();
+        if (!activeTagged.ContainsKey(item.tagList))
+            activeTagged.Add(item.tagList, new Dictionary<int, List<CustomTag>>());
+        if (!activeTagged[item.tagList].ContainsKey(item.customTag))
+            activeTagged[item.tagList].Add(item.customTag, new List<CustomTag>());
+        if (!activeTagged[item.tagList][item.customTag].Contains(customTag))
+            activeTagged[item.tagList][item.customTag].Add(customTag);
+    }
+
+    public static void AddActiveTaggedObj(CustomTag customTag)
+    {
+        AddActiveTaggedObj(customTag.item, customTag);
+    }
+
+    public static void RemoveActiveTaggedObj(CustomTagItem item, CustomTag customTag)
+    {
+        if (IsItemActiveTagged(item) &&
+            activeTagged[item.tagList][item.customTag].Contains(customTag))
+            activeTagged[item.tagList][item.customTag].Remove(customTag);
+    }
+
+    public static void RemoveActiveTaggedObj(CustomTag customTag)
+    {
+        RemoveActiveTaggedObj(customTag.item, customTag);
+    }
+
+    public static bool IsItemActiveTagged(CustomTagItem item)
+    {
+        return (activeTagged != null) &&
+            activeTagged.ContainsKey(item.tagList) &&
+            activeTagged[item.tagList].ContainsKey(item.customTag);
+    }
+
+    public static List<CustomTag> GetActiveTagged(CustomTagItem item)
+    {
+        if (!IsItemActiveTagged(item)) return null;
+        else return activeTagged[item.tagList][item.customTag];
+    }
+    #endregion
+
+    bool AmIActiveTagged(CustomTagItem item)
+    {
+        return IsItemActiveTagged(item) &&
+            activeTagged[item.tagList][item.customTag].Contains(this);
+    }
+
+    public bool AmIActiveTagged()
+    {
+        return AmIActiveTagged(item);
+    }
+
     public GameObject[] includedGameObjects { get; private set; }
 
     void OnEnable()
     {
-        if (activeTagged == null) activeTagged = new Dictionary<StringList, Dictionary<int, List<CustomTag>>>();
-        if (!activeTagged.ContainsKey(tagList)) activeTagged.Add(tagList, new Dictionary<int, List<CustomTag>>());
-        if (!activeTagged[tagList].ContainsKey(customTag)) activeTagged[tagList].Add(customTag, new List<CustomTag>());
-        if (!activeTagged[tagList][customTag].Contains(this)) activeTagged[tagList][customTag].Add(this);
-
+        AddActiveTaggedObj(this);
         includedGameObjects = GetChildren(transform).ToArray();
     }
 
     void OnDisable()
     {
-        if ((activeTagged != null) &&
-            (activeTagged.ContainsKey(tagList)) &&
-            (activeTagged[tagList].ContainsKey(customTag)) &&
-            (activeTagged[tagList][customTag].Contains(this)))
-            activeTagged[tagList][customTag].Remove(this);
+        RemoveActiveTaggedObj(this);
     }
 
     List<GameObject> GetChildren(Transform tr)
@@ -44,27 +91,10 @@ public class CustomTag : MonoBehaviour
         return list;
     }
 
-    //[SerializeField]
-    //string newCustomTag;
-
-    //public void AddTag()
-    //{
-    //    if(tagList)
-    //        tagList.AddTag(ref newCustomTag);
-    //}
-
-    //public bool Exists()
-    //{
-    //    if (tagList)
-    //        return tagList.TagExists(newCustomTag);
-    //    else
-    //        return false;
-    //}
-
-    [StringPopup(new string[] { "tagList", "tags" })]
+    [StringPopup(new string[] { "item", "tagList", "tags" })]
     public virtual void SwitchTag(int newTag)
     {
-        customTag = newTag;
+        item.customTag = newTag;
     }
 }
 
@@ -81,37 +111,51 @@ public static class CustomTagExtension_Contains
 [Serializable]
 [Sirenix.OdinInspector.InlineProperty]
 [Sirenix.OdinInspector.HideLabel]
-public struct CustomTagItem
+public struct CustomTagItem : IEquatable<CustomTagItem>
 {
     public StringList tagList;
     [StringPopup(new string[] { "tagList", "tags" })]
     public int customTag;
 
-    //public string newCustomTag;
+    public CustomTagItem(StringList tagList, int customTag)
+    {
+        this.tagList = tagList;
+        this.customTag = customTag;
+    }
 
-    //[Button]
-    //public void AddTag()
-    //{
-    //    if (tagList && !Exists())
-    //        tagList.AddTag(ref newCustomTag);
-    //}
+    public override bool Equals(object other)
+    {
+        if (!(other is CustomTagItem)) return false;
+        return Equals((CustomTagItem)other);
+    }
 
-    //public bool Exists()
-    //{
+    public bool Equals(CustomTagItem other)
+    {
+        return (tagList == other.tagList)
+            && (customTag == other.customTag);
+    }
 
-    //    if (tagList)
-    //        return tagList.TagExists(newCustomTag);
-    //    else
-    //        return false;
-    //}
+    public override int GetHashCode()
+    {
+        return tagList.GetHashCode() * 31 + customTag.GetHashCode();
+    }
+
+    public static bool operator ==(CustomTagItem o1, CustomTagItem o2)
+    {
+        return o1.Equals(o2);
+    }
+
+    public static bool operator !=(CustomTagItem o1, CustomTagItem o2)
+    {
+        return !o1.Equals(o2);
+    }
 
     public bool Check(GameObject other)
     {
         if (tagList == null) return true;
 
-        if (CustomTag.activeTagged.ContainsKey(tagList) &&
-            CustomTag.activeTagged[tagList].ContainsKey(customTag) &&
-            CustomTag.activeTagged[tagList][customTag].Contains(other))
+        if (CustomTag.IsItemActiveTagged(this) &&
+            CustomTag.GetActiveTagged(this).Contains(other))
             return true;
         else return false;
     }
@@ -124,8 +168,7 @@ public struct CustomTagItem
         CustomTag[] tagComponents = other.GetComponentsInParent<CustomTag>(includeInactive);
         foreach (CustomTag tagComponent in tagComponents)
         {
-            if ((tagComponent.tagList == tagList) &&
-                (customTag == tagComponent.customTag))
+            if (Equals(tagComponent.item))
             {
                 hasTag = true;
                 break;
@@ -151,23 +194,25 @@ public struct CustomTagItems
     [StringPopup(new string[] { "tagList", "tags" })]
     public int[] customTags;
 
-    //public string newCustomTag;
+    public CustomTagItem GetCustomTag(int id)
+    {
+        return new CustomTagItem(tagList, id);
+    }
 
-    //[Button]
-    //public void AddTag()
-    //{
-    //    if (tagList && !Exists())
-    //        tagList.AddTag(ref newCustomTag);
-    //}
-
-    //public bool Exists()
-    //{
-
-    //    if (tagList)
-    //        return tagList.TagExists(newCustomTag);
-    //    else
-    //        return false;
-    //}
+    public bool IsInList()
+    {
+        bool hasTag = false;
+        foreach (int tag in customTags)
+        {
+            CustomTagItem item = GetCustomTag(tag);
+            if (CustomTag.IsItemActiveTagged(item))
+            {
+                hasTag = true;
+                break;
+            }
+        }
+        return hasTag;
+    }
 
     public bool Check(GameObject other)
     {
@@ -176,9 +221,9 @@ public struct CustomTagItems
         bool hasTag = false;
         foreach (int tag in customTags)
         {
-            if (CustomTag.activeTagged.ContainsKey(tagList) &&
-                CustomTag.activeTagged[tagList].ContainsKey(tag) &&
-                CustomTag.activeTagged[tagList][tag].Contains(other))
+            CustomTagItem item = GetCustomTag(tag);
+            if (CustomTag.IsItemActiveTagged(item) &&
+                CustomTag.GetActiveTagged(item).Contains(other))
             {
                 hasTag = true;
                 break;
@@ -196,8 +241,8 @@ public struct CustomTagItems
         CustomTag[] tagComponents = other.GetComponentsInParent<CustomTag>(true);
         foreach (CustomTag tagComponent in tagComponents)
         {
-            if (tagComponent.enabled && (tagComponent.tagList == tagList) &&
-                customTags.Contains(tagComponent.customTag))
+            if (tagComponent.enabled && (tagComponent.item.tagList == tagList) &&
+                customTags.Contains(tagComponent.item.customTag))
             {
                 hasTag = true;
                 break;

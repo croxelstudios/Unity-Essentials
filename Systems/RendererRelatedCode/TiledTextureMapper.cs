@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Sirenix.OdinInspector;
+using UnityEngine;
 
 [ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
@@ -7,40 +8,59 @@ public class TiledTextureMapper : MonoBehaviour
     MeshFilter filter;
 
     [SerializeField]
+    bool disableInEditor = true;
+    [SerializeField]
     bool applyWorldPosition = false;
     [SerializeField]
     bool applyRotation = false;
     [SerializeField]
     bool applyScale = true;
-    [SerializeField]
-    bool update = false;
 
     Mesh originalMesh;
+    [SerializeField]
+    [HideInInspector]
     Mesh modifiedMesh;
+    TransformData prev;
 
     void OnEnable()
     {
         filter = GetComponent<MeshFilter>();
-        UpdateMeshes();
+        prev = new TransformData(transform);
+        UpdateMesh();
     }
 
     void Update()
     {
-        if (update) UpdateMeshes();
-        else if (filter.sharedMesh != originalMesh) UpdateMeshes();
+        if (CheckChanges())
+            UpdateMesh();
+    }
+
+    bool CheckChanges()
+    {
+        if (applyScale && (prev.lossyScale != transform.lossyScale)) return true;
+        if (applyRotation && (prev.rotation != transform.rotation)) return true;
+        if (applyWorldPosition && (prev.position != transform.position)) return true;
+        if ((filter.sharedMesh != originalMesh) && (filter.sharedMesh != modifiedMesh)) return true;
+        return false;
     }
 
     void OnWillRenderObject()
     {
-        filter.sharedMesh = modifiedMesh;
+#if UNITY_EDITOR
+        if ((!disableInEditor) || Application.isPlaying)
+#endif
+            filter.sharedMesh = modifiedMesh;
     }
 
     void OnRenderObject()
     {
-        filter.sharedMesh = originalMesh;
+#if UNITY_EDITOR
+        if ((!disableInEditor) || Application.isPlaying)
+#endif
+            filter.sharedMesh = originalMesh;
     }
 
-    void UpdateMeshes()
+    void UpdateMesh()
     {
         DestroyImmediate(modifiedMesh);
         if (filter.sharedMesh != null) originalMesh = filter.sharedMesh;
@@ -61,6 +81,13 @@ public class TiledTextureMapper : MonoBehaviour
         modifiedMesh.uv = uv;
     }
 
+    [Button("Update Mesh")]
+    public void _UpdateMesh()
+    {
+        UpdateMesh();
+        filter.sharedMesh = modifiedMesh;
+    }
+
     Mesh CopyMesh(Mesh mesh)
     {
         Mesh newMesh = new Mesh();
@@ -70,6 +97,7 @@ public class TiledTextureMapper : MonoBehaviour
         newMesh.normals = mesh.normals;
         newMesh.colors = mesh.colors;
         newMesh.tangents = mesh.tangents;
+        newMesh.name = "New_" + mesh.name;
         return newMesh;
     }
 }
