@@ -33,7 +33,7 @@ public class TransformShake : MonoBehaviour
         set { _intensity = value; }
     }
     [SerializeField]
-    Axes axes = new Axes(true, true, true);
+    AxisBooleans axes = new AxisBooleans(true, true, true);
     [SerializeField]
     TimeMode timeMode = TimeMode.Update;
     [SerializeField]
@@ -189,20 +189,5 @@ public class TransformShake : MonoBehaviour
     {
         //return smooth / amount; //Relative
         return smooth; //Absolute
-    }
-
-    [Serializable]
-    struct Axes
-    {
-        public bool x;
-        public bool y;
-        public bool z;
-
-        public Axes(bool x, bool y, bool z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
     }
 }

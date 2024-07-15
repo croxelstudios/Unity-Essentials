@@ -65,7 +65,7 @@ public class RenderersSetFloat : BRenderersSetProperty
         base.VResetProperty(rend, mat);
     }
 
-    public void SetFloat(float n)
+    public virtual void SetFloat(float n)
     {
         value = n;
     }

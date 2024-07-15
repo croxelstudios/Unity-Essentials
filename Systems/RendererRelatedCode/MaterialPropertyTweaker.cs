@@ -83,9 +83,19 @@ public class MaterialPropertyTweaker : MonoBehaviour
         fValue = value;
     }
 
+    public float GetFloat()
+    {
+        return fValue;
+    }
+
     public void SetVector(Vector4 value)
     {
         vValue = value;
+    }
+
+    public Vector4 GetVector()
+    {
+        return vValue;
     }
 
     public void SetVector(Vector3 value)
@@ -103,9 +113,19 @@ public class MaterialPropertyTweaker : MonoBehaviour
         iValue = value;
     }
 
+    public int GetInt()
+    {
+        return iValue;
+    }
+
     public void SetTexture(Texture texture)
     {
         tObject = texture;
+    }
+
+    public Texture GetTexture()
+    {
+        return tObject;
     }
 
     enum PropertyType { Float, Int, Color, Vector, Texture };

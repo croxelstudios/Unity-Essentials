@@ -9,11 +9,12 @@ public class RenderersSetColor_Blink : RenderersSetColor
     [SerializeField]
     float duration = 0.1f;
     [SerializeField]
-    Color targetColor = Color.white;
-    [SerializeField]
     Color defaultColor = Color.clear;
+    [SerializeField]
+    Color targetColor = Color.white;
 
     Coroutine co;
+
     protected override void Init()
     {
         color = defaultColor;
@@ -21,10 +22,19 @@ public class RenderersSetColor_Blink : RenderersSetColor
         base.Init();
     }
 
+    protected override void UpdateBehaviour()
+    {
+        bool ur = updateRenderers;
+        updateRenderers = false;
+        base.UpdateBehaviour();
+        updateRenderers = ur;
+    }
+
     public void Blink()
     {
         if (this.IsActiveAndEnabled())
         {
+            if (updateRenderers) UpdateRenderersInternal();
             if (co != null)
             {
                 StopCoroutine(co);

@@ -15,6 +15,8 @@ public class DXVectorEvent
     [SerializeField]
     Vector2Event vector2Event = null;
     [SerializeField]
+    Vector2Event vector2XZEvent = null;
+    [SerializeField]
     FloatEvent magnitude = null;
     [SerializeField]
     Vector3Event unityEventNormal = null;
@@ -42,7 +44,7 @@ public class DXVectorEvent
 
     public enum EventType
     {
-        Vector3, Vector2, Magnitude,
+        Vector3, Vector2, Vector2XZ, Magnitude,
         NormalizedVector3, NormalizedVector2, X, Y, Z, 
         MagnitudeNonZero, MagnitudeZero
     }
@@ -51,6 +53,7 @@ public class DXVectorEvent
     {
         bool hasVector3 = false;
         bool hasVector2 = false;
+        bool hasVector2XZ = false;
         bool hasMagnitude = false;
         bool hasNormalizedVector3 = false;
         bool hasNormalizedVector2 = false;
@@ -68,6 +71,9 @@ public class DXVectorEvent
                     break;
                 case EventType.Vector2:
                     hasVector2 = true;
+                    break;
+                case EventType.Vector2XZ:
+                    hasVector2XZ = true;
                     break;
                 case EventType.Magnitude:
                     hasMagnitude = true;
@@ -100,6 +106,8 @@ public class DXVectorEvent
             unityEvent?.Invoke(arg0);
         if (hasVector2)
             vector2Event?.Invoke(arg0);
+        if (hasVector2XZ)
+            vector2XZEvent?.Invoke(new Vector2(arg0.x, arg0.z));
         if (hasMagnitude)
             magnitude?.Invoke(arg0.magnitude);
         if (hasNormalizedVector3)
@@ -182,6 +190,7 @@ public class DXVectorEventDrawer : DXDrawerBase
 {
     const string eventTypesName = "types";
     const string vector2EventName = "vector2Event";
+    const string vector2XZEventName = "vector2XZEvent";
     const string magnitudeEventName = "magnitude";
     const string vector3NormalEventName = "unityEventNormal";
     const string vector2NormalEventName = "vector2EventNormal";
@@ -239,6 +248,9 @@ public class DXVectorEventDrawer : DXDrawerBase
                     break;
                 case (int)DXVectorEvent.EventType.Vector2:
                     eventRect = DrawSubEvent(eventRect, property, vector2EventName, "     ");
+                    break;
+                case (int)DXVectorEvent.EventType.Vector2XZ:
+                    eventRect = DrawSubEvent(eventRect, property, vector2XZEventName, "     ");
                     break;
                 case (int)DXVectorEvent.EventType.Magnitude:
                     eventRect = DrawSubEvent(eventRect, property, magnitudeEventName, "             ");
@@ -327,6 +339,9 @@ public class DXVectorEventDrawer : DXDrawerBase
                     break;
                 case (int)DXVectorEvent.EventType.Vector2:
                     height += GetHeightOfEvent(property, vector2EventName);
+                    break;
+                case (int)DXVectorEvent.EventType.Vector2XZ:
+                    height += GetHeightOfEvent(property, vector2XZEventName);
                     break;
                 case (int)DXVectorEvent.EventType.Magnitude:
                     height += GetHeightOfEvent(property, magnitudeEventName);

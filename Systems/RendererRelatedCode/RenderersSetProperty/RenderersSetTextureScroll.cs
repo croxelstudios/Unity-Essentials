@@ -16,6 +16,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
 
     Vector2 direction;
     Vector2 currentOffset;
+
     protected override void Init()
     {
         if (propertyName == "") propertyName = "_MainTex";
