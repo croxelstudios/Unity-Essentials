@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class Collider_OverlapPoint
+public static class ColliderExtension_OverlapPoint
 {
     public static bool OverlapPoint(this Collider c, Vector3 point, bool useRigidbody = false)
     {

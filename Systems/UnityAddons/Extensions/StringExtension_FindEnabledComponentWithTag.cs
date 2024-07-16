@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class String_FindEnabledComponentWithTag
+public static class StringExtension_FindEnabledComponentWithTag
 {
     public static T FindComponentWithTag<T>(this string tag, bool onlyEnabled = true)
         where T : Behaviour

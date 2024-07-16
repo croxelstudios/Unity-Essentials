@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class Quaternion_SmoothDamp
+public static class QuaternionExtension_SmoothDamp
 {
 	public static Quaternion SmoothDamp(this Quaternion rot, Quaternion target, ref Quaternion deriv, float time, float maxSpeed, float deltaTime)
 	{

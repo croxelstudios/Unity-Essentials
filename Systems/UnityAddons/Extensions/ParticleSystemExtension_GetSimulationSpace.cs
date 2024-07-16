@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class ParticleSystem_GetSimulationSpace
+public static class ParticleSystemExtension_GetSimulationSpace
 {
     public static Transform GetSimulationSpace(this ParticleSystem system)
     {
