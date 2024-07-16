@@ -74,20 +74,20 @@ public class BRemoteLauncher : MonoBehaviour
 
     protected T[] FilterByTag<T>(string tag) where T : Component
     {
-        List<T> multiZooms = new List<T>();
-        multiZooms.AddRange(FindObjectsOfType<T>());
-        for (int i = multiZooms.Count - 1; i > -1; i--)
-            if (multiZooms[i].tag != tag) multiZooms.RemoveAt(i);
-        return multiZooms.ToArray();
+        List<T> comp = new List<T>();
+        comp.AddRange(FindObjectsOfType<T>());
+        for (int i = comp.Count - 1; i > -1; i--)
+            if (comp[i].tag != tag) comp.RemoveAt(i);
+        return comp.ToArray();
     }
 
     protected T[] FilterByTags<T>(string[] tags) where T : Component
     {
-        List<T> multiZooms = new List<T>();
-        multiZooms.AddRange(FindObjectsOfType<T>());
-        for (int i = multiZooms.Count - 1; i > -1; i--)
-            if (!tags.Contains(multiZooms[i].tag)) multiZooms.RemoveAt(i);
-        return multiZooms.ToArray();
+        List<T> comp = new List<T>();
+        comp.AddRange(FindObjectsOfType<T>());
+        for (int i = comp.Count - 1; i > -1; i--)
+            if (!tags.Contains(comp[i].tag)) comp.RemoveAt(i);
+        return comp.ToArray();
     }
 
     T[] ComponentToTypeArray<T>(Component[] origin) where T : Component

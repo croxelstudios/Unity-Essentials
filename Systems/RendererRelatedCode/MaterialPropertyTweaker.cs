@@ -31,14 +31,48 @@ public class MaterialPropertyTweaker : MonoBehaviour
     [HideInInspector]
     Texture tObject = null;
 
+    float ofValue = 0f;
+    int oiValue = 0;
+    Color ocValue = Color.white;
+    Vector4 ovValue = Vector4.zero;
+    Texture otObject = null;
+
     void OnEnable()
     {
+        SaveOriginal();
         SetProperty();
+    }
+
+    void OnDisable()
+    {
+        ResetProperty();
     }
 
     void Update()
     {
         if (update) SetProperty();
+    }
+
+    void SaveOriginal()
+    {
+        switch (type)
+        {
+            case PropertyType.Float:
+                ofValue = material.GetFloat(propertyName);
+                break;
+            case PropertyType.Int:
+                oiValue = material.GetInt(propertyName);
+                break;
+            case PropertyType.Color:
+                ocValue = material.GetColor(propertyName);
+                break;
+            case PropertyType.Vector:
+                ovValue = material.GetVector(propertyName);
+                break;
+            case PropertyType.Texture:
+                otObject = material.GetTexture(propertyName);
+                break;
+        }
     }
 
     void SetProperty()
@@ -61,6 +95,31 @@ public class MaterialPropertyTweaker : MonoBehaviour
                     break;
                 case PropertyType.Texture:
                     material.SetTexture(propertyName, tObject);
+                    break;
+            }
+        }
+    }
+
+    void ResetProperty()
+    {
+        if ((material != null) && material.HasProperty(propertyName))
+        {
+            switch (type)
+            {
+                case PropertyType.Float:
+                    material.SetFloat(propertyName, ofValue);
+                    break;
+                case PropertyType.Int:
+                    material.SetInt(propertyName, oiValue);
+                    break;
+                case PropertyType.Color:
+                    material.SetColor(propertyName, ocValue);
+                    break;
+                case PropertyType.Vector:
+                    material.SetVector(propertyName, ovValue);
+                    break;
+                case PropertyType.Texture:
+                    material.SetTexture(propertyName, otObject);
                     break;
             }
         }

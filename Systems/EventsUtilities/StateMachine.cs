@@ -115,8 +115,9 @@ public class StateMachine : MonoBehaviour
                 connectedStateMachine.SwitchState(newState);
             if (_currentState < states.Length)
             {
-                foreach (GameObject obj in states[_currentState].linkedObjects)
-                    obj.SetActive(true);
+                if (states[_currentState].linkedObjects != null)
+                    foreach (GameObject obj in states[_currentState].linkedObjects)
+                        obj.SetActive(true);
                 states[_currentState].enter?.Invoke();
             }
         }
