@@ -413,7 +413,6 @@ public class VectorToTargetEvent : MonoBehaviour
                     if (reorientTransform)
                         origin.forward = result;
                 }
-
             }
 
             if (rotate)
@@ -573,5 +572,6 @@ public class VectorToTargetEvent : MonoBehaviour
     {
         Vector3 dif = target.position - origin.position;
         origin.Translate(dif, Space.World);
+        speed = Vector3.zero;
     }
 }
