@@ -3,12 +3,13 @@ using Sirenix.OdinInspector;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Canvas))]
-public class CanvasLookForCamera : MonoBehaviour
+public class CanvasCamera_ByTag : MonoBehaviour
 {
     [SerializeField]
     [TagSelector]
     [OnValueChanged("SetCamera")]
     string cameraTag = "MainCamera";
+    //TO DO: Extra tags?
 
     Canvas canv;
 
@@ -21,7 +22,7 @@ public class CanvasLookForCamera : MonoBehaviour
 
     void SetCamera()
     {
-        Camera cam = cameraTag.FindComponentWithTag<Camera>();
+        Camera cam = FindWithTag.OnlyEnabled<Camera>(cameraTag);
 
         if (cam != null)
         {

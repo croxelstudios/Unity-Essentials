@@ -431,6 +431,54 @@ public struct NDCollider
         return GetNDCollidersFrom(tr.gameObject, scope);
     }
 
+    public static NDCollider Find<T>(Dictionary<NDCollider, T> dictionary, NDCollider collider)
+    {
+        NDCollider found = new NDCollider();
+        foreach (KeyValuePair<NDCollider, T> entry in dictionary)
+        {
+            if (entry.Key.IsEqual(collider))
+            {
+                found = entry.Key;
+                break;
+            }
+        }
+        return found;
+    }
+
+    public static NDCollider Find(List<NDCollider> list, NDCollider collider)
+    {
+        NDCollider found = new NDCollider();
+        foreach (NDCollider entry in list)
+        {
+            if (entry.IsEqual(collider))
+            {
+                found = entry;
+                break;
+            }
+        }
+        return found;
+    }
+
+    public static bool Contains<T>(Dictionary<NDCollider, T> dictionary, NDCollider collider)
+    {
+        return !Find(dictionary, collider).IsNull();
+    }
+
+    public static bool Contains(List<NDCollider> list, NDCollider collider)
+    {
+        return !Find(list, collider).IsNull();
+    }
+
+    public static bool RemoveFrom<T>(Dictionary<NDCollider, T> dictionary, NDCollider collider)
+    {
+        return dictionary.Remove(Find(dictionary, collider));
+    }
+
+    public static bool RemoveFrom(List<NDCollider> list, NDCollider collider)
+    {
+        return list.Remove(Find(list, collider));
+    }
+
     public LayerMask GetLayerCollisionMask()
     {
         if (is2D) return Physics2D.GetLayerCollisionMask(layer);
@@ -652,6 +700,14 @@ public class NDCollision
     public bool wasOnStay;
     public bool is2D { get { return collision2 != null; } }
     public bool is3D { get { return collision3 != null; } }
+    public NDCollider collider
+    {
+        get
+        {
+            if (is2D) return new NDCollider(collision2.collider);
+            else return new NDCollider(collision3.collider);
+        }
+    }
     public NDContactPoint[] contacts
     {
         get
@@ -682,6 +738,14 @@ public class NDCollision
         {
             if (is2D) return collision2.transform;
             else return collision3.transform;
+        }
+    }
+    public Vector3 relativeVelocity
+    {
+        get
+        {
+            if (is2D) return collision2.relativeVelocity;
+            else return collision3.relativeVelocity;
         }
     }
 
