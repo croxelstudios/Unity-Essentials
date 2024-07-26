@@ -5,7 +5,7 @@ using System.Linq;
 using System;
 using UnityEditor;
 
-[CreateAssetMenu(menuName = "Croxel Scriptables/String List")]
+[CreateAssetMenu(menuName = "Croxel Scriptables/Collections/String List")]
 public class StringList : ScriptableObject
 {
     public string[] tags = null;

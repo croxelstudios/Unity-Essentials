@@ -7,7 +7,7 @@ using Sirenix.OdinInspector.Editor;
 #endif
 
 [ExecuteAlways]
-[CreateAssetMenu(menuName = "Croxel Scriptables/String List (Colored)")]
+[CreateAssetMenu(menuName = "Croxel Scriptables/Collections/String List (Colored)")]
 public class StringList_Colored : StringList
 {
     public ColoredTag[] coloredTags = new ColoredTag[] { new ColoredTag("White", Color.white) };
