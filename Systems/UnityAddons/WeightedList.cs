@@ -110,6 +110,11 @@ public class WeightedList<T> : BWeightedList
         elements = elements.Where(x => !x.element.Equals(element)).ToArray();
     }
 
+    public virtual bool Contains(T element)
+    {
+        return elements.Where(x => x.element.Equals(element)).Count() > 0;
+    }
+
     public virtual void RemoveAt(int id)
     {
         elements = elements.Where(x => !x.Equals(elements[id])).ToArray();
