@@ -8,8 +8,8 @@ public class IntSignalListener : BBaseSignalListener
     //[ChangeCheck("UpdateSignals")]
     public SignalAction[] signalActions;
     [SerializeField]
-    int _multiplier = 1;
-    public int multiplier
+    float _multiplier = 1f;
+    public float multiplier
     {
         get { return _multiplier; }
         set
@@ -55,7 +55,7 @@ public class IntSignalListener : BBaseSignalListener
     public void LaunchActions(int index, int value) //Change type here
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
-            signalActions[index].actions?.Invoke(value * multiplier); //Change type here
+            signalActions[index].actions?.Invoke(Mathf.FloorToInt(value * multiplier)); //Change type here
     }
 
 #if UNITY_EDITOR
