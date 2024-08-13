@@ -20,10 +20,7 @@ public class WeightedList<T> : BWeightedList
     {
         this.elements = new WeightedObject[elements.Length];
         for (int i = 0; i < this.elements.Length; i++)
-        {
-            this.elements[i].element = elements[i];
-            this.elements[i].weight = 1f;
-        }
+            this.elements[i] = new WeightedObject(elements[i], 1f);
     }
 
     public WeightedList(WeightedList<T> elements)
@@ -41,21 +38,7 @@ public class WeightedList<T> : BWeightedList
 
     public T ChooseWeightedElement()
     {
-        float totalWeight = GetTotalWeight();
-
-        int chosen = -1;
-        float currentWeight = Random.Range(0, totalWeight);
-        for (int i = 0; i < elements.Length; i++)
-        {
-            if (currentWeight <= elements[i].weight)
-            {
-                chosen = i;
-                break;
-            }
-            else currentWeight -= elements[i].weight;
-        }
-
-        return elements[chosen].element;
+        return elements[ChooseWeightedElementID()].element;
     }
 
     public int ChooseWeightedElementID()
