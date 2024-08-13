@@ -178,6 +178,12 @@ public class VectorToTargetEvent : MonoBehaviour
     Vector3 accelerationHalf;
     Quaternion rotAccelHalf;
 
+    public void SetMaxSpeed(float speed)
+    {
+        maxSpeed = speed;
+        UpdateSpeedData();
+    }
+
     void UpdateSpeedData()
     {
         unsignedMaxSpd = Mathf.Abs(maxSpeed);
