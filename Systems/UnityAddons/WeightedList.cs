@@ -88,6 +88,11 @@ public class WeightedList<T> : BWeightedList
             Add(elements.GetElementFromID(i), elements.GetWeightFromID(i));
     }
 
+    public virtual int FindIndex(T element)
+    {
+        return Array.FindIndex(elements, x => x.element.Equals(element));
+    }
+
     public virtual void Remove(T element)
     {
         elements = elements.Where(x => !x.element.Equals(element)).ToArray();

@@ -30,6 +30,12 @@ public class RenderersSetColor_Blink : RenderersSetColor
         updateRenderers = ur;
     }
 
+    protected override void OnDisable()
+    {
+        color = defaultColor;
+        base.OnDisable();
+    }
+
     public void Blink()
     {
         if (this.IsActiveAndEnabled())
@@ -50,7 +56,7 @@ public class RenderersSetColor_Blink : RenderersSetColor
         while (time > 0f)
         {
             yield return null;
-            color = color.SmoothDamp(targetColor, ref tempSpd, smoothTime);
+            color = color.SmoothDamp(targetColor, ref tempSpd, smoothTime, timeMode.DeltaTime());
             UpdateBehaviour();
 
             time -= timeMode.DeltaTime();
@@ -64,7 +70,7 @@ public class RenderersSetColor_Blink : RenderersSetColor
         while (Mathf.Abs((defaultColor - color).grayscale) > 0f)
         {
             yield return null;
-            color = color.SmoothDamp(defaultColor, ref tempSpd, smoothTime);
+            color = color.SmoothDamp(defaultColor, ref tempSpd, smoothTime, timeMode.DeltaTime());
             UpdateBehaviour();
         }
     }
