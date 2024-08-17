@@ -41,7 +41,8 @@ public class RenderersSetColor : BRenderersSetProperty
                     for (int i = 0; i < ren.sharedMaterials.Length; i++)
                     {
                         RendererMaterial renMat = new RendererMaterial(ren, i, propertyName);
-                        if (stackDictionary.ContainsKey(renMat) && stackDictionary[renMat].Contains(this))
+                        if ((stackDictionary != null) && stackDictionary.ContainsKey(renMat) &&
+                            stackDictionary[renMat].Contains(this))
                             stackDictionary[renMat].Remove(this);
                     }
             }

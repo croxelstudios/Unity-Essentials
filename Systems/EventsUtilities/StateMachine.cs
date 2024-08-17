@@ -94,6 +94,7 @@ public class StateMachine : MonoBehaviour
     [StringPopup("stateNames"/*, "stringPairArray"*/)]
     public void SwitchState(int newState)
     {
+        newState = Mathf.Clamp(newState, 0, states.Length - 1);
         if (
              //(this.IsActiveAndEnabled() ||
              //#if UNITY_EDITOR
@@ -104,7 +105,8 @@ public class StateMachine : MonoBehaviour
         {
             if (_currentState < states.Length && _currentState >= 0)
             {
-                if (states[_currentState].linkedObjects != null) //WARNING: For some reason it turns null in _ByChildren variant
+                if (states[_currentState].linkedObjects != null)
+                    //WARNING: For some reason it turns null in _ByChildren variant
                     foreach (GameObject obj in states[_currentState].linkedObjects)
                         obj.SetActive(false);
                 states[_currentState].exit?.Invoke();
