@@ -8,10 +8,8 @@ public class Animator_SetTriggerParameter : MonoBehaviour
     [SerializeField]
     [EnableIf("@useAvailableChildAnimator == false")]
     Animator animator = null;
-    [SerializeField]
-    string trigger = "Die";
     
-    public void SetTrigger()
+    public void SetTrigger(string trigger)
     {
         if (useAvailableChildAnimator && ((animator == null) || animator.isActiveAndEnabled == false))
             animator = GetComponentInChildren<Animator>();

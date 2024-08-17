@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -9,7 +10,7 @@ public class ScaleByCurve : MonoBehaviour
     [SerializeField]
     float scale = 1f;
     [SerializeField]
-    [Min(0.0000001f)]
+    [MinValue(0.0001f)]
     float minScale = 0.01f;
     [SerializeField]
     AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 0f, 0f) });
