@@ -2,12 +2,15 @@
 using UnityEngine.Events;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class SendNearestTransformFromTags : MonoBehaviour
 {
     [SerializeField]
     [TagSelector]
     string[] tags = null;
+    [SerializeField]
+    Transform[] exceptions = null;
     [SerializeField]
     DXTransformEvent transformFound = null;
 
@@ -18,7 +21,7 @@ public class SendNearestTransformFromTags : MonoBehaviour
         Transform nearest = null;
         foreach (GameObject obj in possibleGO)
         {
-            if (obj != gameObject)
+            if ((obj != gameObject) && !exceptions.Any(x => x.gameObject == obj))
             {
                 float dist = Vector3.Distance(transform.position, obj.transform.position);
                 if (dist < distance)
