@@ -2,7 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
 
-//TO DO: This could be combined with other children management scripts like the one that activates and deactivates children
+//TO DO: This could be combined with other children management scripts
+//like the one that activates and deactivates children
 public class ChildParentEvents_Parent : MonoBehaviour
 {
     public DXEvent[] parentEvents = null;
