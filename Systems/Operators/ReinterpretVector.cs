@@ -5,16 +5,18 @@ public class ReinterpretVector : MonoBehaviour
 {
     [SerializeField]
     Transform referenceTransform = null;
-    //[SerializeField]
-    //bool get2DDataVector = true; //TO DO: What was this for??
     [SerializeField]
-    [ShowIf("@projectOn2D")]
+    float multiplier = 1f;
+    [SerializeField]
+    bool projectOnPlane = true;
+    [SerializeField]
+    [ShowIf("@projectOnPlane")]
     Vector3 plane2DNormal = Vector3.up;
     [SerializeField]
-    [ShowIf("@projectOn2D")]
+    [ShowIf("@projectOnPlane")]
     Vector3 plane2DUp = Vector3.forward;
     [SerializeField]
-    [ShowIf("@projectOn2D")]
+    [ShowIf("@projectOnPlane")]
     bool local = false;
     [SerializeField]
     DXVectorEvent vectorEvent = null;
@@ -27,14 +29,25 @@ public class ReinterpretVector : MonoBehaviour
 
     public void Reinterpret(Vector2 input)
     {
-        Reinterpret(input.InterpretVector2(plane2DNormal, plane2DUp));
+        input *= multiplier;
+        if (referenceTransform != null) input = referenceTransform.rotation * input;
+        if (projectOnPlane)
+            input = PlaneProjection(input.InterpretVector2(plane2DNormal, plane2DUp));
+        vectorEvent?.Invoke(input);
     }
 
     public void Reinterpret(Vector3 input)
     {
-        Vector3 localPlaneNormal = local ? transform.rotation * plane2DNormal : plane2DNormal;
-
+        input *= multiplier;
         if (referenceTransform != null) input = referenceTransform.rotation * input;
-        vectorEvent?.Invoke(input.InterpretVector3Back(localPlaneNormal, plane2DUp));
+        if (projectOnPlane)
+            input = PlaneProjection(input.InterpretVector2(plane2DNormal, plane2DUp));
+        vectorEvent?.Invoke(input);
+    }
+
+    Vector2 PlaneProjection(Vector3 input)
+    {
+        Vector3 localPlaneNormal = local ? transform.rotation * plane2DNormal : plane2DNormal;
+        return input.InterpretVector3Back(localPlaneNormal, plane2DUp);
     }
 }

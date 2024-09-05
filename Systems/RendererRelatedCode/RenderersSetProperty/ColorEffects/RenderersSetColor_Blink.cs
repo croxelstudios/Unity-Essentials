@@ -36,6 +36,11 @@ public class RenderersSetColor_Blink : RenderersSetColor
         base.OnDisable();
     }
 
+    public void SetDuration(float duration)
+    {
+        this.duration = duration;
+    }
+
     public void Blink()
     {
         if (this.IsActiveAndEnabled())
@@ -67,7 +72,7 @@ public class RenderersSetColor_Blink : RenderersSetColor
     IEnumerator EndBlink(float smoothTime)
     {
         Color tempSpd = new Color(0, 0, 0, 0);
-        while (Mathf.Abs((defaultColor - color).grayscale) > 0f)
+        while ((Mathf.Abs((defaultColor - color).grayscale) > 0f) || (Mathf.Abs(defaultColor.a - color.a) > 0f))
         {
             yield return null;
             color = color.SmoothDamp(defaultColor, ref tempSpd, smoothTime, timeMode.DeltaTime());

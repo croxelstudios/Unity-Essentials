@@ -19,6 +19,8 @@ public class PrefabInstancer : MonoBehaviour
     [SerializeField]
     bool inheritRotation = true;
     [SerializeField]
+    Vector2Int amountRange = new Vector2Int(1, 1);
+    [SerializeField]
     Vector3 rotationVariation = Vector3.zero;
     [SerializeField]
     Vector3 randomSpread = Vector3.zero;
@@ -104,7 +106,9 @@ public class PrefabInstancer : MonoBehaviour
             if (!wPrefabsFilled)
             {
                 FillWeightedPrefabs();
-                Instantiate(prefab);
+                int amount = Random.Range(amountRange.x, amountRange.y);
+                for (int i = 0; i < amount; i++)
+                    Instantiate(prefab);
             }
         }
     }
@@ -116,7 +120,9 @@ public class PrefabInstancer : MonoBehaviour
             if (!wPrefabsFilled)
             {
                 FillWeightedPrefabs();
-                Instantiate(n);
+                int amount = Random.Range(amountRange.x, amountRange.y);
+                for (int i = 0; i < amount; i++)
+                    Instantiate(n);
             }
         }
     }
@@ -128,7 +134,9 @@ public class PrefabInstancer : MonoBehaviour
             if (!wPrefabsFilled)
             {
                 FillWeightedPrefabs();
-                InstantiateRandom();
+                int amount = Random.Range(amountRange.x, amountRange.y);
+                for (int i = 0; i < amount; i++)
+                    InstantiateRandom();
             }
         }
     }

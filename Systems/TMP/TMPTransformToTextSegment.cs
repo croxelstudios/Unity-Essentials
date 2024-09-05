@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -24,7 +25,14 @@ public class TMPTransformToTextSegment : MonoBehaviour
         text = GetComponent<TMP_Text>();
         Canvas.willRenderCanvases += UpdatePosition;
         RenderPipelineManager.beginContextRendering += UpdatePosition;
-        RenderPipelineManager.endContextRendering += EliminateAlphaWords;
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if ((canvas != null)
+#if UNITY_EDITOR
+            || !Application.isPlaying
+#endif
+            )
+            RenderPipelineManager.endContextRendering += EliminateAlphaWords;
+        else StartCoroutine(WaitTillEndFrame());
     }
 
     void OnDisable()
@@ -32,7 +40,9 @@ public class TMPTransformToTextSegment : MonoBehaviour
         Canvas.willRenderCanvases -= UpdatePosition;
         RenderPipelineManager.beginContextRendering -= UpdatePosition;
         RenderPipelineManager.endContextRendering -= EliminateAlphaWords;
+        StopAllCoroutines();
     }
+
     void UpdatePosition()
     {
         UpdatePosition(new ScriptableRenderContext(), null);
@@ -80,10 +90,9 @@ public class TMPTransformToTextSegment : MonoBehaviour
         {
             if (turnSegmentTransparent)
             {
-                if (t.Contains(alphaIntro))
-                //TO DO: This is incompatible with more alphas in the text :(
+                if (t.Contains(alphaIntro + textSegment))
                 {
-                    t = t.Remove(t.IndexOf(alphaIntro), alphaIntro.Length);
+                    t = t.Remove(t.IndexOf(alphaIntro + textSegment), alphaIntro.Length);
                     int i = t.IndexOf(textSegment);
                     t = t.Remove(i + textSegment.Length, alphaOutro.Length);
                     textInfo.textComponent.text = t;
