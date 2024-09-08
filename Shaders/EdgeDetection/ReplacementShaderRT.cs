@@ -26,20 +26,20 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class GetSceneViewSpaceNormals : ScriptableRendererFeature
+public class ReplacementShaderRT : ScriptableRendererFeature
 {
     [SerializeField]
     string textureName = "_SceneViewSpaceNormals";
     [SerializeField]
-    Shader normalsShader = null;
+    Shader shader = null;
     [SerializeField]
     RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
     [SerializeField]
-    ViewSpaceNormalsTextureSettings viewSpaceNormalsTextureSettings =
-        new ViewSpaceNormalsTextureSettings(RenderTextureFormat.Default, FilterMode.Point, 32, Color.black);
+    TextureSettings textureSettings =
+        new TextureSettings(RenderTextureFormat.Default, FilterMode.Point, 32, Color.black);
 
     [Serializable]
-    struct ViewSpaceNormalsTextureSettings
+    struct TextureSettings
     {
         public RenderTextureFormat colorFormat;
         [HideInInspector]
@@ -47,7 +47,7 @@ public class GetSceneViewSpaceNormals : ScriptableRendererFeature
         public FilterMode filterMode;
         public Color backgroundColor;
 
-        public ViewSpaceNormalsTextureSettings(RenderTextureFormat colorFormat, FilterMode filterMode, int depthBufferBits, Color backgroundColor)
+        public TextureSettings(RenderTextureFormat colorFormat, FilterMode filterMode, int depthBufferBits, Color backgroundColor)
         {
             this.colorFormat = colorFormat;
             this.filterMode = filterMode;
@@ -58,20 +58,20 @@ public class GetSceneViewSpaceNormals : ScriptableRendererFeature
 
     class RenderPass : ScriptableRenderPass
     {
-        ViewSpaceNormalsTextureSettings viewSpaceNormalsTextureSettings;
-        RTHandle normals;
+        TextureSettings textureSettings;
+        RTHandle rt;
         List<ShaderTagId> shaderTagIdList;
-        Shader normalsShader;
+        Shader shader;
 
         static int RTID = -1;
 
-        public RenderPass(Shader shader, RenderPassEvent renderPassEvent, ViewSpaceNormalsTextureSettings settings, string textureName) : base()
+        public RenderPass(Shader shader, RenderPassEvent renderPassEvent, TextureSettings settings, string textureName) : base()
         {
             this.renderPassEvent = renderPassEvent;
             StaticRTHandler.Init();
             RTHandles.SetReferenceSize(Screen.width, Screen.height);
-            normals = RTHandles.Alloc(textureName, name: textureName);
-            RTID = Shader.PropertyToID(normals.name);
+            rt = RTHandles.Alloc(textureName, name: textureName);
+            RTID = Shader.PropertyToID(rt.name);
             shaderTagIdList = new List<ShaderTagId>
             {
                 new ShaderTagId("DepthOnly"),
@@ -79,7 +79,7 @@ public class GetSceneViewSpaceNormals : ScriptableRendererFeature
                 //new ShaderTagId("UniversalForward"),
                 //new ShaderTagId("LightweightForward"),
             };
-            normalsShader = shader;
+            this.shader = shader;
         }
 
         // Configure the pass by creating a temporary render texture and
@@ -87,24 +87,24 @@ public class GetSceneViewSpaceNormals : ScriptableRendererFeature
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RenderTextureDescriptor normalsTextureDescriptor = cameraTextureDescriptor;
-            normalsTextureDescriptor.colorFormat = viewSpaceNormalsTextureSettings.colorFormat;
+            normalsTextureDescriptor.colorFormat = textureSettings.colorFormat;
             //normalsTextureDescriptor.depthBufferBits = viewSpaceNormalsTextureSettings.depthBufferBits;
 
-            cmd.GetTemporaryRT(Shader.PropertyToID(normals.name), normalsTextureDescriptor, viewSpaceNormalsTextureSettings.filterMode);
-            ConfigureTarget(normals);
-            ConfigureClear(ClearFlag.All, viewSpaceNormalsTextureSettings.backgroundColor);
+            cmd.GetTemporaryRT(Shader.PropertyToID(rt.name), normalsTextureDescriptor, textureSettings.filterMode);
+            ConfigureTarget(rt);
+            ConfigureClear(ClearFlag.All, textureSettings.backgroundColor);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, new ProfilingSampler("SceneViewSpaceNormalsTextureCreation")))
+            using (new ProfilingScope(cmd, new ProfilingSampler("ReplacementShaderRTCreation")))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 DrawingSettings drawSettings =
                     CreateDrawingSettings(shaderTagIdList, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
-                drawSettings.overrideShader = normalsShader;
+                drawSettings.overrideShader = shader;
                 FilteringSettings filteringSettings = FilteringSettings.defaultValue;
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
             }
@@ -123,9 +123,9 @@ public class GetSceneViewSpaceNormals : ScriptableRendererFeature
     public override void Create()
     {
         // We will use the built-in renderer's depth normals texture shader
-        if (normalsShader == null)
-            normalsShader = Shader.Find("Hidden/Internal-DepthNormalsTexture");
-        this.renderPass = new RenderPass(normalsShader, renderPassEvent, viewSpaceNormalsTextureSettings, textureName);
+        if (shader == null)
+            shader = Shader.Find("Hidden/Internal-DepthNormalsTexture");
+        this.renderPass = new RenderPass(shader, renderPassEvent, textureSettings, textureName);
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

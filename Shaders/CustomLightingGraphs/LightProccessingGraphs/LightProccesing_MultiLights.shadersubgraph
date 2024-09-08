@@ -266,7 +266,7 @@
                 "m_Node": {
                     "m_Id": "0f385e6ac8a345ca9e01921e3cd4c51a"
                 },
-                "m_SlotId": 19
+                "m_SlotId": 6
             }
         },
         {
@@ -322,7 +322,7 @@
                 "m_Node": {
                     "m_Id": "63ece210f6c444248c646706c2fac019"
                 },
-                "m_SlotId": 6
+                "m_SlotId": 15
             }
         },
         {
@@ -644,7 +644,7 @@
                 "m_Node": {
                     "m_Id": "63ece210f6c444248c646706c2fac019"
                 },
-                "m_SlotId": 15
+                "m_SlotId": 6
             }
         },
         {
@@ -854,7 +854,7 @@
                 "m_Node": {
                     "m_Id": "0f385e6ac8a345ca9e01921e3cd4c51a"
                 },
-                "m_SlotId": 6
+                "m_SlotId": 19
             }
         },
         {
@@ -1201,10 +1201,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -621.3333129882813,
-            "y": 1208.666748046875,
-            "width": 169.33331298828126,
-            "height": 36.0
+            "x": -619.3333740234375,
+            "y": 1009.3333129882813,
+            "width": 167.33334350585938,
+            "height": 35.99993896484375
         }
     },
     "m_Slots": [
@@ -1292,7 +1292,7 @@
             "m_Id": "b989fa1cf4f54ce3ad5dbb2651f2793e"
         },
         {
-            "m_Id": "2f0c5e1365bb4d5890bbc6ab131be78a"
+            "m_Id": "c6504510c08b448e8deaaae2534d0358"
         },
         {
             "m_Id": "0083dfcbee334408b6712753fd558e92"
@@ -1310,7 +1310,7 @@
             "m_Id": "45be895176b949b499c6013b39afafb8"
         },
         {
-            "m_Id": "5c506275cb4d42e29fb723e0f2c94dbf"
+            "m_Id": "2b9189c43c7a4191926c722e7f2861a5"
         },
         {
             "m_Id": "072f343d3b4f44faa7920a364c8b1d7f"
@@ -1360,7 +1360,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "AdditionalLight",
     "m_FunctionSource": "",
-    "m_FunctionBody": "\r\r\r\rBindings_LightProccesing_e2dcdf5b1a4895c4b980fd3aca5d0224_float bindings;\r\nbindings.WorldSpaceNormal = WorldSpaceNormal;\r\nbindings.WorldSpaceViewDirection = ViewDirection;\r\nSG_LightProccesing_e2dcdf5b1a4895c4b980fd3aca5d0224_float(Albedo, Normal, 1,\r\n\tSmoothness, CurveFactor, RimLightAmount, BackRimLightAmount, \n\tUseRampTexture, RampTexture, UseRampTexture,\n\tToonSubdivisions, ColorCurveFactor, Invert,\r\n\tLightDir, 1, LightColor, ShadowAtten,\r\n\tDistanceAtten, bindings, OutVector4_1, SpecularMask);"
+    "m_FunctionBody": "\r\r\r\rBindings_LightProccesing_e2dcdf5b1a4895c4b980fd3aca5d0224_float bindings;\r\nbindings.WorldSpaceNormal = WorldSpaceNormal;\r\nbindings.WorldSpaceViewDirection = ViewDirection;\r\nSG_LightProccesing_e2dcdf5b1a4895c4b980fd3aca5d0224_float(Albedo, Normal, 1,\r\n\tSmoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \n\tUseRampTexture, RampTexture, UseRampTexture,\n\tToonSubdivisions, LightStepsCurveFactor, Invert,\r\n\tLightDir, 1, LightColor, ShadowAtten,\r\n\tDistanceAtten, bindings, OutVector4_1, SpecularMask);"
 }
 
 {
@@ -1422,21 +1422,6 @@
         "z": 0.0,
         "w": 0.0
     },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "11914d6addc942b4901091fe2ae1817f",
-    "m_Id": 15,
-    "m_DisplayName": "ColorCurveFactor",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "ColorCurveFactor",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
     "m_Labels": []
 }
 
@@ -1581,9 +1566,24 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "1a6ccbcdd09c40ca93848962d278f073",
+    "m_Id": 6,
+    "m_DisplayName": "LightCurveFactor",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "LightCurveFactor",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "1f3a5b460c214729b2e377941308026a",
     "m_Id": 0,
-    "m_DisplayName": "CurveFactor",
+    "m_DisplayName": "LightStepsCurveFactor",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -1679,10 +1679,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -274.6666564941406,
-            "y": 528.0,
-            "width": 141.33334350585938,
-            "height": 36.0
+            "x": -329.3333740234375,
+            "y": 728.0,
+            "width": 197.3333282470703,
+            "height": 36.00006103515625
         }
     },
     "m_Slots": [
@@ -1840,16 +1840,31 @@
 }
 
 {
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "2b9189c43c7a4191926c722e7f2861a5",
+    "m_Id": 19,
+    "m_DisplayName": "LightStepsCurveFactor",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "LightStepsCurveFactor",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
     "m_ObjectId": "2ca7b3eb321b4b1faec0ddbf6168c414",
     "m_Guid": {
         "m_GuidSerialized": "44a5972b-4e3e-454e-b4fa-8b116659271d"
     },
-    "m_Name": "CurveFactor",
+    "m_Name": "LightStepsCurveFactor",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "CurveFactor",
-    "m_DefaultReferenceName": "_CurveFactor",
+    "m_RefNameGeneratedByDisplayName": "LightStepsCurveFactor",
+    "m_DefaultReferenceName": "_LightStepsCurveFactor",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -1983,21 +1998,6 @@
     "m_Property": {
         "m_Id": "5cb0a6c9387c4b16a69742632ed952da"
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "2f0c5e1365bb4d5890bbc6ab131be78a",
-    "m_Id": 6,
-    "m_DisplayName": "CurveFactor",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "CurveFactor",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
 }
 
 {
@@ -2155,10 +2155,10 @@
     "m_Guid": {
         "m_GuidSerialized": "bfcae84f-155f-44cc-94c5-ff16ee2b3e27"
     },
-    "m_Name": "ColorCurveFactor",
+    "m_Name": "LightCurveFactor",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "ColorCurveFactor",
-    "m_DefaultReferenceName": "_ColorCurveFactor",
+    "m_RefNameGeneratedByDisplayName": "LightCurveFactor",
+    "m_DefaultReferenceName": "_LightCurveFactor",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -2493,7 +2493,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "4d41f1f817c54a14b79b3b1c216979a9",
     "m_Id": 0,
-    "m_DisplayName": "ColorCurveFactor",
+    "m_DisplayName": "LightCurveFactor",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2663,10 +2663,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "5322adb61d1a4177b3475f3c1cc621c7",
     "m_Id": -511189746,
-    "m_DisplayName": "CurveFactor",
+    "m_DisplayName": "LightStepsCurveFactor",
     "m_SlotType": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "_CurveFactor",
+    "m_ShaderOutputName": "_LightStepsCurveFactor",
     "m_StageCapability": 2,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
@@ -2860,21 +2860,6 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "5c506275cb4d42e29fb723e0f2c94dbf",
-    "m_Id": 19,
-    "m_DisplayName": "ColorCurveFactor",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "ColorCurveFactor",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
 }
 
 {
@@ -3082,7 +3067,7 @@
             "m_Id": "83c11aa5f5284f5faaf8682a2831cc0b"
         },
         {
-            "m_Id": "76f98d982cb041edadf210a37320c908"
+            "m_Id": "1a6ccbcdd09c40ca93848962d278f073"
         },
         {
             "m_Id": "1683d91f7e2f4429b75da67881fcda0d"
@@ -3100,7 +3085,7 @@
             "m_Id": "267313c48f994284a64541bb4ab7729c"
         },
         {
-            "m_Id": "11914d6addc942b4901091fe2ae1817f"
+            "m_Id": "b3880db5e7b74d7dbdb9eda77bfb81b4"
         },
         {
             "m_Id": "7c654c24e7c640f9a1ba2beadfde621c"
@@ -3138,7 +3123,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "AdditionalLightsLoop",
     "m_FunctionSource": "",
-    "m_FunctionBody": "\r\r\n        LightingResult = float4(0, 0, 0, 1);\n        SpecularMask = 0;\n#if !defined(SHADERGRAPH_PREVIEW)\n    #ifdef _ADDITIONAL_LIGHTS\r\n        float4 positionCS = TransformWorldToHClip(Position);\r\n        #if SHADOWS_SCREEN\r\n            float4 shadowCoord = ComputeScreenPos(positionCS);\r\n        #else\r\n            float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n        #endif\r\n        uint numAdditionalLights = GetAdditionalLightsCount();\r\n        for (uint lightI = 0; lightI < numAdditionalLights; lightI++) {\r\n            Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n            float4 OutVector4_1;\n\t  float sm;\r\n            AdditionalLight_float(Albedo, Normal, Smoothness, CurveFactor,\n\t  RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\n\t\tToonSubdivisions, ColorCurveFactor, Invert, 0, Position, \n\t\tWorldSpaceNormal, ViewDirection, light.direction, light.color, \n\t\tlight.shadowAttenuation, light.distanceAttenuation,\n                    OutVector4_1, sm);\r\n    \r\n            LightingResult += OutVector4_1;\n\t  SpecularMask += sm;\r\n        }\r\n    #endif\n#endif"
+    "m_FunctionBody": "\r\r\n        LightingResult = float4(0, 0, 0, 1);\n        SpecularMask = 0;\n#if !defined(SHADERGRAPH_PREVIEW)\n    #ifdef _ADDITIONAL_LIGHTS\r\n        float4 positionCS = TransformWorldToHClip(Position);\r\n        #if SHADOWS_SCREEN\r\n            float4 shadowCoord = ComputeScreenPos(positionCS);\r\n        #else\r\n            float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n        #endif\r\n        uint numAdditionalLights = GetAdditionalLightsCount();\r\n        for (uint lightI = 0; lightI < numAdditionalLights; lightI++) {\r\n            Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n            float4 OutVector4_1;\n\t  float sm;\r\n            AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\n\t  RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\n\t\tToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \n\t\tWorldSpaceNormal, ViewDirection, light.direction, light.color, \n\t\tlight.shadowAttenuation, light.distanceAttenuation,\n                    OutVector4_1, sm);\r\n    \r\n            LightingResult += OutVector4_1;\n\t  SpecularMask += sm;\r\n        }\r\n    #endif\n#endif"
 }
 
 {
@@ -3314,7 +3299,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "67993edcd0674697a212307d6c703429",
     "m_Id": 0,
-    "m_DisplayName": "ColorCurveFactor",
+    "m_DisplayName": "LightCurveFactor",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -3546,9 +3531,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -301.3333435058594,
-            "y": 728.0,
-            "width": 169.33334350585938,
+            "x": -296.6666564941406,
+            "y": 528.0,
+            "width": 167.33334350585938,
             "height": 36.0
         }
     },
@@ -3653,21 +3638,6 @@
     "m_Property": {
         "m_Id": "782ba90677734862a581b0a092b0e77c"
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "76f98d982cb041edadf210a37320c908",
-    "m_Id": 6,
-    "m_DisplayName": "CurveFactor",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "CurveFactor",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
 }
 
 {
@@ -3979,10 +3949,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "8ae1c268033d4689ad14ef7e8d607305",
     "m_Id": -2061941217,
-    "m_DisplayName": "ColorCurveFactor",
+    "m_DisplayName": "LightCurveFactor",
     "m_SlotType": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "_ColorCurveFactor",
+    "m_ShaderOutputName": "_LightCurveFactor",
     "m_StageCapability": 2,
     "m_Value": 0.5,
     "m_DefaultValue": 0.0,
@@ -4064,7 +4034,7 @@
             "m_Id": "8a9370ee732e4d8e90c0be3438bc6983"
         },
         {
-            "m_Id": "5322adb61d1a4177b3475f3c1cc621c7"
+            "m_Id": "8ae1c268033d4689ad14ef7e8d607305"
         },
         {
             "m_Id": "c94e171063364990a883c86b9aaf57c4"
@@ -4082,7 +4052,7 @@
             "m_Id": "4308e5c596d444f9993d095711f639cd"
         },
         {
-            "m_Id": "8ae1c268033d4689ad14ef7e8d607305"
+            "m_Id": "5322adb61d1a4177b3475f3c1cc621c7"
         },
         {
             "m_Id": "7c7552d36d334edf9a2df1fe25e36833"
@@ -4538,6 +4508,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "b3880db5e7b74d7dbdb9eda77bfb81b4",
+    "m_Id": 15,
+    "m_DisplayName": "LightStepsCurveFactor",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "LightStepsCurveFactor",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "b4f8b992a43f4d449c6ed57a56cc9701",
     "m_Name": "",
@@ -4555,7 +4540,7 @@
             "m_Id": "bbe39fb7032b4bd79e30db347a2bdfb7"
         },
         {
-            "m_Id": "2ca7b3eb321b4b1faec0ddbf6168c414"
+            "m_Id": "3e9b89364bd8496db1fafb53ab8d9fd0"
         },
         {
             "m_Id": "5cb0a6c9387c4b16a69742632ed952da"
@@ -4573,7 +4558,7 @@
             "m_Id": "bc03dae151c94c64a300d84c7533d75b"
         },
         {
-            "m_Id": "3e9b89364bd8496db1fafb53ab8d9fd0"
+            "m_Id": "2ca7b3eb321b4b1faec0ddbf6168c414"
         },
         {
             "m_Id": "d88590ba1469416aa5256b50ac2e3e2b"
@@ -4670,10 +4655,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -593.3333129882813,
-            "y": 1009.3333129882813,
-            "width": 141.33331298828126,
-            "height": 35.99993896484375
+            "x": -649.3333129882813,
+            "y": 1208.666748046875,
+            "width": 197.33334350585938,
+            "height": 36.0
         }
     },
     "m_Slots": [
@@ -4954,6 +4939,21 @@
         "m_Guid": ""
     },
     "m_DefaultType": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "c6504510c08b448e8deaaae2534d0358",
+    "m_Id": 6,
+    "m_DisplayName": "LightCurveFactor",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "LightCurveFactor",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -5645,7 +5645,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "ea600dfca27148679802732539a8ebdb",
     "m_Id": 0,
-    "m_DisplayName": "CurveFactor",
+    "m_DisplayName": "LightStepsCurveFactor",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
