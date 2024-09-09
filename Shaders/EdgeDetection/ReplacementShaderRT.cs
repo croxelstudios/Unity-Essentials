@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -36,22 +37,28 @@ public class ReplacementShaderRT : ScriptableRendererFeature
     RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
     [SerializeField]
     TextureSettings textureSettings =
-        new TextureSettings(RenderTextureFormat.Default, FilterMode.Point, 32, Color.black);
+        new TextureSettings((LayerMask)~0, RenderTextureFormat.Default,
+            FilterMode.Point, 32, Color.black, false);
 
     [Serializable]
     struct TextureSettings
     {
+        public LayerMask layerMask;
         public RenderTextureFormat colorFormat;
         [HideInInspector]
         public int depthBufferBits;
         public FilterMode filterMode;
         public Color backgroundColor;
+        public bool depthPrePass;
 
-        public TextureSettings(RenderTextureFormat colorFormat, FilterMode filterMode, int depthBufferBits, Color backgroundColor)
+        public TextureSettings(LayerMask layerMask, RenderTextureFormat colorFormat, FilterMode filterMode,
+            int depthBufferBits, Color backgroundColor, bool preRenderDepth)
         {
+            this.layerMask = layerMask;
             this.colorFormat = colorFormat;
             this.filterMode = filterMode;
             this.backgroundColor = backgroundColor;
+            this.depthPrePass = preRenderDepth;
             this.depthBufferBits = depthBufferBits;
         }
     }
@@ -68,10 +75,14 @@ public class ReplacementShaderRT : ScriptableRendererFeature
         public RenderPass(Shader shader, RenderPassEvent renderPassEvent, TextureSettings settings, string textureName) : base()
         {
             this.renderPassEvent = renderPassEvent;
+            textureSettings = settings;
+            this.shader = shader;
+
             StaticRTHandler.Init();
             RTHandles.SetReferenceSize(Screen.width, Screen.height);
             rt = RTHandles.Alloc(textureName, name: textureName);
             RTID = Shader.PropertyToID(rt.name);
+
             shaderTagIdList = new List<ShaderTagId>
             {
                 new ShaderTagId("DepthOnly"),
@@ -79,18 +90,17 @@ public class ReplacementShaderRT : ScriptableRendererFeature
                 //new ShaderTagId("UniversalForward"),
                 //new ShaderTagId("LightweightForward"),
             };
-            this.shader = shader;
         }
 
         // Configure the pass by creating a temporary render texture and
         // readying it for rendering
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RenderTextureDescriptor normalsTextureDescriptor = cameraTextureDescriptor;
-            normalsTextureDescriptor.colorFormat = textureSettings.colorFormat;
-            //normalsTextureDescriptor.depthBufferBits = viewSpaceNormalsTextureSettings.depthBufferBits;
+            RenderTextureDescriptor rtDescriptor = cameraTextureDescriptor;
+            rtDescriptor.colorFormat = textureSettings.colorFormat;
 
-            cmd.GetTemporaryRT(Shader.PropertyToID(rt.name), normalsTextureDescriptor, textureSettings.filterMode);
+            cmd.GetTemporaryRT(Shader.PropertyToID(rt.name),
+                rtDescriptor, textureSettings.filterMode);
             ConfigureTarget(rt);
             ConfigureClear(ClearFlag.All, textureSettings.backgroundColor);
         }
@@ -105,7 +115,15 @@ public class ReplacementShaderRT : ScriptableRendererFeature
                 DrawingSettings drawSettings =
                     CreateDrawingSettings(shaderTagIdList, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
                 drawSettings.overrideShader = shader;
-                FilteringSettings filteringSettings = FilteringSettings.defaultValue;
+                FilteringSettings filteringSettings =
+                    new FilteringSettings(null, (int)textureSettings.layerMask);
+                if (textureSettings.depthPrePass)
+                {
+                    RenderStateBlock block= new RenderStateBlock(RenderStateMask.Depth);
+                    block.depthState = new DepthState(true, CompareFunction.LessEqual);
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings,
+                        ref filteringSettings, ref block);
+                }
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
             }
             context.ExecuteCommandBuffer(cmd);

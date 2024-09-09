@@ -464,13 +464,16 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -86.0,
-            "y": 200.0,
-            "width": 86.0,
+            "x": -306.66668701171877,
+            "y": 144.00001525878907,
+            "width": 197.33331298828126,
             "height": 97.33331298828125
         }
     },
     "m_Slots": [
+        {
+            "m_Id": "814648f0c2bc411cb456edac38e634d2"
+        },
         {
             "m_Id": "b3075f2eeec74782abe6919aa2db6ac4"
         }
@@ -484,8 +487,12 @@
         "m_SerializableColors": []
     },
     "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"c294be95e9047e64a99448500c922121\",\n        \"type\": 3\n    }\n}",
-    "m_PropertyGuids": [],
-    "m_PropertyIds": [],
+    "m_PropertyGuids": [
+        "3959dd32-36cb-406f-ba00-3aa1ad754025"
+    ],
+    "m_PropertyIds": [
+        -45310226
+    ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
 }
@@ -500,7 +507,7 @@
     },
     "m_AllowMaterialOverride": false,
     "m_SurfaceType": 0,
-    "m_ZTestMode": 4,
+    "m_ZTestMode": 5,
     "m_ZWriteControl": 1,
     "m_AlphaMode": 0,
     "m_RenderFace": 1,
@@ -510,6 +517,21 @@
     "m_SupportsLODCrossFade": false,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "814648f0c2bc411cb456edac38e634d2",
+    "m_Id": -45310226,
+    "m_DisplayName": "CurveFactor",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_CurveFactor",
+    "m_StageCapability": 3,
+    "m_Value": 0.8999999761581421,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {

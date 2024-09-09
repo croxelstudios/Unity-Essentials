@@ -213,6 +213,9 @@
     },
     "m_Slots": [
         {
+            "m_Id": "73adb88246904308a42782eeff9d20eb"
+        },
+        {
             "m_Id": "acb3af51acb5470ea464e7af9ad07079"
         }
     ],
@@ -225,8 +228,12 @@
         "m_SerializableColors": []
     },
     "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"c294be95e9047e64a99448500c922121\",\n        \"type\": 3\n    }\n}",
-    "m_PropertyGuids": [],
-    "m_PropertyIds": [],
+    "m_PropertyGuids": [
+        "3959dd32-36cb-406f-ba00-3aa1ad754025"
+    ],
+    "m_PropertyIds": [
+        -45310226
+    ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
 }
@@ -479,6 +486,21 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "SurfaceDescription.BaseColor"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "73adb88246904308a42782eeff9d20eb",
+    "m_Id": -45310226,
+    "m_DisplayName": "CurveFactor",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_CurveFactor",
+    "m_StageCapability": 3,
+    "m_Value": 0.8999999761581421,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
