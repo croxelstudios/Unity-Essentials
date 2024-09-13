@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
+using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public class VectorToTargetEvent : MonoBehaviour
 {
@@ -43,6 +44,10 @@ public class VectorToTargetEvent : MonoBehaviour
     [Tooltip("The time it takes for the origin object to reach the target's position when moved by this, roughly")]
     [ShowIf("@speedMode == SpeedMode.SmoothDamp")]
     float smoothTime = 0.1f;
+    [SerializeField]
+    [Tooltip("Lerp decay ratio")]
+    [ShowIf("@speedMode == SpeedMode.LerpSmooth")]
+    float decay = 15f;
     [SerializeField]
     [Tooltip("If this is set to true this code will account for external forces and generate a more" +
         "natural acceleration or smoothDamp curve when the object is exposed to them")]
@@ -138,7 +143,7 @@ public class VectorToTargetEvent : MonoBehaviour
     [SerializeField]
     [ShowIf("rotate")]
     [Tooltip("If set to 'Positive' or 'Negative' it will force the rotation to be in a specific direction even if it's not the fastest")]
-    RotationMode rotationMode = RotationMode.Nearest;
+    RotationMode rotationMode = RotationMode.Shortest;
     [SerializeField]
     [ShowIf("rotate")]
     [Tooltip("Resulting rotation euler angles in degrees per second")]
@@ -158,9 +163,9 @@ public class VectorToTargetEvent : MonoBehaviour
     [Tooltip("Resulting rotation was not zero and is zero now")]
     DXEvent stoppedRotating = null;
 
-    enum SpeedMode { Linear, Accelerated, SmoothDamp }
+    enum SpeedMode { Linear, Accelerated, SmoothDamp, LerpSmooth }
     enum TargetMode { MoveToExactPoint, NeverStop, StopAtMargin }
-    enum RotationMode { Nearest, Positive, Negative }
+    enum RotationMode { Shortest, Longest, Positive, Negative }
 
     float unsignedMaxSpd;
     int sign;
@@ -386,6 +391,12 @@ public class VectorToTargetEvent : MonoBehaviour
                                 - oPos;
                             unitsPerSecondSpeed = spd.magnitude * inverseDeltaTime;
                             break;
+                        case SpeedMode.LerpSmooth:
+                            spd = oPos.LerpSmooth(tPos, decay, deltaTime) - oPos;
+                            unitsPerSecondSpeed = spd.magnitude * inverseDeltaTime;
+                            if (unitsPerSecondSpeed > unsignedMaxSpd)
+                                unitsPerSecondSpeed = unsignedMaxSpd;
+                            break;
                         default:
                             //Default is Linear movement. This just keeps the speed at max value until the distance
                             //is less than unitsPerFrameSpeed (Converted to unitsPerSecond because maxSpeed is in that unit).
@@ -437,12 +448,38 @@ public class VectorToTargetEvent : MonoBehaviour
                 #endregion
 
                 //Get rotation difference quaternion
+                float dot = Quaternion.Dot(oRot, tRot);
+                switch (rotationMode)
+                {
+                    case RotationMode.Longest:
+                        if (dot > 0f)
+                            tRot = new Quaternion(-tRot.x, -tRot.y, -tRot.z, -tRot.w);
+                        break;
+                    case RotationMode.Positive:
+                        if (oRot.w < 0f)
+                            oRot = new Quaternion(-oRot.x, -oRot.y, -oRot.z, -oRot.w);
+                        if (tRot.w < 0f)
+                            tRot = new Quaternion(-tRot.x, -tRot.y, -tRot.z, -tRot.w);
+                        break;
+                    case RotationMode.Negative:
+                        if (oRot.w > 0f)
+                            oRot = new Quaternion(-oRot.x, -oRot.y, -oRot.z, -oRot.w);
+                        if (tRot.w > 0f)
+                            tRot = new Quaternion(-tRot.x, -tRot.y, -tRot.z, -tRot.w);
+                        break;
+                    default:
+                        if (dot < 0f)
+                            tRot = new Quaternion(-tRot.x, -tRot.y, -tRot.z, -tRot.w);
+                        break;
+                }
                 Quaternion spd = tRot * Quaternion.Inverse(oRot);
                 //Get "degreesPerSecondSpeed" => Rotation amount in degrees for this frame in degrees per second.
-                float absAng = spd.AbsoluteAngle();
+                Vector3 axis;
+                float angle;
+                spd.ToAngleAxis(out angle, out axis);
                 //  InverseDeltaTime is used to convert the raw angle
                 //  to the degrees per second speed required to reach the target next frame.
-                float degreesPerSecondSpeed = absAng * inverseDeltaTime;
+                float degreesPerSecondSpeed = angle * inverseDeltaTime;
                 //Stop rotation if the object should StopAtMargin and the distance is less than margin
                 if (degreesPerSecondSpeed < rotationMargin)
                 {
@@ -473,7 +510,7 @@ public class VectorToTargetEvent : MonoBehaviour
                                 float accelMag = (angularAcceleration + angularFrictionBias) * deltaTime;
                                 //This bit of code makes friction work by the two halfs technique described above too
                                 //while also preventing speed from becoming negative.
-                                float spdAbsAng = rotSpeed.AbsoluteAngle();
+                                float spdAbsAng = rotSpeed.Angle();
                                 if (accelMag > spdAbsAng)
                                 {
                                     float rest = accelMag - spdAbsAng;
@@ -486,7 +523,7 @@ public class VectorToTargetEvent : MonoBehaviour
                                     else
                                     {
                                         rotSpeed = Quaternion.Inverse(rotSpeed.SetRotationAmount(rest)) * rotSpeed;
-                                        accelMag = rotSpeed.AbsoluteAngle() * 0.5f;
+                                        accelMag = rotSpeed.Angle() * 0.5f;
                                     }
                                 }
                                 rotAccelHalf = Quaternion.Inverse(rotSpeed.SetRotationAmount(accelMag));
@@ -495,7 +532,7 @@ public class VectorToTargetEvent : MonoBehaviour
 
                             //Get new movement amount after applying half the acceleration
                             spd = rotAccelHalf * rotSpeed;
-                            degreesPerSecondSpeed = spd.AbsoluteAngle();
+                            degreesPerSecondSpeed = spd.Angle();
 
                             //Limit speed by maximum speed
                             if (degreesPerSecondSpeed > unsignedMaxRotSpd)
@@ -503,19 +540,21 @@ public class VectorToTargetEvent : MonoBehaviour
 
                             //Add the other acceleration half to the global speed for use in next frame
                             rotSpeed = rotAccelHalf * spd.SetRotationAmount(degreesPerSecondSpeed);
-
                             break;
-                        //case SpeedMode.SmoothDamp: //TO DO: I tried doing this with different methods but haven't found the perfect one yet
-                        //    float oAng = oRot.AbsoluteAngle();
-                        //    float tAng = tRot.AbsoluteAngle();
-                        //    frameSpeed = (Mathf.SmoothDamp(oAng, tAng, ref tempAngSpd, smoothTime, unsignedMaxRotSpd, deltaTime) - oAng) * inverseDeltaTime;
 
-                        //spd = oRot.SmoothDamp(tRot,
-                        //    ref rotSpeed, smoothTime, unsignedMaxRotSpd, deltaTime)
-                        //    * Quaternion.Inverse(oRot);
-                        //frameSpeed = spd.AbsoluteAngle() * inverseDeltaTime;
+                        case SpeedMode.SmoothDamp:
+                            spd = oRot.SmoothDamp(tRot,
+                                ref rotSpeed, smoothTime, unsignedMaxRotSpd, deltaTime, true).Subtract(oRot);
+                            degreesPerSecondSpeed = spd.Angle() * inverseDeltaTime;
+                            break;
 
-                        //break;
+                        case SpeedMode.LerpSmooth:
+                            spd = oRot.SLerpSmooth(tRot, decay, deltaTime).Subtract(oRot);
+                            degreesPerSecondSpeed = spd.Angle() * inverseDeltaTime;
+                            if (degreesPerSecondSpeed > unsignedMaxRotSpd)
+                                degreesPerSecondSpeed = unsignedMaxRotSpd;
+                            break;
+
                         default:
                             //Default is Linear movement. This just keeps the angular speed at max value until the distance
                             //is less than degreesPerFrameSpeed (Converted to degreesPerSecond because maxSpeed is in that unit).
@@ -535,37 +574,20 @@ public class VectorToTargetEvent : MonoBehaviour
 
                 if ((degreesPerSecondSpeed > 0f) || sendWhenZeroToo)
                 {
-                    Vector3 euler;
-                    float sign;
-                    //Modify rotation direction based on positive or negative modes. Default is shortest rotation to target.
-                    switch (rotationMode) // TO DO: This works strangely with SmoothDamp mode
-                    {
-                        case RotationMode.Positive:
-                            euler = spd.eulerAngles;
-                            sign = Mathf.Sign(euler.x.OffsetedRepeat(360f, -180f) + euler.y.OffsetedRepeat(360f, -180f) + euler.z.OffsetedRepeat(360f, -180f));
-                            if (sign < 0f) spd = Quaternion.Inverse(spd);
-                            break;
-                        case RotationMode.Negative:
-                            euler = spd.eulerAngles;
-                            sign = Mathf.Sign(euler.x.OffsetedRepeat(360f, -180f) + euler.y.OffsetedRepeat(360f, -180f) + euler.z.OffsetedRepeat(360f, -180f));
-                            if (sign > 0f) spd = Quaternion.Inverse(spd);
-                            break;
-                        default:
-                            break;
-                    }
-
-                    //Calculate and send percent of angular speed from zero to max speed for things like animation syncing
+                    //Calculate and send percent of angular speed from zero to max speed
+                    //for things like animation syncing
                     rotationAngle?.Invoke(degreesPerSecondSpeed / unsignedMaxRotSpd);
                     degreesPerSecondSpeed *= rotSign;
 
-                    spd = spd.SetRotationAmount(1f);
+                    spd.ToAngleAxis(out angle, out axis);
 
                     //Calculate and send euler angles with direction and amount of rotation
-                    rotation?.Invoke(spd.Scale(degreesPerSecondSpeed).eulerAngles);
+                    rotation?.Invoke(Quaternion.AngleAxis(degreesPerSecondSpeed, axis).eulerAngles);
 
                     //Rotate transform if "moveTransform" is checked
                     if (moveTransform)
-                        origin.Rotate(spd.Scale(degreesPerSecondSpeed * deltaTime).eulerAngles, local ? Space.Self : Space.World);
+                        origin.Rotate(Quaternion.AngleAxis(degreesPerSecondSpeed * deltaTime, axis).eulerAngles,
+                            local ? Space.Self : Space.World);
                 }
             }
         }
@@ -576,8 +598,17 @@ public class VectorToTargetEvent : MonoBehaviour
     /// </summary>
     public void Teleport()
     {
-        Vector3 dif = target.position - origin.position;
-        origin.Translate(dif, Space.World);
-        speed = Vector3.zero;
+        if (move)
+        {
+            Vector3 dif = target.position - origin.position;
+            origin.Translate(dif, Space.World);
+            speed = Vector3.zero;
+        }
+        if (rotate)
+        {
+            Quaternion dif = target.rotation.Subtract(origin.rotation);
+            origin.Rotate(dif.eulerAngles, Space.World);
+            rotSpeed = Quaternion.identity;
+        }
     }
 }

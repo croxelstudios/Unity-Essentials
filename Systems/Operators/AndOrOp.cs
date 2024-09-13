@@ -12,6 +12,8 @@ public class AndOrOp : MonoBehaviour
     DXEvent becomesTrue = null;
     [SerializeField]
     DXEvent becomesFalse = null;
+    [SerializeField]
+    bool checkEnabled = true;
 
     [DisplayAsString]
     public
@@ -29,7 +31,7 @@ public class AndOrOp : MonoBehaviour
 
     public void Add(int argument)
     {
-        if (this.IsActiveAndEnabled())
+        if (this.IsActiveAndEnabled() || !checkEnabled)
         {
             if (argumentCount == null) argumentCount = new Dictionary<int, int>();
             if (!argumentCount.ContainsKey(argument))
@@ -48,7 +50,8 @@ public class AndOrOp : MonoBehaviour
 
     public void Subtract(int argument)
     {
-        if (this.IsActiveAndEnabled() && (argumentCount != null) && argumentCount.ContainsKey(argument))
+        if ((this.IsActiveAndEnabled() || !checkEnabled)
+            && (argumentCount != null) && argumentCount.ContainsKey(argument))
         {
             argumentCount[argument]--;
             if (argumentCount[argument] <= 0)

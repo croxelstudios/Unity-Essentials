@@ -1,9 +1,17 @@
+using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class DebugLog : MonoBehaviour
 {
+    [SerializeField]
+    bool note = false;
+    [SerializeField]
+    [TextArea]
+    [ShowIf("@note")]
+    string NOTE = "";
+
     public void Log(Color value)
     {
         DLog(value);

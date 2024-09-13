@@ -1,12 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEditorInternal;
+#endif
 using UnityEngine;
 
 public class RenderingLayerMaskAttribute : PropertyAttribute { }
 
+#if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(RenderingLayerMaskAttribute))]
 public class RenderingLayerMaskAttributeDrawer : PropertyDrawer
 {
@@ -77,3 +77,4 @@ public static class RenderingLayerMaskDrawer
         return field;
     }
 }
+#endif

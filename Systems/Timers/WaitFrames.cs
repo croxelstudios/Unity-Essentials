@@ -32,6 +32,12 @@ public class WaitFrames : MonoBehaviour
         StopRoutine();
     }
 
+    public void StopAndStart()
+    {
+        StopRoutine();
+        StartRoutine();
+    }
+
     public void StopRoutine()
     {
         StopAllCoroutines();

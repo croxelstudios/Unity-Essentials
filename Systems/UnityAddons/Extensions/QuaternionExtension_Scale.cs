@@ -1,18 +1,23 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public static class QuaternionExtension_Scale
 {
     public static Quaternion Scale(this Quaternion quat, float scale)
     {
-        float angle = Quaternion.Angle(Quaternion.identity, quat);
+        Vector3 axis;
+        float angle;
+        quat.ToAngleAxis(out angle, out axis);
         if (angle <= Mathf.Epsilon) return Quaternion.identity;
-        return Quaternion.SlerpUnclamped(Quaternion.identity, quat, scale);
+        return Quaternion.AngleAxis(angle * scale, axis);
     }
 
-    public static Quaternion SetRotationAmount(this Quaternion quat, float scale)
+    public static Quaternion SetRotationAmount(this Quaternion quat, float amount)
     {
-        float angle = Quaternion.Angle(Quaternion.identity, quat);
+        Vector3 axis;
+        float angle;
+        quat.ToAngleAxis(out angle, out axis);
         if (angle <= Mathf.Epsilon) return Quaternion.identity;
-        return Quaternion.SlerpUnclamped(Quaternion.identity, quat, scale / quat.AbsoluteAngle());
+        return Quaternion.AngleAxis(amount, axis);
     }
 }
