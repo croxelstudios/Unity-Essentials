@@ -31,21 +31,23 @@ public class PrefabInstancer_TextMeshPro : MonoBehaviour
 
     public void ChangeText(float newText)
     {
-        foreach (SpawnedEntity se in pi.entities)
-        {
-            TextMeshPro tmp = se.GetComponentInChildren<TextMeshPro>();
-            if (tmp)
-                tmp.text = preText + newText.ToString() + postText;
-        }
+        if (pi.entities != null)
+            foreach (SpawnedEntity se in pi.entities)
+            {
+                TextMeshPro tmp = se.GetComponentInChildren<TextMeshPro>();
+                if (tmp)
+                    tmp.text = preText + newText.ToString() + postText;
+            }
     }
 
     public void ChangeText(string newText)
     {
-        foreach (SpawnedEntity se in pi.entities)
-        {
-            TextMeshPro tmp = se.GetComponent<TextMeshPro>();
-            if (tmp)
-                tmp.text = preText + newText + postText;
-        }
+        if (pi.entities != null)
+            foreach (SpawnedEntity se in pi.entities)
+            {
+                TextMeshPro tmp = se.GetComponent<TextMeshPro>();
+                if (tmp)
+                    tmp.text = preText + newText + postText;
+            }
     }
 }

@@ -238,6 +238,9 @@
     "m_StickyNoteDatas": [
         {
             "m_Id": "0d65cd0c4e6a46878fef7be85725ed58"
+        },
+        {
+            "m_Id": "e599dc34289444c792685c80ecdd2ec9"
         }
     ],
     "m_Edges": [
@@ -1175,8 +1178,8 @@
     "m_ObjectId": "000bec3d258048d3a84824ac38db8879",
     "m_Title": "World Position",
     "m_Position": {
-        "x": -648.0,
-        "y": 994.0000610351563
+        "x": -742.0,
+        "y": 994.0
     }
 }
 
@@ -3313,10 +3316,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -570.0,
-            "y": 1299.3333740234375,
-            "width": 209.33334350585938,
-            "height": 318.6666259765625
+            "x": -577.0000610351563,
+            "y": 1298.0,
+            "width": 208.0,
+            "height": 315.0
         }
     },
     "m_Slots": [
@@ -5664,10 +5667,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -622.6666870117188,
-            "y": 1052.666748046875,
-            "width": 123.33334350585938,
-            "height": 246.6666259765625
+            "x": -631.0,
+            "y": 1053.0,
+            "width": 122.00003051757813,
+            "height": 245.0
         }
     },
     "m_Slots": [
@@ -6564,6 +6567,26 @@
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "e599dc34289444c792685c80ecdd2ec9",
+    "m_Title": "TO DO",
+    "m_Content": "Calculate depth scale by world position difference so that I can use that in more accurate lighting",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": -2257.0,
+        "y": -235.0,
+        "width": 200.0,
+        "height": 128.0
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
 }
 
 {

@@ -13,6 +13,11 @@ public class FloatValueFilter : MonoBehaviour
 
     bool state;
 
+    public void FilterValue(int value)
+    {
+        FilterValue((float)value);
+    }
+
     public void FilterValue(float value)
     {
         if ((value >= Mathf.Min(range.x, range.y)) && (value < Mathf.Max(range.x, range.y)))

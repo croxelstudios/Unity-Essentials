@@ -61,6 +61,12 @@ public class EventsManager : BBaseSignalListener
             events[Random.Range(0, events.Length)].actions?.Invoke(); //Change type here
     }
 
+    public void LaunchRandomActionNTimes(int times)
+    {
+        for (int i = 0; i < times; i++)
+            LaunchRandomAction();
+    }
+
 #if UNITY_EDITOR
     [ContextMenu("Create new EventSignal")] //Change type here
     void CreateEventSignal()

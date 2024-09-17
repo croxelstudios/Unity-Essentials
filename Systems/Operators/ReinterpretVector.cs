@@ -6,6 +6,8 @@ public class ReinterpretVector : MonoBehaviour
     [SerializeField]
     Transform referenceTransform = null;
     [SerializeField]
+    bool normalize = false;
+    [SerializeField]
     float multiplier = 1f;
     [SerializeField]
     bool projectOnPlane = true;
@@ -29,19 +31,21 @@ public class ReinterpretVector : MonoBehaviour
 
     public void Reinterpret(Vector2 input)
     {
-        input *= multiplier;
         if (referenceTransform != null) input = referenceTransform.rotation * input;
         if (projectOnPlane)
             input = PlaneProjection(input.InterpretVector2(plane2DNormal, plane2DUp));
+        if (normalize) input = input.normalized;
+        input *= multiplier;
         vectorEvent?.Invoke(input);
     }
 
     public void Reinterpret(Vector3 input)
     {
-        input *= multiplier;
         if (referenceTransform != null) input = referenceTransform.rotation * input;
         if (projectOnPlane)
             input = PlaneProjection(input.InterpretVector2(plane2DNormal, plane2DUp));
+        if (normalize) input = input.normalized;
+        input *= multiplier;
         vectorEvent?.Invoke(input);
     }
 

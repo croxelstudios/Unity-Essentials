@@ -145,7 +145,7 @@ public class RavioliButton : RavioliButton_Button
         buttons = new List<RavioliButton_Button>();
     }
 
-    void ResetButtons()
+    public void ResetButtons()
     {
         if ((buttons != null) && (buttons.Count > 0))
         {

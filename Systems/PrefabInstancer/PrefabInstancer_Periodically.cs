@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -33,6 +34,7 @@ public class PrefabInstancer_Periodically : PrefabInstancer
     {
         while (true)
         {
+            if (entities == null) entities = new List<SpawnedEntity>();
             if (entities.Count < maxEntityCount)
             {
                 InstantiateRandom();

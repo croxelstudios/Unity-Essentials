@@ -1,10 +1,11 @@
+using Sirenix.OdinInspector;
 using System.Collections;
 using UnityEngine;
 
 public class WaitFrames : MonoBehaviour
 {
     [SerializeField]
-    [Min(0)]
+    [MinValue(0)]
     protected int frames = 1;
     [SerializeField]
     bool fixedTime = false;

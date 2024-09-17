@@ -2,6 +2,7 @@
 using UnityEngine.Events;
 using System;
 using Sirenix.OdinInspector;
+using UnityEngine.Internal;
 
 //TO DO: Micro-optimize by saving the button values in a static dictionary so that
 //other launchers with the same input are not checking it twice (or a similar solution)
@@ -139,6 +140,10 @@ public class BInputEventLauncher : MonoBehaviour
             value = new Vector2(
                 (Mathf.Abs(value.x) < joysticks[n].independantAxesDeadzone) ? 0f : value.x,
                 (Mathf.Abs(value.y) < joysticks[n].independantAxesDeadzone) ? 0f : value.y);
+            if (Mathf.Abs(value.x) < Mathf.Abs(value.y))
+                value.x *= (1 + joysticks[n].diagonalBias);
+            else if (Mathf.Abs(value.y) < Mathf.Abs(value.x))
+                value.y *= (1 + joysticks[n].diagonalBias);
             switch (joysticks[n].valueLimit)
             {
                 case ValueLimit.Clamp01:
@@ -450,6 +455,8 @@ public class BInputEventLauncher : MonoBehaviour
         [FoldoutGroup("@GetName()")]
         public float independantAxesDeadzone;
         [FoldoutGroup("@GetName()")]
+        public float diagonalBias;
+        [FoldoutGroup("@GetName()")]
         [ShowIf("@((int)valueLimit) != 2")]
         public bool useCurve;
         [FoldoutGroup("@GetName()")]
@@ -462,11 +469,13 @@ public class BInputEventLauncher : MonoBehaviour
         [FoldoutGroup("@GetName()")]
         public bool isPressed { get; private set; }
 
-        public VectorInput(Joystick joystick, float independantAxesDeadzone, ValueLimit valueLimit, bool squareShape,
-            bool sendWhenZeroToo, AnimationCurve curve)
+        public VectorInput(Joystick joystick, float independantAxesDeadzone,
+            float diagonalMultiplier, ValueLimit valueLimit,
+            bool squareShape, bool sendWhenZeroToo, AnimationCurve curve)
         {
             this.joystick = joystick;
             this.independantAxesDeadzone = independantAxesDeadzone;
+            this.diagonalBias = diagonalMultiplier;
             this.valueLimit = valueLimit;
             this.squareShape = squareShape;
             this.sendWhenZeroToo = sendWhenZeroToo;

@@ -425,8 +425,9 @@ public class VectorToTargetEvent : MonoBehaviour
                     //Calculate and send vector with direction and amount of speed
                     Vector3 result = spd.normalized * unitsPerSecondSpeed;
                     vector?.Invoke(result);
+                    if (local) result = origin.parent.TransformVector(result);
                     if (moveTransform)
-                        origin.Translate(result * deltaTime, local ? Space.Self : Space.World);
+                        origin.Translate(result * deltaTime, Space.World);
                     if (reorientTransform)
                         origin.forward = result;
                 }

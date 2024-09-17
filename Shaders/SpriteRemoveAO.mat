@@ -26,7 +26,9 @@ Material:
   m_Parent: {fileID: 2100000, guid: 2ba7edac02ba98c4fae056d2141e46f6, type: 2}
   m_ModifiedSerializedProperties: 28
   m_ValidKeywords:
+  - _3DBOOLEANS_SUBTRACTION
   - _ALPHATEST_ON
+  - _NORMALSHANDLER_MESH
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
   - ETC1_EXTERNAL_ALPHA
@@ -64,7 +66,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AlphaClip: 1
+    - _3DBOOLEANS: 1
     - _AlphaToMask: 0
     - _Apply3DSubtraction: 1
     - _Cutout: 0.01

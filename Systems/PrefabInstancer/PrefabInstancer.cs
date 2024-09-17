@@ -49,7 +49,7 @@ public class PrefabInstancer : MonoBehaviour
     //TO DO: Support for keeping momentum of original object (DXVectorEvent originalMomentum on instance)
 
     WeightedPrefab[] wPrefabs;
-    public List<SpawnedEntity> entities;
+    public List<SpawnedEntity> entities = new List<SpawnedEntity>();
 
     bool wPrefabsFilled = false;
 
@@ -69,7 +69,8 @@ public class PrefabInstancer : MonoBehaviour
 #if UNITY_EDITOR
         if (Application.isPlaying)
 #endif
-            if (trackEntities) foreach (SpawnedEntity entity in entities) entity.EntityDestroyed -= EntityRemoved;
+            if (trackEntities && (entities != null)) foreach (SpawnedEntity entity in entities)
+                    entity.EntityDestroyed -= EntityRemoved;
     }
 
     //
@@ -165,7 +166,7 @@ public class PrefabInstancer : MonoBehaviour
     public void SetActiveAllEntities(bool state)
     {
         if (!trackEntities) Debug.LogError(gameObject.name + " PrefabInstancer can't interact with spawned entities if they are not being tracked");
-        else if (this.IsActiveAndEnabled())
+        else if (this.IsActiveAndEnabled() && (entities != null))
         {
             for (int i = entities.Count - 1; i >= 0; i--)
                 entities[i].gameObject.SetActive(state);
@@ -175,7 +176,7 @@ public class PrefabInstancer : MonoBehaviour
     public void DestroyAllEntities()
     {
         if (!trackEntities) Debug.LogError(gameObject.name + " PrefabInstancer can't interact with spawned entities if they are not being tracked");
-        else if (this.IsActiveAndEnabled())
+        else if (this.IsActiveAndEnabled() && (entities != null))
         {
             for (int i = entities.Count - 1; i >= 0; i--)
                 Destroy(entities[i].gameObject);
@@ -190,7 +191,7 @@ public class PrefabInstancer : MonoBehaviour
     public void LaunchEventInAllEntities(int index)
     {
         if (!trackEntities) Debug.LogError(gameObject.name + " PrefabInstancer can't interact with spawned entities if they are not being tracked");
-        else if (this.IsActiveAndEnabled())
+        else if (this.IsActiveAndEnabled() && (entities != null))
         {
             for (int i = entities.Count - 1; i >= 0; i--)
                 entities[i].LaunchEvent(index);
@@ -208,7 +209,6 @@ public class PrefabInstancer : MonoBehaviour
 
     void FillWeightedPrefabs()
     {
-        if (trackEntities) entities = new List<SpawnedEntity>();
         wPrefabs = new WeightedPrefab[weightedPrefabs.Length + prefabs.Length];
         for (int i = 0; i < wPrefabs.Length; i++)
         {
@@ -227,6 +227,7 @@ public class PrefabInstancer : MonoBehaviour
                 if (entity == null) entity = instance.AddComponent<SpawnedEntity>();
                 if (trackEntities)
                 {
+                    if (entities == null) entities = new List<SpawnedEntity>();
                     entities.Add(entity);
                     entity.EntityDestroyed += EntityRemoved;
                     entity.instancer = this;
