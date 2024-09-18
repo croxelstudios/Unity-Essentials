@@ -13,17 +13,17 @@ public class BTriggerManager : MonoBehaviour
     string[] detectionTags = null;
 
     List<NDCollider> colliders;
-    NDCollider selfCollider;
+    NDCollider[] selfColliders;
 
     protected virtual void Awake()
     {
         colliders = new List<NDCollider>();
-        selfCollider = NDCollider.GetNDColliderFrom(gameObject);
+        selfColliders = NDCollider.GetNDCollidersFrom(gameObject);
     }
 
     void FixedUpdate()
     {
-        if (selfCollider.IsNull() || (!selfCollider.enabled))
+        if (!HasEnabledCollider())
             OnDisable();
 
         for (int i = colliders.Count - 1; i > -1; i--)
@@ -39,8 +39,7 @@ public class BTriggerManager : MonoBehaviour
 
     bool IsThisEnabled()
     {
-        return this.IsActiveAndEnabled() &&
-            (!selfCollider.IsNull()) && selfCollider.enabled;
+        return this.IsActiveAndEnabled() && HasEnabledCollider();
     }
 
     void OnTriggerEnter(Collider other)
@@ -141,5 +140,15 @@ public class BTriggerManager : MonoBehaviour
             colliders.Clear();
             OnTrigExit();
         }
+    }
+
+    bool HasEnabledCollider()
+    {
+        if ((selfColliders == null) || (selfColliders.Length <= 0))
+            return false;
+        for (int i = 0; i < selfColliders.Length; i++)
+            if ((!selfColliders[i].IsNull()) && selfColliders[i].enabled)
+                return true;
+        return false;
     }
 }

@@ -149,7 +149,7 @@ public class RavioliButton : RavioliButton_Button
     {
         if ((buttons != null) && (buttons.Count > 0))
         {
-            if (restartPositionOnSelection) UpdateCurrentButton(defaultButton);
+            if (restartPositionOnSelection || (currentButton == null)) UpdateCurrentButton(defaultButton);
             if (currentButton != null)
             {
                 for (int i = 0; i < buttons.Count; i++) buttons[i].TryDeselect();
@@ -607,7 +607,7 @@ public class RavioliButton_Button : MonoBehaviour
     }
 
     #region Internal functions
-    void AddMyselfToParentGroups()
+    protected void AddMyselfToParentGroups()
     {
         if ((groups == null) || (groups.Length <= 0))
         {

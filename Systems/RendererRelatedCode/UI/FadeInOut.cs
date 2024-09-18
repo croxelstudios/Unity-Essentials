@@ -45,6 +45,11 @@ public class FadeInOut : MonoBehaviour
                 {
                     RenderersSetColor rsc = GetComponentInChildren<RenderersSetColor>();
                     if (rsc != null) alphaHolder = new AlphaHolder(rsc, useBlack);
+                    else
+                    {
+                        Light light = GetComponentInChildren<Light>();
+                        if (light != null) alphaHolder = new AlphaHolder(light);
+                    }
                 }
             }
         }
@@ -70,6 +75,7 @@ public class FadeInOut : MonoBehaviour
 
     public void FadeIn()
     {
+        GetAlphaHolder();
         bool objectWasDisabled = !gameObject.activeInHierarchy;
         gameObject.SetActive(true);
         if (resetAlphaOnCall || objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
@@ -135,11 +141,13 @@ public class FadeInOut : MonoBehaviour
         Graphic graphic;
         CanvasGroup canvasGroup;
         RenderersSetColor rsc;
+        Light light;
         Mode mode;
         public bool isNotNull;
         bool useBlackValue;
+        Vector2 hs;
 
-        enum Mode { Graphic, CanvasGroup, RSC }
+        enum Mode { Graphic, CanvasGroup, RSC, Light }
 
         public float alpha
         {
@@ -158,6 +166,9 @@ public class FadeInOut : MonoBehaviour
                             return v;
                         }
                         else return rsc.color.a;
+                    case Mode.Light:
+                        Color.RGBToHSV(light.color, out float hl, out float sl, out float vl);
+                        return vl;
                     default:
                         return 0f;
                 }
@@ -185,6 +196,12 @@ public class FadeInOut : MonoBehaviour
                         else c.a = value;
                         rsc.SetColor(c);
                         break;
+                    case Mode.Light:
+                        c = light.color;
+                        Color.RGBToHSV(c, out float hl, out float sl, out float vl);
+                        c = Color.HSVToRGB(hs.x, hs.y, value);
+                        light.color = c;
+                        break;
                 }
             }
         }
@@ -195,8 +212,10 @@ public class FadeInOut : MonoBehaviour
             this.graphic = graphic;
             canvasGroup = null;
             rsc = null;
+            light = null;
             isNotNull = true;
             useBlackValue = false;
+            hs = Vector2.zero;
         }
 
         public AlphaHolder(CanvasGroup canvasGroup)
@@ -205,8 +224,10 @@ public class FadeInOut : MonoBehaviour
             this.canvasGroup = canvasGroup;
             graphic = null;
             rsc = null;
+            light = null;
             isNotNull = true;
             useBlackValue = false;
+            hs = Vector2.zero;
         }
 
         public AlphaHolder(RenderersSetColor rsc, bool useBlackValue = false)
@@ -215,8 +236,23 @@ public class FadeInOut : MonoBehaviour
             this.rsc = rsc;
             graphic = null;
             canvasGroup = null;
+            light = null;
             isNotNull = true;
             this.useBlackValue = useBlackValue;
+            hs = Vector2.zero;
+        }
+
+        public AlphaHolder(Light light)
+        {
+            mode = Mode.Light;
+            this.light = light;
+            graphic = null;
+            canvasGroup = null;
+            rsc = null;
+            isNotNull = true;
+            useBlackValue = false;
+            Color.RGBToHSV(light.color, out float h, out float s, out float v);
+            hs = new Vector2(h, s);
         }
     }
 
