@@ -96,6 +96,7 @@ public class RavioliButton : RavioliButton_Button
 
     public override void OnDisable()
     {
+        FinalizeMovementBehaviors();
         base.OnDisable();
         groupInitialized = false;
     }
@@ -510,7 +511,11 @@ public class RavioliButton : RavioliButton_Button
             }
             else buttons.Remove(button);
         }
-        else buttons.Remove(button);
+        else
+        {
+            FinalizeMovementBehaviors();
+            buttons.Remove(button);
+        }
     }
     #endregion
 
@@ -590,6 +595,7 @@ public class RavioliButton_Button : MonoBehaviour
     public MovementBehaviour carouselBehaviourOverride = new MovementBehaviour(0f, 0.01f);
 
     protected RavioliButton[] groups;
+    bool imAddedToGroups;
     Vector3 cTmpSpd;
     [HideInInspector]
     public Vector3 carouselTarget;
@@ -609,7 +615,7 @@ public class RavioliButton_Button : MonoBehaviour
     #region Internal functions
     protected void AddMyselfToParentGroups()
     {
-        if ((groups == null) || (groups.Length <= 0))
+        if (groups == null)
         {
             RavioliButton[] grs = FindObjectsOfType<RavioliButton>();
             List<RavioliButton> lGrs = new List<RavioliButton>();
@@ -618,9 +624,13 @@ public class RavioliButton_Button : MonoBehaviour
                     lGrs.Add(gr);
 
             groups = lGrs.ToArray();
+        }
 
+        if (!imAddedToGroups)
+        {
             foreach (RavioliButton gr in groups)
                 gr.AddButton(this);
+            imAddedToGroups = true;
         }
     }
 
@@ -629,7 +639,7 @@ public class RavioliButton_Button : MonoBehaviour
         if (groups != null)
             foreach (RavioliButton group in groups)
                 group.RemoveButton(this);
-        groups = null;
+        imAddedToGroups = false;
     }
 
     public virtual void TrySelect()
