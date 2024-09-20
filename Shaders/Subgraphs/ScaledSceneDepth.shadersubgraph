@@ -55,6 +55,9 @@
         },
         {
             "m_Id": "9fb8f52e48dc4fe99919a0f4aa840177"
+        },
+        {
+            "m_Id": "e7215557eae54f9dbc75f8f530eac616"
         }
     ],
     "m_Dropdowns": [],
@@ -3168,7 +3171,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "e00": 2.0,
+        "e00": 1.0,
         "e01": 2.0,
         "e02": 2.0,
         "e03": 2.0,
@@ -3945,6 +3948,9 @@
         },
         {
             "m_Id": "63855fd88a21411b82fed3d354976157"
+        },
+        {
+            "m_Id": "e7215557eae54f9dbc75f8f530eac616"
         }
     ]
 }
@@ -6620,6 +6626,31 @@
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "e7215557eae54f9dbc75f8f530eac616",
+    "m_Guid": {
+        "m_GuidSerialized": "81921440-20c6-4478-b92b-d48c91458e89"
+    },
+    "m_Name": "_FORWARD_PLUS",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "_FORWARD_PLUS",
+    "m_DefaultReferenceName": "_FORWARD_PLUS",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 0,
+    "m_KeywordScope": 1,
+    "m_KeywordStages": 63,
+    "m_Entries": [],
+    "m_Value": 1,
+    "m_IsEditable": true
 }
 
 {

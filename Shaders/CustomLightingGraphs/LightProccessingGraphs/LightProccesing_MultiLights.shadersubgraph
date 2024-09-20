@@ -55,6 +55,9 @@
         },
         {
             "m_Id": "25ab94db54ce43569a9e9e3e0d77a20b"
+        },
+        {
+            "m_Id": "246e8e99791d4ae780669431c46b6d40"
         }
     ],
     "m_Dropdowns": [],
@@ -201,6 +204,9 @@
         },
         {
             "m_Id": "3153750ce5cc4853b1fb54f1948fc38e"
+        },
+        {
+            "m_Id": "6426b1a45e564ec5a25ecba208121fdd"
         }
     ],
     "m_GroupDatas": [
@@ -1119,7 +1125,7 @@
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_KeywordType": 0,
-    "m_KeywordDefinition": 1,
+    "m_KeywordDefinition": 0,
     "m_KeywordScope": 1,
     "m_KeywordStages": 63,
     "m_Entries": [],
@@ -1668,6 +1674,31 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "246e8e99791d4ae780669431c46b6d40",
+    "m_Guid": {
+        "m_GuidSerialized": "70eba3e8-ec28-4a16-9c89-47c7dcd11eb0"
+    },
+    "m_Name": "_FORWARD_PLUS",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "_FORWARD_PLUS",
+    "m_DefaultReferenceName": "_FORWARD_PLUS",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 0,
+    "m_KeywordScope": 1,
+    "m_KeywordStages": 63,
+    "m_Entries": [],
+    "m_Value": 1,
+    "m_IsEditable": true
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "24a7e1e0683c4bf19b79164aa2b968b5",
@@ -1720,7 +1751,7 @@
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_KeywordType": 0,
-    "m_KeywordDefinition": 1,
+    "m_KeywordDefinition": 0,
     "m_KeywordScope": 1,
     "m_KeywordStages": 63,
     "m_Entries": [],
@@ -3122,8 +3153,42 @@
     },
     "m_SourceType": 1,
     "m_FunctionName": "AdditionalLightsLoop",
-    "m_FunctionSource": "",
-    "m_FunctionBody": "\r\r\n        LightingResult = float4(0, 0, 0, 1);\n        SpecularMask = 0;\n#if !defined(SHADERGRAPH_PREVIEW)\n    #ifdef _ADDITIONAL_LIGHTS\r\n        float4 positionCS = TransformWorldToHClip(Position);\r\n        #if SHADOWS_SCREEN\r\n            float4 shadowCoord = ComputeScreenPos(positionCS);\r\n        #else\r\n            float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n        #endif\r\n        uint numAdditionalLights = GetAdditionalLightsCount();\r\n        for (uint lightI = 0; lightI < numAdditionalLights; lightI++) {\r\n            Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n            float4 OutVector4_1;\n\t  float sm;\r\n            AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\n\t  RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\n\t\tToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \n\t\tWorldSpaceNormal, ViewDirection, light.direction, light.color, \n\t\tlight.shadowAttenuation, light.distanceAttenuation,\n                    OutVector4_1, sm);\r\n    \r\n            LightingResult += OutVector4_1;\n\t  SpecularMask += sm;\r\n        }\r\n    #endif\n#endif"
+    "m_FunctionSource": "e4db6e03274d60242b81b2e8e4db01b3",
+    "m_FunctionBody": "    LightingResult = float4(0, 0, 0, 1);\r\n    SpecularMask = 0;\r\n    #if !defined(SHADERGRAPH_PREVIEW)\r\n        #ifdef _ADDITIONAL_LIGHTS\r\n            float4 positionCS = TransformWorldToHClip(Position);\r\n            #if SHADOWS_SCREEN\r\n                float4 shadowCoord = ComputeScreenPos(positionCS);\r\n            #else\r\n                float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n            #endif\r\n            uint lightsCount = GetAdditionalLightsCount();\r\n            #ifdef _FORWARD_PLUS\r\n                InputData inputData = (InputData)0;\r\n                inputData.positionWS = Position;\r\n                inputData.normalWS = Normal;\r\n                inputData.viewDirectionWS = ViewDirection;\r\n                inputData.shadowCoord = shadowCoord;\r\n                inputData.normalizedScreenSpaceUV =\r\n                    float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);\r\n                \r\n                LIGHT_LOOP_BEGIN(lightsCount)\r\n                    Light light = GetAdditionalLight(lightIndex, Position, 1);\r\n    \r\n                    float4 OutVector4_1;\r\n\t                float sm;\r\n                    \r\n                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                light.shadowAttenuation, light.distanceAttenuation,\r\n                        OutVector4_1, sm);\r\n    \r\n                    LightingResult += OutVector4_1;\r\n\t                SpecularMask += sm;\r\n                LIGHT_LOOP_END\r\n            #else //Forward mode crashes game randomly\r\n                for (uint lightI = 0; lightI < lightsCount; lightI++)\r\n                {\r\n                    Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n                    float4 OutVector4_1;\r\n\t                float sm;\r\n                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                light.shadowAttenuation, light.distanceAttenuation,\r\n                        OutVector4_1, sm);\r\n    \r\n                    LightingResult += OutVector4_1;\r\n\t                SpecularMask += sm;\r\n                }\r\n            #endif\r\n        #endif\r\n    #endif"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.ScreenPositionNode",
+    "m_ObjectId": "6426b1a45e564ec5a25ecba208121fdd",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Screen Position",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -287.0000305175781,
+            "y": 257.0,
+            "width": 145.0,
+            "height": 129.00003051757813
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "907b547453824aac9e8b66a29b144fd3"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_ScreenSpaceType": 4
 }
 
 {
@@ -4201,6 +4266,31 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "907b547453824aac9e8b66a29b144fd3",
+    "m_Id": 0,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "9173d0139e344ffeb3411480c5caa903",
     "m_Id": 1,
@@ -4375,6 +4465,9 @@
         },
         {
             "m_Id": "0566b1bd21ff46248735e03aed4d4c16"
+        },
+        {
+            "m_Id": "246e8e99791d4ae780669431c46b6d40"
         }
     ]
 }
@@ -5256,7 +5349,7 @@
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_KeywordType": 0,
-    "m_KeywordDefinition": 1,
+    "m_KeywordDefinition": 0,
     "m_KeywordScope": 1,
     "m_KeywordStages": 63,
     "m_Entries": [],
@@ -5394,7 +5487,7 @@
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
     "m_KeywordType": 0,
-    "m_KeywordDefinition": 1,
+    "m_KeywordDefinition": 0,
     "m_KeywordScope": 1,
     "m_KeywordStages": 63,
     "m_Entries": [],
