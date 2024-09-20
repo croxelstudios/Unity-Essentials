@@ -204,9 +204,6 @@
         },
         {
             "m_Id": "3153750ce5cc4853b1fb54f1948fc38e"
-        },
-        {
-            "m_Id": "6426b1a45e564ec5a25ecba208121fdd"
         }
     ],
     "m_GroupDatas": [
@@ -1016,7 +1013,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_UseRampTexture",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": false,
     "m_DefaultValue": false
 }
@@ -1415,7 +1412,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_Albedo",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 1.0,
         "y": 1.0,
@@ -1458,7 +1455,7 @@
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "OutVector4",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -1534,7 +1531,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_DistanceAttenuation",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 1.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -2078,7 +2075,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_ShadowAttenuation",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 1.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -2266,7 +2263,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_ToonSubdivisions",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -2675,7 +2672,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_Normal",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -2698,7 +2695,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_LightStepsCurveFactor",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -3154,41 +3151,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "AdditionalLightsLoop",
     "m_FunctionSource": "e4db6e03274d60242b81b2e8e4db01b3",
-    "m_FunctionBody": "    LightingResult = float4(0, 0, 0, 1);\r\n    SpecularMask = 0;\r\n    #if !defined(SHADERGRAPH_PREVIEW)\r\n        #ifdef _ADDITIONAL_LIGHTS\r\n            float4 positionCS = TransformWorldToHClip(Position);\r\n            #if SHADOWS_SCREEN\r\n                float4 shadowCoord = ComputeScreenPos(positionCS);\r\n            #else\r\n                float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n            #endif\r\n            uint lightsCount = GetAdditionalLightsCount();\r\n            #ifdef _FORWARD_PLUS\r\n                InputData inputData = (InputData)0;\r\n                inputData.positionWS = Position;\r\n                inputData.normalWS = Normal;\r\n                inputData.viewDirectionWS = ViewDirection;\r\n                inputData.shadowCoord = shadowCoord;\r\n                inputData.normalizedScreenSpaceUV =\r\n                    float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);\r\n                \r\n                LIGHT_LOOP_BEGIN(lightsCount)\r\n                    Light light = GetAdditionalLight(lightIndex, Position, 1);\r\n    \r\n                    float4 OutVector4_1;\r\n\t                float sm;\r\n                    \r\n                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                light.shadowAttenuation, light.distanceAttenuation,\r\n                        OutVector4_1, sm);\r\n    \r\n                    LightingResult += OutVector4_1;\r\n\t                SpecularMask += sm;\r\n                LIGHT_LOOP_END\r\n            #else //Forward mode crashes game randomly\r\n                for (uint lightI = 0; lightI < lightsCount; lightI++)\r\n                {\r\n                    Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n                    float4 OutVector4_1;\r\n\t                float sm;\r\n                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                light.shadowAttenuation, light.distanceAttenuation,\r\n                        OutVector4_1, sm);\r\n    \r\n                    LightingResult += OutVector4_1;\r\n\t                SpecularMask += sm;\r\n                }\r\n            #endif\r\n        #endif\r\n    #endif"
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.ScreenPositionNode",
-    "m_ObjectId": "6426b1a45e564ec5a25ecba208121fdd",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Screen Position",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -287.0000305175781,
-            "y": 257.0,
-            "width": 145.0,
-            "height": 129.00003051757813
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "907b547453824aac9e8b66a29b144fd3"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": false,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_ScreenSpaceType": 4
+    "m_FunctionBody": "    LightingResult = float4(0, 0, 0, 1);\r\n    SpecularMask = 0;\r\n    #if !defined(SHADERGRAPH_PREVIEW)\r\n        #ifdef _ADDITIONAL_LIGHTS\r\n            uint lightsCount = GetAdditionalLightsCount();\r\n            #ifdef _FORWARD_PLUS\r\n                #if SHADOWS_SCREEN\r\n                    float4 shadowCoord = ComputeScreenPos(positionCS);\r\n                #else\r\n                    float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n                #endif\r\n                InputData inputData = (InputData)0;\r\n                inputData.positionWS = Position;\r\n                inputData.normalWS = Normal;\r\n                inputData.viewDirectionWS = ViewDirection;\r\n                inputData.shadowCoord = shadowCoord;\r\n                float4 positionCS = TransformWorldToHClip(Position);\r\n                inputData.normalizedScreenSpaceUV =\r\n                    float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);\r\n                \r\n                LIGHT_LOOP_BEGIN(lightsCount)\r\n                    Light light = GetAdditionalLight(lightIndex, Position, 1);\r\n    \r\n                    float4 OutVector4_1;\r\n\t                float sm;\r\n                    \r\n                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                light.shadowAttenuation, light.distanceAttenuation,\r\n                        OutVector4_1, sm);\r\n    \r\n                    LightingResult.rgb += OutVector4_1.rgb;\r\n                    LightingResult.a *= OutVector4_1.a;\r\n\t                SpecularMask += sm;\r\n                LIGHT_LOOP_END\r\n            #else\r\n                for (uint lightI = 0; lightI < lightsCount; lightI++)\r\n                {\r\n                    Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n                    float4 OutVector4_1;\r\n\t                float sm;\r\n                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                light.shadowAttenuation, light.distanceAttenuation,\r\n                        OutVector4_1, sm);\r\n    \r\n                    LightingResult.rgb += OutVector4_1.rgb;\r\n                    LightingResult.a *= OutVector4_1.a;\r\n\t                SpecularMask += sm;\r\n                }\r\n            #endif\r\n        #endif\r\n    #endif"
 }
 
 {
@@ -3320,7 +3283,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "OutVector4",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -3345,7 +3308,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_LightColor",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 1.0,
         "y": 1.0,
@@ -3823,7 +3786,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_Invert",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": false,
     "m_DefaultValue": false
 }
@@ -3898,7 +3861,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "SpecularMask",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -4003,7 +3966,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_Smoothness",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.5,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -4018,7 +3981,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_LightCurveFactor",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.5,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -4056,7 +4019,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_LightDir",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -4266,31 +4229,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "907b547453824aac9e8b66a29b144fd3",
-    "m_Id": 0,
-    "m_DisplayName": "Out",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "9173d0139e344ffeb3411480c5caa903",
     "m_Id": 1,
@@ -4481,7 +4419,7 @@
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "SpecularMask",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -5198,7 +5136,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_RimLightAmount",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.10000000149011612,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -5213,7 +5151,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_RampTexture",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_BareResource": false,
     "m_Texture": {
         "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"e4378ac4e56d0224f90c44a547cb9b76\",\"type\":3}}",
@@ -5449,7 +5387,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "_BackRimLightAmount",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.10000000149011612,
     "m_DefaultValue": 0.0,
     "m_Labels": []

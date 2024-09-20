@@ -748,7 +748,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "Specular",
     "m_FunctionSource": "",
-    "m_FunctionBody": "if (Smoothness >= 1) Specular = 0;\nelse\n{\n\tfloat shininess = exp2(10 * Smoothness + 1);\n\tfloat3 diffuse = saturate(dot(Normal, LightDir));\n\tfloat specularDot;\n\tif (UsePhong) // !! Doesn't seem to work\n\t{\n\t\tfloat3 reflectedRay = -reflect(LightDir, Normal);\n\t\tspecularDot = saturate(dot(ViewDir, reflectedRay));\n\t}\n\telse\n\t{\n\t\tfloat3 halfVector = SafeNormalize(LightDir + ViewDir);\n\t\tspecularDot = saturate(dot(Normal, halfVector));\n\t}\n\tSpecular = pow(specularDot, shininess);\n\tSpecular *= diffuse + Smoothness;\n}"
+    "m_FunctionBody": "if (Smoothness >= 1) Specular = 0;\nelse\n{\n\tfloat shininess = exp2(10 * Smoothness + 1);\n\tfloat diffuse = saturate(dot(Normal, LightDir));\n\tfloat specularDot;\n\tif (UsePhong) // !! Doesn't seem to work\n\t{\n\t\tfloat3 reflectedRay = -reflect(LightDir, Normal);\n\t\tspecularDot = saturate(dot(ViewDir, reflectedRay));\n\t}\n\telse\n\t{\n\t\tfloat3 halfVector = SafeNormalize(LightDir + ViewDir);\n\t\tspecularDot = saturate(dot(Normal, halfVector));\n\t}\n\tSpecular = pow(specularDot, shininess);\n\tSpecular *= diffuse + Smoothness;\n}"
 }
 
 {
