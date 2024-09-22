@@ -271,9 +271,11 @@ public class VectorToTargetEvent : MonoBehaviour
 
         CheckEvents(deltaTime);
 
-        if ((speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp) && (deltaTime != 0f) && accountForCurrentSpeed)
+        if ((speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp)
+            && (deltaTime != 0f) && accountForCurrentSpeed)
         {
-            speed = (((local ? origin.localPosition : origin.position) - prevPos) / deltaTime) + accelerationHalf;
+            speed = (((local ? origin.localPosition : origin.position) - prevPos) / deltaTime)
+                + accelerationHalf;
             rotSpeed = rotAccelHalf * (((local ? origin.localRotation : origin.rotation) *
                 Quaternion.Inverse(prevRot)).Scale(1f / deltaTime));
         }
