@@ -7,8 +7,10 @@ public class TiledTextureMapper : MonoBehaviour
 {
     MeshFilter filter;
 
+#if UNITY_EDITOR
     [SerializeField]
     bool disableInEditor = true;
+#endif
     [SerializeField]
     bool applyWorldPosition = false;
     [SerializeField]

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[DefaultExecutionOrder(-1)]
 public class RavioliButton : RavioliButton_Button
 {
     //TO DO: Add support for autocalculate direction of button from relative position to make dynamic selection systems
@@ -135,8 +136,9 @@ public class RavioliButton : RavioliButton_Button
 
     public void PressButtonGroup(int id, int buttonId)
     {
-        foreach (RavioliButton group in groups)
-            group.PressButtonGroup(id, transform.GetSiblingIndex());
+        if (groups != null)
+            foreach (RavioliButton group in groups)
+                group.PressButtonGroup(id, transform.GetSiblingIndex());
         if (id < buttonActions.Length) buttonActions[id]?.Invoke();
         pressedButtonID?.Invoke(buttonId);
     }
@@ -628,9 +630,10 @@ public class RavioliButton_Button : MonoBehaviour
 
         if (!imAddedToGroups)
         {
-            foreach (RavioliButton gr in groups)
-                gr.AddButton(this);
             imAddedToGroups = true;
+            if (groups != null)
+                foreach (RavioliButton gr in groups)
+                    gr.AddButton(this);
         }
     }
 
@@ -662,8 +665,9 @@ public class RavioliButton_Button : MonoBehaviour
 
     public virtual void PressButtonWith_Internal(int id)
     {
-        foreach (RavioliButton group in groups)
-            group.PressButtonGroup(id, transform.GetSiblingIndex());
+        if (groups != null)
+            foreach (RavioliButton group in groups)
+                group.PressButtonGroup(id, transform.GetSiblingIndex());
 
         if (id < buttonActions.Length)
             buttonActions[id]?.Invoke();
@@ -676,11 +680,13 @@ public class RavioliButton_Button : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             AddMyselfToParentGroups();
-            foreach (RavioliButton group in groups)
-            {
-                group.SelectButton(transform.GetSiblingIndex());
-                group.Select();
-            }
+
+            if (groups != null)
+                foreach (RavioliButton group in groups)
+                {
+                    group.SelectButton(transform.GetSiblingIndex());
+                    group.Select();
+                }
         }
     }
 
@@ -689,11 +695,13 @@ public class RavioliButton_Button : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             AddMyselfToParentGroups();
-            foreach (RavioliButton group in groups)
-            {
-                group.SelectButtonInstant(transform.GetSiblingIndex());
-                group.SelectInstant();
-            }
+
+            if (groups != null)
+                foreach (RavioliButton group in groups)
+                {
+                    group.SelectButtonInstant(transform.GetSiblingIndex());
+                    group.SelectInstant();
+                }
         }
     }
 

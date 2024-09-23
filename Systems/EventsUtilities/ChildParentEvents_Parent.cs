@@ -57,26 +57,31 @@ public class ChildParentEvents_Parent : MonoBehaviour
 
     public void SetChild(int index)
     {
-        CreateListIfNull();
+        SearchChildEvents();
         currentChild = Mathf.Clamp(index, 0, childEvents.Count - 1);
     }
 
     public void SetRandomChild()
     {
-        CreateListIfNull();
-        currentChild = Random.Range(0, childEvents.Count);
+        SearchChildEvents();
+        List<ChildParentEvents_Child> active = new List<ChildParentEvents_Child>();
+        for (int i = 0; i < childEvents.Count; i++)
+            if (childEvents[i].IsActiveAndEnabled())
+                active.Add(childEvents[i]);
+        currentChild = Random.Range(0, active.Count);
+        currentChild = childEvents.FindIndex(x => active[currentChild] == x);
     }
 
     public void AddChild(ChildParentEvents_Child child)
     {
-        CreateListIfNull();
+        SearchChildEvents();
         if (!childEvents.Contains(child))
             childEvents.Add(child);
     }
 
     public void RemoveChild(ChildParentEvents_Child child)
     {
-        CreateListIfNull();
+        SearchChildEvents();
         if (childEvents.Contains(child))
             childEvents.Remove(child);
     }

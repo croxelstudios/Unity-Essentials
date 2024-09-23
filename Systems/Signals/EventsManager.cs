@@ -12,9 +12,11 @@ public class EventsManager : BBaseSignalListener
     //[ChangeCheck("UpdateSignals")]
     [HideInInspector]
     public Action[] events = null;
+#if UNITY_EDITOR
     [SerializeField]
     [HideInInspector]
     string[] eventNames = null;
+#endif
 
     public override void UpdateSignals()
     {

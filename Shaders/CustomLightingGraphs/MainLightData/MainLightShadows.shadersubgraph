@@ -7,7 +7,11 @@
             "m_Id": "0c36dcc320994c8b80280e676546c8eb"
         }
     ],
-    "m_Keywords": [],
+    "m_Keywords": [
+        {
+            "m_Id": "024cdf90d89a4e0189b236edac6f7e6d"
+        }
+    ],
     "m_Dropdowns": [],
     "m_CategoryData": [
         {
@@ -138,6 +142,31 @@
     },
     "m_SubDatas": [],
     "m_ActiveTargets": []
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "024cdf90d89a4e0189b236edac6f7e6d",
+    "m_Guid": {
+        "m_GuidSerialized": "7740cf18-c641-47db-ad2e-f47917a009d3"
+    },
+    "m_Name": "_LIGHT_LAYERS",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "_LIGHT_LAYERS",
+    "m_DefaultReferenceName": "_LIGHT_LAYERS",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 0,
+    "m_KeywordScope": 1,
+    "m_KeywordStages": 63,
+    "m_Entries": [],
+    "m_Value": 1,
+    "m_IsEditable": true
 }
 
 {
@@ -426,7 +455,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "MainLightShadows",
     "m_FunctionSource": "",
-    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\r\n    ShaddowAtten = 1;\r\n#else\n    float4 positionCS = TransformWorldToHClip(Position);\r\n    #if SHADOWS_SCREEN\r\n        float4 shadowCoord = ComputeScreenPos(positionCS);\r\n    #else\r\n        float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n    #endif\r\n    Light light = GetMainLight(shadowCoord, Position, 1);\r\n    ShaddowAtten = light.shadowAttenuation;\r\n#endif"
+    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\r\n\tShaddowAtten = 1;\r\n#else\n\tfloat4 positionCS = TransformWorldToHClip(Position);\r\n\t#if SHADOWS_SCREEN\r\n\t\tfloat4 shadowCoord = ComputeScreenPos(positionCS);\r\n\t#else\r\n\t\tfloat4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n\t#endif\r\n\tLight light = GetMainLight(shadowCoord, Position, 1);\n\tuint meshRenderingLayers = GetMeshRenderingLayer();\n\r\r\t\n\tShaddowAtten = 1;\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\n\t\tShaddowAtten = light.shadowAttenuation;\r\n#endif"
 }
 
 {
@@ -488,6 +517,9 @@
     "m_ChildObjectList": [
         {
             "m_Id": "0c36dcc320994c8b80280e676546c8eb"
+        },
+        {
+            "m_Id": "024cdf90d89a4e0189b236edac6f7e6d"
         }
     ]
 }

@@ -7,15 +7,16 @@ void AdditionalLightsLoop_float(float4 Albedo, float3 Normal, float Smoothness,
 {
     LightingResult = float4(0, 0, 0, 1);
     SpecularMask = 0;
-    #if !defined(SHADERGRAPH_PREVIEW)
-        #ifdef _ADDITIONAL_LIGHTS
+#if !defined(SHADERGRAPH_PREVIEW)
+#ifdef _ADDITIONAL_LIGHTS
             uint lightsCount = GetAdditionalLightsCount();
-            #ifdef _FORWARD_PLUS
-                #if SHADOWS_SCREEN
+            uint meshRenderingLayers = GetMeshRenderingLayer();
+#ifdef _FORWARD_PLUS
+#if SHADOWS_SCREEN
                     float4 shadowCoord = ComputeScreenPos(positionCS);
-                #else
+#else
                     float4 shadowCoord = TransformWorldToShadowCoord(Position);
-                #endif
+#endif
                 InputData inputData = (InputData)0;
                 inputData.positionWS = Position;
                 inputData.normalWS = Normal;
@@ -28,41 +29,51 @@ void AdditionalLightsLoop_float(float4 Albedo, float3 Normal, float Smoothness,
                 LIGHT_LOOP_BEGIN(lightsCount)
                     Light light = GetAdditionalLight(lightIndex, Position, 1);
     
-                    float4 OutVector4_1;
-	                float sm;
+#ifdef _LIGHT_LAYERS
+                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
+                    {
+                        float4 OutVector4_1 = float4(0, 0, 0, 1);
+	                    float sm = 0;
                     
-                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,
-	                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,
-		                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, 
-		                WorldSpaceNormal, ViewDirection, light.direction, light.color, 
-		                light.shadowAttenuation, light.distanceAttenuation,
-                        OutVector4_1, sm);
+                        AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,
+	                        RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,
+		                    ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, 
+		                    WorldSpaceNormal, ViewDirection, light.direction, light.color, 
+		                    light.shadowAttenuation, light.distanceAttenuation,
+                            OutVector4_1, sm);
     
-                    LightingResult.rgb += OutVector4_1.rgb;
-                    LightingResult.a *= OutVector4_1.a;
-	                SpecularMask += sm;
+                        LightingResult.rgb += OutVector4_1.rgb;
+                        LightingResult.a *= OutVector4_1.a;
+	                    SpecularMask += sm;
+                    }
                 LIGHT_LOOP_END
-            #else
-                for (uint lightI = 0; lightI < lightsCount; lightI++)
+#else
+                for (uint lightI = 0; lightI < min(MAX_VISIBLE_LIGHTS, lightsCount); lightI++)
                 {
                     Light light = GetAdditionalLight(lightI, Position, 1);
     
-                    float4 OutVector4_1;
-	                float sm;
-                    AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,
-	                    RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,
-		                ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, 
-		                WorldSpaceNormal, ViewDirection, light.direction, light.color, 
-		                light.shadowAttenuation, light.distanceAttenuation,
-                        OutVector4_1, sm);
+#ifdef _LIGHT_LAYERS
+                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
+                    {
+                        float4 OutVector4_1 = float4(0, 0, 0, 1);
+	                    float sm = 0;
+                        AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,
+	                        RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,
+		                    ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, 
+		                    WorldSpaceNormal, ViewDirection, light.direction, light.color, 
+		                    light.shadowAttenuation, light.distanceAttenuation,
+                            OutVector4_1, sm);
     
-                    LightingResult.rgb += OutVector4_1.rgb;
-                    LightingResult.a *= OutVector4_1.a;
-	                SpecularMask += sm;
+                        LightingResult.rgb += OutVector4_1.rgb;
+                        LightingResult.a *= OutVector4_1.a;
+	                    SpecularMask += sm;
+                    }
                 }
-            #endif
-        #endif
-    #endif
+#endif
+#endif
+#endif
 }
 
 void AdditionalLightsLoopV2_float(float4 Albedo, float3 Normal, float Smoothness,

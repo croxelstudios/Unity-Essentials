@@ -5,12 +5,11 @@ using UnityEngine;
 
 public class DebugLog : MonoBehaviour
 {
-    [SerializeField]
-    bool note = false;
-    [SerializeField]
+#if UNITY_EDITOR
+    public bool note = false;
     [TextArea]
     [ShowIf("@note")]
-    string NOTE = "";
+    public string NOTE = "";
 
     public void Log(Color value)
     {
@@ -71,4 +70,5 @@ public class DebugLog : MonoBehaviour
     {
         Debug.Log(value.ToString());
     }
+#endif
 }

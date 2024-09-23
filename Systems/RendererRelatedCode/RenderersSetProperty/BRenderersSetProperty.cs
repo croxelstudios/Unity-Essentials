@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Linq;
+using UnityEngine.Rendering;
 
 [ExecuteAlways]
 public class BRenderersSetProperty : MonoBehaviour

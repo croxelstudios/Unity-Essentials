@@ -32,20 +32,19 @@ public class PrefabInstancer : MonoBehaviour
     [SerializeField]
     bool trackEntities = false;
 
-#pragma warning disable 414
+#if UNITY_EDITOR
     [SerializeField]
     EventNamesData entityNamesData = null;
-#pragma warning restore 414
-
     [SerializeField]
     [HideInInspector]
     EventNamesData namesData = null;
     [SerializeField]
     [HideInInspector]
-    DXEvent[] events;
+    string[] eventNames;
+#endif
     [SerializeField]
     [HideInInspector]
-    string[] eventNames;
+    DXEvent[] events;
     //TO DO: Support for keeping momentum of original object (DXVectorEvent originalMomentum on instance)
 
     WeightedPrefab[] wPrefabs;

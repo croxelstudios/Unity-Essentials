@@ -3,7 +3,11 @@
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "1b004ce050ce4182b900431b472be489",
     "m_Properties": [],
-    "m_Keywords": [],
+    "m_Keywords": [
+        {
+            "m_Id": "dddee22e02604dd18649a9c495c562dc"
+        }
+    ],
     "m_Dropdowns": [],
     "m_CategoryData": [
         {
@@ -95,7 +99,11 @@
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "16e6af4d447144ce8b71d7db4cc39ac3",
     "m_Name": "",
-    "m_ChildObjectList": []
+    "m_ChildObjectList": [
+        {
+            "m_Id": "dddee22e02604dd18649a9c495c562dc"
+        }
+    ]
 }
 
 {
@@ -135,7 +143,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "MainLightColor",
     "m_FunctionSource": "",
-    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\r\r\n    Color = float3(1, 0.898, 0.6);\r\n#else\r\n    Light light = GetMainLight();\r\r\n    Color = light.color;\r\n#endif"
+    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n#else\r\n\tLight light = GetMainLight();\n\tuint meshRenderingLayers = GetMeshRenderingLayer();\n\n\tColor = float3(0, 0, 0);\n#ifdef _LIGHT_LAYERS\r\n          if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\r\r\n\tColor = light.color;\r\n#endif"
 }
 
 {
@@ -193,5 +201,30 @@
         "z": 0.0
     },
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "dddee22e02604dd18649a9c495c562dc",
+    "m_Guid": {
+        "m_GuidSerialized": "9e8e1f86-980f-443a-a03c-32905a1eb8f8"
+    },
+    "m_Name": "_LIGHT_LAYERS",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "_LIGHT_LAYERS",
+    "m_DefaultReferenceName": "_LIGHT_LAYERS",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 0,
+    "m_KeywordScope": 1,
+    "m_KeywordStages": 63,
+    "m_Entries": [],
+    "m_Value": 1,
+    "m_IsEditable": true
 }
 

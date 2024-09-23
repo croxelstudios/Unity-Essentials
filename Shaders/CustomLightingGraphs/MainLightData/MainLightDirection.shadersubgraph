@@ -3,7 +3,11 @@
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "1ff6f2ccb478463d9cb92ab561328e32",
     "m_Properties": [],
-    "m_Keywords": [],
+    "m_Keywords": [
+        {
+            "m_Id": "bd1114803667436a83fc0bfffa6013d5"
+        }
+    ],
     "m_Dropdowns": [],
     "m_CategoryData": [
         {
@@ -127,7 +131,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "MainLightDirection",
     "m_FunctionSource": "",
-    "m_FunctionBody": "\r#if defined(SHADERGRAPH_PREVIEW)\r\n    Direction = half3(0.5, 0.5, 0);\r\r\n#else\r\n    Light light = GetMainLight();\r\n    Direction = light.direction;\r\r\n#endif"
+    "m_FunctionBody": "\r#if defined(SHADERGRAPH_PREVIEW)\r\n\tDirection = half3(0.5, 0.5, 0);\r\r\n#else\r\n\tLight light = GetMainLight();\n\tuint meshRenderingLayers = GetMeshRenderingLayer();\n\r\r\n\tDirection = half3(0, 0, 0);\n#ifdef _LIGHT_LAYERS\r\n          if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\n    \tDirection = light.direction;\r\r\n#endif"
 }
 
 {
@@ -188,10 +192,39 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "bd1114803667436a83fc0bfffa6013d5",
+    "m_Guid": {
+        "m_GuidSerialized": "773418e7-5121-4e7f-9321-f018d015d217"
+    },
+    "m_Name": "_LIGHT_LAYERS",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "_LIGHT_LAYERS",
+    "m_DefaultReferenceName": "_LIGHT_LAYERS",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 0,
+    "m_KeywordScope": 1,
+    "m_KeywordStages": 63,
+    "m_Entries": [],
+    "m_Value": 1,
+    "m_IsEditable": true
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "e260837b6ff645dd89c77501b725e42f",
     "m_Name": "",
-    "m_ChildObjectList": []
+    "m_ChildObjectList": [
+        {
+            "m_Id": "bd1114803667436a83fc0bfffa6013d5"
+        }
+    ]
 }
 
