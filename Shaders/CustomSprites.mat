@@ -15,6 +15,7 @@ Material:
   m_InvalidKeywords:
   - _COLORALPHAMULTIPLY_ON
   - _CUTOFFIGNORESCOLOR_ON
+  - _ZWRITE_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 1
@@ -141,7 +142,7 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     - _zTest: 2
-    - _zWrite: 0
+    - _zWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}

@@ -4,6 +4,7 @@ using Random = UnityEngine.Random;
 
 //TO DO: This could be combined with other children management scripts
 //like the one that activates and deactivates children
+//RavioliButton has a lot of similarities with this script and maybe it could inherit from it.
 public class ChildParentEvents_Parent : MonoBehaviour
 {
     public DXEvent[] parentEvents = null;
@@ -11,11 +12,29 @@ public class ChildParentEvents_Parent : MonoBehaviour
     List<ChildParentEvents_Child> childEvents;
     int currentChild = 0;
 
+    bool init;
+
+    void OnEnable()
+    {
+        SearchChildEvents();
+    }
+
+    void OnDisable()
+    {
+        childEvents.Clear();
+        init = false;
+    }
+
     void SearchChildEvents()
     {
         CreateListIfNull();
-        childEvents.Clear();
-        childEvents.AddRange(GetComponentsInChildren<ChildParentEvents_Child>(true));
+        if (!init)
+        {
+            ChildParentEvents_Child[] arr = GetComponentsInChildren<ChildParentEvents_Child>();
+            for (int i = 0; i < arr.Length; i++)
+                AddChild(arr[i]);
+            init = true;
+        }
     }
 
     public void CallChildEvent(int index)
@@ -28,9 +47,10 @@ public class ChildParentEvents_Parent : MonoBehaviour
                 return;
             }
 
+            SearchChildEvents();
             if (childEvents != null)
                 foreach (ChildParentEvents_Child childEvent in childEvents)
-                    if (childEvent.IsActiveAndEnabled() && (childEvent.childEvents != null) && (index < childEvent.childEvents.Length))
+                    if (IsChildEventAvailable(childEvent, index))
                         childEvent.childEvents[index]?.Invoke();
         }
     }
@@ -39,9 +59,10 @@ public class ChildParentEvents_Parent : MonoBehaviour
     {
         if (this.IsActiveAndEnabled())
         {
+            SearchChildEvents();
             if (childEvents != null)
                 foreach (ChildParentEvents_Child childEvent in childEvents)
-                    if (childEvent.IsActiveAndEnabled() && (childEvent.childEvents != null))
+                    if (AreChildEventsAvailable(childEvent))
                         foreach (DXEvent e in childEvent.childEvents)
                             e?.Invoke();
         }
@@ -49,10 +70,16 @@ public class ChildParentEvents_Parent : MonoBehaviour
 
     public void CallEventOnCurrentChild(int index)
     {
-        SearchChildEvents();
-        ChildParentEvents_Child childEvent = childEvents[currentChild];
-        if (childEvent.IsActiveAndEnabled() && (childEvent.childEvents != null) && (index < childEvent.childEvents.Length))
-            childEvent.childEvents[index]?.Invoke();
+        if (this.IsActiveAndEnabled())
+        {
+            SearchChildEvents();
+            if (childEvents != null)
+            {
+                ChildParentEvents_Child childEvent = childEvents[currentChild];
+                if (IsChildEventAvailable(childEvent, index))
+                    childEvent.childEvents[index]?.Invoke();
+            }
+        }
     }
 
     public void SetChild(int index)
@@ -64,30 +91,34 @@ public class ChildParentEvents_Parent : MonoBehaviour
     public void SetRandomChild()
     {
         SearchChildEvents();
-        List<ChildParentEvents_Child> active = new List<ChildParentEvents_Child>();
-        for (int i = 0; i < childEvents.Count; i++)
-            if (childEvents[i].IsActiveAndEnabled())
-                active.Add(childEvents[i]);
-        currentChild = Random.Range(0, active.Count);
-        currentChild = childEvents.FindIndex(x => active[currentChild] == x);
+        currentChild = Random.Range(0, childEvents.Count);
     }
 
     public void AddChild(ChildParentEvents_Child child)
     {
-        SearchChildEvents();
+        CreateListIfNull();
         if (!childEvents.Contains(child))
             childEvents.Add(child);
     }
 
     public void RemoveChild(ChildParentEvents_Child child)
     {
-        SearchChildEvents();
-        if (childEvents.Contains(child))
+        if ((childEvents != null) && childEvents.Contains(child))
             childEvents.Remove(child);
     }
 
     void CreateListIfNull()
     {
         if (childEvents == null) childEvents = new List<ChildParentEvents_Child>();
+    }
+
+    bool AreChildEventsAvailable(ChildParentEvents_Child childEvents)
+    {
+        return childEvents.IsActiveAndEnabled() && (childEvents.childEvents != null);
+    }
+
+    bool IsChildEventAvailable(ChildParentEvents_Child childEvents, int index)
+    {
+        return AreChildEventsAvailable(childEvents) && (index < childEvents.childEvents.Length);
     }
 }

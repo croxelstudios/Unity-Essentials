@@ -29,6 +29,12 @@ public class RavioliButton : RavioliButton_Button
     bool launchRedundantSelections = false;
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
+    float directionSelectMaxDistance = Mathf.Infinity;
+    [SerializeField]
+    [SizedFoldoutGroup("Group options")]
+    float directionSelectMaxAngle = 40f;
+    [SerializeField]
+    [SizedFoldoutGroup("Group options")]
     int _defaultButton = 0;
     public int defaultButton { get { return _defaultButton; } set { _defaultButton = value; } }
     [SerializeField]
@@ -273,6 +279,100 @@ public class RavioliButton : RavioliButton_Button
             int previous = (int)(loopButtons ? Mathf.Repeat(id - 1f, ButtonsLimit()) :
                 Mathf.Clamp(id - 1, 0f, ButtonsLimit() - 1f));
             SelectButton(previous, doMovement);
+        }
+    }
+
+    public void DirectionSelect_Left()
+    {
+        DirectionSelect(Vector3.left);
+    }
+
+    public void DirectionSelect_Up()
+    {
+        DirectionSelect(Vector3.up);
+    }
+
+    public void DirectionSelect_Right()
+    {
+        DirectionSelect(Vector3.right);
+    }
+
+    public void DirectionSelect_Down()
+    {
+        DirectionSelect(Vector3.down);
+    }
+
+    public void DirectionSelect(Vector2 direction)
+    {
+        DirectionSelect((Vector3)direction);
+    }
+
+    public void DirectionSelect(Vector3 direction)
+    {
+        if (this.IsActiveAndEnabled()) DirectionSelect(direction, true);
+    }
+
+    void DirectionSelect(Vector3 direction, bool doMovement)
+    {
+        if (currentButton != null)
+        {
+            float dist = directionSelectMaxDistance;
+            float sqrDist = dist * dist;
+            int id = -1;
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                if (buttons[i] == currentButton)
+                    continue;
+
+                Vector3 dir = buttons[i].transform.position - currentButton.transform.position;
+                if ((Vector3.Angle(direction, dir) < directionSelectMaxAngle) &&
+                    (dir.sqrMagnitude < sqrDist))
+                {
+                    sqrDist = dir.sqrMagnitude;
+                    id = i;
+                }
+            }
+            if ((id < 0) && loopButtons)
+            {
+                List<RavioliButton_Button> oppositeButtons = new List<RavioliButton_Button>();
+                oppositeButtons.AddRange(buttons);
+                for (int i = 0; i < buttons.Count; i++)
+                {
+                    if (buttons[i] == currentButton)
+                        oppositeButtons.Remove(buttons[i]);
+                    else
+                        for (int j = 0; j < buttons.Count; j++)
+                        {
+                            if (i == j)
+                                continue;
+
+                            Vector3 dir = buttons[j].transform.position - buttons[i].transform.position;
+                            if (Vector3.Angle(-direction, dir) < directionSelectMaxAngle)
+                            {
+                                oppositeButtons.Remove(buttons[i]);
+                                break;
+                            }
+                        }
+                }
+
+                float ang = 180f;
+                int opId = -1;
+                for (int i = 0; i < oppositeButtons.Count; i++)
+                {
+                    Vector3 dir = oppositeButtons[i].transform.position -
+                        currentButton.transform.position;
+                    float angle = Vector3.Angle(-direction, dir);
+                    if (angle < ang)
+                    {
+                        ang = angle;
+                        opId = i;
+                    }
+                }
+                if (opId >= 0) id = buttons.IndexOf(oppositeButtons[opId]);
+            }
+
+            if (id < 0) id = buttons.IndexOf(currentButton);
+            SelectButton(id, doMovement);
         }
     }
 

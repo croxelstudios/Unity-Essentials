@@ -33,8 +33,10 @@ public class PrefabInstancer : MonoBehaviour
     bool trackEntities = false;
 
 #if UNITY_EDITOR
+#pragma warning disable 414
     [SerializeField]
     EventNamesData entityNamesData = null;
+#pragma warning restore 414
     [SerializeField]
     [HideInInspector]
     EventNamesData namesData = null;

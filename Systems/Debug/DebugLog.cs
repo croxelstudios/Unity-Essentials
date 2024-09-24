@@ -10,6 +10,7 @@ public class DebugLog : MonoBehaviour
     [TextArea]
     [ShowIf("@note")]
     public string NOTE = "";
+#endif
 
     public void Log(Color value)
     {
@@ -70,5 +71,4 @@ public class DebugLog : MonoBehaviour
     {
         Debug.Log(value.ToString());
     }
-#endif
 }

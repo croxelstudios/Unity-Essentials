@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ChildParentEvents_Child : MonoBehaviour
@@ -39,7 +40,7 @@ public class ChildParentEvents_Child : MonoBehaviour
 
             GetParents();
             foreach (ChildParentEvents_Parent parent in parents)
-                if (parent.IsActiveAndEnabled() && (parent.parentEvents != null) && (index < parent.parentEvents.Length))
+                if (IsParentEventAvailable(parent, index))
                     parent.parentEvents[index]?.Invoke();
         }
     }
@@ -50,9 +51,19 @@ public class ChildParentEvents_Child : MonoBehaviour
         {
             GetParents();
             foreach (ChildParentEvents_Parent parent in parents)
-                if (parent.IsActiveAndEnabled() && (parent.parentEvents != null))
+                if (AreParentEventsAvailable(parent))
                     foreach (DXEvent e in parent.parentEvents)
                         e?.Invoke();
         }
+    }
+
+    bool AreParentEventsAvailable(ChildParentEvents_Parent parentEvent)
+    {
+        return parentEvent.IsActiveAndEnabled() && (parentEvent.parentEvents != null);
+    }
+
+    bool IsParentEventAvailable(ChildParentEvents_Parent parentEvent, int index)
+    {
+        return AreParentEventsAvailable(parentEvent) && (index < parentEvent.parentEvents.Length);
     }
 }

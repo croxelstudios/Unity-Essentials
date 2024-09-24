@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
+using Sirenix.OdinInspector;
 
 public class Timer : MonoBehaviour
 {
     [SerializeField]
-    [Min(0.02f)]
+    [MinValue(0.02f)]
     protected float seconds = 1f;
     [SerializeField]
     float _speed = 1f;
