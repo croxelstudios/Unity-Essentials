@@ -430,7 +430,7 @@ public class VectorToTargetEvent : MonoBehaviour
                     if (local) result = origin.parent.TransformVector(result);
                     if (moveTransform)
                         origin.Translate(result * deltaTime, Space.World);
-                    if (reorientTransform)
+                    if (reorientTransform && (result.sqrMagnitude > 0))
                         origin.forward = result;
                 }
             }

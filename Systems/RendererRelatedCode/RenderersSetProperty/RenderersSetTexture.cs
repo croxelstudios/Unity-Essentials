@@ -5,7 +5,7 @@ public class RenderersSetTexture : BRenderersSetProperty
 {
     [SerializeField]
     Texture _texture = null;
-    public Texture texture { get { return _texture; }  set { _texture = value; } }
+    public Texture texture { get { return _texture; } set { _texture = value; } }
 
     //Texture oldTexture;
 
@@ -31,7 +31,8 @@ public class RenderersSetTexture : BRenderersSetProperty
 
     protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
-        block.SetTexture(propertyName, texture);
+        if (texture != null)
+            block.SetTexture(propertyName, texture);
     }
 
     protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)

@@ -381,6 +381,11 @@ public class RavioliButton : RavioliButton_Button
         SelectButton(id, false);
     }
 
+    public void SelectButton(RavioliButton_Button button)
+    {
+        SelectButton(buttons.IndexOf(button));
+    }
+
     public void SelectButton(int id)
     {
         SelectButton(id, true);
@@ -596,8 +601,7 @@ public class RavioliButton : RavioliButton_Button
                 currentButton.TryDeselect();
                 buttons.Remove(button);
 
-                int previous = (int)(loopButtons ? Mathf.Repeat(currentId - 1f, buttons.Count) :
-                    Mathf.Clamp(currentId - 1, 0f, buttons.Count - 1f));
+                int previous = (int)Mathf.Clamp(currentId - 1, 0f, buttons.Count - 1f);
                 if (buttons.Count <= 0)
                 {
                     FinalizeMovementBehaviors();
@@ -612,6 +616,7 @@ public class RavioliButton : RavioliButton_Button
                 }
             }
             else buttons.Remove(button);
+            StartCoroutine(MBResetAfterOneFrame());
         }
         else
         {
@@ -620,6 +625,12 @@ public class RavioliButton : RavioliButton_Button
         }
     }
     #endregion
+
+    IEnumerator MBResetAfterOneFrame()
+    {
+        yield return WaitFor.Frames(1);
+        UpdateMovementBehaviours(false);
+    }
 
     struct ProgrammedSelectButtonAction
     {
@@ -784,7 +795,7 @@ public class RavioliButton_Button : MonoBehaviour
             if (groups != null)
                 foreach (RavioliButton group in groups)
                 {
-                    group.SelectButton(transform.GetSiblingIndex());
+                    group.SelectButton(this);
                     group.Select();
                 }
         }

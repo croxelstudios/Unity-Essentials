@@ -3,11 +3,13 @@
 	Properties
 	{
 		_MainTex("Base (RGB)", 2D) = "white" {}
+		[Enum(Off,0,Front,1,Back,2)] _Cull("Cull", Int) = 2
 		_CutOff("CutOff", Range(0, 1)) = 0.5
 	}
 
 	SubShader
 	{
+		Cull [_Cull]
 		Pass
 		{
 			Tags {"LightMode" = "ShadowCaster"}

@@ -49,9 +49,9 @@ public class ChildParentEvents_Parent : MonoBehaviour
 
             SearchChildEvents();
             if (childEvents != null)
-                foreach (ChildParentEvents_Child childEvent in childEvents)
-                    if (IsChildEventAvailable(childEvent, index))
-                        childEvent.childEvents[index]?.Invoke();
+                for (int i = childEvents.Count - 1; i >= 0; i--)
+                    if (IsChildEventAvailable(childEvents[i], index))
+                        childEvents[i].childEvents[index]?.Invoke();
         }
     }
 
@@ -61,9 +61,9 @@ public class ChildParentEvents_Parent : MonoBehaviour
         {
             SearchChildEvents();
             if (childEvents != null)
-                foreach (ChildParentEvents_Child childEvent in childEvents)
-                    if (AreChildEventsAvailable(childEvent))
-                        foreach (DXEvent e in childEvent.childEvents)
+                for (int i = childEvents.Count - 1; i >= 0; i--)
+                    if (AreChildEventsAvailable(childEvents[i]))
+                        foreach (DXEvent e in childEvents[i].childEvents)
                             e?.Invoke();
         }
     }
