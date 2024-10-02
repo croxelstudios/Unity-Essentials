@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Sirenix.Utilities.Editor;
 
 [DefaultExecutionOrder(-1000)]
 public class BRendererDuplicator : MonoBehaviour
@@ -260,8 +261,14 @@ public class BRendererDuplicator : MonoBehaviour
         if (source.renderers.Length != duplicate.renderers.Length)
             RecreateDuplicate(source, ref duplicate);
 
+        //TO DO: To fix garbage collection issues with strings I can store a string array
+        //inside the 'source' RenderingAgent with all posible child IDs,
+        //then, instead of recreating the id by travelling the hierarchy,
+        //I travel the string array and get the hierarchy position in the loop.
+
         CopyRenderersEnabledState(source.renderers, duplicate.renderers);
-        //TO DO: Optimize this by adding components to all children of origin to track changes. Maybe have a struct with changes info?
+        //TO DO: Optimize this by adding components to all children of origin to track changes.
+        //Maybe have a struct with info on changes?
         CopyChildsActiveState(source, duplicate);
         CopyRSPActiveState(source, duplicate);
         CopyChildTransforms(source, duplicate.transform);
@@ -275,51 +282,47 @@ public class BRendererDuplicator : MonoBehaviour
             UpdateDuplicate(source, ref duplicates[i]);
     }
 
-    void CopyRSPActiveState(RenderingAgent source, RenderingAgent target, Transform duplicate, ref List<int> id)
+    void CopyRSPActiveState(RenderingAgent source, RenderingAgent target, Transform duplicate, string id)
     {
-        id.Add(0);
+        if (id != "") id += ",";
         for (int i = 0; i < duplicate.childCount; i++)
         {
             Transform child = duplicate.GetChild(i);
 
-            id[id.Count - 1] = i;
-            CopyRSPActiveState(source, target, child, ref id);
+            string id2 = id + i;
+            CopyRSPActiveState(source, target, child, id2);
 
-            Transform from = source.trEquivalence[id.ToUsefulString()];
+            Transform from = source.trEquivalence[id2];
             for (int j = 0; j < source.setProperties[from].Length; j++)
                 target.setProperties[child][j].enabled = source.setProperties[from][j].enabled;
         }
-        id.RemoveAt(id.Count - 1);
     }
 
     void CopyRSPActiveState(RenderingAgent source, RenderingAgent target)
     {
-        List<int> list = new List<int>();
-        CopyRSPActiveState(source, target, target.transform, ref list);
+        CopyRSPActiveState(source, target, target.transform, "");
         for (int j = 0; j < source.setProperties[source.transform].Length; j++)
             target.setProperties[target.transform][j].enabled = source.setProperties[source.transform][j].enabled;
     }
 
-    void CopyChildsActiveState(RenderingAgent source, Transform duplicate, ref List<int> id)
+    void CopyChildsActiveState(RenderingAgent source, Transform duplicate, string id)
     {
-        id.Add(0);
+        if (id != "") id += ",";
         for (int i = 0; i < duplicate.childCount; i++)
         {
             Transform child = duplicate.GetChild(i);
 
-            id[id.Count - 1] = i;
-            CopyChildsActiveState(source, child, ref id);
+            string id2 = id + i;
+            CopyChildsActiveState(source, child, id2);
 
-            Transform from = source.trEquivalence[id.ToUsefulString()];
+            Transform from = source.trEquivalence[id2];
             child.gameObject.SetActive(from.gameObject.activeSelf);
         }
-        id.RemoveAt(id.Count - 1);
     }
 
     void CopyChildsActiveState(RenderingAgent source, RenderingAgent target)
     {
-        List<int> list = new List<int>();
-        CopyChildsActiveState(source, target.transform, ref list);
+        CopyChildsActiveState(source, target.transform, "");
     }
 
     void CopyRenderersEnabledState(Renderer[] source, Renderer[] target)
@@ -339,28 +342,26 @@ public class BRendererDuplicator : MonoBehaviour
             CopyRendererData(source[i], target[i]);
     }
 
-    void CopyChildTransforms(RenderingAgent source, Transform duplicate, ref List<int> id)
+    void CopyChildTransforms(RenderingAgent source, Transform duplicate, string id)
     {
-        id.Add(0);
+        if (id != "") id += ",";
         for (int i = 0; i < duplicate.transform.childCount; i++)
         {
             Transform child = duplicate.GetChild(i);
 
-            id[id.Count - 1] = i;
-            CopyChildTransforms(source, child, ref id);
+            string id2 = id + i;
+            CopyChildTransforms(source, child, id2);
 
-            Transform from = source.trEquivalence[id.ToUsefulString()];
+            Transform from = source.trEquivalence[id2];
             child.localPosition = from.localPosition;
             child.localRotation = from.localRotation;
             child.localScale = from.localScale;
         }
-        id.RemoveAt(id.Count - 1);
     }
 
     void CopyChildTransforms(RenderingAgent source, Transform duplicate)
     {
-        List<int> list = new List<int>();
-        CopyChildTransforms(source, duplicate, ref list);
+        CopyChildTransforms(source, duplicate, "");
     }
     #endregion
 

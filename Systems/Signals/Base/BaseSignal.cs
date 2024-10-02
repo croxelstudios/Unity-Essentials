@@ -51,7 +51,7 @@ public class BaseSignal : ScriptableObject
 
     protected virtual void OnLoad()
     {
-        type = GetType();
+        if (type == null) type = GetType();
 #if UNITY_EDITOR
         OnEnableCallback?.Invoke(type, this);
 #endif
@@ -62,6 +62,7 @@ public class BaseSignal : ScriptableObject
 
     protected virtual void OnUnload()
     {
+        if (type == null) type = GetType();
         if ((activeSignals != null) && activeSignals.ContainsKey(type))
             activeSignals[type].Remove(this);
     }

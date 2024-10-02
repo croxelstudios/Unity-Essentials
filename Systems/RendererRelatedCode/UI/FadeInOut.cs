@@ -12,7 +12,7 @@ public class FadeInOut : MonoBehaviour
     [SerializeField]
     float timeFadeIn = 0.5f;
     [SerializeField]
-    OnEnableBehaviour onEnableBehaviour = OnEnableBehaviour.None;
+    FadeBehaviour onEnableBehaviour = FadeBehaviour.None;
     [SerializeField]
     bool deactivateObjectWhenInvisible = true;
     [SerializeField]
@@ -28,8 +28,9 @@ public class FadeInOut : MonoBehaviour
     DXEvent isOut = null;
 
     Coroutine co;
+    FadeBehaviour current;
 
-    enum OnEnableBehaviour { FadeIn, FadeOut, None }
+    enum FadeBehaviour { FadeIn, FadeOut, None }
 
     void GetAlphaHolder()
     {
@@ -61,10 +62,10 @@ public class FadeInOut : MonoBehaviour
         //alphaHolder.alpha = 0f; //Alpha 0 when disabled
         switch (onEnableBehaviour)
         {
-            case OnEnableBehaviour.FadeIn:
+            case FadeBehaviour.FadeIn:
                 FadeIn();
                 break;
-            case OnEnableBehaviour.FadeOut:
+            case FadeBehaviour.FadeOut:
                 FadeOut();
                 break;
             default:
@@ -73,13 +74,27 @@ public class FadeInOut : MonoBehaviour
         }
     }
 
+    void OnDisable()
+    {
+        switch (current)
+        {
+            case FadeBehaviour.FadeIn:
+                alphaHolder.alpha = 1f;
+                break;
+            case FadeBehaviour.FadeOut:
+                alphaHolder.alpha = 0f;
+                break;
+        }
+        StopEffect();
+    }
+
     public void FadeIn()
     {
         GetAlphaHolder();
         bool objectWasDisabled = !gameObject.activeInHierarchy;
         gameObject.SetActive(true);
         if (resetAlphaOnCall || objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
-        if (co != null) StopCoroutine(co);
+        StopEffect();
         if (alphaHolder.alpha < 1f) co = StartCoroutine(FadeTo(true));
     }
 
@@ -89,7 +104,7 @@ public class FadeInOut : MonoBehaviour
         bool objectWasDisabled = !gameObject.activeInHierarchy;
         if (resetAlphaOnCall) alphaHolder.alpha = 1f;
         else if (objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
-        if (co != null) StopCoroutine(co);
+        StopEffect();
         if (alphaHolder.alpha > 0f)
         {
             gameObject.SetActive(true);
@@ -106,8 +121,18 @@ public class FadeInOut : MonoBehaviour
         }
     }
 
+    void StopEffect()
+    {
+        if (co != null) StopCoroutine(co);
+        current = FadeBehaviour.None;
+    }
+
     IEnumerator FadeTo(bool fadingIn)
     {
+        if (fadingIn)
+            current = FadeBehaviour.FadeIn;
+        else current = FadeBehaviour.FadeOut;
+
         float currentAlpha;
         bool finished = false;
         do
@@ -134,6 +159,7 @@ public class FadeInOut : MonoBehaviour
         }
         while (!finished);
         CheckInvisibleBehaviour(currentAlpha);
+        StopEffect();
     }
 
     struct AlphaHolder

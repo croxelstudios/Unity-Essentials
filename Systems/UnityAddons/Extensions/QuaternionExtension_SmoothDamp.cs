@@ -3,7 +3,9 @@ using static UnityEngine.UI.Image;
 
 public static class QuaternionExtension_SmoothDamp
 {
-	public static Quaternion SmoothDamp(this Quaternion rot, Quaternion target, ref Quaternion tmpSpeed, float smoothTime, float maxSpeed, float deltaTime, bool dontCorrectLongPaths = false)
+	public static Quaternion SmoothDamp(this Quaternion rot, Quaternion target,
+        ref Quaternion tmpSpeed, float smoothTime, float maxSpeed, float deltaTime,
+        bool dontCorrectLongPaths = false)
     {
         // ChatGPT code:
         // Ensure that smoothTime is greater than a minimum value
@@ -37,5 +39,21 @@ public static class QuaternionExtension_SmoothDamp
             result = Quaternion.RotateTowards(rot, result, maxRadiansDelta);
 
         return result;
+    }
+
+    public static Quaternion EulerSmoothDamp(this Quaternion rot, Quaternion target,
+        ref Quaternion tmpSpeed, float smoothTime, float maxSpeed, float deltaTime)
+    {
+        Vector3 euler = rot.eulerAngles;
+        Vector3 targetEuler = target.eulerAngles;
+
+        euler.x = Mathf.SmoothDampAngle(euler.x, targetEuler.x, ref tmpSpeed.x,
+            smoothTime, maxSpeed, deltaTime);
+        euler.y = Mathf.SmoothDampAngle(euler.y, targetEuler.y, ref tmpSpeed.y,
+            smoothTime, maxSpeed, deltaTime);
+        euler.z = Mathf.SmoothDampAngle(euler.z, targetEuler.z, ref tmpSpeed.z,
+            smoothTime, maxSpeed, deltaTime);
+
+        return Quaternion.Euler(euler);
     }
 }
