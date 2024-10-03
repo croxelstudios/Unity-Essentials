@@ -1,9 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
-using Sirenix.Utilities.Editor;
+using UnityEngine;
 
 [DefaultExecutionOrder(-1000)]
 public class BRendererDuplicator : MonoBehaviour
@@ -12,9 +11,13 @@ public class BRendererDuplicator : MonoBehaviour
     bool waitOneFrameForInit = false;
     [SerializeField]
     Component[] extraDuplicableComponents = null;
+
     //TO DO: duplicateChildren bool variable
     static bool enabling;
     RendererDuplicator_AfterLate afterLate;
+    UniqueIntList hierarchyIds;
+
+    const int DECIMALIDPRECISION = 2;
 
     #region Unity Actions
     protected virtual void Awake()
@@ -79,6 +82,8 @@ public class BRendererDuplicator : MonoBehaviour
 
     protected RenderingAgent CreateDuplicate(RenderingAgent source, Transform parent)
     {
+        hierarchyIds = new UniqueIntList(new int[source.largestHierarchy], 0);
+
         if (source.renderers.Length <= 0) return null;
         RenderingAgent duplicate = new RenderingAgent(new GameObject(source.name));
 
@@ -96,11 +101,11 @@ public class BRendererDuplicator : MonoBehaviour
 
         //Structure replication
         AddComponentsToDuplicate(ref source, ref duplicate, source.transform, duplicate.gameObject, extraDuplicableComponents);
-        foreach (KeyValuePair<string, Transform> keyValue in source.trEquivalence)
+        foreach (KeyValuePair<UniqueIntList, Transform> keyValue in source.trEquivalence)
         {
             List<int> intList = new List<int>();
             Transform current = duplicate.transform;
-            int[] key = keyValue.Key.ToArray<int>();
+            int[] key = keyValue.Key.ToIntArray();
             for (int i = 0; i < key.Length; i++)
             {
                 for (int j = current.childCount; j <= key[i]; j++)
@@ -209,10 +214,10 @@ public class BRendererDuplicator : MonoBehaviour
     {
         for (int i = 0; i < duplicate.skinnedRends.Length; i++)
         {
-            string id = source.trInverseEquivalence[source.skinnedRends[i].rootBone];
+            UniqueIntList id = source.trInverseEquivalence[source.skinnedRends[i].rootBone];
 
             Transform current = duplicate.transform;
-            int[] key = id.ToArray<int>();
+            int[] key = id.ToIntArray();
             for (int j = 0; j < key.Length; j++)
                 current = current.GetChild(key[j]);
 
@@ -261,11 +266,6 @@ public class BRendererDuplicator : MonoBehaviour
         if (source.renderers.Length != duplicate.renderers.Length)
             RecreateDuplicate(source, ref duplicate);
 
-        //TO DO: To fix garbage collection issues with strings I can store a string array
-        //inside the 'source' RenderingAgent with all posible child IDs,
-        //then, instead of recreating the id by travelling the hierarchy,
-        //I travel the string array and get the hierarchy position in the loop.
-
         CopyRenderersEnabledState(source.renderers, duplicate.renderers);
         //TO DO: Optimize this by adding components to all children of origin to track changes.
         //Maybe have a struct with info on changes?
@@ -282,47 +282,51 @@ public class BRendererDuplicator : MonoBehaviour
             UpdateDuplicate(source, ref duplicates[i]);
     }
 
-    void CopyRSPActiveState(RenderingAgent source, RenderingAgent target, Transform duplicate, string id)
+    void CopyRSPActiveState(RenderingAgent source, RenderingAgent target, Transform duplicate, ref UniqueIntList id)
     {
-        if (id != "") id += ",";
+        id.Add(0);
         for (int i = 0; i < duplicate.childCount; i++)
         {
             Transform child = duplicate.GetChild(i);
 
-            string id2 = id + i;
-            CopyRSPActiveState(source, target, child, id2);
+            id.ReplaceLast(i);
+            CopyRSPActiveState(source, target, child, ref id);
 
-            Transform from = source.trEquivalence[id2];
+            Transform from = source.trEquivalence[id];
             for (int j = 0; j < source.setProperties[from].Length; j++)
                 target.setProperties[child][j].enabled = source.setProperties[from][j].enabled;
         }
+        id.RemoveLast();
     }
 
     void CopyRSPActiveState(RenderingAgent source, RenderingAgent target)
     {
-        CopyRSPActiveState(source, target, target.transform, "");
+        hierarchyIds.Clear();
+        CopyRSPActiveState(source, target, target.transform, ref hierarchyIds);
         for (int j = 0; j < source.setProperties[source.transform].Length; j++)
             target.setProperties[target.transform][j].enabled = source.setProperties[source.transform][j].enabled;
     }
 
-    void CopyChildsActiveState(RenderingAgent source, Transform duplicate, string id)
+    void CopyChildsActiveState(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
     {
-        if (id != "") id += ",";
+        id.Add(0);
         for (int i = 0; i < duplicate.childCount; i++)
         {
             Transform child = duplicate.GetChild(i);
 
-            string id2 = id + i;
-            CopyChildsActiveState(source, child, id2);
+            id.ReplaceLast(i);
+            CopyChildsActiveState(source, child, ref id);
 
-            Transform from = source.trEquivalence[id2];
+            Transform from = source.trEquivalence[id];
             child.gameObject.SetActive(from.gameObject.activeSelf);
         }
+        id.RemoveLast();
     }
 
     void CopyChildsActiveState(RenderingAgent source, RenderingAgent target)
     {
-        CopyChildsActiveState(source, target.transform, "");
+        hierarchyIds.Clear();
+        CopyChildsActiveState(source, target.transform, ref hierarchyIds);
     }
 
     void CopyRenderersEnabledState(Renderer[] source, Renderer[] target)
@@ -342,26 +346,28 @@ public class BRendererDuplicator : MonoBehaviour
             CopyRendererData(source[i], target[i]);
     }
 
-    void CopyChildTransforms(RenderingAgent source, Transform duplicate, string id)
+    void CopyChildTransforms(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
     {
-        if (id != "") id += ",";
+        id.Add(0);
         for (int i = 0; i < duplicate.transform.childCount; i++)
         {
             Transform child = duplicate.GetChild(i);
 
-            string id2 = id + i;
-            CopyChildTransforms(source, child, id2);
+            id.ReplaceLast(i);
+            CopyChildTransforms(source, child, ref id);
 
-            Transform from = source.trEquivalence[id2];
+            Transform from = source.trEquivalence[id];
             child.localPosition = from.localPosition;
             child.localRotation = from.localRotation;
             child.localScale = from.localScale;
         }
+        id.RemoveLast();
     }
 
     void CopyChildTransforms(RenderingAgent source, Transform duplicate)
     {
-        CopyChildTransforms(source, duplicate, "");
+        hierarchyIds.Clear();
+        CopyChildTransforms(source, duplicate, ref hierarchyIds);
     }
     #endregion
 
@@ -474,29 +480,29 @@ public class BRendererDuplicator : MonoBehaviour
         public string name { get { return gameObject?.name; } set { gameObject.name = value; } }
         public Transform transform { get { return gameObject?.transform; } }
         public Transform parent { get { return gameObject?.transform?.parent; } set { transform.parent = value; } }
-        Dictionary<string, Transform> _trEquivalence;
-        public Dictionary<string, Transform> trEquivalence
+        Dictionary<UniqueIntList, Transform> _trEquivalence;
+        public Dictionary<UniqueIntList, Transform> trEquivalence
         {
             get
             {
                 if (_trEquivalence == null)
                 {
-                    _trEquivalence = new Dictionary<string, Transform>();
-                    _trInverseEquivalence = new Dictionary<Transform, string>();
+                    _trEquivalence = new Dictionary<UniqueIntList, Transform>();
+                    _trInverseEquivalence = new Dictionary<Transform, UniqueIntList>();
                     RecursiveEquivalence(transform, ref _trEquivalence, ref _trInverseEquivalence);
                 }
                 return _trEquivalence;
             }
         }
-        Dictionary<Transform, string> _trInverseEquivalence;
-        public Dictionary<Transform, string> trInverseEquivalence
+        Dictionary<Transform, UniqueIntList> _trInverseEquivalence;
+        public Dictionary<Transform, UniqueIntList> trInverseEquivalence
         {
             get
             {
                 if (_trInverseEquivalence == null)
                 {
-                    _trEquivalence = new Dictionary<string, Transform>();
-                    _trInverseEquivalence = new Dictionary<Transform, string>();
+                    _trEquivalence = new Dictionary<UniqueIntList, Transform>();
+                    _trInverseEquivalence = new Dictionary<Transform, UniqueIntList>();
                     RecursiveEquivalence(transform, ref _trEquivalence, ref _trInverseEquivalence);
                 }
                 return _trInverseEquivalence;
@@ -511,6 +517,20 @@ public class BRendererDuplicator : MonoBehaviour
                 if (_skinnedRends == null)
                     _skinnedRends = gameObject?.GetComponentsInChildren<SkinnedMeshRenderer>(true);
                 return _skinnedRends;
+            }
+        }
+        int _largestHierarchy;
+        public int largestHierarchy
+        {
+            get
+            {
+                if (_trInverseEquivalence == null)
+                {
+                    _trEquivalence = new Dictionary<UniqueIntList, Transform>();
+                    _trInverseEquivalence = new Dictionary<Transform, UniqueIntList>();
+                    RecursiveEquivalence(transform, ref _trEquivalence, ref _trInverseEquivalence);
+                }
+                return _largestHierarchy;
             }
         }
 
@@ -530,8 +550,8 @@ public class BRendererDuplicator : MonoBehaviour
             }
         }
 
-        void RecursiveEquivalence(Transform tr, ref Dictionary<string, Transform> equiv,
-            ref Dictionary<Transform, string> equivInv)
+        void RecursiveEquivalence(Transform tr, ref Dictionary<UniqueIntList, Transform> equiv,
+            ref Dictionary<Transform, UniqueIntList> equivInv)
         {
             List<int> list = new List<int>();
             List<Transform> skinnedRendsTr = new List<Transform>();
@@ -544,8 +564,8 @@ public class BRendererDuplicator : MonoBehaviour
             RecursiveEquivalence(tr, ref list, ref equiv, ref equivInv, skinnedRendsTr.ToArray());
         }
 
-        bool RecursiveEquivalence(Transform tr, ref List<int> list, ref Dictionary<string, Transform> equiv,
-            ref Dictionary<Transform, string> equivInv, params Transform[] includeForSure)
+        bool RecursiveEquivalence(Transform tr, ref List<int> list, ref Dictionary<UniqueIntList, Transform> equiv,
+            ref Dictionary<Transform, UniqueIntList> equivInv, params Transform[] includeForSure)
         {
             if (tr.childCount <= 0)
             {
@@ -561,7 +581,9 @@ public class BRendererDuplicator : MonoBehaviour
                     Transform child = tr.GetChild(i);
                     if (RecursiveEquivalence(child, ref list, ref equiv, ref equivInv, includeForSure))
                     {
-                        string id = list.ToUsefulString();
+                        if (_largestHierarchy < list.Count)
+                            _largestHierarchy = list.Count;
+                        UniqueIntList id = new UniqueIntList(list.ToArray(), list.Count);
                         if (!equiv.ContainsKey(id))
                             equiv.Add(id, child);
                         if (!equivInv.ContainsKey(child))
@@ -620,6 +642,90 @@ public class BRendererDuplicator : MonoBehaviour
         {
             _renderers = null;
             return renderers;
+        }
+    }
+
+    public struct UniqueIntList : IEquatable<UniqueIntList>
+    {
+        int[] ints;
+        int length;
+
+        public UniqueIntList(int[] ints, int length)
+        {
+            this.ints = ints;
+            this.length = length;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (!(other is UniqueIntList)) return false;
+            return Equals((UniqueIntList)other);
+        }
+
+        public bool Equals(UniqueIntList other)
+        {
+            if (length != other.length) return false;
+            for (int i = 0; i < length; i++)
+                if (ints[i] != other.ints[i])
+                    return false;
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int result = 17;
+            for (int i = 0; i < length; i++)
+                unchecked
+                {
+                    result = result * 23 + ints[i];
+                }
+            return result;
+        }
+
+        public static bool operator ==(UniqueIntList o1, UniqueIntList o2)
+        {
+            return o1.Equals(o2);
+        }
+
+        public static bool operator !=(UniqueIntList o1, UniqueIntList o2)
+        {
+            return !o1.Equals(o2);
+        }
+
+        public void Add(int i)
+        {
+            if (ints.Length <= length)
+            {
+                int[] newInts = new int[length + 1];
+                for (int j = 0; j < length; j++)
+                    newInts[j] = ints[j];
+                ints = newInts;
+            }
+            ints[length] = i;
+            length++;
+        }
+
+        public void RemoveLast()
+        {
+            length--;
+        }
+
+        public void ReplaceLast(int i)
+        {
+            ints[length - 1] = i;
+        }
+
+        public void Clear()
+        {
+            length = 0;
+        }
+
+        public int[] ToIntArray()
+        {
+            int[] newInts = new int[length];
+            for (int i = 0; i < length; i++)
+                newInts[i] = ints[i];
+            return newInts;
         }
     }
 }

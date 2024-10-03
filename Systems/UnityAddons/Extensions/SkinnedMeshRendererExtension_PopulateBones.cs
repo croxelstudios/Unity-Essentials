@@ -16,9 +16,10 @@ public static class SkinnedMeshRendererExtension_PopulateBones
         else
         {
             List<Transform> boneArray = new List<Transform>();
+            List<int> hierarchy = new List<int>();
             for (int i = 0; i < otherBones.Length; i++)
             {
-                List<int> hierarchy = new List<int>();
+                hierarchy.Clear();
                 Transform parent = otherBones[i];
                 while (parent != otherRoot)
                 {
