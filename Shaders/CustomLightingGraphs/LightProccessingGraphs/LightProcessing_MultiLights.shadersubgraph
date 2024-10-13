@@ -793,34 +793,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "addb4ade758d434584dd767fd144f5d2"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "0f385e6ac8a345ca9e01921e3cd4c51a"
-                },
-                "m_SlotId": 11
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "addb4ade758d434584dd767fd144f5d2"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "63ece210f6c444248c646706c2fac019"
-                },
-                "m_SlotId": 11
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "ae571f1dbfda4aa785b7aa2faafd4462"
                 },
                 "m_SlotId": 0
@@ -1081,8 +1053,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1118.0,
-            "y": 1324.0,
+            "x": -1149.3333740234375,
+            "y": 1348.6668701171875,
             "width": 120.0,
             "height": 36.0
         }
@@ -1328,9 +1300,6 @@
             "m_Id": "6681d6acc095465e8c8fc8b47b84c042"
         },
         {
-            "m_Id": "7e021abebd454f12899849ebd710a67b"
-        },
-        {
             "m_Id": "2cf4f721be034cd2bda545da22ebe760"
         },
         {
@@ -1363,7 +1332,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "AdditionalLight",
     "m_FunctionSource": "",
-    "m_FunctionBody": "\r\r\r\rBindings_LightProccesing_e2dcdf5b1a4895c4b980fd3aca5d0224_float bindings;\r\nbindings.WorldSpaceNormal = WorldSpaceNormal;\r\nbindings.WorldSpaceViewDirection = ViewDirection;\r\nSG_LightProccesing_e2dcdf5b1a4895c4b980fd3aca5d0224_float(Albedo, Normal, 1,\r\n\tSmoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \n\tUseRampTexture, RampTexture, UseRampTexture,\n\tToonSubdivisions, LightStepsCurveFactor, Invert,\r\n\tLightDir, 1, LightColor, ShadowAtten,\r\n\tDistanceAtten, bindings, OutVector4_1, SpecularMask);"
+    "m_FunctionBody": "\r\r\r\rBindings_LightProcessing_e2dcdf5b1a4895c4b980fd3aca5d0224_float bindings;\r\nbindings.WorldSpaceNormal = WorldSpaceNormal;\r\nbindings.WorldSpacePosition = Position;\r\nSG_LightProcessing_e2dcdf5b1a4895c4b980fd3aca5d0224_float(Albedo, Normal, 1,\r\n\tSmoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \n\tUseRampTexture, RampTexture, UseRampTexture,\n\tToonSubdivisions, LightStepsCurveFactor, Invert,\r\n\tLightDir, 1, LightColor, ShadowAtten,\r\n\tDistanceAtten, Position, bindings, OutVector4_1, SpecularMask);"
 }
 
 {
@@ -2392,8 +2361,8 @@
     "m_ObjectId": "48512e8bbfd245b08a1b76069eeb9029",
     "m_Title": "Position Input",
     "m_Position": {
-        "x": -1232.6666259765625,
-        "y": 1225.3333740234375
+        "x": -1264.0,
+        "y": 1250.000244140625
     }
 }
 
@@ -2860,9 +2829,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -999.3333129882813,
-            "y": 1284.0,
-            "width": 209.33331298828126,
+            "x": -1030.6666259765625,
+            "y": 1308.6668701171875,
+            "width": 209.333251953125,
             "height": 328.0
         }
     },
@@ -3128,9 +3097,6 @@
             "m_Id": "bb8f3d449ec14f07a8ee40feb1177164"
         },
         {
-            "m_Id": "8b721fc1876e4bb2a3f6729b96f6622d"
-        },
-        {
             "m_Id": "9f7148804cd64e4aa1b2a33c2c227e59"
         },
         {
@@ -3151,7 +3117,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "AdditionalLightsLoop",
     "m_FunctionSource": "e4db6e03274d60242b81b2e8e4db01b3",
-    "m_FunctionBody": "    LightingResult = float4(0, 0, 0, 1);\r\n    SpecularMask = 0;\r\n#if !defined(SHADERGRAPH_PREVIEW)\r\n#ifdef _ADDITIONAL_LIGHTS\r\n            uint lightsCount = GetAdditionalLightsCount();\r\n            uint meshRenderingLayers = GetMeshRenderingLayer();\r\n#ifdef _FORWARD_PLUS\r\n#if SHADOWS_SCREEN\r\n                    float4 shadowCoord = ComputeScreenPos(positionCS);\r\n#else\r\n                    float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n#endif\r\n                InputData inputData = (InputData)0;\r\n                inputData.positionWS = Position;\r\n                inputData.normalWS = Normal;\r\n                inputData.viewDirectionWS = ViewDirection;\r\n                inputData.shadowCoord = shadowCoord;\r\n                float4 positionCS = TransformWorldToHClip(Position);\r\n                inputData.normalizedScreenSpaceUV =\r\n                    float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);\r\n                \r\n                LIGHT_LOOP_BEGIN(lightsCount)\r\n                    Light light = GetAdditionalLight(lightIndex, Position, 1);\r\n    \r\n#ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\r\n                    {\r\n                        float4 OutVector4_1 = float4(0, 0, 0, 1);\r\n\t                    float sm = 0;\r\n                    \r\n                        AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                        RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                    ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                    WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                    light.shadowAttenuation, light.distanceAttenuation,\r\n                            OutVector4_1, sm);\r\n    \r\n                        LightingResult.rgb += OutVector4_1.rgb;\r\n                        LightingResult.a *= OutVector4_1.a;\r\n\t                    SpecularMask += sm;\r\n                    }\r\n                LIGHT_LOOP_END\r\n#else\r\n                for (uint lightI = 0; lightI < min(MAX_VISIBLE_LIGHTS, lightsCount); lightI++)\r\n                {\r\n                    Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n#ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\r\n                    {\r\n                        float4 OutVector4_1 = float4(0, 0, 0, 1);\r\n\t                    float sm = 0;\r\n                        AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                        RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                    ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                    WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                    light.shadowAttenuation, light.distanceAttenuation,\r\n                            OutVector4_1, sm);\r\n    \r\n                        LightingResult.rgb += OutVector4_1.rgb;\r\n                        LightingResult.a *= OutVector4_1.a;\r\n\t                    SpecularMask += sm;\r\n                    }\r\n                }\r\n#endif\r\n#endif\r\n#endif"
+    "m_FunctionBody": "    LightingResult = float4(0, 0, 0, 1);\r\n    SpecularMask = 0;\r\n#if !defined(SHADERGRAPH_PREVIEW)\r\n#ifdef _ADDITIONAL_LIGHTS\r\n            uint lightsCount = GetAdditionalLightsCount();\r\n            uint meshRenderingLayers = GetMeshRenderingLayer();\r\n#ifdef _FORWARD_PLUS\r\n#if SHADOWS_SCREEN\r\n                    float4 shadowCoord = ComputeScreenPos(positionCS);\r\n#else\r\n                    float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n#endif\r\n                InputData inputData = (InputData)0;\r\n                inputData.positionWS = Position;\r\n                inputData.normalWS = Normal;\r\n                inputData.viewDirectionWS = ViewDirection;\r\n                inputData.shadowCoord = shadowCoord;\r\n                float4 positionCS = TransformWorldToHClip(Position);\r\n                inputData.normalizedScreenSpaceUV =\r\n                    float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);\r\n                \r\n                LIGHT_LOOP_BEGIN(lightsCount)\r\n                    Light light = GetAdditionalLight(lightIndex, Position, 1);\r\n    \r\n#ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\r\n                    {\r\n                        float4 OutVector4_1 = float4(0, 0, 0, 1);\r\n\t                    float sm = 0;\r\n                    \r\n                        AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                        RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                    ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                    WorldSpaceNormal, ViewDirection, light.direction, light.color, \r\n\t\t                    light.shadowAttenuation, light.distanceAttenuation,\r\n                            OutVector4_1, sm);\r\n    \r\n                        LightingResult.rgb += OutVector4_1.rgb;\r\n                        LightingResult.a *= OutVector4_1.a;\r\n\t                    SpecularMask += sm;\r\n                    }\r\n                LIGHT_LOOP_END\r\n#else\r\n                for (uint lightI = 0; lightI < min(MAX_VISIBLE_LIGHTS, lightsCount); lightI++)\r\n                {\r\n                    Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n#ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\r\n                    {\r\n                        float4 OutVector4_1 = float4(0, 0, 0, 1);\r\n\t                    float sm = 0;\r\n                        AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,\r\n\t                        RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,\r\n\t\t                    ToonSubdivisions, LightStepsCurveFactor, Invert, 0, Position, \r\n\t\t                    WorldSpaceNormal, light.direction, light.color, \r\n\t\t                    light.shadowAttenuation, light.distanceAttenuation,\r\n                            OutVector4_1, sm);\r\n    \r\n                        LightingResult.rgb += OutVector4_1.rgb;\r\n                        LightingResult.a *= OutVector4_1.a;\r\n\t                    SpecularMask += sm;\r\n                    }\r\n                }\r\n#endif\r\n#endif\r\n#endif"
 }
 
 {
@@ -3595,10 +3561,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1207.3333740234375,
-            "y": 1358.0,
-            "width": 207.3333740234375,
-            "height": 134.666748046875
+            "x": -1238.6666259765625,
+            "y": 1382.6668701171875,
+            "width": 207.333251953125,
+            "height": 134.6666259765625
         }
     },
     "m_Slots": [
@@ -3750,6 +3716,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "7a863e7bf38d44e7a9a081a388d8d305",
+    "m_Id": 219468475,
+    "m_DisplayName": "Position",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Position",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "7b8371e9adc644a6a0bb60ff009f33f6",
     "m_Id": 3,
@@ -3815,29 +3804,6 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "Position",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "7e021abebd454f12899849ebd710a67b",
-    "m_Id": 11,
-    "m_DisplayName": "ViewDirection",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "ViewDirection",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -3990,29 +3956,6 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "8b721fc1876e4bb2a3f6729b96f6622d",
-    "m_Id": 11,
-    "m_DisplayName": "ViewDirection",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "ViewDirection",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "8c4caeff860e42d4beec598f639235a7",
     "m_Id": 1730024714,
     "m_DisplayName": "LightDir",
@@ -4040,15 +3983,15 @@
     "m_Group": {
         "m_Id": "4b07317a75cd46718637cfbfbecd4134"
     },
-    "m_Name": "LightProccesing",
+    "m_Name": "LightProcessing",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1202.0,
+            "x": -1211.33349609375,
             "y": 570.6666259765625,
-            "width": 286.0,
-            "height": 617.3333740234375
+            "width": 295.33343505859377,
+            "height": 641.3333740234375
         }
     },
     "m_Slots": [
@@ -4098,6 +4041,9 @@
             "m_Id": "152d22a293704a71a1679b9fd9b19ccf"
         },
         {
+            "m_Id": "7a863e7bf38d44e7a9a081a388d8d305"
+        },
+        {
             "m_Id": "11bc14acd9294b99bd966103df9d78fd"
         },
         {
@@ -4130,7 +4076,8 @@
         "bf7a7905-c632-408c-ab1d-9e5f5b340acb",
         "1c2b2de1-1020-4066-9f4e-b3204135e7f9",
         "3e30bb99-338a-4579-bb30-c60760bf5766",
-        "62627f3b-1b0e-4456-88bb-7559a786ed54"
+        "62627f3b-1b0e-4456-88bb-7559a786ed54",
+        "e01f08ed-fa20-43ea-8f3b-b010f91b51be"
     ],
     "m_PropertyIds": [
         -2028242236,
@@ -4149,7 +4096,8 @@
         1801623239,
         -2061941217,
         450365384,
-        732715290
+        732715290,
+        219468475
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
