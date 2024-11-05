@@ -105,13 +105,13 @@ namespace Merlin
 
         static void OnEditorUpdate()
         {
-            ApplyEventPropertyDrawerPatch();
+            //ApplyEventPropertyDrawerPatch();                                   <---------- CHANGE THIS
         }
 
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded()
         {
-            ApplyEventPropertyDrawerPatch();
+            //ApplyEventPropertyDrawerPatch();
         }
 
         internal static FieldInfo GetDrawerTypeMap()

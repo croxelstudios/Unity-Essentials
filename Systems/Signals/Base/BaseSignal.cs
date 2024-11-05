@@ -86,7 +86,8 @@ public class BaseSignal : ScriptableObject
     protected void DynamicSearch(Type type)
     {
         listeners = new List<Action>();
-        BBaseSignalListener[] allListeners = FindObjectsOfType(type, true) as BBaseSignalListener[];
+        BBaseSignalListener[] allListeners =
+            FindObjectsByType(type, FindObjectsInactive.Include, FindObjectsSortMode.None) as BBaseSignalListener[];
         foreach (BBaseSignalListener listener in allListeners)
         {
             listener.UpdateSignals();
@@ -99,7 +100,8 @@ public class BaseSignal : ScriptableObject
     protected void DynamicSearch<T>() where T : BBaseSignalListener
     {
         listeners = new List<Action>();
-        BBaseSignalListener[] allListeners = FindObjectsOfType<T>(true);
+        BBaseSignalListener[] allListeners = FindObjectsByType<T>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (BBaseSignalListener listener in allListeners)
         {
             listener.UpdateSignals();

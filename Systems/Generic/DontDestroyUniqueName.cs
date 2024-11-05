@@ -38,7 +38,7 @@ public class DontDestroyUniqueName : MonoBehaviour
 
     void StartUp(bool firstLoad)
     {
-        DontDestroyUniqueName[] objs = FindObjectsOfType<DontDestroyUniqueName>();
+        DontDestroyUniqueName[] objs = FindObjectsByType<DontDestroyUniqueName>(FindObjectsSortMode.None);
         if (objs.Length > 1)
         {
             foreach (DontDestroyUniqueName obj in objs)

@@ -5,13 +5,18 @@ using UnityEngine;
 public static class MeshExtension_GenerateRandomPointsOnSurface
 {
     public static Vector3[] GenerateRandomPointsOnSurface<T>(this Mesh mesh,
+<<<<<<< Updated upstream
         int amount, float randomVariation, ref T normals) where T : IList<Vector3>
+=======
+        int amount, float randomVariation, ref T normals, ref int[] resultTris) where T : IList<Vector3>
+>>>>>>> Stashed changes
     {
         Vector3[] result = new Vector3[amount];
         int[] triangles = mesh.triangles;
         Vector3[] vertices = mesh.vertices;
         Vector3[] meshNormals = mesh.normals;
         Vector3[] norm = new Vector3[amount];
+        resultTris = new int[amount];
         float[] areas = new float[triangles.Length / 3];
         float totalArea = 0f;
         for (int i = 0; i < areas.Length; i++)
@@ -46,6 +51,7 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
             int tri = j * 3;
             result[i] =
                 MapVectorToTrianglePoint(vertices[triangles[tri]],
+<<<<<<< Updated upstream
             vertices[triangles[tri + 1]], vertices[triangles[tri + 2]], mapping);
             float dist0 = Vector3.Distance(result[i], vertices[triangles[tri]]);
             float dist1 = Vector3.Distance(result[i], vertices[triangles[tri + 1]]);
@@ -57,6 +63,15 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
             Vector3 normal = ((meshNormals[triangles[tri]] * dist0) + (meshNormals[triangles[tri + 1]] * dist1) +
                     (meshNormals[triangles[tri + 2]] * dist2)).normalized;
             norm[i] = normal;
+=======
+                vertices[triangles[tri + 1]], vertices[triangles[tri + 2]], mapping);
+
+            norm[i] = ProcMesh.TrianglePointNormal(result[i],
+                vertices[triangles[tri]], vertices[triangles[tri + 1]], vertices[triangles[tri + 2]],
+                meshNormals[triangles[tri]], meshNormals[triangles[tri + 1]], meshNormals[triangles[tri + 2]]);
+
+            resultTris[i] = tri;
+>>>>>>> Stashed changes
         }
 
         normals = (T)(object)norm;

@@ -47,8 +47,8 @@ public class NDRigidbody
     {
         get
         {
-            if (is2D) return rigid2.velocity;
-            else return rigid3.velocity;
+            if (is2D) return rigid2.linearVelocity;
+            else return rigid3.linearVelocity;
         }
 
         set
@@ -56,9 +56,9 @@ public class NDRigidbody
             if (is2D)
             {
                 if (rigid2.bodyType != RigidbodyType2D.Static)
-                    rigid2.velocity = value;
+                    rigid2.linearVelocity = value;
             }
-            else rigid3.velocity = value;
+            else rigid3.linearVelocity = value;
         }
     }
     public Vector3 angularVelocity
@@ -83,13 +83,13 @@ public class NDRigidbody
     {
         get
         {
-            if (is2D) return rigid2.isKinematic;
+            if (is2D) return rigid2.bodyType == RigidbodyType2D.Kinematic;
             else return rigid3.isKinematic;
         }
 
         set
         {
-            if (is2D) rigid2.isKinematic = value;
+            if (is2D) rigid2.bodyType = value ? RigidbodyType2D.Kinematic : RigidbodyType2D.Dynamic;
             else rigid3.isKinematic = value;
         }
     }

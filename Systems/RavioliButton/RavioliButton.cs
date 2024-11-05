@@ -730,7 +730,7 @@ public class RavioliButton_Button : MonoBehaviour
     {
         if (groups == null)
         {
-            RavioliButton[] grs = FindObjectsOfType<RavioliButton>();
+            RavioliButton[] grs = FindObjectsByType<RavioliButton>(FindObjectsSortMode.None);
             List<RavioliButton> lGrs = new List<RavioliButton>();
             foreach (RavioliButton gr in grs)
                 if (gr.buttonsParent == transform.parent)

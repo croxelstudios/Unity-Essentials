@@ -94,6 +94,7 @@ public class ReplacementShaderRT : ScriptableRendererFeature
 
         // Configure the pass by creating a temporary render texture and
         // readying it for rendering
+        [Obsolete]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RenderTextureDescriptor rtDescriptor = cameraTextureDescriptor;
@@ -105,6 +106,7 @@ public class ReplacementShaderRT : ScriptableRendererFeature
             ConfigureClear(ClearFlag.All, textureSettings.backgroundColor);
         }
 
+        [Obsolete]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();

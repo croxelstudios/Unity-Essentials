@@ -49,7 +49,8 @@ public class BRemoteLauncher : MonoBehaviour
         {
             if (!staticArray[t].ContainsKey(filterByTag))
                 staticArray[t].Add(filterByTag, new List<Component>());
-            if (filterByTag == "") staticArray[t][filterByTag].AddRange(FindObjectsOfType<T>());
+            if (filterByTag == "") staticArray[t][filterByTag].AddRange(
+                FindObjectsByType<T>(FindObjectsSortMode.None));
             else staticArray[t][filterByTag].AddRange(FilterByTag<T>(filterByTag));
             array = ComponentToTypeArray<T>(staticArray[t][filterByTag].ToArray());
         }
@@ -75,7 +76,7 @@ public class BRemoteLauncher : MonoBehaviour
     protected T[] FilterByTag<T>(string tag) where T : Component
     {
         List<T> comp = new List<T>();
-        comp.AddRange(FindObjectsOfType<T>());
+        comp.AddRange(FindObjectsByType<T>(FindObjectsSortMode.None));
         for (int i = comp.Count - 1; i > -1; i--)
             if (comp[i].tag != tag) comp.RemoveAt(i);
         return comp.ToArray();
@@ -84,7 +85,7 @@ public class BRemoteLauncher : MonoBehaviour
     protected T[] FilterByTags<T>(string[] tags) where T : Component
     {
         List<T> comp = new List<T>();
-        comp.AddRange(FindObjectsOfType<T>());
+        comp.AddRange(FindObjectsByType<T>(FindObjectsSortMode.None));
         for (int i = comp.Count - 1; i > -1; i--)
             if (!tags.Contains(comp[i].tag)) comp.RemoveAt(i);
         return comp.ToArray();
