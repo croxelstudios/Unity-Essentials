@@ -5,11 +5,7 @@ using UnityEngine;
 public static class MeshExtension_GenerateRandomPointsOnSurface
 {
     public static Vector3[] GenerateRandomPointsOnSurface<T>(this Mesh mesh,
-<<<<<<< Updated upstream
-        int amount, float randomVariation, ref T normals) where T : IList<Vector3>
-=======
         int amount, float randomVariation, ref T normals, ref int[] resultTris) where T : IList<Vector3>
->>>>>>> Stashed changes
     {
         Vector3[] result = new Vector3[amount];
         int[] triangles = mesh.triangles;
@@ -51,19 +47,6 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
             int tri = j * 3;
             result[i] =
                 MapVectorToTrianglePoint(vertices[triangles[tri]],
-<<<<<<< Updated upstream
-            vertices[triangles[tri + 1]], vertices[triangles[tri + 2]], mapping);
-            float dist0 = Vector3.Distance(result[i], vertices[triangles[tri]]);
-            float dist1 = Vector3.Distance(result[i], vertices[triangles[tri + 1]]);
-            float dist2 = Vector3.Distance(result[i], vertices[triangles[tri + 2]]);
-            float totDist = dist0 + dist1 + dist2;
-            dist0 = 1f - (dist0 / totDist);
-            dist1 = 1f - (dist1 / totDist);
-            dist2 = 1f - (dist2 / totDist);
-            Vector3 normal = ((meshNormals[triangles[tri]] * dist0) + (meshNormals[triangles[tri + 1]] * dist1) +
-                    (meshNormals[triangles[tri + 2]] * dist2)).normalized;
-            norm[i] = normal;
-=======
                 vertices[triangles[tri + 1]], vertices[triangles[tri + 2]], mapping);
 
             norm[i] = ProcMesh.TrianglePointNormal(result[i],
@@ -71,7 +54,6 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
                 meshNormals[triangles[tri]], meshNormals[triangles[tri + 1]], meshNormals[triangles[tri + 2]]);
 
             resultTris[i] = tri;
->>>>>>> Stashed changes
         }
 
         normals = (T)(object)norm;
