@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Collections;
-using Random = UnityEngine.Random;
-using Unity.VisualScripting;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
+using UnityEngine;
 
 public static class ProcMesh
 {
@@ -329,12 +325,15 @@ public static class ProcMesh
             vertices[i] = transform.MultiplyPoint(mesh.vertices[i]);
     }
 
-    public static void PositionArbitraryMesh<T>(Mesh mesh, ref T vertices, ref T normals, Matrix4x4 transform)
+    public static void PositionArbitraryMesh<T>(Mesh mesh, ref T vertices, ref T normals,
+        Vector3 localOffset, Matrix4x4 transform)
         where T : IList<Vector3>
     {
         for (int i = 0; i < vertices.Count; i++)
         {
-            vertices[i] = transform.MultiplyPoint(mesh.vertices[i]);
+            Vector3 offset =
+                Vector3.Scale(localOffset, mesh.bounds.extents + mesh.bounds.center.Abs());
+            vertices[i] = transform.MultiplyPoint(mesh.vertices[i] + offset);
             normals[i] = transform.rotation * mesh.normals[i];
         }
     }
@@ -383,7 +382,7 @@ public static class ProcMesh
         MapQuadTriangleUVs(0, 1, 2, ref uvs);
         mesh.SetUVs(0, uvs);
         mesh.RecalculateTangents();
-        mesh.RecalculateBounds();
+        mesh.bounds = new Bounds(Vector3.zero, Vector2.one);
         mesh.name = "proc_QuadTriangle";
         return mesh;
     }
