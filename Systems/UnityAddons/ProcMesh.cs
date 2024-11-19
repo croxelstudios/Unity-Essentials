@@ -270,7 +270,7 @@ public static class ProcMesh
         tl = transform.MultiplyPoint(vtl);
         br = transform.MultiplyPoint(vbr);
 
-        Vector3 normal = Vector3.Cross(br - bl, tl - bl);
+        Vector3 normal = Vector3.Cross(tl - bl, br - bl).normalized;
         nbl = normal;
         ntl = normal;
         nbr = normal;
@@ -370,20 +370,27 @@ public static class ProcMesh
     public static Mesh CreateQuadTriangle()
     {
         Mesh mesh = new Mesh();
+
         Vector3[] vertices = new Vector3[3];
         Vector3[] normals = new Vector3[3];
         PositionQuadTriangle(0, 1, 2, Matrix4x4.identity, ref vertices, ref normals);
         mesh.SetVertices(vertices);
         mesh.SetNormals(normals);
+
         List<int> triangles = new List<int>();
         RegisterTriangle(0, 1, 2, ref triangles);
         mesh.SetTriangles(triangles, 0);
+
         Vector2[] uvs = new Vector2[3];
         MapQuadTriangleUVs(0, 1, 2, ref uvs);
         mesh.SetUVs(0, uvs);
+
         mesh.RecalculateTangents();
+
         mesh.bounds = new Bounds(Vector3.zero, Vector2.one);
+
         mesh.name = "proc_QuadTriangle";
+
         return mesh;
     }
 }
