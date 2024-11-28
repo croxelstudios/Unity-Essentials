@@ -1,8 +1,9 @@
+using Mono.CSharp;
 using System;
 using UnityEngine;
 
 [Serializable]
-public struct TransformData
+public struct TransformData : IEquatable<TransformData>
 {
     public Vector3 position;
     public Vector3 eulerAngles;
@@ -131,5 +132,34 @@ public struct TransformData
             target.rotation = rotation;
             //target.localScale = localScale; //TO DO: Calculate lossyScale to localScale relation
         }
+    }
+
+    public override bool Equals(object other)
+    {
+        if (!(other is TransformData)) return false;
+        return Equals((TransformData)other);
+    }
+
+    public bool Equals(TransformData other)
+    {
+        return (position == other.position)
+            && (eulerAngles == other.eulerAngles)
+            && (localScale == other.localScale);
+    }
+
+    public override int GetHashCode()
+    {
+        return new Vector3Int(position.GetHashCode(), 
+            eulerAngles.GetHashCode(), localScale.GetHashCode()).GetHashCode();
+    }
+
+    public static bool operator ==(TransformData o1, TransformData o2)
+    {
+        return o1.Equals(o2);
+    }
+
+    public static bool operator !=(TransformData o1, TransformData o2)
+    {
+        return !o1.Equals(o2);
     }
 }
