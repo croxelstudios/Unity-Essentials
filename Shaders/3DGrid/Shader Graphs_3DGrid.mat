@@ -40,21 +40,22 @@ Material:
     m_Ints: []
     m_Floats:
     - _Cutout: 0.1
-    - _Depth: 3
+    - _Depth: 5
+    - _DepthBias: 0
     - _Dithering: 1
-    - _Height: 3
+    - _Height: 5
     - _Lenght: 5
-    - _Length: 3
-    - _LineWidth: 1
-    - _MaxDistance: 5
+    - _Length: 5
+    - _LineWidth: 10
+    - _MaxDistance: 10
     - _Perspective: 0
     - _QueueControl: 1
     - _QueueOffset: 7
     - _WidthIsInPixels: 1
     m_Colors:
-    - _CellSize: {r: 1, g: 1, b: 1, a: 0}
+    - _CellSize: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     - _Closest: {r: 1, g: 1, b: 1, a: 1}
-    - _Farthest: {r: 0, g: 0, b: 0, a: 0}
+    - _Farthest: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &6812092140607954201
