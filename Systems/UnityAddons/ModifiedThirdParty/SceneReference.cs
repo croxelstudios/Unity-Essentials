@@ -240,21 +240,21 @@ public class SceneReferencePropertyDrawer : PropertyDrawer
         // Missing from build scenes
         if (buildScene.buildIndex == -1)
         {
-            iconContent = EditorGUIUtility.IconContent("d_winbtn_mac_close");
+            //TO DO: Broken //iconContent = EditorGUIUtility.IconContent("d_winbtn_mac_close");
             labelContent.text = "NOT In Build";
             labelContent.tooltip = "This scene is NOT in build settings.\nIt will be NOT included in builds.";
         }
         // In build scenes and enabled
         else if (buildScene.scene.enabled)
         {
-            iconContent = EditorGUIUtility.IconContent("d_winbtn_mac_max");
+            //TO DO: Broken //iconContent = EditorGUIUtility.IconContent("d_winbtn_mac_max");
             labelContent.text = "BuildIndex: " + buildScene.buildIndex;
             labelContent.tooltip = "This scene is in build settings and ENABLED.\nIt will be included in builds." + readOnlyWarning;
         }
         // In build scenes and disabled
         else
         {
-            iconContent = EditorGUIUtility.IconContent("d_winbtn_mac_min");
+            //TO DO: Broken //iconContent = EditorGUIUtility.IconContent("d_winbtn_mac_min");
             labelContent.text = "BuildIndex: " + buildScene.buildIndex;
             labelContent.tooltip = "This scene is in build settings and DISABLED.\nIt will be NOT included in builds.";
         }
@@ -264,7 +264,7 @@ public class SceneReferencePropertyDrawer : PropertyDrawer
         {
             Rect labelRect = DrawUtils.GetLabelRect(position);
             Rect iconRect = labelRect;
-            iconRect.width = iconContent.image.width + padSize;
+            //TO DO: Broken //iconRect.width = iconContent.image.width + padSize;
             labelRect.width -= iconRect.width;
             labelRect.x += iconRect.width;
             EditorGUI.PrefixLabel(iconRect, sceneControlID, iconContent);
