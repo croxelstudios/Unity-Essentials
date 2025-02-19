@@ -143,6 +143,20 @@
                 },
                 "m_SlotId": 1
             }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "f70e6a1f290d4a07b25d2a059070c0e0"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "35dccd7f149347439501e75c814c87c2"
+                },
+                "m_SlotId": 2
+            }
         }
     ],
     "m_VertexContext": {
@@ -174,6 +188,27 @@
     },
     "m_SubDatas": [],
     "m_ActiveTargets": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
+    "m_ObjectId": "0802da4fd7734eafb527bb3fc40a88c6",
+    "m_Id": 2,
+    "m_DisplayName": "ProjectedPoint",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "ProjectedPoint",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -288,6 +323,9 @@
     "m_Slots": [
         {
             "m_Id": "0aeddc7169a240aa847fbd26b07d2a0d"
+        },
+        {
+            "m_Id": "0802da4fd7734eafb527bb3fc40a88c6"
         }
     ],
     "synonyms": [],
@@ -299,6 +337,27 @@
         "m_SerializableColors": []
     },
     "IsFirstSlotValid": true
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
+    "m_ObjectId": "4b2f3abb7639409599aac330f1717e52",
+    "m_Id": 4,
+    "m_DisplayName": "ProjectedPoint",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "ProjectedPoint",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -791,6 +850,9 @@
         },
         {
             "m_Id": "7b925f25791a49d1a3e7df9016e8293e"
+        },
+        {
+            "m_Id": "4b2f3abb7639409599aac330f1717e52"
         }
     ],
     "synonyms": [
@@ -807,6 +869,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "SegmentSDF",
     "m_FunctionSource": "",
-    "m_FunctionBody": "float2 ba = Point2 - Point1;\nfloat2 pa = Source - Point1;\nfloat k = saturate(dot(pa, ba) / dot(ba, ba));\nDistance = length(pa - (ba * k));"
+    "m_FunctionSourceUsePragmas": true,
+    "m_FunctionBody": "float2 ba = Point2 - Point1;\nfloat2 pa = Source - Point1;\nfloat k = saturate(dot(pa, ba) / dot(ba, ba));\nfloat2 toPoint = pa - (ba * k);\nDistance = length(toPoint);\nProjectedPoint = Source - toPoint;"
 }
 

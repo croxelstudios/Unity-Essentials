@@ -418,6 +418,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "CurveFactorRemap",
     "m_FunctionSource": "",
+    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "float v = Value;\nfloat c = CurveFactor;\n\nif (c == 0)\n\tOutput = v;\nelse\n{\n\tfloat k = (1/c) - (sign(c)*0.5) - 0.5;\n\tOutput = 1 + k - ((pow(k, 2) + k)/(v + k));\n}\n"
 }
 

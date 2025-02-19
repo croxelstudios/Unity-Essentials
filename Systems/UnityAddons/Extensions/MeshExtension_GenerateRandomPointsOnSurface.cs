@@ -1,17 +1,18 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public static class MeshExtension_GenerateRandomPointsOnSurface
 {
     public static Vector3[] GenerateRandomPointsOnSurface<T>(this Mesh mesh,
-        int amount, float randomVariation, ref T normals, ref int[] resultTris) where T : IList<Vector3>
+        int amount, float randomVariation, ref T normals, ref int[] resultTris,
+        ref Vector2[] mappings) where T : IList<Vector3>
     {
         Vector3[] result = new Vector3[amount];
         int[] triangles = mesh.triangles;
         Vector3[] vertices = mesh.vertices;
         Vector3[] meshNormals = mesh.normals;
         Vector3[] norm = new Vector3[amount];
+        mappings = new Vector2[amount];
         resultTris = new int[amount];
         float[] areas = new float[triangles.Length / 3];
         float totalArea = 0f;
@@ -54,6 +55,7 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
                 meshNormals[triangles[tri]], meshNormals[triangles[tri + 1]], meshNormals[triangles[tri + 2]]);
 
             resultTris[i] = tri;
+            mappings[i] = mapping;
         }
 
         normals = (T)(object)norm;
@@ -61,6 +63,67 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
         return result;
     }
 
+    public static Vector3[] MapVectorsToTrianglePoints(this Mesh mesh,
+        ref Vector3[] normals, int[] tris, Vector2[] mappings)
+    {
+        int[] triangles = mesh.triangles;
+        Vector3[] vertices = mesh.vertices;
+        Vector3[] meshNormals = mesh.normals;
+
+        Vector3[] points = new Vector3[tris.Length];
+        for (int i = 0; i < points.Length; i++)
+        {
+            points[i] = MapVectorToTrianglePoint(vertices[triangles[tris[i]]],
+                vertices[triangles[tris[i] + 1]], vertices[triangles[tris[i] + 2]],
+                mappings[i]);
+
+            normals[i] = ProcMesh.TrianglePointNormal(points[i],
+                vertices[triangles[tris[i]]], vertices[triangles[tris[i] + 1]],
+                vertices[triangles[tris[i] + 2]], meshNormals[triangles[tris[i]]],
+                meshNormals[triangles[tris[i] + 1]], meshNormals[triangles[tris[i] + 2]]);
+        }
+
+        return points;
+    }
+
+    public static Vector3 MapVectorToTrianglePoint(this Mesh mesh, 
+        ref Vector3 normal, int tri, Vector2 mapping)
+    {
+        int[] triangles = mesh.triangles;
+        Vector3[] vertices = mesh.vertices;
+        Vector3[] meshNormals = mesh.normals;
+
+        Vector3 point = MapVectorToTrianglePoint(vertices[triangles[tri]],
+            vertices[triangles[tri + 1]], vertices[triangles[tri + 2]], mapping);
+
+        normal = ProcMesh.TrianglePointNormal(point,
+            vertices[triangles[tri]], vertices[triangles[tri + 1]],
+            vertices[triangles[tri + 2]], meshNormals[triangles[tri]],
+            meshNormals[triangles[tri + 1]], meshNormals[triangles[tri + 2]]);
+
+        return point;
+    }
+
+    public static Vector3 MapVectorToTrianglePoint(this Mesh mesh, int tri, Vector2 mapping)
+    {
+        int[] triangles = mesh.triangles;
+        Vector3[] vertices = mesh.vertices;
+        return MapVectorToTrianglePoint(vertices[triangles[tri]],
+            vertices[triangles[tri + 1]], vertices[triangles[tri + 2]], mapping);
+    }
+
+    public static Vector3 TrianglePointNormal(this Mesh mesh, Vector3 point, int tri)
+    {
+        int[] triangles = mesh.triangles;
+        Vector3[] vertices = mesh.vertices;
+        Vector3[] meshNormals = mesh.normals;
+
+        return ProcMesh.TrianglePointNormal(point,
+            vertices[triangles[tri]], vertices[triangles[tri + 1]],
+            vertices[triangles[tri + 2]], meshNormals[triangles[tri]],
+            meshNormals[triangles[tri + 1]], meshNormals[triangles[tri + 2]]);
+    }
+    
     public static float CalculateTriangleArea(Vector3 p0, Vector3 p1, Vector3 p2)
     {
         return Vector3.Cross(p1 - p0, p2 - p0).magnitude * 0.5f;

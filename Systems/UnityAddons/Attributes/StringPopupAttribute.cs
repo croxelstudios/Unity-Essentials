@@ -166,6 +166,7 @@ public class StringPopupAttribute : PropertyAttribute
             ReflectionTools.SetValue(targetObj, serializedPopupDataArray, popupDataArray);
         }
     }
+
     public object GetSubObject(Object targetObj, SerializedProperty property)
     {
         string[] pathSegments = property.propertyPath.Split(".");
@@ -449,7 +450,8 @@ public struct UnityEventPropertyIdentifier
 [CustomPropertyDrawer(typeof(StringPopupAttribute))]
 public class StringPopupAttribute_Drawer : PropertyDrawer
 {
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) //TO DO: Maybe use this label? could be an argument for DrawIntOrStringProperty
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        //TO DO: Maybe use this label? could be an argument for DrawIntOrStringProperty
     {
         StringPopupAttribute field = attribute as StringPopupAttribute;
         object obj = field.GetSubObject(property.serializedObject.targetObject, property);

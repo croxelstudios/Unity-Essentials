@@ -141,7 +141,7 @@ public class RendererDuplicator : BRendererDuplicator
     RenderersSetColor AddMaterialSetColor(RenderingAgent duplicate)
     {
         RenderersSetColor bsc = duplicate.gameObject.AddComponent<RenderersSetColor>();
-        bsc.Set(true, colorShiftMaterialIndex, colorPropertyName, true, false);
+        bsc.Set(true, colorShiftMaterialIndex, colorPropertyName, false);
         bsc.blendMode = blendMode;
         return bsc;
     }

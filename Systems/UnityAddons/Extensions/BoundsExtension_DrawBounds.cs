@@ -4,17 +4,37 @@ public static class BoundsExtension_DrawBounds
 {
     public static void DrawBounds(this Bounds bounds, Color color)
     {
-        Vector3 cornerRTF = bounds.center + bounds.extents;
-        Vector3 cornerRTB = bounds.center + 
-            Vector3.Scale(bounds.extents, new Vector3(1, 1, -1));
-        Vector3 cornerRBF = bounds.center + 
-            Vector3.Scale(bounds.extents, new Vector3(1, -1, 1));
-        Vector3 cornerLTF = bounds.center + 
-            Vector3.Scale(bounds.extents, new Vector3(-1, 1, 1));
+        DrawBounds(bounds, color, Quaternion.identity);
+    }
+
+    public static void DrawBounds(this Bounds bounds, Color color, Quaternion rotation)
+    {
+        Vector3 cornerRTF = bounds.extents;
+        Vector3 cornerRTB = Vector3.Scale(bounds.extents, new Vector3(1, 1, -1));
+        Vector3 cornerRBF = Vector3.Scale(bounds.extents, new Vector3(1, -1, 1));
+        Vector3 cornerLTF = Vector3.Scale(bounds.extents, new Vector3(-1, 1, 1));
         Vector3 cornerLBB = -cornerRTF;
         Vector3 cornerLBF = -cornerRTB;
         Vector3 cornerLTB = -cornerRBF;
         Vector3 cornerRBB = -cornerLTF;
+
+        cornerLBB = rotation * cornerLBB;
+        cornerLBF = rotation * cornerLBF;
+        cornerLTB = rotation * cornerLTB;
+        cornerRBB = rotation * cornerRBB;
+        cornerRTF = rotation * cornerRTF;
+        cornerRTB = rotation * cornerRTB;
+        cornerRBF = rotation * cornerRBF;
+        cornerLTF = rotation * cornerLTF;
+
+        cornerLBB += bounds.center;
+        cornerLBF += bounds.center;
+        cornerLTB += bounds.center;
+        cornerRBB += bounds.center;
+        cornerRTF += bounds.center;
+        cornerRTB += bounds.center;
+        cornerRBF += bounds.center;
+        cornerLTF += bounds.center;
 
         Debug.DrawLine(cornerRTF, cornerRTB, color);
         Debug.DrawLine(cornerRTF, cornerRBF, color);

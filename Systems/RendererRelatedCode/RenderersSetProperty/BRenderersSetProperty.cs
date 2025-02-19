@@ -194,7 +194,7 @@ public class BRenderersSetProperty : MonoBehaviour
         }
     }
 
-    public void Set(bool affectsChildren, int materialIndex, string propertyName, bool update, bool updateRenderers)
+    public void Set(bool affectsChildren, int materialIndex, string propertyName, bool updateRenderers)
     {
         this.affectsChildren = affectsChildren;
         this.materialIndex = materialIndex;
