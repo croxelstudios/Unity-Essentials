@@ -127,7 +127,7 @@ public class BInputEventLauncher : MonoBehaviour
             bool prevState = axes[n].isPressed;
             axes[n].SetState(state);
 
-            if (state) { if (!prevState) axes[n].events.Pressed?.Invoke(); }
+            if (state) { if (!prevState) axes[n].events.Pressed?.Invoke(value); }
             else if (prevState) axes[n].events.Released?.Invoke();
         }
         //TO DO: Setter as a sepparate function
@@ -187,7 +187,7 @@ public class BInputEventLauncher : MonoBehaviour
             if (state)
             {
                 if (!prevState)
-                    joysticks[n].events.Pressed?.Invoke();
+                    joysticks[n].events.Pressed?.Invoke(value);
             }
             else if (prevState)
                 joysticks[n].events.Released?.Invoke();
@@ -391,7 +391,7 @@ public class BInputEventLauncher : MonoBehaviour
         [FoldoutGroup("@GetName()")]
         public Axis axis;
         [FoldoutGroup("@GetName()")]
-        public ButtonEvents events;
+        public AxisButtonEvents events;
         [FoldoutGroup("@GetName()")]
         public bool clamp01;
         [FoldoutGroup("@GetName()")]
@@ -413,7 +413,7 @@ public class BInputEventLauncher : MonoBehaviour
             this.axis = axis;
             this.clamp01 = clamp01;
             this.sendWhenZeroToo = sendWhenZeroToo;
-            events = new ButtonEvents();
+            events = new AxisButtonEvents();
             AxisValue = null;
             AbsAxisValue = null;
             isPressed = false;
@@ -445,7 +445,7 @@ public class BInputEventLauncher : MonoBehaviour
         [FoldoutGroup("@GetName()")]
         public Joystick joystick;
         [FoldoutGroup("@GetName()")]
-        public ButtonEvents events;
+        public JoystickButtonEvents events;
         [FoldoutGroup("@GetName()")]
         public ValueLimit valueLimit;
         [FoldoutGroup("@GetName()")]
@@ -479,7 +479,7 @@ public class BInputEventLauncher : MonoBehaviour
             this.valueLimit = valueLimit;
             this.squareShape = squareShape;
             this.sendWhenZeroToo = sendWhenZeroToo;
-            events = new ButtonEvents();
+            events = new JoystickButtonEvents();
             JoystickValue = null;
             JoystickMagnitude = null;
             isPressed = false;
@@ -579,6 +579,32 @@ public class BInputEventLauncher : MonoBehaviour
         public DXEvent Released;
 
         public ButtonEvents(DXEvent pressed, DXEvent released)
+        {
+            Pressed = pressed;
+            Released = released;
+        }
+    }
+
+    [Serializable]
+    struct AxisButtonEvents
+    {
+        public FloatEvent Pressed;
+        public DXEvent Released;
+
+        public AxisButtonEvents(FloatEvent pressed, DXEvent released)
+        {
+            Pressed = pressed;
+            Released = released;
+        }
+    }
+
+    [Serializable]
+    struct JoystickButtonEvents
+    {
+        public VectorEvent Pressed;
+        public DXEvent Released;
+
+        public JoystickButtonEvents(VectorEvent pressed, DXEvent released)
         {
             Pressed = pressed;
             Released = released;
