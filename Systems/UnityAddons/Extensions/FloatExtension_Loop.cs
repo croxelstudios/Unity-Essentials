@@ -85,4 +85,63 @@ public static class FloatExtension_Loop
         return new Vector4(value.x.Loop(min, max), value.y.Loop(min, max),
             value.z.Loop(min, max), value.w.Loop(min, max));
     }
+
+    public static int Loop(this int value, int length)
+    {
+        return value % length;
+    }
+
+    public static Vector2Int Loop(this Vector2Int value, Vector2Int length)
+    {
+        return new Vector2Int(value.x.Loop(length.x), value.y.Loop(length.y));
+    }
+
+    public static Vector3Int Loop(this Vector3Int value, Vector3Int length)
+    {
+        return new Vector3Int(value.x.Loop(length.x), value.y.Loop(length.y),
+            value.z.Loop(length.z));
+    }
+
+    public static Vector2Int Loop(this Vector2Int value, int length)
+    {
+        return new Vector2Int(value.x.Loop(length), value.y.Loop(length));
+    }
+
+    public static Vector3Int Loop(this Vector3Int value, int length)
+    {
+        return new Vector3Int(value.x.Loop(length), value.y.Loop(length),
+            value.z.Loop(length));
+    }
+
+    public static int Loop(this int value, int min, int max)
+    {
+        int rmin = Mathf.Min(min, max);
+        int rmax = Mathf.Max(min, max);
+        min = rmin;
+        max = rmax;
+
+        return ((value - min) % (max - min)) + min;
+    }
+
+    public static Vector2Int Loop(this Vector2Int value, Vector2Int min, Vector2Int max)
+    {
+        return new Vector2Int(value.x.Loop(min.x, max.x), value.y.Loop(min.y, max.y));
+    }
+
+    public static Vector3Int Loop(this Vector3Int value, Vector3Int min, Vector3Int max)
+    {
+        return new Vector3Int(value.x.Loop(min.x, max.x), value.y.Loop(min.y, max.y),
+            value.z.Loop(min.z, max.z));
+    }
+
+    public static Vector2Int Loop(this Vector2Int value, int min, int max)
+    {
+        return new Vector2Int(value.x.Loop(min, max), value.y.Loop(min, max));
+    }
+
+    public static Vector3Int Loop(this Vector3Int value, int min, int max)
+    {
+        return new Vector3Int(value.x.Loop(min, max), value.y.Loop(min, max),
+            value.z.Loop(min, max));
+    }
 }

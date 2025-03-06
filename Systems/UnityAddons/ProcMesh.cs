@@ -304,14 +304,16 @@ public static class ProcMesh
         br = reverseUV ? -Vector2.right : (Vector2.right * 2f);
     }
 
-    public static void RegisterArbitraryMesh(Mesh mesh, int vOffset, int index, ref NativeArray<uint> triangles, int submesh = 0)
+    public static void RegisterArbitraryMesh(Mesh mesh, int vOffset, int index,
+        ref NativeArray<uint> triangles, int submesh = 0)
     {
         int[] tris = mesh.GetTriangles(submesh);
         for (int i = 0; i < tris.Length; i++)
             triangles[index + i] = (uint)(tris[i] + vOffset);
     }
 
-    public static void RegisterArbitraryMesh(Mesh mesh, int vOffset, ref List<int> triangles, int submesh = 0)
+    public static void RegisterArbitraryMesh(Mesh mesh, int vOffset,
+        ref List<int> triangles, int submesh = 0)
     {
         int[] tris = mesh.GetTriangles(submesh);
         for (int i = 0; i < tris.Length; i++)

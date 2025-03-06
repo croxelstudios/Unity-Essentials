@@ -1,0 +1,857 @@
+//Vectors
+// v ---------- v
+float Angle(float3 from, float3 to)
+{
+    float denominator = (float) sqrt(dot(from, from) * dot(to, to));
+
+    float d = clamp(dot(from, to) / denominator, -1, 1);
+    return ((float) acos(d));
+}
+
+float SignedAngle(float3 from, float3 to, float3 axis)
+{
+    float unsignedAngle = Angle(from, to);
+
+    float cross_x = from.y * to.z - from.z * to.y;
+    float cross_y = from.z * to.x - from.x * to.z;
+    float cross_z = from.x * to.y - from.y * to.x;
+    float s = sign(axis.x * cross_x + axis.y * cross_y + axis.z * cross_z);
+    return unsignedAngle * s;
+}
+// ^ ---------- ^
+
+//Quaternions
+// v ---------- v
+#define QUATERNION_IDENTITY float4(0, 0, 0, 1)
+#ifndef PI
+#define PI 3.14159265359f
+#endif 
+
+float4 AngleAxisQuaternion(float angle, float3 axis)
+{
+    float sn = sin(angle * 0.5);
+    float cs = cos(angle * 0.5);
+    return float4(axis * sn, cs);
+}
+
+float4 qmul(float4 q1, float4 q2)
+{
+    return float4(
+        q2.xyz * q1.w + q1.xyz * q2.w + cross(q1.xyz, q2.xyz),
+        q1.w * q2.w - dot(q1.xyz, q2.xyz)
+    );
+}
+
+float3 RotateByQuaternion(float4 r, float3 v)
+{
+    float4 r_c = r * float4(-1, -1, -1, 1);
+    return qmul(r, qmul(float4(v, 0), r_c)).xyz;
+}
+
+float4 FromToRotation(float3 v1, float3 v2)
+{
+    float4 q;
+    float d = dot(v1, v2);
+    if (d < -0.999999)
+    {
+        float3 right = float3(1, 0, 0);
+        float3 up = float3(0, 1, 0);
+        float3 tmp = cross(right, v1);
+        if (length(tmp) < 0.000001)
+            tmp = cross(up, v1);
+        tmp = normalize(tmp);
+        q = AngleAxisQuaternion(PI, tmp);
+    }
+    else if (d > 0.999999)
+    {
+        q = QUATERNION_IDENTITY;
+    }
+    else
+    {
+        q.xyz = cross(v1, v2);
+        q.w = sqrt(dot(v1, v1) * dot(v2, v2)) + d;
+        q = normalize(q);
+    }
+    return q;
+}
+
+float4 Slerp(in float4 a, in float4 b, float t)
+{
+    // if either input is zero, return the other.
+    if (length(a) == 0.0)
+    {
+        if (length(b) == 0.0)
+        {
+            return QUATERNION_IDENTITY;
+        }
+        return b;
+    }
+    else if (length(b) == 0.0)
+    {
+        return a;
+    }
+
+    float cosHalfAngle = a.w * b.w + dot(a.xyz, b.xyz);
+
+    if (cosHalfAngle >= 1.0 || cosHalfAngle <= -1.0)
+    {
+        return a;
+    }
+    else if (cosHalfAngle < 0.0)
+    {
+        b.xyz = -b.xyz;
+        b.w = -b.w;
+        cosHalfAngle = -cosHalfAngle;
+    }
+
+    float blendA;
+    float blendB;
+    if (cosHalfAngle < 0.99)
+    {
+        // do proper slerp for big angles
+        float halfAngle = acos(cosHalfAngle);
+        float sinHalfAngle = sin(halfAngle);
+        float oneOverSinHalfAngle = 1.0 / sinHalfAngle;
+        blendA = sin(halfAngle * (1.0 - t)) * oneOverSinHalfAngle;
+        blendB = sin(halfAngle * t) * oneOverSinHalfAngle;
+    }
+    else
+    {
+        // do lerp if angle is really small.
+        blendA = 1.0 - t;
+        blendB = t;
+    }
+
+    float4 result = float4(blendA * a.xyz + blendB * b.xyz, blendA * a.w + blendB * b.w);
+    if (length(result) > 0.0)
+    {
+        return normalize(result);
+    }
+    return QUATERNION_IDENTITY;
+}
+
+float4 q_conj(float4 q)
+{
+    return float4(-q.x, -q.y, -q.z, q.w);
+}
+
+float4 q_inverse(float4 q)
+{
+    float4 conj = q_conj(q);
+    return conj / (q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+}
+// ^ ---------- ^
+
+//Matrices
+//v----------------v
+#define IDENTITY_MATRIX float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+
+float4 matrix_to_quaternion(float4x4 m)
+{
+    float tr = m[0][0] + m[1][1] + m[2][2];
+    float4 q = float4(0, 0, 0, 0);
+
+    if (tr > 0)
+    {
+        float s = sqrt(tr + 1.0) * 2; // S=4*qw 
+        q.w = 0.25 * s;
+        q.x = (m[2][1] - m[1][2]) / s;
+        q.y = (m[0][2] - m[2][0]) / s;
+        q.z = (m[1][0] - m[0][1]) / s;
+    }
+    else if ((m[0][0] > m[1][1]) && (m[0][0] > m[2][2]))
+    {
+        float s = sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2; // S=4*qx 
+        q.w = (m[2][1] - m[1][2]) / s;
+        q.x = 0.25 * s;
+        q.y = (m[0][1] + m[1][0]) / s;
+        q.z = (m[0][2] + m[2][0]) / s;
+    }
+    else if (m[1][1] > m[2][2])
+    {
+        float s = sqrt(1.0 + m[1][1] - m[0][0] - m[2][2]) * 2; // S=4*qy
+        q.w = (m[0][2] - m[2][0]) / s;
+        q.x = (m[0][1] + m[1][0]) / s;
+        q.y = 0.25 * s;
+        q.z = (m[1][2] + m[2][1]) / s;
+    }
+    else
+    {
+        float s = sqrt(1.0 + m[2][2] - m[0][0] - m[1][1]) * 2; // S=4*qz
+        q.w = (m[1][0] - m[0][1]) / s;
+        q.x = (m[0][2] + m[2][0]) / s;
+        q.y = (m[1][2] + m[2][1]) / s;
+        q.z = 0.25 * s;
+    }
+
+    return q;
+}
+
+float4x4 m_scale(float4x4 m, float3 v)
+{
+    float x = v.x, y = v.y, z = v.z;
+
+    m[0][0] *= x;
+    m[1][0] *= y;
+    m[2][0] *= z;
+    m[0][1] *= x;
+    m[1][1] *= y;
+    m[2][1] *= z;
+    m[0][2] *= x;
+    m[1][2] *= y;
+    m[2][2] *= z;
+    m[0][3] *= x;
+    m[1][3] *= y;
+    m[2][3] *= z;
+
+    return m;
+}
+
+float4x4 quaternion_to_matrix(float4 quat)
+{
+    float4x4 m = float4x4(float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0));
+
+    float x = quat.x, y = quat.y, z = quat.z, w = quat.w;
+    float x2 = x + x, y2 = y + y, z2 = z + z;
+    float xx = x * x2, xy = x * y2, xz = x * z2;
+    float yy = y * y2, yz = y * z2, zz = z * z2;
+    float wx = w * x2, wy = w * y2, wz = w * z2;
+
+    m[0][0] = 1.0 - (yy + zz);
+    m[0][1] = xy - wz;
+    m[0][2] = xz + wy;
+
+    m[1][0] = xy + wz;
+    m[1][1] = 1.0 - (xx + zz);
+    m[1][2] = yz - wx;
+
+    m[2][0] = xz - wy;
+    m[2][1] = yz + wx;
+    m[2][2] = 1.0 - (xx + yy);
+
+    m[3][3] = 1.0;
+
+    return m;
+}
+
+float4x4 m_translate(float4x4 m, float3 v)
+{
+    float x = v.x, y = v.y, z = v.z;
+    m[0][3] = x;
+    m[1][3] = y;
+    m[2][3] = z;
+    return m;
+}
+
+float4x4 inverse(float4x4 m) {
+    float n11 = m[0][0], n12 = m[1][0], n13 = m[2][0], n14 = m[3][0];
+    float n21 = m[0][1], n22 = m[1][1], n23 = m[2][1], n24 = m[3][1];
+    float n31 = m[0][2], n32 = m[1][2], n33 = m[2][2], n34 = m[3][2];
+    float n41 = m[0][3], n42 = m[1][3], n43 = m[2][3], n44 = m[3][3];
+
+    float t11 = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
+    float t12 = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
+    float t13 = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
+    float t14 = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+
+    float det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
+    float idet = 1.0f / det;
+
+    float4x4 ret;
+
+    ret[0][0] = t11 * idet;
+    ret[0][1] = (n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44) * idet;
+    ret[0][2] = (n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44) * idet;
+    ret[0][3] = (n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43) * idet;
+
+    ret[1][0] = t12 * idet;
+    ret[1][1] = (n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44) * idet;
+    ret[1][2] = (n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44) * idet;
+    ret[1][3] = (n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43) * idet;
+
+    ret[2][0] = t13 * idet;
+    ret[2][1] = (n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44) * idet;
+    ret[2][2] = (n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44) * idet;
+    ret[2][3] = (n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43) * idet;
+
+    ret[3][0] = t14 * idet;
+    ret[3][1] = (n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34) * idet;
+    ret[3][2] = (n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34) * idet;
+    ret[3][3] = (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33) * idet;
+
+    return ret;
+}
+
+float4x4 compose(float3 position, float4 quat, float3 scale)
+{
+    float4x4 m = IDENTITY_MATRIX;
+    m = m_scale(m, scale);
+    m = mul(quaternion_to_matrix(quat), m);
+    m = m_translate(m, position);
+    return m;
+}
+
+void decompose(in float4x4 m, out float3 position, out float4 rotation, out float3 scale)
+{
+    float sx = length(float3(m[0][0], m[0][1], m[0][2]));
+    float sy = length(float3(m[1][0], m[1][1], m[1][2]));
+    float sz = length(float3(m[2][0], m[2][1], m[2][2]));
+
+    // if determine is negative, we need to invert one scale
+    float det = determinant(m);
+    if (det < 0)
+    {
+        sx = -sx;
+    }
+
+    position.x = m[0][3];
+    position.y = m[1][3];
+    position.z = m[2][3];
+
+    // scale the rotation part
+
+    float invSX = 1.0 / sx;
+    float invSY = 1.0 / sy;
+    float invSZ = 1.0 / sz;
+
+    m[0][0] *= invSX;
+    m[0][1] *= invSX;
+    m[0][2] *= invSX;
+
+    m[1][0] *= invSY;
+    m[1][1] *= invSY;
+    m[1][2] *= invSY;
+
+    m[2][0] *= invSZ;
+    m[2][1] *= invSZ;
+    m[2][2] *= invSZ;
+
+    rotation = matrix_to_quaternion(m);
+
+    scale.x = sx;
+    scale.y = sy;
+    scale.z = sz;
+}
+
+float3 MatToTranslation(float4x4 m)
+{
+    return float3(m[0][3], m[1][3], m[2][3]);
+}
+//^----------------^
+
+RWByteAddressBuffer vertices;
+uint vertexStride;
+RWByteAddressBuffer indices;
+uint indexStride;
+
+struct VertexData
+{
+    float3 position;
+    float3 normal;
+    float4 tangent;
+    float4 color;
+    float2 uv;
+};
+
+float3 ExtractVertexPosition(uint i)
+{
+    uint v = i * vertexStride;
+    return asfloat(vertices.Load3(v));
+}
+
+float3 ExtractVertexNormal(uint i)
+{
+    uint v = (i * vertexStride) + 12;
+    return asfloat(vertices.Load3(v));
+}
+
+float4 ExtractVertexTangent(uint i)
+{
+    uint v = (i * vertexStride) + 24;
+    return asfloat(vertices.Load4(v));
+}
+
+float4 ExtractVertexColor(uint i)
+{
+    uint v = (i * vertexStride) + 40;
+    return asfloat(vertices.Load4(v));
+}
+
+float2 ExtractVertexUV(uint i)
+{
+    uint v = (i * vertexStride) + 56;
+    return asfloat(vertices.Load2(v));
+}
+
+VertexData ExtractVertexData(uint i)
+{
+    VertexData vd;
+    vd.position = ExtractVertexPosition(i);
+    vd.normal = ExtractVertexNormal(i);
+    vd.tangent = ExtractVertexTangent(i);
+    vd.color = ExtractVertexColor(i);
+    vd.uv = ExtractVertexUV(i);
+    return vd;
+}
+
+uint ExtractIndex(int i)
+{
+    uint v = i * indexStride;
+    return indices.Load(v);
+}
+
+#pragma kernel GetEdges
+
+struct Edge
+{
+    int v1;
+    int v2;
+    int index1;
+    int index2;
+};
+
+RWStructuredBuffer<Edge> edges;
+
+[numthreads(128, 1, 1)]
+void GetEdges(uint id : SV_DispatchThreadID)
+{
+    int index = id * 3;
+    edges[index].v1 = ExtractIndex(index);
+    edges[index].v2 = ExtractIndex(index + 1);
+    edges[index].index1 = index;
+    edges[index].index2 = -1;
+    
+    edges[index + 1].v1 = ExtractIndex(index + 1);
+    edges[index + 1].v2 = ExtractIndex(index + 2);
+    edges[index + 1].index1 = index;
+    edges[index + 1].index2 = -1;
+    
+    edges[index + 2].v1 = ExtractIndex(index + 2);
+    edges[index + 2].v2 = ExtractIndex(index);
+    edges[index + 2].index1 = index;
+    edges[index + 2].index2 = -1;
+}
+
+#pragma kernel ProccessDuplicateEdges
+
+[numthreads(16, 16, 1)]
+void ProccessDuplicateEdges(uint2 id : SV_DispatchThreadID)
+{
+    if (id.x < id.y)
+        if (((edges[id.x].v1 == edges[id.y].v1) &&
+            (edges[id.x].v2 == edges[id.y].v2))
+            ||
+            ((edges[id.x].v1 == edges[id.y].v2) &&
+            (edges[id.x].v2 == edges[id.y].v1)))
+        {
+            edges[id.x].index2 = edges[id.y].index1;
+            edges[id.y].index2 = -int(id.x) - 2;
+        }
+}
+
+#pragma kernel GetIntersections
+
+struct Intersection
+{
+    int info;
+    uint leftIndex;
+    VertexData vertex;
+    VertexData extraVertex;
+};
+
+RWStructuredBuffer<Intersection> intersections;
+float3 planeNormal;
+float3 planePoint;
+
+bool SegmentIntersectsPlane(float3 v1, float3 v2, float3 planePoint, float3 planeNormal)
+{
+    float dot1 = sign(dot(v1 - planePoint, planeNormal));
+    float dot2 = sign(dot(v2 - planePoint, planeNormal));
+
+    return dot1 != dot2;
+}
+
+float3 PlaneRaycast(float3 origin, float3 direction, float3 plp, float3 normal, out float dist)
+{
+    direction = normalize(direction);
+    normal = normalize(normal);
+    float plDist = dot(plp, -normal);
+    dist = -(plDist + dot(origin, normal)) / dot(direction, normal);
+    return origin + (direction * dist);
+}
+
+VertexData CalculateIntersectionVertexData(VertexData v1, VertexData v2,
+    float3 planePoint, float3 planeNormal, out float dist)
+{
+    float3 direction = v2.position - v1.position;
+    float3 pos = PlaneRaycast(v1.position, direction, planePoint, planeNormal, dist);
+    float percent = length(pos - v2.position) / length(direction);
+
+    float3 normal =
+        normalize((v1.normal * percent) + 
+        (v2.normal * (1.0 - percent)));
+
+    float4 tangent =
+        normalize((v1.tangent * percent) + 
+        (v2.tangent * (1.0 - percent)));
+
+    float4 color =
+        (v1.color * percent) + 
+        (v2.color * (1.0 - percent));
+
+    float2 uv =
+        (v1.uv * percent) + 
+        (v2.uv * (1.0 - percent));
+
+    VertexData data;
+    data.position = pos;
+    data.normal = normal;
+    data.tangent = tangent;
+    data.color = color;
+    data.uv = uv;
+
+    return data;
+}
+
+[numthreads(512, 1, 1)]
+void GetIntersections(uint id : SV_DispatchThreadID)
+{
+    VertexData v1 = ExtractVertexData(edges[id].v1);
+    VertexData v2 = ExtractVertexData(edges[id].v2);
+
+    float dot1 = sign(dot(v1.position - planePoint, planeNormal));
+    float dot2 = sign(dot(v2.position - planePoint, planeNormal));
+
+    int i1 = id % 3;
+    int i2 = (i1 == 2) ? 0 : i1 + 1;
+    intersections[id].leftIndex = (dot1 < 0) ? i1 : i2;
+
+    if (edges[id].index2 < -1)
+        intersections[id].info = -edges[id].index2 - 2;
+    else
+    {
+        if (dot1 != dot2)
+        {
+            intersections[id].info = -1;
+
+            float dist;
+            intersections[id].vertex =
+                            CalculateIntersectionVertexData(v1, v2,
+                                planePoint, planeNormal, dist);
+        } 
+        else intersections[id].info = -3;
+    }
+}
+
+#pragma kernel GetTriangleCutData
+
+struct TriangleCutProperties
+{
+    int triCount;
+    int cutPoint1;
+    int cutPoint2;
+    int3 newTri1;
+    int3 newTri2;
+    int3 newTri3;
+    int3 newTri4;
+};
+
+RWStructuredBuffer<TriangleCutProperties> cutsData;
+
+void RegisterFullCutVertices(
+    bool c12, bool c23, bool c31,
+    uint i1, uint i2, uint i3, inout TriangleCutProperties prop)
+{
+    if (c12) prop.cutPoint1 = i1;
+    else if (c31) prop.cutPoint1 = i3;
+    if (c23) prop.cutPoint2 = i2;
+    else if (c31) prop.cutPoint2 = i3;
+}
+
+void RegisterFullCutTriangles(uint index, bool c12, bool c23, bool c31, int leftIndex,
+    inout TriangleCutProperties prop)
+{
+    uint ti1 = ExtractIndex(index);
+    uint ti2 = ExtractIndex(index + 1);
+    uint ti3 = ExtractIndex(index + 2);
+    
+    bool isToLeft;
+    if (!c12)
+    {
+        isToLeft = leftIndex == 2;
+        prop.newTri1 = int3(ti3, isToLeft ? -2 : -1, isToLeft ? -4 : -3);
+        prop.newTri2 = int3(isToLeft ? -1 : -2, ti1, isToLeft ? -3 : -4);
+        prop.newTri3 = int3(ti1, ti2, isToLeft ? -3 : -4);
+    }
+    else if (!c23)
+    {
+        isToLeft = leftIndex == 0;
+        prop.newTri1 = int3(ti1, isToLeft ? -2 : -1, isToLeft ? -4 : -3);
+        prop.newTri2 = int3(isToLeft ? -1 : -2, ti2, isToLeft ? -3 : -4);
+        prop.newTri3 = int3(ti2, ti3, isToLeft ? -3 : -4);
+    }
+    else
+    {
+        isToLeft = leftIndex == 1;
+        prop.newTri1 = int3(ti2, isToLeft ? -4 : -3, isToLeft ? -2 : -1);
+        prop.newTri2 = int3(isToLeft ? -3 : -4, ti3, isToLeft ? -1 : -2);
+        prop.newTri3 = int3(ti3, ti1, isToLeft ? -1 : -2);
+    }
+}
+
+[numthreads(128, 1, 1)]
+void GetTriangleCutData(uint id : SV_DispatchThreadID)
+{
+    uint index = id * 3;
+
+    uint i1 = index;
+    uint i2 = index + 1;
+    uint i3 = index + 2;
+
+    //Process intersection info
+    i1 = (intersections[i1].info > 0) ? intersections[i1].info : i1;
+    i2 = (intersections[i2].info > 0) ? intersections[i2].info : i2;
+    i3 = (intersections[i3].info > 0) ? intersections[i3].info : i3;
+
+    bool c12 = (intersections[i1].info == -1);
+    bool c23 = (intersections[i2].info == -1);
+    bool c31 = (intersections[i3].info == -1);
+
+    if (c12 || c23 || c31)
+    {
+        RegisterFullCutVertices(c12, c23, c31, i1, i2, i3, cutsData[id]);
+
+        int leftIndex;
+        if (c12) leftIndex = intersections[index].leftIndex;
+        else leftIndex = intersections[index + 1].leftIndex;
+
+        RegisterFullCutTriangles(index, c12, c23, c31, leftIndex, cutsData[id]);
+        
+        cutsData[id].triCount = 3;
+    }
+    else cutsData[id].triCount = 1;
+}
+
+#pragma kernel GetTriangleCutData_SquareCut
+
+float3 upDirection;
+float size;
+
+void RegisterExtraCutTriangle(uint index, bool c12, bool c23, bool c31,
+    bool v1IsValid, inout TriangleCutProperties prop)
+{
+    uint ti1 = ExtractIndex(index);
+    uint ti2 = ExtractIndex(index + 1);
+    uint ti3 = ExtractIndex(index + 2);
+
+    int3 p;
+    if (v1IsValid)
+    {
+        p = prop.newTri1;
+        prop.newTri1 = int3(
+            p.x == -4 ? -3 : p.x,
+            p.y == -4 ? -3 : p.y,
+            p.z == -4 ? -3 : p.z);
+        p = prop.newTri2;
+        prop.newTri2 = int3(
+            p.x == -4 ? -3 : p.x,
+            p.y == -4 ? -3 : p.y,
+            p.z == -4 ? -3 : p.z);
+        p = prop.newTri3;
+        prop.newTri3 = int3(
+            p.x == -4 ? -3 : p.x,
+            p.y == -4 ? -3 : p.y,
+            p.z == -4 ? -3 : p.z);
+
+        if (!c12) prop.newTri4 = int3(ti3, -3, ti2);
+        else if (!c23) prop.newTri4 = int3(ti1, -3, ti3);
+        else prop.newTri4 = int3(ti2, ti3, -3);
+    }
+    else
+    {
+        p = prop.newTri1;
+        prop.newTri1 = int3(
+            p.x == -2 ? -1 : p.x,
+            p.y == -2 ? -1 : p.y,
+            p.z == -2 ? -1 : p.z);
+        p = prop.newTri2;
+        prop.newTri2 = int3(
+            p.x == -2 ? -1 : p.x,
+            p.y == -2 ? -1 : p.y,
+            p.z == -2 ? -1 : p.z);
+        p = prop.newTri3;
+        prop.newTri3 = int3(
+            p.x == -2 ? -1 : p.x,
+            p.y == -2 ? -1 : p.y,
+            p.z == -2 ? -1 : p.z);
+
+        if (!c12) prop.newTri4 = int3(ti3, ti1, -1);
+        else if (!c23) prop.newTri4 = int3(ti1, ti2, -1);
+        else prop.newTri4 = int3(ti2, -1, ti1);
+    }
+}
+
+[numthreads(128, 1, 1)]
+void GetTriangleCutData_SquareCut(uint id : SV_DispatchThreadID)
+{
+    uint index = id * 3;
+
+    uint oi1 = index;
+    uint oi2 = index + 1;
+    uint oi3 = index + 2;
+
+    //Process intersection info
+    uint i1 = (intersections[oi1].info > 0) ? intersections[oi1].info : oi1;
+    uint i2 = (intersections[oi2].info > 0) ? intersections[oi2].info : oi2;
+    uint i3 = (intersections[oi3].info > 0) ? intersections[oi3].info : oi3;
+
+    if (cutsData[id].triCount > 1)
+    {
+        uint ti1 = ExtractIndex(oi1);
+        uint ti2 = ExtractIndex(oi2);
+        uint ti3 = ExtractIndex(oi3);
+        bool c12, c23, c31;
+        c12 = c23 = c31 = false;
+        if (cutsData[id].newTri1.x == (int)ti3) c23 = c31 = true;
+        else if (cutsData[id].newTri1.x == (int)ti1) c12 = c31 = true;
+        else c12 = c23 = true;
+
+        uint oPoint1;
+        uint oPoint2;
+        if (c12) oPoint1 = oi1;
+        else oPoint1 = oi3;
+        if (c23) oPoint2 = oi2;
+        else oPoint2 = oi3;
+
+        VertexData v1 = intersections[cutsData[id].cutPoint1].vertex;
+        VertexData v2 = intersections[cutsData[id].cutPoint2].vertex;
+
+        float3 crossP = cross(upDirection, planeNormal);
+        float3 topP = planePoint + upDirection * size;
+        float3 bottomP = planePoint - upDirection * size;
+        float3 rightP = planePoint + crossP * size;
+        float3 leftP = planePoint - crossP * size;
+        
+        if ((SegmentIntersectsPlane(v1.position, planePoint, topP, upDirection) ||
+            SegmentIntersectsPlane(v1.position, planePoint, bottomP, upDirection) ||
+            SegmentIntersectsPlane(v1.position, planePoint, rightP, crossP) ||
+            SegmentIntersectsPlane(v1.position, planePoint, leftP, crossP)) &&
+            (SegmentIntersectsPlane(v2.position, planePoint, topP, upDirection) ||
+            SegmentIntersectsPlane(v2.position, planePoint, bottomP, upDirection) ||
+            SegmentIntersectsPlane(v2.position, planePoint, rightP, crossP) ||
+            SegmentIntersectsPlane(v2.position, planePoint, leftP, crossP)))
+        {
+            intersections[oi1].info = -3;
+            intersections[oi2].info = -3;
+            intersections[oi3].info = -3;
+            cutsData[id].triCount = 0;
+        }
+        else
+        {
+            bool top = SegmentIntersectsPlane(v1.position, v2.position, topP, upDirection);
+            bool bottom = SegmentIntersectsPlane(v1.position, v2.position, bottomP, upDirection);
+            bool right = SegmentIntersectsPlane(v1.position, v2.position, rightP, crossP);
+            bool left = SegmentIntersectsPlane(v1.position, v2.position, leftP, crossP);
+            float sum = (float)top + (float)bottom + (float)right + (float)left;
+
+            switch (sum)
+            {
+                default:
+                    break;
+                case 2:
+                    intersections[oi1].info = -3;
+                    intersections[oi2].info = -3;
+                    intersections[oi3].info = -3;
+                    cutsData[id].triCount = -1;
+                    break;
+                case 1:
+                    float3 plp;
+                    if (top) plp = topP;
+                    else if (bottom) plp = bottomP;
+                    else if (right) plp = rightP;
+                    else plp = leftP;
+
+                    float3 n;
+                    if (top || bottom) n = upDirection;
+                    else n = crossP;
+
+                    bool v1IsValid = !SegmentIntersectsPlane(v1.position, planePoint, plp, n);
+
+                    float dist;
+                    VertexData vertex = CalculateIntersectionVertexData(v1, v2, plp, n, dist);
+                
+                    if (v1IsValid)
+                    {
+                        cutsData[id].cutPoint2 = oPoint2;
+                        intersections[oPoint2].info = -2;
+                        intersections[oPoint2].extraVertex = vertex;
+                    }
+                    else
+                    {
+                        cutsData[id].cutPoint1 = oPoint1;
+                        intersections[oPoint1].info = -2;
+                        intersections[oPoint1].extraVertex = vertex;
+                    }
+                
+                    RegisterExtraCutTriangle(index, c12, c23, c31, v1IsValid, cutsData[id]);
+                
+                    cutsData[id].triCount = 4;
+                    break;
+            }
+        }
+    }
+}
+
+#pragma kernel CleanNullAreaTrianglesInIntersection
+
+float minArea;
+
+float3 InterpretTriValue(float3 cutPoint1, float3 cutPoint2, int value)
+{
+    switch (value)
+    {
+        case -1:
+            return cutPoint1;
+        case -2:
+            return cutPoint1;
+        case -3:
+            return cutPoint2;
+        case -4:
+            return cutPoint2;
+        default:
+            return ExtractVertexPosition(value);
+    }
+}
+
+bool IsNullAreaTriangle(float3 p0, float3 p1, float3 p2, float min)
+{
+    float area = length(cross(p1 - p0, p2 - p0)) * 0.5;
+    return area < min;
+}
+
+bool IsNullAreaTriangle(float3 point1, float3 point2, int3 tri, float min)
+{
+    float3 p0 = InterpretTriValue(point1, point2, tri.x);
+    float3 p1 = InterpretTriValue(point1, point2, tri.y);
+    float3 p2 = InterpretTriValue(point1, point2, tri.z);
+
+    return IsNullAreaTriangle(p0, p1, p2, min);
+}
+
+[numthreads(128, 1, 1)]
+void CleanNullAreaTrianglesInIntersection(uint id : SV_DispatchThreadID)
+{
+    Intersection inter1 = intersections[cutsData[id].cutPoint1];
+    Intersection inter2 = intersections[cutsData[id].cutPoint2];
+    float3 point1 = (inter1.info < -1) ? inter1.extraVertex.position : inter1.vertex.position;
+    float3 point2 = (inter2.info < -1) ? inter2.extraVertex.position : inter2.vertex.position;
+
+    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri1, minArea))
+        cutsData[id].newTri1 = float3(-5, -5, -5);
+    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri2, minArea))
+        cutsData[id].newTri2 = float3(-5, -5, -5);
+    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri3, minArea))
+        cutsData[id].newTri3 = float3(-5, -5, -5);
+    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri4, minArea))
+        cutsData[id].newTri4 = float3(-5, -5, -5);
+}
