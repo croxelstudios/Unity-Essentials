@@ -85,7 +85,7 @@
 			#pragma vertex SpriteVert
 			#pragma fragment frag
 			#pragma multi_compile _ PIXELSNAP_ON
-			#include "Assets/Utilities - HypercubeCore/Essentials/Shaders/CGIncludes/HcCBaseCG.cginc" //_MainTex, _Color, _AlphaTex
+			#include "Assets/Utilities - AstrophelMoore/Essentials/Shaders/CGIncludes/HcCBaseCG.cginc" //_MainTex, _Color, _AlphaTex
 
 			float _CutOff;
 			bool _ColorAlphaMultiply;

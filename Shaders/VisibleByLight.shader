@@ -36,7 +36,7 @@ Shader "Custom/LightReceiver"
                 
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
-			#include "Assets/Utilities - HypercubeCore/Essentials/Shaders/CGIncludes/HcCFunctionsCG.cginc"
+			#include "Assets/Utilities - AstrophelMoore/Essentials/Shaders/CGIncludes/HcCFunctionsCG.cginc"
                 
             struct v2f
             {
