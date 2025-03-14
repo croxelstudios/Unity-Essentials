@@ -14,5 +14,8 @@ public static class VectorExtension_Rotate
         return new Vector2(cos * tx - sin * ty, sin * tx + cos * ty);
     }
 
-    //TO DO: 3D version
+    public static Vector3 Rotate(this Vector3 v, float degrees, Vector3 axis)
+    {
+        return Quaternion.AngleAxis(degrees, axis) * v;
+    }
 }

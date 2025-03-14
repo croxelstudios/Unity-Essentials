@@ -39,7 +39,7 @@ public class IntHolder : MonoBehaviour
 
     int pingPongValue;
 
-    void OnEnable()
+    protected virtual void OnEnable()
     {
         pingPongValue = current;
         if (originIntHolder != null)
@@ -51,7 +51,7 @@ public class IntHolder : MonoBehaviour
             ForceManageIntChangeGeneric(current, true);
     }
 
-    void OnDisable()
+    protected virtual void OnDisable()
     {
         if (originIntHolder != null)
             originIntHolder.intChanged?.RemoveListener(Set);

@@ -118,6 +118,29 @@ public struct TransformData : IEquatable<TransformData>
         target.localScale += localScale;
     }
 
+    public void SubtractTo(Transform target, bool locally = false)
+    {
+        if (locally)
+        {
+            target.localPosition -= position;
+            target.localRotation = Quaternion.Inverse(rotation) * target.rotation;
+            target.localScale -= localScale;
+        }
+        else
+        {
+            target.position -= position;
+            target.rotation = Quaternion.Inverse(rotation) * target.rotation;
+            target.localScale -= localScale;
+        }
+    }
+
+    public void SubtractTo(TransformData target)
+    {
+        target.position -= position;
+        target.rotation = Quaternion.Inverse(rotation) * target.rotation;
+        target.localScale -= localScale;
+    }
+
     public void SetInTransform(Transform target, bool locally = false)
     {
         if (locally)
@@ -132,6 +155,18 @@ public struct TransformData : IEquatable<TransformData>
             target.rotation = rotation;
             //target.localScale = localScale; //TO DO: Calculate lossyScale to localScale relation
         }
+    }
+
+    public void Multiply(float factor)
+    {
+        position *= factor;
+        localScale *= factor;
+        lossyScale *= factor;
+
+        float angle;
+        Vector3 axis;
+        rotation.ToAngleAxis(out angle, out axis);
+        rotation = Quaternion.AngleAxis(angle * factor, axis);
     }
 
     public override bool Equals(object other)

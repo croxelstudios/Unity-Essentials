@@ -19,6 +19,9 @@ public class VectorToTargetEvent : MonoBehaviour
     [SerializeField]
     [Tooltip("Positional and rotational target transform")]
     Transform target = null;
+    [SerializeField]
+    [Tooltip("Move away from target instead of to target")]
+    bool moveAway = false;
     public Transform Target { get { return target; } set { target = value; } }
     [SerializeField]
     [Tooltip("The transform that will move or the transform that the movement is calculated from. By default, this object's transform.")]
@@ -420,6 +423,7 @@ public class VectorToTargetEvent : MonoBehaviour
                 {
                     //Calculate and send percent of speed from zero to max speed for things like animation syncing
                     magnitudeLerp?.Invoke(unitsPerSecondSpeed / unsignedMaxSpd);
+                    if (moveAway) sign = -sign;
                     unitsPerSecondSpeed *= sign;
 
                     spd = spd.normalized;
