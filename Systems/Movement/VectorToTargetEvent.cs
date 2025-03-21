@@ -66,6 +66,7 @@ public class VectorToTargetEvent : MonoBehaviour
     [Tooltip("Determines the behaviour of the origin object when close to the target")]
     TargetMode targetMode = TargetMode.MoveToExactPoint;
     [SerializeField]
+    [HideIf("@speedMode == SpeedMode.Teleport")]
     [Tooltip("When is this code executed")]
     TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
 
@@ -106,7 +107,7 @@ public class VectorToTargetEvent : MonoBehaviour
     [SerializeField]
     [ShowIf("move")]
     [Tooltip("Resulting speed percentage between zero and max speed")]
-    DXFloatEvent magnitudeLerp = null;
+    DXFloatEvent magnitudePercent = null;
     [SerializeField]
     [ShowIf("move")]
     [FoldoutGroup("START and STOP movement")]
@@ -150,11 +151,11 @@ public class VectorToTargetEvent : MonoBehaviour
     [SerializeField]
     [ShowIf("rotate")]
     [Tooltip("Resulting rotation euler angles in degrees per second")]
-    DXVectorEvent rotation = null;
+    DXVectorEvent rotation = null; //TO DO: DXRotation event that can send raw angle, axis, quaternion, or euler.
     [SerializeField]
     [ShowIf("rotate")]
     [Tooltip("Resulting rotation amount")]
-    DXFloatEvent rotationAngle = null;
+    DXFloatEvent angleSpeedPercent = null;
     [SerializeField]
     [ShowIf("rotate")]
     [FoldoutGroup("START and STOP rotation")]
@@ -166,7 +167,7 @@ public class VectorToTargetEvent : MonoBehaviour
     [Tooltip("Resulting rotation was not zero and is zero now")]
     DXEvent stoppedRotating = null;
 
-    enum SpeedMode { Linear, Accelerated, SmoothDamp, LerpSmooth }
+    enum SpeedMode { Linear, Accelerated, SmoothDamp, LerpSmooth, Teleport }
     enum TargetMode { MoveToExactPoint, NeverStop, StopAtMargin }
     enum RotationMode { Shortest, Longest, Positive, Negative }
 
@@ -329,7 +330,7 @@ public class VectorToTargetEvent : MonoBehaviour
                 //  to the units per second speed required to reach the target next frame.
                 float unitsPerSecondSpeed = mag * inverseDeltaTime;
                 //Stop movement if the object should StopAtMargin and the distance is less than margin
-                if (mag < margin)
+                if (mag < margin) //TO DO: This doesn't make sense? Also what do I do here for Teleport.
                 {
                     switch (targetMode)
                     {
@@ -402,6 +403,11 @@ public class VectorToTargetEvent : MonoBehaviour
                             if (unitsPerSecondSpeed > unsignedMaxSpd)
                                 unitsPerSecondSpeed = unsignedMaxSpd;
                             break;
+                        case SpeedMode.Teleport:
+                            unitsPerSecondSpeed = mag;
+                            if ((unitsPerSecondSpeed > unsignedMaxSpd) || (targetMode == TargetMode.NeverStop))
+                                unitsPerSecondSpeed = unsignedMaxSpd;
+                            break;
                         default:
                             //Default is Linear movement. This just keeps the speed at max value until the distance
                             //is less than unitsPerFrameSpeed (Converted to unitsPerSecond because maxSpeed is in that unit).
@@ -422,7 +428,7 @@ public class VectorToTargetEvent : MonoBehaviour
                 if ((unitsPerSecondSpeed > 0f) || sendWhenZeroToo)
                 {
                     //Calculate and send percent of speed from zero to max speed for things like animation syncing
-                    magnitudeLerp?.Invoke(unitsPerSecondSpeed / unsignedMaxSpd);
+                    magnitudePercent?.Invoke(unitsPerSecondSpeed / unsignedMaxSpd);
                     if (moveAway) sign = -sign;
                     unitsPerSecondSpeed *= sign;
 
@@ -562,6 +568,12 @@ public class VectorToTargetEvent : MonoBehaviour
                                 degreesPerSecondSpeed = unsignedMaxRotSpd;
                             break;
 
+                        case SpeedMode.Teleport:
+                            degreesPerSecondSpeed = angle;
+                            if ((degreesPerSecondSpeed > unsignedMaxRotSpd) || (targetMode == TargetMode.NeverStop))
+                                degreesPerSecondSpeed = unsignedMaxRotSpd;
+                            break;
+
                         default:
                             //Default is Linear movement. This just keeps the angular speed at max value until the distance
                             //is less than degreesPerFrameSpeed (Converted to degreesPerSecond because maxSpeed is in that unit).
@@ -583,7 +595,7 @@ public class VectorToTargetEvent : MonoBehaviour
                 {
                     //Calculate and send percent of angular speed from zero to max speed
                     //for things like animation syncing
-                    rotationAngle?.Invoke(degreesPerSecondSpeed / unsignedMaxRotSpd);
+                    angleSpeedPercent?.Invoke(degreesPerSecondSpeed / unsignedMaxRotSpd);
                     degreesPerSecondSpeed *= rotSign;
 
                     spd.ToAngleAxis(out angle, out axis);

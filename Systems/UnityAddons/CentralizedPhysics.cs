@@ -501,6 +501,13 @@ public struct NDCollider
         return (col2 == null) && (col3 == null);
     }
 
+    public bool IsTransformAttached(Transform tr)
+    {
+        if (transform.IsChildOf(tr)) return true;
+        else if ((attachedRigidbody != null) && tr.IsChildOf(attachedRigidbody.transform)) return true;
+        else return false;
+    }
+
     public enum Scope { inThis, inParents, inChildren }
 }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System;
 using Unity.VisualScripting;
 
+[DefaultExecutionOrder(-9999)]
 public class CustomTag : MonoBehaviour
 {
     //[SerializeField]

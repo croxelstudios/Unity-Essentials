@@ -1,13 +1,13 @@
 using UnityEngine;
 
-public static class BoundsExtension_DrawBounds
+public static class BoundsExtension_Draw
 {
-    public static void DrawBounds(this Bounds bounds, Color color)
+    public static void Draw(this Bounds bounds, Color color)
     {
-        DrawBounds(bounds, color, Quaternion.identity);
+        Draw(bounds, color, Quaternion.identity);
     }
 
-    public static void DrawBounds(this Bounds bounds, Color color, Quaternion rotation)
+    public static void Draw(this Bounds bounds, Color color, Quaternion rotation)
     {
         Vector3 cornerRTF = bounds.extents;
         Vector3 cornerRTB = Vector3.Scale(bounds.extents, new Vector3(1, 1, -1));
