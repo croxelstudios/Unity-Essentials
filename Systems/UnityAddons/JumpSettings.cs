@@ -9,11 +9,15 @@ public struct JumpSettings
     [SerializeField]
     [MinValue(0f)]
     [OnValueChanged("ValidateData")]
-    float jumpMinHeight;
+    float jumpMaxHeight;
+    [SerializeField]
+    [OnValueChanged("ValidateData")]
+    bool variableHeight;
     [SerializeField]
     [MinValue(0f)]
+    [ShowIf("variableHeight")]
     [OnValueChanged("ValidateData")]
-    float jumpMaxHeight;
+    float jumpMinHeight;
     [SerializeField]
     [MinValue(0f)]
     [OnValueChanged("ValidateData")]
@@ -23,22 +27,25 @@ public struct JumpSettings
     bool useGravity;
     [SerializeField]
     [ShowIf("useGravity")]
-    [DisableIf("controlWithGravity")]
+    [EnableIf("@gravityDriver == GravityDriver.ByFallTime")]
     [OnValueChanged("ValidateData")]
     [MinValue(0f)]
     float fallTime;
     [SerializeField]
     [OnValueChanged("ValidateData")]
-    bool controlWithGravity;
+    GravityDriver gravityDriver;
     [SerializeField]
     [ShowIf("useGravity")]
-    [EnableIf("controlWithGravity")]
-    [MinValue(0f)]
+    [EnableIf("@gravityDriver == GravityDriver.Manual")]
     [OnValueChanged("ValidateData")]
+    [MinValue(0f)]
     float gravity;
-    [SerializeField]
-    [ReadOnly]
-    MinMaxCurve jumpCurve;
+    //[SerializeField] 
+    //[ReadOnly]
+    //MinMaxCurve jumpCurve;
+    //TO DO: Rendering the curve in the inspector causes an error when closing and opening the struct's foldout.
+    //This error apparently occurs because the inspector loses the reference to the internal
+    //properties of the MinMaxCurve when it is reconstructed.
 
     [SerializeField]
     [HideInInspector]
@@ -53,17 +60,20 @@ public struct JumpSettings
     [HideInInspector]
     float timeToMinApex;
 
-    public JumpSettings(bool useGravity)
+    public enum GravityDriver { Project, Manual, ByFallTime}
+
+    public JumpSettings(bool variableHeight)
     {
-        jumpMinHeight = 0.2f;
         jumpMaxHeight = 1f;
+        this.variableHeight = variableHeight;
+        jumpMinHeight = 0.2f;
         timeToApex = 0.5f;
         timeToApex = 0.5f;
-        this.useGravity = useGravity;
+        useGravity = true;
         fallTime = 0.5f;
-        controlWithGravity = true;
+        gravityDriver = GravityDriver.Project;
         gravity = 9.8f;
-        jumpCurve = new MinMaxCurve(1f, null, null);
+        //jumpCurve = new MinMaxCurve(1f);
 
         jumpSpeed = 0f;
         jumpGravity = 0f;
@@ -73,17 +83,18 @@ public struct JumpSettings
         ValidateData();
     }
 
-    public JumpSettings(float jumpMinHeight, float jumpMaxHeight, float timeToApex,
-        bool useGravity, float fallTime, bool controlWithGravity, float gravity)
+    public JumpSettings(float jumpMaxHeight, bool variableHeight, float jumpMinHeight, float timeToApex,
+        bool useGravity, float fallTime, GravityDriver gravityDriver, float gravity)
     {
-        this.jumpMinHeight = jumpMinHeight;
         this.jumpMaxHeight = jumpMaxHeight;
+        this.variableHeight = variableHeight;
+        this.jumpMinHeight = jumpMinHeight;
         this.timeToApex = timeToApex;
         this.useGravity = useGravity;
         this.fallTime = fallTime;
-        this.controlWithGravity = controlWithGravity;
+        this.gravityDriver = gravityDriver;
         this.gravity = gravity;
-        jumpCurve = new MinMaxCurve(1f, null, null);
+        //jumpCurve = new MinMaxCurve(1f);
 
         jumpSpeed = 0f;
         jumpGravity = 0f;
@@ -100,12 +111,22 @@ public struct JumpSettings
         jumpHeavyGravity = (jumpSpeed * jumpSpeed) / (2f * jumpMinHeight);
         timeToMinApex = jumpSpeed / jumpHeavyGravity;
 
-        if (controlWithGravity)
-            fallTime = Mathf.Sqrt(jumpMaxHeight * 2f / gravity);
-        else gravity = (jumpMaxHeight * 2f) / (fallTime * fallTime);
+        switch (gravityDriver)
+        {
+            case GravityDriver.Manual:
+                fallTime = Mathf.Sqrt(jumpMaxHeight * 2f / gravity);
+                break;
+            case GravityDriver.Project:
+                gravity = Physics.gravity.magnitude;
+                fallTime = Mathf.Sqrt(jumpMaxHeight * 2f / gravity);
+                break;
+            case GravityDriver.ByFallTime:
+                gravity = Physics.gravity.magnitude;
+                break;
+        }
     }
 
-    void UpdateCurve()
+    public MinMaxCurve GetCurve()
     {
         float minFallTime = Mathf.Sqrt(jumpMinHeight * 2f / gravity);
         float totalMinTime = timeToMinApex + minFallTime;
@@ -126,7 +147,12 @@ public struct JumpSettings
             useGravity ? new Keyframe(totalTime, 0f, fallFinalSpd, fallFinalSpd) :
             new Keyframe(totalTime, jumpMaxHeight, 0f, 0f)
             );
-        jumpCurve = new MinMaxCurve(1f, min, max);
+        return new MinMaxCurve(1f, min, max);
+    }
+
+    void UpdateCurve()
+    {
+        //jumpCurve = GetCurve();
     }
 
     void ValidateData()
@@ -143,7 +169,7 @@ public struct JumpSettings
     public float Gravity(bool falling, bool jumpButtonPressed)
     {
         if (!useGravity) return 0f;
-        else return falling ? gravity : (jumpButtonPressed ? jumpGravity : jumpHeavyGravity);
+        else return falling ? gravity : ((jumpButtonPressed || (!variableHeight)) ? jumpGravity : jumpHeavyGravity);
     }
 
     public bool UsesGravity()
