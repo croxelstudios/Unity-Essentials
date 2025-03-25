@@ -42,7 +42,7 @@ namespace EventVisualizer.Base
 				}
 				else 
 				{
-					selectedComponents = new HashSet<UnityEngine.Object>(GameObject.FindObjectsOfType(type));
+					selectedComponents = new HashSet<UnityEngine.Object>(GameObject.FindObjectsByType(type, FindObjectsSortMode.None));
 				}
 
 				foreach (UnityEngine.Object caller in selectedComponents)
