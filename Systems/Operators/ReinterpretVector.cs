@@ -31,19 +31,14 @@ public class ReinterpretVector : MonoBehaviour
 
     public void Reinterpret(Vector2 input)
     {
-        if (referenceTransform != null) input = referenceTransform.rotation * input;
-        if (projectOnPlane)
-            input = PlaneProjection(input.InterpretVector2(plane2DNormal, plane2DUp));
-        if (normalize) input = input.normalized;
-        input *= multiplier;
-        vectorEvent?.Invoke(input);
+        Reinterpret((Vector3)input);
     }
 
     public void Reinterpret(Vector3 input)
     {
-        if (referenceTransform != null) input = referenceTransform.rotation * input;
         if (projectOnPlane)
             input = PlaneProjection(input.InterpretVector2(plane2DNormal, plane2DUp));
+        if (referenceTransform != null) input = referenceTransform.rotation * input;
         if (normalize) input = input.normalized;
         input *= multiplier;
         vectorEvent?.Invoke(input);

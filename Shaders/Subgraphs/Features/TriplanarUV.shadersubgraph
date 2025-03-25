@@ -17,6 +17,9 @@
         },
         {
             "m_Id": "bfb30dc4080d4225974358627b0c9a34"
+        },
+        {
+            "m_Id": "6a9cfaf5eb194151b4a26a1063054b15"
         }
     ],
     "m_Keywords": [],
@@ -266,6 +269,9 @@
         },
         {
             "m_Id": "af684fa4706f488c8f0400ed848af1d5"
+        },
+        {
+            "m_Id": "6658ce39963e467e9e92afa12657c853"
         }
     ],
     "m_GroupDatas": [
@@ -857,6 +863,20 @@
                     "m_Id": "85af259d9e1442499473d3e7a52a40e7"
                 },
                 "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "6658ce39963e467e9e92afa12657c853"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "c6615915d822409c996fb4b97638cc3f"
+                },
+                "m_SlotId": -503535140
             }
         },
         {
@@ -3261,6 +3281,20 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "2f082a77b0e94765b6bf2fa8078475d3",
+    "m_Id": -503535140,
+    "m_DisplayName": "SphericNormals",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_SphericNormals",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.RedirectNodeData",
     "m_ObjectId": "2f76a23051294ed89ed3f7a52636e168",
     "m_Group": {
@@ -4507,9 +4541,9 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": -1727.0,
-            "y": -20.000017166137697,
+            "y": 14.0,
             "width": 105.0,
-            "height": 34.00000762939453
+            "height": 34.0
         }
     },
     "m_Slots": [
@@ -5338,6 +5372,42 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "6658ce39963e467e9e92afa12657c853",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -1782.0,
+            "y": -20.0,
+            "width": 160.0,
+            "height": 34.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "f1d50c87828a43b6b6e71e7452fece27"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "6a9cfaf5eb194151b4a26a1063054b15"
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "68df5fb555fb41b5b64fe88d559d5bb2",
     "m_Id": 1,
@@ -5408,6 +5478,29 @@
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.BooleanShaderProperty",
+    "m_ObjectId": "6a9cfaf5eb194151b4a26a1063054b15",
+    "m_Guid": {
+        "m_GuidSerialized": "c7195328-0aa6-4b21-acfa-720938502861"
+    },
+    "m_Name": "SphericNormals",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "SphericNormals",
+    "m_DefaultReferenceName": "_SphericNormals",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": false
 }
 
 {
@@ -6528,8 +6621,8 @@
     "m_ObjectId": "8a0417dfb6a34371a60eff29d835a2c4",
     "m_Title": "Correct Dither",
     "m_Position": {
-        "x": -697.9998168945313,
-        "y": -222.00006103515626
+        "x": -698.0,
+        "y": -222.0
     }
 }
 
@@ -8864,6 +8957,9 @@
             "m_Id": "8eda50fed30e43c08d749e77ce4c230e"
         },
         {
+            "m_Id": "2f082a77b0e94765b6bf2fa8078475d3"
+        },
+        {
             "m_Id": "add1f5235f014d85b86e2c4803b59c98"
         },
         {
@@ -8892,13 +8988,15 @@
         "6f9b7190-f843-48df-8a48-e0f7b5144d93",
         "3ad4f65d-cc36-432e-a33d-62d84aeba033",
         "23385b2d-8d09-4293-87d2-e662b6386f85",
-        "464468f3-a7c6-4ecd-896c-0cde2e432d57"
+        "464468f3-a7c6-4ecd-896c-0cde2e432d57",
+        "9c8229fc-fc73-4921-b13d-dcbde2418389"
     ],
     "m_PropertyIds": [
         1139398124,
         -1841763198,
         -2044576747,
-        -2119638894
+        -2119638894,
+        -503535140
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -9090,7 +9188,7 @@
     "m_Title": "WeightedAverage",
     "m_Position": {
         "x": -789.0,
-        "y": -957.0000610351563
+        "y": -957.0
     }
 }
 
@@ -9868,6 +9966,9 @@
             "m_Id": "bfb30dc4080d4225974358627b0c9a34"
         },
         {
+            "m_Id": "6a9cfaf5eb194151b4a26a1063054b15"
+        },
+        {
             "m_Id": "de694e4577854ad49831fe6f2a988989"
         },
         {
@@ -10173,6 +10274,20 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "f1d50c87828a43b6b6e71e7452fece27",
+    "m_Id": 0,
+    "m_DisplayName": "SphericNormals",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {
@@ -10562,8 +10677,8 @@
     "m_ObjectId": "fc68d71e7eb9448288ad575c65783a35",
     "m_Title": "WeightedAverage",
     "m_Position": {
-        "x": 737.000244140625,
-        "y": -66.00005340576172
+        "x": 737.0,
+        "y": -66.0
     }
 }
 
