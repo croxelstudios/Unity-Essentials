@@ -27,13 +27,14 @@ public struct JumpSettings
     bool useGravity;
     [SerializeField]
     [ShowIf("useGravity")]
+    [OnValueChanged("ValidateData")]
+    GravityDriver gravityDriver;
+    [SerializeField]
+    [ShowIf("useGravity")]
     [EnableIf("@gravityDriver == GravityDriver.ByFallTime")]
     [OnValueChanged("ValidateData")]
     [MinValue(0f)]
     float fallTime;
-    [SerializeField]
-    [OnValueChanged("ValidateData")]
-    GravityDriver gravityDriver;
     [SerializeField]
     [ShowIf("useGravity")]
     [EnableIf("@gravityDriver == GravityDriver.Manual")]

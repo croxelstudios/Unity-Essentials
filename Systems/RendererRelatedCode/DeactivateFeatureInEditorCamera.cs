@@ -8,6 +8,8 @@ public class DeactivateFeatureInEditorCamera : MonoBehaviour
 {
     [SerializeField]
     ScriptableRendererFeature feature;
+    [SerializeField]
+    Camera[] extraCamsToDeactivateIn;
 
     bool deactivated;
 
@@ -32,6 +34,13 @@ public class DeactivateFeatureInEditorCamera : MonoBehaviour
                 feature.SetActive(false);
                 deactivated = true;
             }
+            else
+                for (int i = 0; i < extraCamsToDeactivateIn.Length; i++)
+                    if (cam == extraCamsToDeactivateIn[i])
+                    {
+                        feature.SetActive(false);
+                        deactivated = true;
+                    }
         }
     }
 

@@ -221,7 +221,7 @@ public class VectorToTargetEvent : MonoBehaviour
     {
         speed = Vector3.zero;
         rotSpeed = Quaternion.identity;
-        if (useTagForOrigin) origin = GameObject.FindGameObjectWithTag(targetTag)?.transform; //TO DO: Improve this search as with the other
+        if (useTagForOrigin) origin = TagSearch(targetTag);
         UpdatePrevPos();
 
         if (target == null) ResetTarget();
@@ -253,15 +253,26 @@ public class VectorToTargetEvent : MonoBehaviour
     /// </summary>
     public void ResetTarget()
     {
-        if (targetTag != "")
+        target = TagSearch(targetTag);
+    }
+
+    Transform TagSearch(string tag)
+    {
+        Transform target = null;
+        if (tag != "")
         {
             GameObject[] objs = GameObject.FindGameObjectsWithTag(targetTag);
             if (objs.Length > 0)
             {
                 if (objs[0] != gameObject) target = objs[0].transform;
                 else if (objs.Length > 1) target = objs[1].transform;
+
+                for (int i = 0; i < objs.Length; i++)
+                    if ((target != objs[i]) && target.IsChildOf(objs[i].transform))
+                        target = objs[i].transform;
             }
         }
+        return target;
     }
 
     /// <summary>

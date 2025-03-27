@@ -9,9 +9,9 @@ public static class RenderTextureExtension_Blit
         if (rt == null)
         {
             rt = new RenderTexture(textureResolution.x, textureResolution.y, depth, format);
-            rt.name = name;
             rt.Create();
         }
+        rt.name = name;
         Graphics.Blit(null, rt, material, 0);
     }
 

@@ -19,9 +19,9 @@ public static class RigidbodyExtension_GetBounds
         return bounds;
     }
 
-    public static Bounds GetBounds(this Rigidbody rigid2D)
+    public static Bounds GetBounds(this Rigidbody rigid)
     {
-        Collider[] colliders = rigid2D.GetComponentsInChildren<Collider>();
+        Collider[] colliders = rigid.GetComponentsInChildren<Collider>();
         Bounds bounds;
         if (colliders.Length > 0)
         {

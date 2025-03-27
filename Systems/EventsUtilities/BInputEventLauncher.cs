@@ -9,8 +9,6 @@ using UnityEngine.Internal;
 public class BInputEventLauncher : MonoBehaviour
 {
     [SerializeField]
-    ScaledTimeMode checkTime = ScaledTimeMode.Update;
-    [SerializeField]
     ButtonInput[] buttons = null;
     [SerializeField]
     AxisInput[] axes = null;
@@ -82,12 +80,7 @@ public class BInputEventLauncher : MonoBehaviour
 
     void Update()
     {
-        if (!checkTime.IsFixed()) CheckInput();
-    }
-
-    void FixedUpdate()
-    {
-        if (checkTime.IsFixed()) CheckInput();
+        CheckInput();
     }
 
     void OnDisable()

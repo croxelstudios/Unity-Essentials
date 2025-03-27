@@ -182,16 +182,15 @@ public class BRenderersSetProperty : MonoBehaviour
     [ContextMenu("Reset Property Blocks")]
     public void ResetPropertyBlocks()
     {
-        block.Clear();
-        for (int i = 0; i < rend.Length; i++)
-        {
-            if (rend[i] != null)
-            {
-                CheckRendererBlocks(rend[i]);
-                for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
-                    rend[i].SetPropertyBlock(block, j);
-            }
-        }
+        if (block != null) block.Clear();
+        if (rend != null)
+            for (int i = 0; i < rend.Length; i++)
+                if (rend[i] != null)
+                {
+                    CheckRendererBlocks(rend[i]);
+                    for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
+                        rend[i].SetPropertyBlock(block, j);
+                }
     }
 
     public void Set(bool affectsChildren, int materialIndex, string propertyName, bool updateRenderers)
