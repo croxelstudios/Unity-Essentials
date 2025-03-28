@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
-using Unity.VisualScripting;
+using Sirenix.OdinInspector;
 
 [DefaultExecutionOrder(-9999)]
 public class CustomTag : MonoBehaviour
@@ -10,7 +10,9 @@ public class CustomTag : MonoBehaviour
     //[SerializeField]
     //bool _enabled = true;
     //public new bool enabled { get { return _enabled; } set { _enabled = value; } }
+    [OnValueChanged("TagUpdateAction")]
     public CustomTagItem item;
+    public DXIntEvent tagWasChanged = null;
 
     #region Statics
     public static Dictionary<StringList, Dictionary<int, List<CustomTag>>> activeTagged { get; private set; }
@@ -82,6 +84,11 @@ public class CustomTag : MonoBehaviour
         RemoveActiveTaggedObj(this);
     }
 
+    public void TagUpdateAction()
+    {
+        tagWasChanged?.Invoke(item.customTag);
+    }
+
     List<GameObject> GetChildren(Transform tr)
     {
         List<GameObject> list = new List<GameObject>();
@@ -96,6 +103,7 @@ public class CustomTag : MonoBehaviour
     public virtual void SwitchTag(int newTag)
     {
         item.customTag = newTag;
+        TagUpdateAction();
     }
 }
 
