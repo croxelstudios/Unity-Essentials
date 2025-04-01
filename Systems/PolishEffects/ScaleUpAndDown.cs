@@ -6,7 +6,8 @@ public class ScaleUpAndDown : MonoBehaviour
     Vector3 amount = Vector3.one * 0.1f;
     [SerializeField]
     [Tooltip("Cycles per second")]
-    float speed = 1f;
+    float _speed = 1f;
+    public float speed { get { return _speed; } set { _speed = value; } }
     [SerializeField]
     [Range(0f, 1f)]
     float startTime = 0f;
@@ -24,17 +25,17 @@ public class ScaleUpAndDown : MonoBehaviour
 
     void Update()
     {
-        if (timeMode.IsSmooth()) UpdatePosition(timeMode.DeltaTime());
+        if (timeMode.IsSmooth()) UpdateScale(timeMode.DeltaTime());
     }
 
     void FixedUpdate()
     {
-        if (timeMode.IsFixed()) UpdatePosition(Time.fixedDeltaTime);
+        if (timeMode.IsFixed()) UpdateScale(Time.fixedDeltaTime);
     }
 
-    void UpdatePosition(float deltaTime)
+    void UpdateScale(float deltaTime)
     {
-        float dif = SineWave(ref currentAngle, deltaTime * speed) - currentValue;
+        float dif = SineWave(ref currentAngle, deltaTime * _speed) - currentValue;
         currentValue += dif;
         transform.localScale += dif * amount;
     }

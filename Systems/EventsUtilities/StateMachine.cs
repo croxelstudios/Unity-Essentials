@@ -125,6 +125,16 @@ public class StateMachine : MonoBehaviour
         }
     }
 
+    public void NextState()
+    {
+        SwitchState((currentState + 1) % states.Length);
+    }
+
+    public void PreviousState()
+    {
+        SwitchState((currentState - 1) % states.Length);
+    }
+
     public void SetInitialState()
     {
         SwitchState(_initialState);
