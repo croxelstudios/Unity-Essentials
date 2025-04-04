@@ -523,8 +523,13 @@ public struct MovementPath
 
     public void Draw()
     {
+        Draw(Color.red);
+    }
+
+    public void Draw(Color color)
+    {
         for (int i = 0; i < path.Length - 1; i++)
-            Debug.DrawLine(path[i], path[i + 1], Color.orange);
+            Debug.DrawLine(path[i], path[i + 1], color);
     }
 
     bool IsComplexPath()
