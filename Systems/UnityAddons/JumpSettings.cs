@@ -20,8 +20,12 @@ public struct JumpSettings
     float jumpMinHeight;
     [SerializeField]
     [MinValue(0f)]
+    [DisableIf("sameAsFallTime")]
     [OnValueChanged("ValidateData")]
     float timeToApex;
+    [SerializeField]
+    [OnValueChanged("ValidateData")]
+    bool sameAsFallTime;
     [SerializeField]
     [OnValueChanged("ValidateData")]
     bool useGravity;
@@ -69,7 +73,7 @@ public struct JumpSettings
         this.variableHeight = variableHeight;
         jumpMinHeight = 0.2f;
         timeToApex = 0.5f;
-        timeToApex = 0.5f;
+        sameAsFallTime = true;
         useGravity = true;
         fallTime = 0.5f;
         gravityDriver = GravityDriver.Project;
@@ -85,12 +89,13 @@ public struct JumpSettings
     }
 
     public JumpSettings(float jumpMaxHeight, bool variableHeight, float jumpMinHeight, float timeToApex,
-        bool useGravity, float fallTime, GravityDriver gravityDriver, float gravity)
+        bool sameAsFallTime, bool useGravity, float fallTime, GravityDriver gravityDriver, float gravity)
     {
         this.jumpMaxHeight = jumpMaxHeight;
         this.variableHeight = variableHeight;
         this.jumpMinHeight = jumpMinHeight;
         this.timeToApex = timeToApex;
+        this.sameAsFallTime = sameAsFallTime;
         this.useGravity = useGravity;
         this.fallTime = fallTime;
         this.gravityDriver = gravityDriver;
@@ -107,11 +112,6 @@ public struct JumpSettings
 
     void ProccessGravity()
     {
-        jumpGravity = (2f * jumpMaxHeight) / (timeToApex * timeToApex);
-        jumpSpeed = jumpGravity * timeToApex;
-        jumpHeavyGravity = (jumpSpeed * jumpSpeed) / (2f * jumpMinHeight);
-        timeToMinApex = jumpSpeed / jumpHeavyGravity;
-
         switch (gravityDriver)
         {
             case GravityDriver.Manual:
@@ -125,6 +125,17 @@ public struct JumpSettings
                 gravity = Physics.gravity.magnitude;
                 break;
         }
+    }
+
+    void ProccessJumpData()
+    {
+        if (sameAsFallTime)
+            timeToApex = fallTime;
+
+        jumpGravity = (2f * jumpMaxHeight) / (timeToApex * timeToApex);
+        jumpSpeed = jumpGravity * timeToApex;
+        jumpHeavyGravity = (jumpSpeed * jumpSpeed) / (2f * jumpMinHeight);
+        timeToMinApex = jumpSpeed / jumpHeavyGravity;
     }
 
     public MinMaxCurve GetCurve()
@@ -159,6 +170,7 @@ public struct JumpSettings
     void ValidateData()
     {
         ProccessGravity();
+        ProccessJumpData();
         UpdateCurve();
     }
 
