@@ -451,6 +451,11 @@ public class VectorToTargetEvent : MonoBehaviour
         if (spd.magnitude > maxDTSpeed)
             spd = spd.normalized * maxDTSpeed;
 
+        //Limit speed by target point
+        float moveAmount = path.magnitude;
+        if ((spd.magnitude > moveAmount) || (targetMode == TargetMode.NeverStop))
+            spd = spd.normalized * moveAmount;
+
         //Add the other acceleration half to the global speed for use in next frame
         speed += accelerationHalf;
 
@@ -513,7 +518,7 @@ public class VectorToTargetEvent : MonoBehaviour
             vector?.Invoke(result);
             if (local && (origin.parent != null)) result = origin.parent.TransformVector(result);
             if (moveTransform) //TO DO: Implement this bool for each feature
-                origin.Translate(speedPerThisFrame, Space.World);
+                origin.Translate(speedPerThisFrame, local ? Space.Self : Space.World);
             if (reorientTransform) //TO DO: Properly implement LookAt feature
                 origin.forward = result;
         }
@@ -744,9 +749,7 @@ public class VectorToTargetEvent : MonoBehaviour
 
     void ExecuteRotation(Quaternion angleAxisPerThisFrame, float deltaTime)
     {
-        float angle;
-        Vector3 axis;
-        angleAxisPerThisFrame.ToAngleAxis(out angle, out axis);
+        angleAxisPerThisFrame.ToAngleAxis(out float angle, out Vector3 axis);
 
         float degreesPerSecondSpeed = angle * InverseDeltaTime(deltaTime);
 
@@ -770,7 +773,7 @@ public class VectorToTargetEvent : MonoBehaviour
             rotation?.Invoke(result.eulerAngles);
             if (local && (origin.parent != null)) result = origin.parent.rotation * result;
             if (moveTransform)
-                origin.Rotate(result.Scale(deltaTime).eulerAngles, Space.World);
+                origin.Rotate(result.Scale(deltaTime).eulerAngles, local ? Space.Self : Space.World);
         }
     }
 

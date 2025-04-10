@@ -16,6 +16,8 @@ public class BInputEventLauncher : MonoBehaviour
     VectorInput[] joysticks = null;
     [SerializeField]
     ButtonsState[] buttonStates = null;
+    [SerializeField]
+    ScaledTimeMode timeMode = ScaledTimeMode.Update;
 
     void OnEnable()
     {
@@ -80,7 +82,12 @@ public class BInputEventLauncher : MonoBehaviour
 
     void Update()
     {
-        CheckInput();
+        if (timeMode.IsSmooth()) CheckInput();
+    }
+
+    void FixedUpdate()
+    {
+        if (timeMode.IsFixed()) CheckInput();
     }
 
     void OnDisable()

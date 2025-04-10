@@ -163,9 +163,7 @@ public struct TransformData : IEquatable<TransformData>
         localScale *= factor;
         lossyScale *= factor;
 
-        float angle;
-        Vector3 axis;
-        rotation.ToAngleAxis(out angle, out axis);
+        rotation.ToAngleAxis(out float angle, out Vector3 axis);
         rotation = Quaternion.AngleAxis(angle * factor, axis);
     }
 

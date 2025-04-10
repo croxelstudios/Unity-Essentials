@@ -523,10 +523,7 @@ public class ComputableMesh
 
     public void CutMesh(Vector3 planeNormal, Vector3 planePoint, float minArea = -1f)
     {
-        int[] side1;
-        int[] side2;
-        int[] extremes;
-        CutMesh(planeNormal, planePoint, out side1, out side2, out extremes, minArea);
+        CutMesh(planeNormal, planePoint, out int[] side1, out int[] side2, out int[] extremes, minArea);
     }
 
     public void CutMesh(Vector3 planeNormal, Vector3 planePoint,
@@ -535,9 +532,7 @@ public class ComputableMesh
         if (cuttingCompute == null)
             cuttingCompute = (ComputeShader)Resources.Load(cutMeshComputeShaderName);
 
-        ComputeBuffer intersectionsBuff;
-        ComputeBuffer cutsDataBuff;
-        GetPlaneCutData(planeNormal, planePoint, out intersectionsBuff, out cutsDataBuff);
+        GetPlaneCutData(planeNormal, planePoint, out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
 
         //
         //
@@ -550,10 +545,8 @@ public class ComputableMesh
 
     public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint, Vector3 upDirection, float squareSize, float minArea = -1f)
     {
-        int[] side1;
-        int[] side2;
-        int[] extremes;
-        CutMesh_Square(planeNormal, planePoint, upDirection, squareSize, out side1, out side2, out extremes, minArea);
+        CutMesh_Square(planeNormal, planePoint, upDirection, squareSize,
+            out int[] side1, out int[] side2, out int[] extremes, minArea);
     }
 
     public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint,
@@ -563,9 +556,7 @@ public class ComputableMesh
         if (cuttingCompute == null)
             cuttingCompute = (ComputeShader)Resources.Load(cutMeshComputeShaderName);
         
-        ComputeBuffer intersectionsBuff;
-        ComputeBuffer cutsDataBuff;
-        GetPlaneCutData(planeNormal, planePoint, out intersectionsBuff, out cutsDataBuff);
+        GetPlaneCutData(planeNormal, planePoint, out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
         
         //
         if (squareSize > 0f)

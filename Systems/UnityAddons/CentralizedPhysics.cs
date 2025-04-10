@@ -1,13 +1,16 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class NDRigidbody
 {
+    static Dictionary<Rigidbody2D, NDRigidbody> rigids2;
+    static Dictionary<Rigidbody, NDRigidbody> rigids3;
+
     public Rigidbody2D rigid2;
     public Rigidbody rigid3;
     public bool is2D { get { return rigid2 != null; } }
     public bool is3D { get { return rigid3 != null; } }
-
     public GameObject gameObject
     {
         get
@@ -43,7 +46,7 @@ public class NDRigidbody
         }
     }
     public int layer { get { return gameObject.layer; } }
-    public Vector3 velocity
+    public Vector3 linearVelocity
     {
         get
         {
@@ -79,6 +82,20 @@ public class NDRigidbody
             else rigid3.angularVelocity = value;
         }
     }
+    public float angularDamping
+    {
+        get
+        {
+            if (is2D) return rigid2.angularDamping;
+            else return rigid3.angularDamping;
+        }
+
+        set
+        {
+            if (is2D) rigid2.angularDamping = value;
+            else rigid3.angularDamping = value;
+        }
+    }
     public bool isKinematic
     {
         get
@@ -91,6 +108,34 @@ public class NDRigidbody
         {
             if (is2D) rigid2.bodyType = value ? RigidbodyType2D.Kinematic : RigidbodyType2D.Dynamic;
             else rigid3.isKinematic = value;
+        }
+    }
+    public bool useGravity
+    {
+        get
+        {
+            if (is2D) return rigid2.gravityScale > Mathf.Epsilon;
+            else return rigid3.useGravity;
+        }
+
+        set
+        {
+            if (is2D) rigid2.gravityScale = value ? 1f : 0f;
+            else rigid3.useGravity = value;
+        }
+    }
+    public float gravityScale
+    {
+        get
+        {
+            if (is2D) return rigid2.gravityScale;
+            else return rigid3.useGravity ? 1f : 0f;
+        }
+
+        set
+        {
+            if (is2D) rigid2.gravityScale = value;
+            else rigid3.useGravity = (value > 0.5f) ? true : false;
         }
     }
     public RigidbodyConstraints constraints
@@ -178,16 +223,36 @@ public class NDRigidbody
         return (rigid2 == null) && (rigid3 == null);
     }
 
-    public NDRigidbody(Rigidbody2D rigid)
+    NDRigidbody(Rigidbody2D rigid)
     {
         rigid2 = rigid;
         rigid3 = null;
     }
 
-    public NDRigidbody(Rigidbody rigid)
+    NDRigidbody(Rigidbody rigid)
     {
         rigid2 = null;
         rigid3 = rigid;
+    }
+
+    public static NDRigidbody ND(Rigidbody2D rigid)
+    {
+        if (rigid == null) return null;
+
+        if (rigids2 == null) rigids2 = new Dictionary<Rigidbody2D, NDRigidbody>();
+        if (!rigids2.ContainsKey(rigid))
+            rigids2.Add(rigid, new NDRigidbody(rigid));
+        return rigids2[rigid];
+    }
+
+    public static NDRigidbody ND(Rigidbody rigid)
+    {
+        if (rigid == null) return null;
+
+        if (rigids3 == null) rigids3 = new Dictionary<Rigidbody, NDRigidbody>();
+        if (!rigids3.ContainsKey(rigid))
+            rigids3.Add(rigid, new NDRigidbody(rigid));
+        return rigids3[rigid];
     }
 
     public static NDRigidbody GetNDRigidbodyFrom(GameObject go, Scope scope = Scope.inThis)
@@ -206,7 +271,7 @@ public class NDRigidbody
                 rigid3 = go.GetComponent<Rigidbody>();
                 break;
         }
-        if (rigid3 != null) result = new NDRigidbody(rigid3);
+        if (rigid3 != null) result = rigid3.ND();
         else
         {
             Rigidbody2D rigid2;
@@ -222,22 +287,132 @@ public class NDRigidbody
                     rigid2 = go.GetComponent<Rigidbody2D>();
                     break;
             }
-            if (rigid2 != null) result = new NDRigidbody(rigid2);
+            if (rigid2 != null) result = rigid2.ND();
             else result = null;
         }
         return result;
     }
 
-    public bool IsEqual(NDRigidbody other)
+    public enum Scope { inThis, inParents, inChildren }
+
+    public void AddForce(Vector2 force, ForceMode forceMode)
     {
-        return (other.rigid2 == rigid2) && (other.rigid3 == rigid3);
+        AddForce((Vector3)force, forceMode);
     }
 
-    public enum Scope { inThis, inParents, inChildren }
+    public void AddForce(Vector3 force, ForceMode forceMode)
+    {
+        if (is2D)
+        {
+            switch (forceMode)
+            {
+                case ForceMode.VelocityChange:
+                    rigid2.linearVelocity += (Vector2)force;
+                    break;
+                case ForceMode.Acceleration: //WARNING: It is not implemented. TO DO: Add a Coroutine to manage this?
+                    rigid2.linearVelocity += (Vector2)force;
+                    break;
+                case ForceMode.Impulse:
+                    rigid2.AddForce(force, ForceMode2D.Impulse);
+                    break;
+                default:
+                    rigid2.AddForce(force, ForceMode2D.Force);
+                    break;
+            }
+        }
+        else rigid3.AddForce(force, forceMode);
+    }
+
+    public void AddTorque(float torque, ForceMode forceMode)
+    {
+        AddForce(Vector3.forward * torque, forceMode);
+    }
+
+    public void AddTorque(Vector3 torque, ForceMode forceMode)
+    {
+        if (is2D)
+        {
+            switch (forceMode)
+            {
+                case ForceMode.VelocityChange:
+                    rigid2.angularVelocity += torque.z;
+                    break;
+                case ForceMode.Acceleration: //WARNING: It is not implemented. TO DO: Add a Coroutine to manage this?
+                    rigid2.angularVelocity += torque.z;
+                    break;
+                case ForceMode.Impulse:
+                    rigid2.AddTorque(torque.z, ForceMode2D.Impulse);
+                    break;
+                default:
+                    rigid2.AddTorque(torque.z, ForceMode2D.Force);
+                    break;
+            }
+        }
+        else rigid3.AddTorque(torque, forceMode);
+    }
+
+    public void MovePosition(Vector3 position)
+    {
+        if (is2D) rigid2.MovePosition(position);
+        else rigid3.MovePosition(position);
+    }
+
+    public NDRaycastHit[] TunnelCastToThis(Vector3 origin, Vector3 direction, float radius, float distance)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] TunnelCastExceptThis(Vector3 origin, Vector3 direction, float radius, float distance,
+        bool includeTriggers = false)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider.attachedRigidbody != this) &&
+                (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
+                finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] TunnelCastToThis(Vector3 origin, Vector3 direction, float radius, float distance,
+        LayerMask mask)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, mask, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] TunnelCastExceptThis(Vector3 origin, Vector3 direction, float radius, float distance,
+        LayerMask mask, bool includeTriggers = false)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, mask, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider.attachedRigidbody != this) &&
+                (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
+                finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    //TO DO: Full rigidbody casts.
 }
 
 [System.Serializable]
-public struct NDCollider
+public struct NDCollider : IEquatable<NDCollider>
 {
     public Collider2D col2;
     public Collider col3;
@@ -252,6 +427,14 @@ public struct NDCollider
             else return col3.enabled;
         }
     }
+    public bool isTrigger
+    {
+        get
+        {
+            if (is2D) return col2.isTrigger;
+            else return col3.isTrigger;
+        }
+    }
 
     NDRigidbody _attachedRigidbody;
     public NDRigidbody attachedRigidbody
@@ -264,7 +447,7 @@ public struct NDCollider
                 if (col2.attachedRigidbody != null)
                 {
                     if ((_attachedRigidbody == null) || (_attachedRigidbody.rigid2 != col2.attachedRigidbody))
-                        _attachedRigidbody = new NDRigidbody(col2.attachedRigidbody);
+                        _attachedRigidbody = col2.attachedRigidbody.ND();
                     return _attachedRigidbody;
                 }
                 else return null;
@@ -274,7 +457,7 @@ public struct NDCollider
                 if (col3.attachedRigidbody != null)
                 {
                     if ((_attachedRigidbody == null) || (_attachedRigidbody.rigid3 != col3.attachedRigidbody))
-                        _attachedRigidbody = new NDRigidbody(col3.attachedRigidbody);
+                        _attachedRigidbody = col3.attachedRigidbody.ND();
                     return _attachedRigidbody;
                 }
                 else return null;
@@ -337,14 +520,14 @@ public struct NDCollider
     {
         col2 = col;
         col3 = null;
-        _attachedRigidbody = new NDRigidbody(col2.attachedRigidbody);
+        _attachedRigidbody = col2.attachedRigidbody.ND();
     }
 
     public NDCollider(Collider col)
     {
         col2 = null;
         col3 = col;
-        _attachedRigidbody = new NDRigidbody(col3.attachedRigidbody);
+        _attachedRigidbody = col3.attachedRigidbody.ND();
     }
 
     public static NDCollider GetNDColliderFrom(GameObject go, Scope scope = Scope.inThis)
@@ -436,7 +619,7 @@ public struct NDCollider
         NDCollider found = new NDCollider();
         foreach (KeyValuePair<NDCollider, T> entry in dictionary)
         {
-            if (entry.Key.IsEqual(collider))
+            if (entry.Key == collider)
             {
                 found = entry.Key;
                 break;
@@ -450,7 +633,7 @@ public struct NDCollider
         NDCollider found = new NDCollider();
         foreach (NDCollider entry in list)
         {
-            if (entry.IsEqual(collider))
+            if (entry == collider)
             {
                 found = entry;
                 break;
@@ -491,11 +674,6 @@ public struct NDCollider
         }
     }
 
-    public bool IsEqual(NDCollider other)
-    {
-        return (other.col2 == col2) && (other.col3 == col3);
-    }
-
     public bool IsNull()
     {
         return (col2 == null) && (col3 == null);
@@ -506,6 +684,83 @@ public struct NDCollider
         if (transform.IsChildOf(tr)) return true;
         else if ((attachedRigidbody != null) && tr.IsChildOf(attachedRigidbody.transform)) return true;
         else return false;
+    }
+
+    public NDRaycastHit[] TunnelCastToThis(Vector3 origin, Vector3 direction, float radius, float distance)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] TunnelCastExceptThis(Vector3 origin, Vector3 direction, float radius, float distance,
+        bool includeTriggers = false)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider != this) &&
+                (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
+                finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] TunnelCastToThis(Vector3 origin, Vector3 direction, float radius, float distance,
+        LayerMask mask)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, mask, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] TunnelCastExceptThis(Vector3 origin, Vector3 direction, float radius, float distance,
+        LayerMask mask, bool includeTriggers = false)
+    {
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
+            direction, radius, distance + offset, mask, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider != this) &&
+                (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
+                finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public override bool Equals(object other)
+    {
+        if (!(other is NDCollider)) return false;
+        return Equals((NDCollider)other);
+    }
+
+    public bool Equals(NDCollider other)
+    {
+        return (other.col2 == col2) && (other.col3 == col3);
+    }
+
+    public override int GetHashCode()
+    {
+        return is2D ? col2.GetHashCode() : col3.GetHashCode();
+    }
+
+    public static bool operator ==(NDCollider o1, NDCollider o2)
+    {
+        return o1.Equals(o2);
+    }
+
+    public static bool operator !=(NDCollider o1, NDCollider o2)
+    {
+        return !o1.Equals(o2);
     }
 
     public enum Scope { inThis, inParents, inChildren }
@@ -565,14 +820,14 @@ public static class NDPhysics
     public static bool NDContains(this List<NDCollider> colliders, NDCollider collider)
     {
         foreach (NDCollider col in colliders)
-            if (collider.IsEqual(col)) return true;
+            if (collider == col) return true;
         return false;
     }
 
     public static bool NDContains(this NDCollider[] colliders, NDCollider collider)
     {
         foreach (NDCollider col in colliders)
-            if (collider.IsEqual(col)) return true;
+            if (collider == col) return true;
         return false;
     }
 
@@ -592,7 +847,8 @@ public static class NDPhysics
         }
     }
 
-    public static bool Raycast(Vector3 position, Vector3 direction, out NDRaycastHit hit, float distance, LayerMask mask, bool is2D)
+    public static bool Raycast(Vector3 position, Vector3 direction, out NDRaycastHit hit, float distance,
+        LayerMask mask, bool is2D)
     {
         if (is2D)
         {
@@ -607,6 +863,185 @@ public static class NDPhysics
             return didHit;
         }
     }
+
+    public static bool RadiusCast(Ray ray, float radius,
+        float distance, out NDRaycastHit hit, bool is2D)
+    {
+        return RadiusCast(ray.origin, ray.direction, radius, distance, out hit, is2D);
+    }
+
+    public static bool RadiusCast(Vector3 origin, Vector3 direction, float radius,
+        float distance, out NDRaycastHit hit, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D hit2 = Physics2D.CircleCast(origin, radius, direction, distance);
+            hit = new NDRaycastHit(hit2);
+            return hit2;
+        }
+        else
+        {
+            bool didHit = Physics.SphereCast(origin, radius, direction, out RaycastHit hit3, distance);
+            hit = new NDRaycastHit(hit3);
+            return didHit;
+        }
+    }
+
+    public static bool RadiusCast(Ray ray, float radius,
+        float distance, out NDRaycastHit hit, LayerMask mask, bool is2D)
+    {
+        return RadiusCast(ray.origin, ray.direction, radius, distance, out hit, mask, is2D);
+    }
+
+    public static bool RadiusCast(Vector3 origin, Vector3 direction, float radius,
+        float distance, out NDRaycastHit hit, LayerMask mask, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D hit2 = Physics2D.CircleCast(origin, radius, direction, distance, mask);
+            hit = new NDRaycastHit(hit2);
+            return hit2;
+        }
+        else
+        {
+            bool didHit = Physics.SphereCast(origin, radius, direction, out RaycastHit hit3, distance, mask);
+            hit = new NDRaycastHit(hit3);
+            return didHit;
+        }
+    }
+
+    public static NDRaycastHit[] RadiusCastAll(Ray ray, float radius, float distance, bool is2D)
+    {
+        return RadiusCastAll(ray.origin, ray.direction, radius, distance, is2D);
+    }
+
+    public static NDRaycastHit[] RadiusCastAll(Vector3 origin, Vector3 direction, float radius,
+        float distance, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D[] hit2 = Physics2D.CircleCastAll(origin, radius, direction, distance);
+            NDRaycastHit[] hits = new NDRaycastHit[hit2.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit2[i]);
+            return hits;
+        }
+        else
+        {
+            RaycastHit[] hit3 = Physics.SphereCastAll(origin, radius, direction, distance);
+            NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit3[i]);
+            return hits;
+        }
+    }
+
+    public static NDRaycastHit[] RadiusCastAll(Ray ray, float radius, float distance, LayerMask mask, bool is2D)
+    {
+        return RadiusCastAll(ray.origin, ray.direction, radius, distance, mask, is2D);
+    }
+
+    public static NDRaycastHit[] RadiusCastAll(Vector3 origin, Vector3 direction, float radius,
+        float distance, LayerMask mask, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D[] hit2 = Physics2D.CircleCastAll(origin, radius, direction, distance, mask);
+            NDRaycastHit[] hits = new NDRaycastHit[hit2.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit2[i]);
+            return hits;
+        }
+        else
+        {
+            RaycastHit[] hit3 = Physics.SphereCastAll(origin, radius, direction, distance, mask);
+            NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit3[i]);
+            return hits;
+        }
+    }
+
+    public static NDRigidbody ND(this Rigidbody2D rigid)
+    {
+        return NDRigidbody.ND(rigid);
+    }
+
+    public static NDRigidbody ND(this Rigidbody rigid)
+    {
+        return NDRigidbody.ND(rigid);
+    }
+
+    public static NDCollision ND(this Collision2D collision)
+    {
+        return NDCollision.ND(collision);
+    }
+
+    public static NDCollision ND(this Collision collision)
+    {
+        return NDCollision.ND(collision);
+    }
+
+    public static float DefaultContactOffset(bool is2D)
+    {
+        if (is2D) return Physics2D.defaultContactOffset;
+        else return Physics.defaultContactOffset;
+    }
+
+    //Layer matrix
+    private static Dictionary<int, int> masksByLayer;
+
+    private static Dictionary<int, int> masksByLayer2D;
+
+    public static void Init()
+    {
+        masksByLayer = new Dictionary<int, int>();
+        for (int i = 0; i < 32; i++)
+        {
+            int mask = 0;
+            for (int j = 0; j < 32; j++)
+            {
+                if (!Physics.GetIgnoreLayerCollision(i, j))
+                {
+                    mask |= 1 << j;
+                }
+            }
+            masksByLayer.Add(i, mask);
+        }
+
+        masksByLayer2D = new Dictionary<int, int>();
+        for (int i = 0; i < 32; i++)
+        {
+            int mask = 0;
+            for (int j = 0; j < 32; j++)
+            {
+                if (!Physics2D.GetIgnoreLayerCollision(i, j))
+                {
+                    mask |= 1 << j;
+                }
+            }
+            masksByLayer2D.Add(i, mask);
+        }
+    }
+
+    public static int MaskForLayer(int layer, bool is2D)
+    {
+        if (is2D)
+        {
+            if (masksByLayer2D == null) Init();
+            return masksByLayer2D[layer];
+        }
+        else
+        {
+            if (masksByLayer == null) Init();
+            return masksByLayer[layer];
+        }
+    }
+
+    public static int MaskForLayer(NDRigidbody rb)
+    {
+        return MaskForLayer(rb.layer, rb.is2D);
+    }
 }
 
 public struct NDRaycastHit
@@ -615,6 +1050,10 @@ public struct NDRaycastHit
     public RaycastHit hit3;
     readonly bool is2D;
     public bool is3D { get { return !is2D; } }
+    public bool isTrigger
+    {
+        get { return collider.isTrigger; }
+    }
     public NDCollider collider
     {
         get
@@ -657,7 +1096,7 @@ public struct NDRaycastHit
                 if (hit2.rigidbody != null)
                 {
                     if ((_rigidbody == null) || (_rigidbody.rigid2 != hit2.rigidbody))
-                        _rigidbody = new NDRigidbody(hit2.rigidbody);
+                        _rigidbody = hit2.rigidbody.ND();
                     return _rigidbody;
                 }
                 else return null;
@@ -667,7 +1106,7 @@ public struct NDRaycastHit
                 if (hit3.rigidbody != null)
                 {
                     if ((_rigidbody == null) || (_rigidbody.rigid3 != hit3.rigidbody))
-                        _rigidbody = new NDRigidbody(hit3.rigidbody);
+                        _rigidbody = hit3.rigidbody.ND();
                     return _rigidbody;
                 }
                 else return null;
@@ -687,7 +1126,7 @@ public struct NDRaycastHit
     {
         hit2 = hit;
         hit3 = default;
-        _rigidbody = new NDRigidbody(hit2.rigidbody);
+        _rigidbody = hit2.rigidbody.ND();
         is2D = true;
     }
 
@@ -695,13 +1134,16 @@ public struct NDRaycastHit
     {
         hit2 = default;
         hit3 = hit;
-        _rigidbody = new NDRigidbody(hit3.rigidbody);
+        _rigidbody = hit3.rigidbody.ND();
         is2D = false;
     }
 }
 
 public class NDCollision
 {
+    static Dictionary<Collision2D, NDCollision> cols2;
+    static Dictionary<Collision, NDCollision> cols3;
+
     public Collision2D collision2;
     public Collision collision3;
     public bool wasOnStay;
@@ -713,6 +1155,14 @@ public class NDCollision
         {
             if (is2D) return new NDCollider(collision2.collider);
             else return new NDCollider(collision3.collider);
+        }
+    }
+    public int contactCount
+    {
+        get
+        {
+            if (is2D) return collision2.contactCount;
+            else return collision3.contactCount;
         }
     }
     public NDContactPoint[] contacts
@@ -756,23 +1206,38 @@ public class NDCollision
         }
     }
 
-    public NDCollision(Collision2D collision, bool wasOnStay = false)
+    NDCollision(Collision2D collision, bool wasOnStay = false)
     {
         collision2 = collision;
         collision3 = null;
         this.wasOnStay = wasOnStay;
     }
 
-    public NDCollision(Collision collision, bool wasOnStay = false)
+    NDCollision(Collision collision, bool wasOnStay = false)
     {
         collision2 = null;
         collision3 = collision;
         this.wasOnStay = wasOnStay;
     }
 
-    public bool IsEqual(NDCollision other)
+    public static NDCollision ND(Collision2D collision)
     {
-        return (other.collision2 == collision2) && (other.collision3 == collision3) && (other.wasOnStay == wasOnStay);
+        if (collision == null) return null;
+
+        if (cols2 == null) cols2 = new Dictionary<Collision2D, NDCollision>();
+        if (!cols2.ContainsKey(collision))
+            cols2.Add(collision, new NDCollision(collision));
+        return cols2[collision];
+    }
+
+    public static NDCollision ND(Collision collision)
+    {
+        if (collision == null) return null;
+
+        if (cols3 == null) cols3 = new Dictionary<Collision, NDCollision>();
+        if (!cols3.ContainsKey(collision))
+            cols3.Add(collision, new NDCollision(collision));
+        return cols3[collision];
     }
 }
 

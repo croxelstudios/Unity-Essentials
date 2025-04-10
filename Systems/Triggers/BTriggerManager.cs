@@ -72,7 +72,7 @@ public class BTriggerManager : MonoBehaviour
         {
             NDCollider exitCol = new NDCollider(other);
             for (int i = colliders.Count - 1; i >= 0; i--)
-                if (colliders[i].IsEqual(exitCol))
+                if (colliders[i] == exitCol)
                 {
                     colliders.RemoveAt(i);
                     break;
@@ -88,7 +88,7 @@ public class BTriggerManager : MonoBehaviour
         {
             NDCollider exitCol = new NDCollider(other);
             for (int i = colliders.Count - 1; i >= 0; i--)
-                if (colliders[i].IsEqual(exitCol))
+                if (colliders[i] == exitCol)
                 {
                     colliders.RemoveAt(i);
                     break;

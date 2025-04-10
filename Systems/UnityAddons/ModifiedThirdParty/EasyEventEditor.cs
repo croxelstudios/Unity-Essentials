@@ -585,9 +585,7 @@ public class EasyEventEditorSettings : EditorWindow
 
         private void PrepareState(SerializedProperty propertyForState)
         {
-            DrawerState state;
-
-            if (!drawerStates.TryGetValue(propertyForState.propertyPath, out state))
+            if (!drawerStates.TryGetValue(propertyForState.propertyPath, out DrawerState state))
             {
                 state = new DrawerState();
 
@@ -1314,8 +1312,7 @@ public class EasyEventEditorSettings : EditorWindow
             {
                 foreach (Component component in components)
                 {
-                    ComponentTypeCount typeCount;
-                    if (!componentTypeCounts.TryGetValue(component.GetType(), out typeCount))
+                    if (!componentTypeCounts.TryGetValue(component.GetType(), out ComponentTypeCount typeCount))
                     {
                         typeCount = new ComponentTypeCount();
                         componentTypeCounts.Add(component.GetType(), typeCount);

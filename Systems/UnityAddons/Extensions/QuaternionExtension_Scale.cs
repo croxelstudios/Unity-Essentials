@@ -5,9 +5,7 @@ public static class QuaternionExtension_Scale
 {
     public static Quaternion Scale(this Quaternion quat, float scale)
     {
-        Vector3 axis;
-        float angle;
-        quat.ToAngleAxis(out angle, out axis);
+        quat.ToAngleAxis(out float angle, out Vector3 axis);
         if (angle <= Mathf.Epsilon) return Quaternion.identity;
         return Quaternion.AngleAxis(angle * scale, axis);
     }

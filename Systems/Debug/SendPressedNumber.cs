@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
-using System;
 
 public class SendPressedNumber : MonoBehaviour
 {
@@ -13,9 +11,8 @@ public class SendPressedNumber : MonoBehaviour
 
     void Update()
     {
-        int input;
         if ((Input.inputString.Length == 1) &&
-            int.TryParse(Input.inputString, out input))
+            int.TryParse(Input.inputString, out int input))
             NumberActions?.Invoke((input + add) * multiply);
     }
 }

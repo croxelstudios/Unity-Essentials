@@ -118,9 +118,7 @@ public struct RotationPath
         RotationPath subPath = alongPath ? new RotationPath(target, origin, mode)/*SubPath(change, 0, true)*/ :
             new RotationPath(target, origin, mode);
 
-        float tangle;
-        Vector3 taxis;
-        currentVelocity.ToAngleAxis(out tangle, out taxis);
+        currentVelocity.ToAngleAxis(out float tangle, out Vector3 taxis);
 
         Quaternion temp = Quaternion.AngleAxis(tangle * deltaTime * exp, taxis).Add(
             subPath.Displacement((subPath.magnitude + (omega * subPath.magnitude) * deltaTime) * exp, alongPath));
@@ -128,8 +126,7 @@ public struct RotationPath
         Quaternion output = target.Add(temp);
 
         //Avoid overshoot
-        float disp;
-        ClosestInPath(output, out disp);
+        ClosestInPath(output, out float disp);
         if (disp > magnitude) output = this.target;
 
         output.Subtract(origin).ToAngleAxis(out tangle, out taxis);
@@ -151,8 +148,7 @@ public struct RotationPath
     //TO DO
     public Quaternion ClosestInPath(Quaternion point)
     {
-        float d;
-        return ClosestInPath(point, out d);
+        return ClosestInPath(point, out float d);
     }
 
     //TO DO
@@ -166,9 +162,6 @@ public struct RotationPath
     {
         if (IsComplexPath())
         {
-            float tangle;
-            Vector3 taxis;
-
             List<Quaternion> corners = new List<Quaternion>();
 
             Quaternion previousCorner = path[0];
@@ -189,7 +182,7 @@ public struct RotationPath
                 i++;
             }
 
-            previousCorner.Subtract(currentCorner).ToAngleAxis(out tangle, out taxis);
+            previousCorner.Subtract(currentCorner).ToAngleAxis(out float tangle, out Vector3 taxis);
 
             corners.Add(currentCorner.Add(Quaternion.AngleAxis(wholeDist, taxis)));
 
@@ -370,8 +363,7 @@ public struct MovementPath
         Vector3 output = target + temp;
 
         //Avoid overshoot
-        float disp;
-        ClosestInPath(output, out disp);
+        ClosestInPath(output, out float disp);
         if (disp > magnitude) output = this.target;
 
         currentVelocity = (output - origin) / deltaTime;
@@ -391,8 +383,7 @@ public struct MovementPath
 
     public Vector3 ClosestInPath(Vector3 point)
     {
-        float d;
-        return ClosestInPath(point, out d);
+        return ClosestInPath(point, out float d);
     }
 
     public Vector3 ClosestInPath(Vector3 point, out float disp)
@@ -405,8 +396,7 @@ public struct MovementPath
             Vector3 clos = path[0];
             for (int i = 0; i < path.Length - 1; i++)
             {
-                float dispAdd_c;
-                Vector3 c = ClosestPointOnSegment(point, path[i], path[i + 1], out dispAdd_c);
+                Vector3 c = ClosestPointOnSegment(point, path[i], path[i + 1], out float dispAdd_c);
                 float d = Vector3.Distance(point, c);
                 if (d < dist)
                 {

@@ -31,8 +31,7 @@ public static class IcoSphere
         long greaterIndex = firstIsSmaller ? p2 : p1;
         long key = (smallerIndex << 32) + greaterIndex;
 
-        int ret;
-        if (cache.TryGetValue(key, out ret))
+        if (cache.TryGetValue(key, out int ret))
         {
             return ret;
         }
@@ -148,8 +147,7 @@ public static class IcoSphere
 
         if (generateSeam) //TO DO: Unfinished!!!
         {
-            Vector2Int minMax;
-            List<int> seam = GenerateSeam(mesh, out minMax);
+            List<int> seam = GenerateSeam(mesh, out Vector2Int minMax);
 
             Vector2[] uvs = new Vector2[mesh.vertices.Length];
             for (int i = 0; i < uvs.Length; i++)

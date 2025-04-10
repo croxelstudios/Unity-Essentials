@@ -10,9 +10,7 @@ public static class QuaternionExtension_AngleAndAxis
     /// <returns>Angle in degrees</returns>
     public static float Angle(this Quaternion quat)
     {
-        Vector3 axis;
-        float angle;
-        quat.ToAngleAxis(out angle, out axis);
+        quat.ToAngleAxis(out float angle, out Vector3 axis);
         return angle;
     }
 
@@ -23,9 +21,7 @@ public static class QuaternionExtension_AngleAndAxis
     /// <returns>Angle in degrees</returns>
     public static Vector3 Axis(this Quaternion quat)
     {
-        Vector3 axis;
-        float angle;
-        quat.ToAngleAxis(out angle, out axis);
+        quat.ToAngleAxis(out float angle, out Vector3 axis);
         return axis;
     }
 }
