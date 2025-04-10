@@ -250,7 +250,7 @@ public struct MovementPath
     public Vector3[] path;
     public float magnitude;
 
-    public MovementPath(Vector3 origin, Vector3 target, bool useNavMesh = false, int navMeshAreaMask = -1)
+    public MovementPath(Vector3 origin, Vector3 target, bool useNavMesh = false, int navMeshAreaMask = 0, int navMeshAgentType = 0)
     {
         this.origin = origin;
         this.target = target;
@@ -261,7 +261,10 @@ public struct MovementPath
         if (useNavMesh)
         {
             NavMeshPath nav = new NavMeshPath();
-            NavMesh.CalculatePath(origin, target, navMeshAreaMask, nav);
+            NavMeshQueryFilter filter = new NavMeshQueryFilter();
+            filter.agentTypeID = navMeshAgentType;
+            filter.areaMask = navMeshAreaMask;
+            NavMesh.CalculatePath(origin, target, filter, nav);
             path = nav.corners;
         }
 

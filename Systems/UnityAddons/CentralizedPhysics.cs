@@ -864,6 +864,47 @@ public static class NDPhysics
         }
     }
 
+    public static NDRaycastHit[] RaycastAll(Vector3 position, Vector3 direction, float distance, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D[] hit2 = Physics2D.RaycastAll(position, direction, distance);
+            NDRaycastHit[] hits = new NDRaycastHit[hit2.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit2[i]);
+            return hits;
+        }
+        else
+        {
+            RaycastHit[] hit3 = Physics.RaycastAll(position, direction, distance);
+            NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit3[i]);
+            return hits;
+        }
+    }
+
+    public static NDRaycastHit[] RaycastAll(Vector3 position, Vector3 direction, float distance,
+        LayerMask mask, bool is2D)
+    {
+        if (is2D)
+        {
+            RaycastHit2D[] hit2 = Physics2D.RaycastAll(position, direction, distance, mask);
+            NDRaycastHit[] hits = new NDRaycastHit[hit2.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit2[i]);
+            return hits;
+        }
+        else
+        {
+            RaycastHit[] hit3 = Physics.RaycastAll(position, direction, distance, mask);
+            NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
+            for (int i = 0; i < hits.Length; i++)
+                hits[i] = new NDRaycastHit(hit3[i]);
+            return hits;
+        }
+    }
+
     public static bool RadiusCast(Ray ray, float radius,
         float distance, out NDRaycastHit hit, bool is2D)
     {

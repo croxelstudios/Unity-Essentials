@@ -75,8 +75,13 @@ public class VectorToTargetEvent : MonoBehaviour
     bool useNavMesh = false;
     [SerializeField]
     [ShowIf("@move && useNavMesh")]
+    [Tooltip("NavMesh agent type to consider")]
+    [NavMeshAgentTypeSelector]
+    int navMeshAgentType = 0;
+    [SerializeField]
+    [ShowIf("@move && useNavMesh")]
     [Tooltip("NavMesh area to use")]
-    int navMeshAreaMask = NavMesh.AllAreas; //TO DO: actually render popup like with layers and tags.
+    NavMeshAreas navMeshAreaMask = NavMeshAreas.Walkable;
     [SerializeField]
     [ShowIf("move")]
     [Tooltip("Move away from target instead of to target")]
@@ -368,7 +373,7 @@ public class VectorToTargetEvent : MonoBehaviour
         if (MoveAway())
             tPos = oPos - (tPos - oPos);
 
-        MovementPath path = new MovementPath(oPos, tPos, useNavMesh, navMeshAreaMask);
+        MovementPath path = new MovementPath(oPos, tPos, useNavMesh, (int)navMeshAreaMask, navMeshAgentType);
 
         if (projection)
         {

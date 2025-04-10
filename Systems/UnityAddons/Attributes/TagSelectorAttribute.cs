@@ -96,7 +96,7 @@ public class TagSelectorAttribute : PropertyAttribute
 #if UNITY_EDITOR
 //Original by DYLAN ENGELMAN http://jupiterlighthousestudio.com/custom-inspectors-unity/
 //Altered by Brecht Lecluyse http://www.brechtos.com
-//Altered by HypercubeCore to add event calls support
+//Altered by AstrophelMoore to add event calls support
 [CustomPropertyDrawer(typeof(TagSelectorAttribute))]
 public class TagSelectorAttributeDrawer : PropertyDrawer
 {
