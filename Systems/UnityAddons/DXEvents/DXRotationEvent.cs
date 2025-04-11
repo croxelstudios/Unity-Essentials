@@ -75,9 +75,9 @@ public class DXRotationEvent
         }
 
         arg0.ToAngleAxis(out float angle, out Vector3 axis);
-        if (hasQuaternion)
-            unityEvent?.Invoke(arg0.eulerAngles);
         if (hasEulerAngles)
+            unityEvent?.Invoke(arg0.eulerAngles);
+        if (hasQuaternion)
             quaternionEvent?.Invoke(arg0);
         if (hasAngle)
             angleEvent?.Invoke(angle);
