@@ -621,8 +621,8 @@ public class VectorToTargetEvent : MonoBehaviour
         Quaternion tRot = target.rotation;
         if (local && (origin.parent != null))
             tRot = Quaternion.Inverse(origin.parent.rotation) * tRot;
-        if (RotateAway())
-            /*TO DO*/;
+        //if (RotateAway())
+            //TO DO;
 
         RotationPath rotPath = new RotationPath(oRot, tRot);
 

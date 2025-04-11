@@ -6,135 +6,104 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXVectorEvent
+public class DXRotationEvent
 {
     [SerializeField]
-    protected EventType[] types = new EventType[] { EventType.Vector3 };
+    protected EventType[] types = new EventType[] { EventType.Quaternion };
     [SerializeField]
     Vector3Event unityEvent = null;
     [SerializeField]
-    Vector2Event vector2Event = null;
+    QuaternionEvent quaternionEvent = null;
     [SerializeField]
-    Vector2Event vector2XZEvent = null;
+    FloatEvent angleEvent = null;
     [SerializeField]
-    FloatEvent magnitude = null;
-    [SerializeField]
-    Vector3Event unityEventNormal = null;
-    [SerializeField]
-    Vector2Event vector2EventNormal = null;
+    Vector3Event axisEvent = null;
     [SerializeField]
     FloatEvent xEvent = null;
     [SerializeField]
     FloatEvent yEvent = null;
     [SerializeField]
     FloatEvent zEvent = null;
-    [SerializeField]
-    FloatEvent magnitudeNonZero = null;
-    [SerializeField]
-    UnityEvent magnitudeZero = null;
 
-    public DXVectorEvent() { types = new EventType[] { EventType.Vector3 }; }
+    public DXRotationEvent() { types = new EventType[] { EventType.Quaternion }; }
 
+    [Serializable]
+    public class QuaternionEvent : UnityEvent<Quaternion> { }
     [Serializable]
     public class Vector3Event : UnityEvent<Vector3> { }
-    [Serializable]
-    public class Vector2Event : UnityEvent<Vector2> { }
     [Serializable]
     public class FloatEvent : UnityEvent<float> { }
 
     public enum EventType
-    {
-        Vector3, Vector2, Vector2XZ, Magnitude,
-        NormalizedVector3, NormalizedVector2, X, Y, Z, 
-        MagnitudeNonZero, MagnitudeZero
-    }
+    { EulerAngles, Quaternion, Angle, Axis, EulerX, EulerY, EulerZ }
 
-    public void Invoke(Vector3 arg0)
+    public void Invoke(Quaternion arg0)
     {
-        bool hasVector3 = false;
-        bool hasVector2 = false;
-        bool hasVector2XZ = false;
-        bool hasMagnitude = false;
-        bool hasNormalizedVector3 = false;
-        bool hasNormalizedVector2 = false;
+        bool hasQuaternion = false;
+        bool hasEulerAngles = false;
+        bool hasAngle = false;
+        bool hasAxis = false;
         bool hasX = false;
         bool hasY = false;
         bool hasZ = false;
-        bool hasMagnitudeNonZero = false;
-        bool hasMagnitudeZero = false;
         for (int i = 0; i < types.Length; i++)
         {
             switch (types[i])
             {
-                case EventType.Vector3:
-                    hasVector3 = true;
+                case EventType.EulerAngles:
+                    hasEulerAngles = true;
                     break;
-                case EventType.Vector2:
-                    hasVector2 = true;
+                case EventType.Quaternion:
+                    hasQuaternion = true;
                     break;
-                case EventType.Vector2XZ:
-                    hasVector2XZ = true;
+                case EventType.Angle:
+                    hasAngle = true;
                     break;
-                case EventType.Magnitude:
-                    hasMagnitude = true;
+                case EventType.Axis:
+                    hasAxis = true;
                     break;
-                case EventType.NormalizedVector3:
-                    hasNormalizedVector3 = true;
-                    break;
-                case EventType.NormalizedVector2:
-                    hasNormalizedVector2 = true;
-                    break;
-                case EventType.X:
+                case EventType.EulerX:
                     hasX = true;
                     break;
-                case EventType.Y:
+                case EventType.EulerY:
                     hasY = true;
                     break;
-                case EventType.Z:
+                case EventType.EulerZ:
                     hasZ = true;
-                    break;
-                case EventType.MagnitudeNonZero:
-                    hasMagnitudeNonZero = true;
-                    break;
-                case EventType.MagnitudeZero:
-                    hasMagnitudeZero = true;
                     break;
             }
         }
 
-        if (hasVector3)
-            unityEvent?.Invoke(arg0);
-        if (hasVector2)
-            vector2Event?.Invoke(arg0);
-        if (hasVector2XZ)
-            vector2XZEvent?.Invoke(new Vector2(arg0.x, arg0.z));
-        if (hasMagnitude)
-            magnitude?.Invoke(arg0.magnitude);
-        if (hasNormalizedVector3)
-            unityEventNormal?.Invoke(arg0.normalized);
-        if (hasNormalizedVector2)
-            vector2EventNormal?.Invoke(arg0.normalized);
+        arg0.ToAngleAxis(out float angle, out Vector3 axis);
+        if (hasQuaternion)
+            unityEvent?.Invoke(arg0.eulerAngles);
+        if (hasEulerAngles)
+            quaternionEvent?.Invoke(arg0);
+        if (hasAngle)
+            angleEvent?.Invoke(angle);
+        if (hasAxis)
+            axisEvent?.Invoke(axis);
         if (hasX)
-            xEvent?.Invoke(arg0.x);
+            xEvent?.Invoke(arg0.eulerAngles.x);
         if (hasY)
-            yEvent?.Invoke(arg0.y);
+            yEvent?.Invoke(arg0.eulerAngles.y);
         if (hasZ)
-            zEvent?.Invoke(arg0.z);
-        if (hasMagnitudeNonZero)
-        {
-            if (arg0.sqrMagnitude > Mathf.Epsilon)
-                magnitudeNonZero?.Invoke(arg0.magnitude);
-        }
-        if (hasMagnitudeZero)
-        {
-            if (arg0.sqrMagnitude <= Mathf.Epsilon)
-                magnitudeZero?.Invoke();
-        }
+            zEvent?.Invoke(arg0.eulerAngles.z);
     }
 
-    public void Invoke(Vector2 arg0)
+    public void Invoke(Vector3 arg0)
     {
-        Invoke((Vector3)arg0);
+        Invoke(Quaternion.Euler(arg0));
+    }
+
+    public void AddListener(UnityAction<Quaternion> call)
+    {
+        quaternionEvent.AddListener(call);
+    }
+
+    public void RemoveListener(UnityAction<Quaternion> call)
+    {
+        quaternionEvent.RemoveListener(call);
     }
 
     public void AddListener(UnityAction<Vector3> call)
@@ -147,44 +116,24 @@ public class DXVectorEvent
         unityEvent.RemoveListener(call);
     }
 
-    public void AddListener(UnityAction<Vector2> call)
+    public void AddListenerAngle(UnityAction<float> call)
     {
-        vector2Event.AddListener(call);
+        angleEvent.AddListener(call);
     }
 
-    public void RemoveListener(UnityAction<Vector2> call)
+    public void RemoveListenerAngle(UnityAction<float> call)
     {
-        vector2Event.RemoveListener(call);
+        angleEvent.RemoveListener(call);
     }
 
-    public void AddListener(UnityAction<float> call)
+    public void AddListenerAxis(UnityAction<Vector3> call)
     {
-        magnitude.AddListener(call);
+        axisEvent.AddListener(call);
     }
 
-    public void RemoveListener(UnityAction<float> call)
+    public void RemoveListenerAxis(UnityAction<Vector3> call)
     {
-        magnitude.RemoveListener(call);
-    }
-
-    public void AddListenerNormal(UnityAction<Vector3> call)
-    {
-        unityEventNormal.AddListener(call);
-    }
-
-    public void RemoveListenerNormal(UnityAction<Vector3> call)
-    {
-        unityEventNormal.RemoveListener(call);
-    }
-
-    public void AddListenerNormal(UnityAction<Vector2> call)
-    {
-        vector2EventNormal.AddListener(call);
-    }
-
-    public void RemoveListenerNormal(UnityAction<Vector2> call)
-    {
-        vector2EventNormal.RemoveListener(call);
+        axisEvent.RemoveListener(call);
     }
 
     public void AddListenerX(UnityAction<float> call)
@@ -216,34 +165,20 @@ public class DXVectorEvent
     {
         zEvent.RemoveListener(call);
     }
-
-    public void AddListenerMagnitudeNonZero(UnityAction<float> call)
-    {
-        magnitudeNonZero.AddListener(call);
-    }
-
-    public void RemoveListenerMagnitudeNonZero(UnityAction<float> call)
-    {
-        magnitudeNonZero.RemoveListener(call);
-    }
 }
 
 #if UNITY_EDITOR
 
-[CustomPropertyDrawer(typeof(DXVectorEvent))]
-public class DXVectorEventDrawer : DXDrawerBase
+[CustomPropertyDrawer(typeof(DXRotationEvent))]
+public class DXQuaternionEventDrawer : DXDrawerBase
 {
     const string eventTypesName = "types";
-    const string vector2EventName = "vector2Event";
-    const string vector2XZEventName = "vector2XZEvent";
-    const string magnitudeEventName = "magnitude";
-    const string vector3NormalEventName = "unityEventNormal";
-    const string vector2NormalEventName = "vector2EventNormal";
+    const string quaternionEventName = "quaternionEvent";
+    const string angleEventName = "angleEvent";
+    const string axisEventName = "axisEvent";
     const string xEventName = "xEvent";
     const string yEventName = "yEvent";
     const string zEventName = "zEvent";
-    const string magnitudeNonZeroEventName = "magnitudeNonZero";
-    const string magnitudeZeroEventName = "magnitudeZero";
     const float buttonSizeX = 80f;
     const float buttonSizeY = 20f;
     const float margin = 10f;
@@ -288,38 +223,26 @@ public class DXVectorEventDrawer : DXDrawerBase
             //Event
             switch (eventType.enumValueIndex)
             {
-                case (int)DXVectorEvent.EventType.Vector3:
-                    eventRect = DrawSubEvent(eventRect, property, unityEventName, "     ");
+                case (int)DXRotationEvent.EventType.EulerAngles:
+                    eventRect = DrawSubEvent(eventRect, property, unityEventName, "                             ");
                     break;
-                case (int)DXVectorEvent.EventType.Vector2:
-                    eventRect = DrawSubEvent(eventRect, property, vector2EventName, "     ");
+                case (int)DXRotationEvent.EventType.Quaternion:
+                    eventRect = DrawSubEvent(eventRect, property, quaternionEventName, "                          ");
                     break;
-                case (int)DXVectorEvent.EventType.Vector2XZ:
-                    eventRect = DrawSubEvent(eventRect, property, vector2XZEventName, "     ");
+                case (int)DXRotationEvent.EventType.Angle:
+                    eventRect = DrawSubEvent(eventRect, property, angleEventName, "                 ");
                     break;
-                case (int)DXVectorEvent.EventType.Magnitude:
-                    eventRect = DrawSubEvent(eventRect, property, magnitudeEventName, "             ");
+                case (int)DXRotationEvent.EventType.Axis:
+                    eventRect = DrawSubEvent(eventRect, property, axisEventName, "               ");
                     break;
-                case (int)DXVectorEvent.EventType.NormalizedVector3:
-                    eventRect = DrawSubEvent(eventRect, property, vector3NormalEventName, "                            ");
+                case (int)DXRotationEvent.EventType.EulerX:
+                    eventRect = DrawSubEvent(eventRect, property, xEventName, "                    ");
                     break;
-                case (int)DXVectorEvent.EventType.NormalizedVector2:
-                    eventRect = DrawSubEvent(eventRect, property, vector2NormalEventName, "                            ");
+                case (int)DXRotationEvent.EventType.EulerY:
+                    eventRect = DrawSubEvent(eventRect, property, yEventName, "                    ");
                     break;
-                case (int)DXVectorEvent.EventType.X:
-                    eventRect = DrawSubEvent(eventRect, property, xEventName, "");
-                    break;
-                case (int)DXVectorEvent.EventType.Y:
-                    eventRect = DrawSubEvent(eventRect, property, yEventName, "");
-                    break;
-                case (int)DXVectorEvent.EventType.Z:
-                    eventRect = DrawSubEvent(eventRect, property, zEventName, "");
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeNonZero:
-                    eventRect = DrawSubEvent(eventRect, property, magnitudeNonZeroEventName, "                               ");
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeZero:
-                    eventRect = DrawSubEvent(eventRect, property, magnitudeZeroEventName, "                                  ");
+                case (int)DXRotationEvent.EventType.EulerZ:
+                    eventRect = DrawSubEvent(eventRect, property, zEventName, "                    ");
                     break;
             }
 
@@ -379,38 +302,26 @@ public class DXVectorEventDrawer : DXDrawerBase
             SerializedProperty eventType = eventTypes.GetArrayElementAtIndex(i);
             switch (eventType.enumValueIndex)
             {
-                case (int)DXVectorEvent.EventType.Vector3:
+                case (int)DXRotationEvent.EventType.EulerAngles:
                     height += GetHeightOfEvent(property, unityEventName);
                     break;
-                case (int)DXVectorEvent.EventType.Vector2:
-                    height += GetHeightOfEvent(property, vector2EventName);
+                case (int)DXRotationEvent.EventType.Quaternion:
+                    height += GetHeightOfEvent(property, quaternionEventName);
                     break;
-                case (int)DXVectorEvent.EventType.Vector2XZ:
-                    height += GetHeightOfEvent(property, vector2XZEventName);
+                case (int)DXRotationEvent.EventType.Angle:
+                    height += GetHeightOfEvent(property, angleEventName);
                     break;
-                case (int)DXVectorEvent.EventType.Magnitude:
-                    height += GetHeightOfEvent(property, magnitudeEventName);
+                case (int)DXRotationEvent.EventType.Axis:
+                    height += GetHeightOfEvent(property, axisEventName);
                     break;
-                case (int)DXVectorEvent.EventType.NormalizedVector3:
-                    height += GetHeightOfEvent(property, vector3NormalEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.NormalizedVector2:
-                    height += GetHeightOfEvent(property, vector2NormalEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.X:
+                case (int)DXRotationEvent.EventType.EulerX:
                     height += GetHeightOfEvent(property, xEventName);
                     break;
-                case (int)DXVectorEvent.EventType.Y:
+                case (int)DXRotationEvent.EventType.EulerY:
                     height += GetHeightOfEvent(property, yEventName);
                     break;
-                case (int)DXVectorEvent.EventType.Z:
+                case (int)DXRotationEvent.EventType.EulerZ:
                     height += GetHeightOfEvent(property, zEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeNonZero:
-                    height += GetHeightOfEvent(property, magnitudeNonZeroEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeZero:
-                    height += GetHeightOfEvent(property, magnitudeZeroEventName);
                     break;
             }
         }
