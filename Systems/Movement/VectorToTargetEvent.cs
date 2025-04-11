@@ -38,7 +38,7 @@ public class VectorToTargetEvent : MonoBehaviour
     Vector3 planeNormal = Vector3.back;
     #endregion
 
-    [Header("Speed")]
+    [Header("Speed behaviour")]
     #region Speed
     [SerializeField]
     SpeedMode speedMode = SpeedMode.Linear;
@@ -56,7 +56,7 @@ public class VectorToTargetEvent : MonoBehaviour
     [SerializeField]
     bool sendWhenZeroToo = false;
     [SerializeField]
-    TargetMode targetMode = TargetMode.MoveToExactPoint;
+    TargetMode targetMode = TargetMode.ToExactPoint;
     [SerializeField]
     [HideIf("@speedMode == SpeedMode.Teleport")]
     [Tooltip("When is this code executed")]
@@ -172,7 +172,7 @@ public class VectorToTargetEvent : MonoBehaviour
     [SerializeField]
     [ShowIf("rotate")]
     [Tooltip("Resulting rotation euler angles in degrees per second")]
-    DXVectorEvent rotation = null; //TO DO: DXRotation event that can send raw angle, axis, quaternion, or euler.
+    DXVectorEvent rotation = null;
     [SerializeField]
     [ShowIf("rotate")]
     [Tooltip("Resulting rotation amount")]
@@ -191,7 +191,7 @@ public class VectorToTargetEvent : MonoBehaviour
     #endregion
 
     enum SpeedMode { Linear, Accelerated, SmoothDamp, LerpSmooth, Teleport }
-    enum TargetMode { MoveToExactPoint, NeverStop, StopAtMargin }
+    enum TargetMode { ToExactPoint, NeverStop, StopAtMargin }
 
     float unsignedMaxSpd;
     Vector3 speed;
@@ -239,7 +239,7 @@ public class VectorToTargetEvent : MonoBehaviour
     {
         speed = Vector3.zero;
         rotSpeed = Quaternion.identity;
-        if (useTagForOrigin) origin = TagSearch(targetTag);
+        if (useTagForOrigin) origin = FindWithTag.TrCheckEmpty(targetTag);
         UpdatePrevPos();
 
         if (target == null) ResetTarget();
@@ -271,26 +271,7 @@ public class VectorToTargetEvent : MonoBehaviour
     /// </summary>
     public void ResetTarget()
     {
-        target = TagSearch(targetTag);
-    }
-
-    Transform TagSearch(string tag)
-    {
-        Transform target = null;
-        if (tag != "")
-        {
-            GameObject[] objs = GameObject.FindGameObjectsWithTag(targetTag);
-            if (objs.Length > 0)
-            {
-                if (objs[0] != gameObject) target = objs[0].transform;
-                else if (objs.Length > 1) target = objs[1].transform;
-
-                for (int i = 0; i < objs.Length; i++)
-                    if ((target != objs[i]) && target.IsChildOf(objs[i].transform))
-                        target = objs[i].transform;
-            }
-        }
-        return target;
+        target = FindWithTag.TrCheckEmpty(targetTag);
     }
 
     /// <summary>

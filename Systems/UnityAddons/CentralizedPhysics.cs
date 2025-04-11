@@ -795,13 +795,13 @@ public static class NDPhysics
         {
             for (int i = 0; i < 32; i++)
                 if (!Physics2D.GetIgnoreLayerCollision(layer, i))
-                    layerMask |= 1 << i;
+                    layerMask = layerMask.AddLayer(i);
         }
         else
         {
             for (int i = 0; i < 32; i++)
                 if (!Physics.GetIgnoreLayerCollision(layer, i))
-                    layerMask |= 1 << i;
+                    layerMask = layerMask.AddLayer(i);
         }
         return layerMask;
     }

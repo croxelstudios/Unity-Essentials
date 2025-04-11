@@ -1,3 +1,4 @@
+using Sirenix.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -117,6 +118,55 @@ public static class FindWithTag
         list.AddRange(Transforms(new string[] { tag }));
         list.AddRange(Transforms(extraTags));
         return list.ToArray();
+    }
+    public static Transform Transform(bool onlyParents, params string[] tags)
+    {
+        Transform[] result = Transforms(onlyParents, tags).RemoveChildren();
+        return result.NullOrEmpty() ? null : result[0];
+    }
+
+    public static Transform[] Transforms(bool onlyParents, params string[] tags)
+    {
+        Transform[] transforms = Transforms(tags);
+        return onlyParents ? transforms.RemoveChildren() : transforms;
+    }
+
+    public static Transform Transform(bool onlyParents, params string[][] tags)
+    {
+        Transform[] result = Transforms(onlyParents, tags).RemoveChildren();
+        return result.NullOrEmpty() ? null : result[0];
+    }
+
+    public static Transform[] Transforms(bool onlyParents, params string[][] tags)
+    {
+        Transform[] transforms = Transforms(tags);
+        return onlyParents ? transforms.RemoveChildren() : transforms;
+    }
+
+    public static Transform Transform(string tag, bool onlyParents, params string[] extraTags)
+    {
+        Transform[] result = Transforms(tag, onlyParents, extraTags).RemoveChildren();
+        return result.NullOrEmpty() ? null : result[0];
+    }
+
+    public static Transform[] Transforms(string tag, bool onlyParents, params string[] extraTags)
+    {
+        Transform[] transforms = Transforms(tag, extraTags);
+        return onlyParents ? transforms.RemoveChildren() : transforms;
+    }
+
+    public static Transform TrCheckEmpty(string tag, bool onlyParents = true)
+    {
+        Transform target = null;
+        if (tag != "") target = Transform(tag, onlyParents);
+        return target;
+    }
+
+    public static Transform[] TrsCheckEmpty(string tag, bool onlyParents = true)
+    {
+        Transform[] targets = null;
+        if (tag != "") targets = Transforms(tag, onlyParents);
+        return targets;
     }
     #endregion
 

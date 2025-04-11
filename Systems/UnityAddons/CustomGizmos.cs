@@ -11,7 +11,7 @@ public static class CustomGizmos
     const int INNER_DIV = 12;
     const int STEPS_DIV = 2;
 
-    public static void Circle(this Vector3 point, Vector3 normal, Vector3 up, float radius)
+    public static void Circle(Vector3 point, Vector3 normal, Vector3 up, float radius)
     {
         float angdif = 360f / RADIAL_DIV;
 

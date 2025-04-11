@@ -129,6 +129,7 @@ Material:
     - _3DBOOLEANS: 0
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
+    - _AlphaMaskChannelRed: 1
     - _AlphaNoiseBorder: 0
     - _AlphaToMask: 0
     - _AmbientLight: 1
@@ -182,7 +183,7 @@ Material:
     - _ReceiveShadows: 1
     - _RimLightAmount: 0
     - _Rotation: 0
-    - _ScaleInOtherSpace: 0
+    - _ScaleInOtherSpace: 1
     - _Screen_Thickness: 0.0042
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
@@ -194,6 +195,9 @@ Material:
     - _Surface: 0
     - _TexBrightness: 0
     - _ToonSubdivisions: 4
+    - _TriplanarAlphaBottom: 1
+    - _TriplanarAlphaSides: 1
+    - _TriplanarAlphaTop: 1
     - _TriplanarBlend: 0.2
     - _TriplanarUVs: 1
     - _TriplanarWarpBlend: 0
@@ -221,7 +225,7 @@ Material:
     - _Wind_VTumbleAmount: 0
     - _Wind_VWaveFrecuency: 1
     - _WorkflowMode: 1
-    - _WorldSpace: 1
+    - _WorldSpace: 0
     - _ZTest: 4
     - _ZWrite: 1
     - _ZWriteControl: 0

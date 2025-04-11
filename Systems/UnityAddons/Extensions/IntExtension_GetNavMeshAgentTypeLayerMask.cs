@@ -1,6 +1,5 @@
 using Unity.AI.Navigation;
 using UnityEngine;
-using UnityEngine.AI;
 
 public static class IntExtension_GetNavMeshAgentTypeLayerMask
 {
@@ -16,7 +15,7 @@ public static class IntExtension_GetNavMeshAgentTypeLayerMask
             LayerMask result = 0;
             for (int i = 0; i < navMeshSurfaces.Length; i++)
                 if (navMeshSurfaces[i].agentTypeID == navMeshAgentType)
-                    result |= 1 << navMeshSurfaces[i].layerMask;
+                    result = result.Combine(navMeshSurfaces[i].layerMask);
             return result;
         }
         else return 0;

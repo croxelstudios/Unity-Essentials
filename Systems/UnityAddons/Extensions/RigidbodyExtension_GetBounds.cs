@@ -12,7 +12,7 @@ public static class RigidbodyExtension_GetBounds
         {
             bounds = colliders[0].bounds;
             if (colliders.Count > 1)
-                for(int i = 1; i < colliders.Count; i++)
+                for (int i = 1; i < colliders.Count; i++)
                     bounds.Encapsulate(colliders[i].bounds);
         }
         else bounds = new Bounds(Vector3.zero, Vector3.zero);
@@ -22,15 +22,19 @@ public static class RigidbodyExtension_GetBounds
     public static Bounds GetBounds(this Rigidbody rigid)
     {
         Collider[] colliders = rigid.GetComponentsInChildren<Collider>();
-        Bounds bounds;
+        bool registered = false;
+        Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
         if (colliders.Length > 0)
-        {
-            bounds = colliders[0].bounds;
-            if (colliders.Length > 1)
-                for (int i = 1; i < colliders.Length; i++)
-                    bounds.Encapsulate(colliders[i].bounds);
-        }
-        else bounds = new Bounds(Vector3.zero, Vector3.zero);
+            for (int i = 0; i < colliders.Length; i++)
+                if (!colliders[i].isTrigger)
+                {
+                    if (!registered)
+                    {
+                        bounds = colliders[i].bounds;
+                        registered = true;
+                    }
+                    else bounds.Encapsulate(colliders[i].bounds);
+                }
         return bounds;
     }
 }
