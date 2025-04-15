@@ -9,8 +9,9 @@ public struct SpeedBehaviour
     public float smoothTime;
     [ShowIf("@speedMode == SpeedMode.LerpSmooth")]
     public float decay;
+    [SerializeField]
     [ShowIf("@speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp")]
-    public bool accountForCurrentSpeed;
+    bool accountForCurrentSpeed;
     [Tooltip("Start speed in units per second")]
     [ShowIf("@speedMode == SpeedMode.Linear || speedMode == SpeedMode.LerpSmooth")]
     public float speed;
@@ -19,13 +20,16 @@ public struct SpeedBehaviour
     public float maxSpeed;
     [ShowIf("@speedMode == SpeedMode.Accelerated")]
     public float acceleration;
+    [SerializeField]
     [ShowIf("@speedMode == SpeedMode.Accelerated")]
     [Tooltip("Friction multiplier relative to acceleration. Applied when doAccelerate is false. Greater = stops faster")]
-    public float frictionBias;
+    float frictionBias;
     [ShowIf("@speedMode == SpeedMode.Accelerated")]
     [Tooltip("Wether the object is accelerating towards the target or slowly stopping")]
     bool _doAccelerate;
     public bool doAccelerate { get { return _doAccelerate; } set { _doAccelerate = value; } }
+    public float friction { get { return acceleration + frictionBias; } }
+    public float unsignedMaxSpeed { get { return Mathf.Abs(GetSpeed()); } }
 
     public SpeedBehaviour(SpeedMode speedMode)
     {
@@ -66,6 +70,46 @@ public struct SpeedBehaviour
                 return maxSpeed;
             default:
                 return speed;
+        }
+    }
+
+    public bool IsInstantaneous()
+    {
+        switch (speedMode)
+        {
+            case SpeedMode.Linear:
+                return speed >= Mathf.Infinity;
+            case SpeedMode.SmoothDamp:
+                return smoothTime <= 0f;
+            case SpeedMode.Teleport:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public bool IsDynamic()
+    {
+        return (speedMode == SpeedMode.Accelerated) || (speedMode == SpeedMode.SmoothDamp) || (speedMode == SpeedMode.LerpSmooth);
+    }
+
+    public bool AffectedByCurrentSpeed()
+    {
+        return ((speedMode == SpeedMode.Accelerated) || (speedMode == SpeedMode.SmoothDamp)) && accountForCurrentSpeed;
+    }
+
+    public bool MoveAway()
+    {
+        switch (speedMode)
+        {
+            case SpeedMode.Linear:
+                return (maxSpeed * speed) < 0f;
+            case SpeedMode.Accelerated:
+                return (maxSpeed * acceleration) < 0f;
+            case SpeedMode.LerpSmooth:
+                return speed < 0f;
+            default:
+                return maxSpeed < 0f;
         }
     }
 }

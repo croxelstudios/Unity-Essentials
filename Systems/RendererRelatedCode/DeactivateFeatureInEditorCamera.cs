@@ -47,6 +47,9 @@ public class DeactivateFeatureInEditorCamera : MonoBehaviour
     void EndCameraRendering(ScriptableRenderContext context, Camera cam)
     {
         if (deactivated)
+        {
+            deactivated = false;
             feature.SetActive(true);
+        }
     }
 }

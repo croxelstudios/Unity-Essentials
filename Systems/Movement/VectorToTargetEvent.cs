@@ -15,13 +15,14 @@ public class VectorToTargetEvent : MonoBehaviour
     [Tooltip("Tag used to find the transform in case it is not specified")]
     string targetTag = "Player";
     [SerializeField]
-    [Tooltip("True: The target is found through the tag. False: The 'origin' is found through the tag")]
-    bool useTagForOrigin = false;
-    [SerializeField]
-    [Tooltip("Positional and rotational target transform")]
+    [Tooltip("Target transform")]
     Transform target = null;
     public Transform Target { get { return target; } set { target = value; } }
     [SerializeField]
+    [Tooltip("False: The target is found through the tag. True: The 'origin' is found through the tag")]
+    bool useTagForOrigin = false;
+    [SerializeField]
+    [HideIf("useTagForOrigin")]
     [Tooltip("The transform that will move or the transform that the movement is calculated from. By default, this object's transform.")]
     Transform origin = null;
     [Space]
@@ -58,7 +59,6 @@ public class VectorToTargetEvent : MonoBehaviour
     [SerializeField]
     TargetMode targetMode = TargetMode.ToExactPoint;
     [SerializeField]
-    [HideIf("@speedMode == SpeedMode.Teleport")]
     [Tooltip("When is this code executed")]
     TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
     #endregion

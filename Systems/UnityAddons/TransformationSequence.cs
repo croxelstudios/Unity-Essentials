@@ -36,9 +36,10 @@ public struct RotationPath
         CalculateMagnitude();
     }
 
-    //TO DO
     public void ProjectOnPlane(Vector3 normal)
     {
+        for (int i = 0; i < path.Length; i++)
+            path[i] = Quaternion.AngleAxis(path[i].Angle(), normal);
     }
 
     public void CalculateMagnitude()
