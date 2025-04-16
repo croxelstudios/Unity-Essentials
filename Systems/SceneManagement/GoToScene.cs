@@ -21,7 +21,7 @@ public class GoToScene : MonoBehaviour
 
     public void GoScene()
     {
-        if (seconds <= 0f) GoSceneInstant_Internal();
+        if (seconds <= 0f) GoSceneInstant();
         else GoScene(seconds);
     }
 

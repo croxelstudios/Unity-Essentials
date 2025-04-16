@@ -29,6 +29,7 @@ public class FadeInOut : MonoBehaviour
 
     Coroutine co;
     FadeBehaviour current;
+    FadeBehaviour onEnableOverride;
 
     enum FadeBehaviour { FadeIn, FadeOut, None }
 
@@ -60,7 +61,13 @@ public class FadeInOut : MonoBehaviour
     {
         GetAlphaHolder();
         //alphaHolder.alpha = 0f; //Alpha 0 when disabled
-        switch (onEnableBehaviour)
+
+        FadeBehaviour check;
+        if (onEnableOverride != FadeBehaviour.None)
+            check = onEnableOverride;
+        else check = onEnableBehaviour;
+
+        switch (check)
         {
             case FadeBehaviour.FadeIn:
                 FadeIn();
@@ -72,6 +79,9 @@ public class FadeInOut : MonoBehaviour
                 CheckInvisibleBehaviour(alphaHolder.alpha);
                 break;
         }
+
+        if (onEnableOverride != FadeBehaviour.None)
+            onEnableOverride = FadeBehaviour.None;
     }
 
     void OnDisable()
@@ -92,10 +102,15 @@ public class FadeInOut : MonoBehaviour
     {
         GetAlphaHolder();
         bool objectWasDisabled = !gameObject.activeInHierarchy;
-        gameObject.SetActive(true);
         if (resetAlphaOnCall || objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
         StopEffect();
-        if (alphaHolder.alpha < 1f) co = StartCoroutine(FadeTo(true));
+        if (objectWasDisabled)
+        {
+            onEnableOverride = FadeBehaviour.FadeIn;
+            gameObject.SetActive(true);
+        }
+        else if (alphaHolder.alpha < 1f)
+            co = StartCoroutine(FadeTo(true));
     }
 
     public void FadeOut()
@@ -105,11 +120,13 @@ public class FadeInOut : MonoBehaviour
         if (resetAlphaOnCall) alphaHolder.alpha = 1f;
         else if (objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
         StopEffect();
-        if (alphaHolder.alpha > 0f)
+        if (objectWasDisabled)
         {
+            onEnableOverride = FadeBehaviour.FadeOut;
             gameObject.SetActive(true);
-            co = StartCoroutine(FadeTo(false));
         }
+        else if (alphaHolder.alpha > 0f)
+            co = StartCoroutine(FadeTo(false));
     }
 
     void CheckInvisibleBehaviour(float alpha)
