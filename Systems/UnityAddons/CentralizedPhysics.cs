@@ -1198,6 +1198,14 @@ public class NDCollision
             else return new NDCollider(collision3.collider);
         }
     }
+    public GameObject gameObject
+    {
+        get
+        {
+            if (is2D) return collision2.gameObject;
+            else return collision3.gameObject;
+        }
+    }
     public int contactCount
     {
         get

@@ -48,7 +48,7 @@ public class BTriggerManager : MonoBehaviour
         {
             NDCollider enterCol = new NDCollider(other);
             int prevCount = colliders.Count;
-            colliders.Add(new NDCollider(other));
+            colliders.Add(enterCol);
             if (prevCount == 0) OnTrigEnter();
             OnTrigEnter(enterCol);
         }
