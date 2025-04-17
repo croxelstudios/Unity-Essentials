@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class VectorToTargetEvent : MonoBehaviour
+public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
 {
     [SerializeField]
     [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
@@ -206,6 +206,14 @@ public class VectorToTargetEvent : MonoBehaviour
 
     Vector3 accelerationHalf;
     Quaternion rotAccelHalf;
+
+    //Agent type
+    public void OverrideNavMeshAgentType(int navMeshAgentType, out int prevAgentType)
+    {
+        prevAgentType = this.navMeshAgentType;
+        this.navMeshAgentType = navMeshAgentType;
+    }
+    //
 
     public void SetMaxSpeed(float speed)
     {

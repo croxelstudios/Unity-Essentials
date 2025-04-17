@@ -69,8 +69,9 @@ public static class CustomGizmos
 
         for (int k = 1; k <= STEPS_DIV; k++)
         {
-            float rad = stepsDif * k * Mathf.Cos(angle * Mathf.Deg2Rad);
-            Circle(position + (forward * rad), forward, up, rad);
+            float dist = stepsDif * k * Mathf.Cos(angle * Mathf.Deg2Rad);
+            float rad = stepsDif * k * Mathf.Sin(angle * Mathf.Deg2Rad);
+            Circle(position + (forward * dist), forward, up, rad);
         }
     }
 #endif

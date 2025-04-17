@@ -817,20 +817,6 @@ public static class NDPhysics
         return rigids.ToArray();
     }
 
-    public static bool NDContains(this List<NDCollider> colliders, NDCollider collider)
-    {
-        foreach (NDCollider col in colliders)
-            if (collider == col) return true;
-        return false;
-    }
-
-    public static bool NDContains(this NDCollider[] colliders, NDCollider collider)
-    {
-        foreach (NDCollider col in colliders)
-            if (collider == col) return true;
-        return false;
-    }
-
     public static bool Raycast(Vector3 position, Vector3 direction, out NDRaycastHit hit, float distance, bool is2D)
     {
         if (is2D)

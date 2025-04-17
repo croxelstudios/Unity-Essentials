@@ -192,6 +192,11 @@ public struct CustomTagItem : IEquatable<CustomTagItem>
     {
         customTag = id;
     }
+
+    public CustomTag[] GetActiveTagged()
+    {
+        return CustomTag.GetActiveTagged(this).ToArray();
+    }
 }
 
 [Serializable]
