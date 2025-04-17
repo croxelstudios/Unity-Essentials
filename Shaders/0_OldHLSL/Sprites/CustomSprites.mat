@@ -13,7 +13,6 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
-  - _COLORALPHAMULTIPLY_ON
   - _CUTOFFIGNORESCOLOR_ON
   - _ZWRITE_ON
   m_LightmapFlags: 4
@@ -97,7 +96,7 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _ColorAlphaMultiply: 1
+    - _ColorAlphaMultiply: 0
     - _CompareOp: 4
     - _Cull: 0
     - _CutOff: 0.01
@@ -153,3 +152,4 @@ Material:
     - _ShadowColorOverride: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
