@@ -33,6 +33,7 @@ public class StateMachine_ByChildren : StateMachine
                     newStates[i] = new State(child.name);
                 }
             states = newStates;
+            SyncNames();
         }
     }
 
@@ -58,7 +59,7 @@ public class StateMachine_ByChildren : StateMachine
         transform.GetChild(newState).gameObject.SetActive(true);
     }
 }
-
+/*
 #if UNITY_EDITOR
 [CanEditMultipleObjects]
 [CustomEditor(typeof(StateMachine_ByChildren))]
@@ -66,3 +67,4 @@ public class StateMachine_ByChildren_Inspector : StateMachine_Inspector
 {
 }
 #endif
+*/

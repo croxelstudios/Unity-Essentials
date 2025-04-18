@@ -15,9 +15,7 @@ public class ColorSignalListener : BBaseSignalListener
     protected override void OnEnable()
     {
         base.OnEnable();
-        if (launchOnEnable)
-            for (int i = 0; i < signalActions.Length; i++)
-                LaunchActions(i, signalActions[i].signal.currentValue); //Change type here
+        if (launchOnEnable) LaunchActions();
     }
 
     public override void UpdateSignals()
@@ -38,6 +36,12 @@ public class ColorSignalListener : BBaseSignalListener
                     signalActions[i].name = signalActions[i].signal.name;
     }
 #endif
+
+    public void LaunchActions()
+    {
+        for (int i = 0; i < signalActions.Length; i++)
+            LaunchActions(i, signalActions[i].signal.currentValue);
+    }
 
     public void LaunchActions(int index, Color color) //Change type here
     {

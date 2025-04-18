@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System;
+using Sirenix.OdinInspector;
+
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditorInternal;
@@ -7,9 +9,10 @@ using UnityEditorInternal;
 
 public class StateMachine : MonoBehaviour
 {
+    [PropertyOrder(-1)]
     public StateMachine connectedStateMachine = null;
     [SerializeField]
-    [HideInInspector]
+    [StringPopup("stateNames")]
     int _currentState = 0;
 
     int _initialState;
@@ -19,6 +22,9 @@ public class StateMachine : MonoBehaviour
         _initialState = _currentState;
     }
 
+    [ShowIf("@connectedStateMachine != null")]
+    [PropertyOrder(-1)]
+    [Button]
     public void UpdateStatesFromConnectedMachine()
     {
         states = new State[connectedStateMachine.states.Length];
@@ -49,7 +55,9 @@ public class StateMachine : MonoBehaviour
         }
 #endif
     }
-    [HideInInspector]
+    
+    [OnValueChanged("SyncNames", true)]
+    [OnValueChanged("ClampCurrentState")]
     public State[] states = null;
 
     [HideInInspector]
@@ -92,7 +100,7 @@ public class StateMachine : MonoBehaviour
     //public StringPopupData[] stringPairArray = null;
     //#endif
     [StringPopup("stateNames"/*, "stringPairArray"*/)]
-    public void SwitchState(int newState)
+    public virtual void SwitchState(int newState)
     {
         newState = Mathf.Clamp(newState, 0, states.Length - 1);
         if (
@@ -145,13 +153,28 @@ public class StateMachine : MonoBehaviour
 
     }
 
+    public void SyncNames()
+    {
+        stateNames = new string[states.Length];
+        for (int i = 0; i < states.Length; i++)
+            stateNames[i] = states[i].name;
+    }
+
+    public void ClampCurrentState()
+    {
+        currentState = Math.Clamp(currentState, 0, states.Length - 1);
+    }
+
     [Serializable]
     public struct State
     {
         public string name;
-        public GameObject[] linkedObjects; //TO DO: Add ReverseLinkedObjects property
+        public GameObject[] linkedObjects; //TO DO: Add ReverseLinkedObjects property. This should be another struct with the object and the bool inside.
+        [FoldoutGroup("Events")]
         public DXEvent enter;
+        [FoldoutGroup("Events")]
         public DXEvent exit;
+
         public State(string name)
         {
             this.name = name;
@@ -162,6 +185,7 @@ public class StateMachine : MonoBehaviour
     }
 }
 
+/*
 #if UNITY_EDITOR
 [CanEditMultipleObjects]
 [CustomEditor(typeof(StateMachine))]
@@ -207,7 +231,7 @@ public class StateMachine_Inspector : Editor
             if (GUILayout.Button("Update states from connected machine"))
                 obj.UpdateStatesFromConnectedMachine();
         obj.currentState = StringPopupAttribute.IntPopup(obj.currentState, target,
-            new StringPopupAttribute("stateNames"/*, "stringPairArray"*/), "Current State",
+            new StringPopupAttribute("stateNames"/*, "stringPairArray"*//*), "Current State",
             EditorGUILayout.GetControlRect(), currentState);
         statesList.DoLayoutList();
         serializedObject.ApplyModifiedProperties();
@@ -359,6 +383,7 @@ public class StateMachine_Inspector : Editor
     #endregion
 }
 #endif
+*/
 
 #if PLAYMAKER
 namespace HutongGames.PlayMaker.Actions

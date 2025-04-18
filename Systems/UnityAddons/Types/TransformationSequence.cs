@@ -295,20 +295,27 @@ public struct MovementPath
     public void CalculateMagnitude()
     {
         if (IsComplexPath())
+            magnitude = CalculateDistanceTo(path.Length - 1);
+        else magnitude = dif.magnitude;
+    }
+
+    public float CalculateDistanceTo(int point)
+    {
+        if (IsComplexPath())
         {
             Vector3 previousCorner = path[0];
             float lengthSoFar = 0f;
             int i = 1;
-            while (i < path.Length)
+            while (i <= point)
             {
                 Vector3 currentCorner = path[i];
                 lengthSoFar += Vector3.Distance(previousCorner, currentCorner);
                 previousCorner = currentCorner;
                 i++;
             }
-            magnitude = lengthSoFar;
+            return lengthSoFar;
         }
-        else magnitude = dif.magnitude;
+        else return (point > 0) ? magnitude : 0f;
     }
 
     public Vector3 PositionAlong(float distance)
