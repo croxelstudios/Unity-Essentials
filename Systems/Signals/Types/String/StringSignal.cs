@@ -10,9 +10,11 @@ public class StringSignal : BaseSignal //Change type here
 {
     [SerializeField]
     bool resetValueOnStart = true;
+    [TextArea]
     [SerializeField]
     [ShowIf("CanShowStartValue")]
     string startValue = ""; //Change type here
+    [TextArea]
     [HideIf("CanShowStartValue")]
     [OnValueChanged("CallSignalOnCurrentTagAndValues")]
     public string currentValue = ""; //Change type here

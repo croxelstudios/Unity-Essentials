@@ -29,7 +29,7 @@ public class FadeInOut : MonoBehaviour
 
     Coroutine co;
     FadeBehaviour current;
-    FadeBehaviour onEnableOverride;
+    FadeBehaviour onEnableOverride = FadeBehaviour.None;
 
     enum FadeBehaviour { FadeIn, FadeOut, None }
 

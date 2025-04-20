@@ -4,7 +4,6 @@ using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditorInternal;
 #endif
 
 public class StateMachine : MonoBehaviour
@@ -13,6 +12,7 @@ public class StateMachine : MonoBehaviour
     public StateMachine connectedStateMachine = null;
     [SerializeField]
     [StringPopup("stateNames")]
+    [OnValueChanged("UpdateState")]
     int _currentState = 0;
 
     int _initialState;
@@ -20,20 +20,6 @@ public class StateMachine : MonoBehaviour
     private void Awake()
     {
         _initialState = _currentState;
-    }
-
-    [ShowIf("@connectedStateMachine != null")]
-    [PropertyOrder(-1)]
-    [Button]
-    public void UpdateStatesFromConnectedMachine()
-    {
-        states = new State[connectedStateMachine.states.Length];
-        stateNames = new string[states.Length];
-        for (int i = 0; i < states.Length; i++)
-        {
-            states[i].name = connectedStateMachine.states[i].name;
-            stateNames[i] = states[i].name;
-        }
     }
 
     public int currentState
@@ -49,7 +35,6 @@ public class StateMachine : MonoBehaviour
                     SwitchState(value);
                     if (!Application.isPlaying)
                         RecordGameObjectModificationsFromPrefab();
-
                 }
             }
         }
@@ -64,10 +49,40 @@ public class StateMachine : MonoBehaviour
     public string[] stateNames;
 
 #if UNITY_EDITOR
+    StateMachine prevConnectedSM;
+    bool wasprevStateUpdated = false;
+    int prevState = 0;
+
+    [ShowIf("@connectedStateMachine != null")]
+    [PropertyOrder(-1)]
+    [Button]
+    public void UpdateStatesFromConnectedMachine()
+    {
+        states = new State[connectedStateMachine.states.Length];
+        stateNames = new string[states.Length];
+        for (int i = 0; i < states.Length; i++)
+        {
+            states[i].name = connectedStateMachine.states[i].name;
+            stateNames[i] = states[i].name;
+        }
+    }
+
     public virtual void OnValidate()
     {
+        if (!wasprevStateUpdated)
+        {
+            prevState = _currentState;
+            wasprevStateUpdated = true;
+        }
+        
         if (connectedStateMachine != null)
         {
+            if (prevConnectedSM != connectedStateMachine)
+            {
+                UpdateStatesFromConnectedMachine();
+                prevConnectedSM = connectedStateMachine;
+            }
+
             State[] newStates = new State[states.Length];
             if (connectedStateMachine.states == null)
                 connectedStateMachine.states = new State[states.Length];
@@ -163,6 +178,14 @@ public class StateMachine : MonoBehaviour
     public void ClampCurrentState()
     {
         currentState = Math.Clamp(currentState, 0, states.Length - 1);
+    }
+
+    public void UpdateState()
+    {
+        int value = _currentState;
+        _currentState = prevState;
+        SwitchState(value);
+        prevState = value;
     }
 
     [Serializable]

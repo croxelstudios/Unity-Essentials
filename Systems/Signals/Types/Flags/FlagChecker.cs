@@ -39,7 +39,7 @@ public class FlagChecker : BBaseSignalListener
     {
         CheckFlags(false);
     }
-    
+
     public void CheckFlags(bool justEnabled)
     {
         for (int i = 0; i < flags.Length; i++)
@@ -73,6 +73,101 @@ public class FlagChecker : BBaseSignalListener
         ScriptableObjectUtils.CreateScriptableObjectAsset<Flag>("Flag", "New Flag"); //Change type here (3)
     }
 #endif
+
+    public void SetToTrue()
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                SetToTrue(i);
+    }
+
+    public void SetToTrue(int index)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.SetFlag(true);
+    }
+
+    public void SetToFalse()
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                SetToFalse(i);
+    }
+
+    public void SetToFalse(int index)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.SetFlag(false);
+    }
+
+    public void SwitchValue()
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                SwitchValue(i);
+    }
+
+    public void SwitchValue(int index)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.SwitchValue();
+    }
+
+    public void LaunchOnTrue()
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                LaunchOnTrue(i);
+    }
+
+    [TagSelector]
+    public void LaunchOnTrue(string tag)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                LaunchOnTrue(i, tag);
+    }
+
+    public void LaunchOnTrue(int index)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.LaunchOnTrue();
+    }
+
+    [TagSelector]
+    public void LaunchOnTrue(int index, string tag)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.LaunchOnTrue(tag);
+    }
+
+    public void LaunchOnFalse()
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                LaunchOnFalse(i);
+    }
+
+    [TagSelector]
+    public void LaunchOnFalse(string tag)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                LaunchOnFalse(i, tag);
+    }
+
+    public void LaunchOnFalse(int index)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.LaunchOnFalse();
+    }
+
+    [TagSelector]
+    public void LaunchOnFalse(int index, string tag)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.LaunchOnFalse(tag);
+    }
 
     [Serializable]
     public struct FlagAction

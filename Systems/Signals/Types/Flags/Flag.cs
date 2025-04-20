@@ -1,6 +1,8 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 using QFSW.QC;
+using FMOD;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -34,7 +36,7 @@ public class Flag : BaseSignal //Change type here
     int currentConditionCount = 0;
 
     [TagSelector]
-    public void SetFlag(bool value, string tag = "") //Change type here
+    public void SetFlag(bool value, string tag) //Change type here
     {
         bool canExecute = false;
         if (!checkMultipleConditions)
@@ -58,27 +60,19 @@ public class Flag : BaseSignal //Change type here
             }
         }
 
-
         if ((value != currentValue) && canExecute)
         {
-            currentValue = value;
             beforeCall?.Invoke();
-            if (currentValue) whenTrue_?.Invoke();
+
+            if (value) whenTrue_?.Invoke();
             else whenFalse_?.Invoke();
-            if (dynamicSearch) DynamicSearch<FlagChecker>(); //Change type here
-            if (listeners != null)
-            {
-                bool finalValue = Calculate(); //Change type here
-                for (int i = (listeners.Count - 1); i >= 0; i--)
-                {
-                    if ((tag == "") || (tag == listeners[i].receiver.tag))
-                        ((FlagChecker)listeners[i].receiver). //Change type here
-                            LaunchActions(listeners[i].index, finalValue);
-                }
-            }
-            if (dynamicSearch) listeners = null;
+
+            currentValue = value;
+            Launch(Calculate(), tag);
+
             called?.Invoke();
-            if (currentValue) whenTrue?.Invoke();
+
+            if (value) whenTrue?.Invoke();
             else whenFalse?.Invoke();
         }
     }
@@ -130,6 +124,39 @@ public class Flag : BaseSignal //Change type here
             currentValue = startValue;
             currentConditionCount = 0;
         }
+    }
+
+    public void LaunchOnTrue()
+    {
+        LaunchOnTrue("");
+    }
+
+    public void LaunchOnTrue(string tag)
+    {
+        Launch(true, tag);
+    }
+
+    public void LaunchOnFalse()
+    {
+        LaunchOnFalse("");
+    }
+
+    public void LaunchOnFalse(string tag)
+    {
+        Launch(false, tag);
+    }
+
+    void Launch(bool value, string tag)
+    {
+        if (dynamicSearch) DynamicSearch<FlagChecker>(); //Change type here
+
+        if (listeners != null)
+            for (int i = (listeners.Count - 1); i >= 0; i--)
+                if ((tag == "") || (tag == listeners[i].receiver.tag))
+                    ((FlagChecker)listeners[i].receiver). //Change type here
+                        LaunchActions(listeners[i].index, value);
+
+        if (dynamicSearch) listeners = null;
     }
 }
 
