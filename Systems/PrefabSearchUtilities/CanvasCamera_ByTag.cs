@@ -15,13 +15,14 @@ public class CanvasCamera_ByTag : MonoBehaviour
 
     void OnEnable()
     {
-        if (canv == null)
-            canv = GetComponent<Canvas>();
         SetCamera();
     }
 
     void SetCamera()
     {
+        if (canv == null)
+            canv = GetComponent<Canvas>();
+
         Camera cam = FindWithTag.OnlyEnabled<Camera>(cameraTag);
 
         if (cam != null)
@@ -30,5 +31,11 @@ public class CanvasCamera_ByTag : MonoBehaviour
             canv.worldCamera = cam;
         }
         //else canv.renderMode = RenderMode.ScreenSpaceOverlay;
+    }
+
+    public void UpdateTag(string tag)
+    {
+        cameraTag = tag;
+        SetCamera();
     }
 }
