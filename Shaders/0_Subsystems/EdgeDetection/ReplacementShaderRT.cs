@@ -23,8 +23,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
 public class ReplacementShaderRT : ScriptableRendererFeature
@@ -90,6 +90,11 @@ public class ReplacementShaderRT : ScriptableRendererFeature
                 //new ShaderTagId("UniversalForward"),
                 //new ShaderTagId("LightweightForward"),
             };
+        }
+
+        public override void RecordRenderGraph(RenderGraph graph, ContextContainer container)
+        {
+            base.RecordRenderGraph(graph, container);
         }
 
         // Configure the pass by creating a temporary render texture and

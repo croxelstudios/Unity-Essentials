@@ -185,7 +185,8 @@ public class RavioliButton : RavioliButton_Button
 
     void InitializeMovementBehaviors()
     {
-        if (canUseSelector) selector.gameObject.SetActive(true);
+        if (canUseSelector)
+            selector.gameObject.SetActive(true);
     }
 
     void FinalizeMovementBehaviors()
@@ -450,10 +451,7 @@ public class RavioliButton : RavioliButton_Button
     {
         MovementBehaviour SB = SBOfButton(currentButton);
         while (!MoveSelector(currentButton.transform.position, SB, timeMode.DeltaTime(), ref tmpSpd))
-        {
-            if (timeMode.IsFixed()) yield return new WaitForFixedUpdate();
-            else yield return null;
-        }
+            yield return timeMode.WaitFor();
         StopSelectorAtTarget();
     }
 
@@ -505,10 +503,7 @@ public class RavioliButton : RavioliButton_Button
         MovementBehaviour CB = CBOfButton(currentButton);
 
         while (!MoveCarousel(CB, timeMode.DeltaTime()))
-        {
-            if (timeMode.IsFixed()) yield return new WaitForFixedUpdate();
-            else yield return null;
-        }
+            yield return timeMode.WaitFor();
         StopCarouselAtTarget();
     }
 

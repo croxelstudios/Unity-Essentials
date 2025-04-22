@@ -27,9 +27,7 @@ public class BaseSignal : ScriptableObject
     protected List<Action> listeners;
     Type type;
 
-#if UNITY_EDITOR
     public static event Action<Type, BaseSignal> OnEnableCallback;
-#endif
 
     public void OnEnable()
     {
@@ -52,9 +50,9 @@ public class BaseSignal : ScriptableObject
     protected virtual void OnLoad()
     {
         if (type == null) type = GetType();
-#if UNITY_EDITOR
+
         OnEnableCallback?.Invoke(type, this);
-#endif
+
         if (activeSignals == null) activeSignals = new Dictionary<Type, List<BaseSignal>>();
         if (!activeSignals.ContainsKey(type)) activeSignals.Add(type, new List<BaseSignal>());
         activeSignals[type].Add(this);
