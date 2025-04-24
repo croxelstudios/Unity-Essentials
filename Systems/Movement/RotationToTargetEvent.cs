@@ -15,6 +15,7 @@ public class RotationToTargetEvent : MonoBehaviour
     [HideLabel]
     [InlineProperty]
     OriginTarget originTarget = new OriginTarget("Player");
+    public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
     [SerializeField]
     [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
     bool projectOnPlane = false;

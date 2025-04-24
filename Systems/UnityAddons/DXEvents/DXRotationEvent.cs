@@ -9,7 +9,7 @@ using UnityEditor;
 public class DXRotationEvent
 {
     [SerializeField]
-    protected EventType[] types = new EventType[] { EventType.Quaternion };
+    protected EventType[] types = new EventType[] { EventType.EulerAngles };
     [SerializeField]
     Vector3Event unityEvent = null;
     [SerializeField]
@@ -25,7 +25,7 @@ public class DXRotationEvent
     [SerializeField]
     FloatEvent zEvent = null;
 
-    public DXRotationEvent() { types = new EventType[] { EventType.Quaternion }; }
+    public DXRotationEvent() { types = new EventType[] { EventType.EulerAngles }; }
 
     [Serializable]
     public class QuaternionEvent : UnityEvent<Quaternion> { }

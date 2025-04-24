@@ -18,7 +18,7 @@ public class RenderersSetColor : BRenderersSetProperty
 
     void Reset()
     {
-        propertyName = "_Color";
+        propertyName = "_BaseColor";
     }
 
     protected override void Init()

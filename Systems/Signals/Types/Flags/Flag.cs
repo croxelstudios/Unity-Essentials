@@ -1,7 +1,6 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 using QFSW.QC;
-using FMOD;
 
 #if UNITY_EDITOR
 using UnityEditor;

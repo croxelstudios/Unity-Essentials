@@ -1,6 +1,8 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
+using System;
 
+[Serializable]
 public struct SpeedBehaviour
 {
     public SpeedMode speedMode;
