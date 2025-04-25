@@ -147,6 +147,24 @@ public class BaseSignal : ScriptableObject
         }
     }
 
+    public static T[] GetFromSubstring<T>(string substring, T[] exceptions = null)
+        where T : BaseSignal
+    {
+        List<T> signals = new List<T>();
+        if (typeof(T) == typeof(BaseSignal))
+            foreach (KeyValuePair<Type, List<BaseSignal>> kvp in activeSignals)
+                for (int i = 0; i < kvp.Value.Count; i++)
+                    signals.Add(kvp.Value[i] as T);
+        else signals.AddRange(Array.ConvertAll(activeSignals[typeof(T)].ToArray(), item => (T)item));
+
+        for (int i = signals.Count - 1; i >= 0; i--)
+            if (((exceptions != null) && exceptions.Contains(signals[i])) ||
+                (signals[i] == null) || !signals[i].name.Contains(substring))
+                signals.RemoveAt(i);
+
+        return signals.ToArray();
+    }
+
     public virtual void Reset()
     {
 

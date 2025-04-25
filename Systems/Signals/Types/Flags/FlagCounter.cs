@@ -22,12 +22,7 @@ public class FlagCounter : MonoBehaviour
     {
         if (activeFlags == null)
             activeFlags = new List<Flag>();
-        activeFlags.AddRange(
-            Array.ConvertAll(BaseSignal.activeSignals[typeof(Flag)].ToArray(), item => (Flag)item));
-
-        for (int i = activeFlags.Count - 1; i >= 0; i--)
-            if (exceptions.Contains(activeFlags[i]) || !activeFlags[i].name.Contains(flagNameSubstringToCount))
-                activeFlags.RemoveAt(i);
+        activeFlags.AddRange(BaseSignal.GetFromSubstring(flagNameSubstringToCount, exceptions));
 
         if (checkFlagIsTrue)
             for (int i = 0; i < activeFlags.Count; i++)

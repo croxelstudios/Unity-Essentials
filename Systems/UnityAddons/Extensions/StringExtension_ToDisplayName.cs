@@ -15,7 +15,7 @@ public static class StringExtension_ToDisplayName
                 insertPos.Add(i);
 
         for (int i = insertPos.Count - 1; i >= 0; i--)
-            name.Insert(insertPos[i], " ");
+            name = name.Insert(insertPos[i], " ");
 
         return name;
     }
