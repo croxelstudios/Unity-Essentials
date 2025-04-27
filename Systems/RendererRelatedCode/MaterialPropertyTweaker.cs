@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Runtime.InteropServices.WindowsRuntime;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -137,9 +139,65 @@ public class MaterialPropertyTweaker : MonoBehaviour
         return cValue;
     }
 
+    public float GetAlpha(bool useBlackValue = false)
+    {
+        switch (type)
+        {
+            case PropertyType.Float:
+                return fValue;
+            case PropertyType.Int:
+                return iValue / 100f;
+            case PropertyType.Color:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV(cValue, out float h, out float s, out float v);
+                    return v;
+                }
+                else return cValue.a;
+            case PropertyType.Vector:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV((Color)vValue, out float h, out float s, out float v);
+                    return v;
+                }
+                else return vValue.w;
+            default:
+                return 1f;
+        }
+    }
+
     public void SetFloat(float value)
     {
         fValue = value;
+    }
+
+    public void SetAlpha(float value, bool useBlackValue = false)
+    {
+        switch (type)
+        {
+            case PropertyType.Float:
+                fValue = value;
+                break;
+            case PropertyType.Int:
+                iValue = Mathf.FloorToInt(value * 100f);
+                break;
+            case PropertyType.Color:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV(cValue, out float h, out float s, out float v);
+                    cValue = Color.HSVToRGB(h, s, value);
+                }
+                else cValue.a = value;
+                break;
+            case PropertyType.Vector:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV((Color)vValue, out float h, out float s, out float v);
+                    vValue = (Vector4)Color.HSVToRGB(h, s, value);
+                }
+                else vValue.w = value;
+                break;
+        }
     }
 
     public float GetFloat()
