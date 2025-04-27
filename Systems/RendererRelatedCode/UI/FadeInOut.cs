@@ -35,26 +35,8 @@ public class FadeInOut : MonoBehaviour
 
     void GetAlphaHolder()
     {
-        if (!alphaHolder.isNotNull)
-        {
-            CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
-            if (canvasGroup != null) alphaHolder = new AlphaHolder(canvasGroup);
-            else
-            {
-                Graphic gr = GetComponentInChildren<Graphic>();
-                if (gr != null) alphaHolder = new AlphaHolder(gr);
-                else
-                {
-                    RenderersSetColor rsc = GetComponentInChildren<RenderersSetColor>();
-                    if (rsc != null) alphaHolder = new AlphaHolder(rsc, useBlack);
-                    else
-                    {
-                        Light light = GetComponentInChildren<Light>();
-                        if (light != null) alphaHolder = new AlphaHolder(light);
-                    }
-                }
-            }
-        }
+        if (!alphaHolder.isEnabledAndNotNull)
+            alphaHolder = AlphaHolder.GetFromObject(gameObject, useBlack);
     }
 
     void OnEnable()
@@ -185,12 +167,34 @@ public class FadeInOut : MonoBehaviour
         CanvasGroup canvasGroup;
         RenderersSetColor rsc;
         Light light;
+        MaterialPropertyTweaker mpt;
         Mode mode;
-        public bool isNotNull;
+        public bool isNotNull
+        {
+            get
+            {
+                return (graphic != null) ||
+                    (canvasGroup != null) ||
+                    (rsc != null) ||
+                    (light != null) ||
+                    (mpt != null);
+            }
+        }
+        public bool isEnabledAndNotNull
+        {
+            get
+            {
+                return ((graphic != null) && graphic.enabled) ||
+                    ((canvasGroup != null) && canvasGroup.enabled) ||
+                    ((rsc != null) && rsc.enabled) ||
+                    ((light != null) && light.enabled) ||
+                    ((mpt != null) && mpt.enabled);
+            }
+        }
         bool useBlackValue;
         Vector2 hs;
 
-        enum Mode { Graphic, CanvasGroup, RSC, Light }
+        enum Mode { Graphic, CanvasGroup, RSC, Light, MPT }
 
         public float alpha
         {
@@ -212,6 +216,8 @@ public class FadeInOut : MonoBehaviour
                     case Mode.Light:
                         Color.RGBToHSV(light.color, out float hl, out float sl, out float vl);
                         return vl;
+                    case Mode.MPT:
+                        return mpt.GetAlpha(useBlackValue);
                     default:
                         return 0f;
                 }
@@ -245,6 +251,9 @@ public class FadeInOut : MonoBehaviour
                         c = Color.HSVToRGB(hs.x, hs.y, value);
                         light.color = c;
                         break;
+                    case Mode.MPT:
+                        mpt.SetAlpha(value, useBlackValue);
+                        break;
                 }
             }
         }
@@ -256,7 +265,7 @@ public class FadeInOut : MonoBehaviour
             canvasGroup = null;
             rsc = null;
             light = null;
-            isNotNull = true;
+            mpt = null;
             useBlackValue = false;
             hs = Vector2.zero;
         }
@@ -268,7 +277,7 @@ public class FadeInOut : MonoBehaviour
             graphic = null;
             rsc = null;
             light = null;
-            isNotNull = true;
+            mpt = null;
             useBlackValue = false;
             hs = Vector2.zero;
         }
@@ -280,7 +289,7 @@ public class FadeInOut : MonoBehaviour
             graphic = null;
             canvasGroup = null;
             light = null;
-            isNotNull = true;
+            mpt = null;
             this.useBlackValue = useBlackValue;
             hs = Vector2.zero;
         }
@@ -292,10 +301,55 @@ public class FadeInOut : MonoBehaviour
             graphic = null;
             canvasGroup = null;
             rsc = null;
-            isNotNull = true;
+            mpt = null;
             useBlackValue = false;
             Color.RGBToHSV(light.color, out float h, out float s, out float v);
             hs = new Vector2(h, s);
+        }
+
+        public AlphaHolder(MaterialPropertyTweaker mpt, bool useBlackValue = false)
+        {
+            mode = Mode.MPT;
+            this.mpt = mpt;
+            graphic = null;
+            canvasGroup = null;
+            rsc = null;
+            light = null;
+            this.useBlackValue = useBlackValue;
+            hs = Vector2.zero;
+        }
+
+        public static AlphaHolder GetFromObject(GameObject obj, bool useBlack = false, bool onlyEnabled = true)
+        {
+            CanvasGroup canvasGroup = obj.GetComponent<CanvasGroup>();
+            if ((canvasGroup != null) && (canvasGroup.enabled || !onlyEnabled))
+                return new AlphaHolder(canvasGroup);
+            else
+            {
+                Graphic gr = obj.GetComponentInChildren<Graphic>();
+                if ((gr != null) && (gr.enabled || !onlyEnabled))
+                    return new AlphaHolder(gr);
+                else
+                {
+                    RenderersSetColor rsc = obj.GetComponentInChildren<RenderersSetColor>();
+                    if ((rsc != null) && (rsc.enabled || !onlyEnabled))
+                        return new AlphaHolder(rsc, useBlack);
+                    else
+                    {
+                        Light light = obj.GetComponentInChildren<Light>();
+                        if ((light != null) && (light.enabled || !onlyEnabled))
+                            return new AlphaHolder(light);
+                        else
+                        {
+                            MaterialPropertyTweaker mpt = obj.GetComponentInChildren<MaterialPropertyTweaker>();
+                            if ((mpt != null) && (mpt.enabled || !onlyEnabled))
+                                return new AlphaHolder(mpt, useBlack);
+                        }
+                    }
+                }
+            }
+
+            return new AlphaHolder();
         }
     }
 
