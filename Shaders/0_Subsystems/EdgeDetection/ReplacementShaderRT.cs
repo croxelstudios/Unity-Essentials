@@ -99,7 +99,6 @@ public class ReplacementShaderRT : ScriptableRendererFeature
 
         // Configure the pass by creating a temporary render texture and
         // readying it for rendering
-        [Obsolete]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RenderTextureDescriptor rtDescriptor = cameraTextureDescriptor;
@@ -111,7 +110,6 @@ public class ReplacementShaderRT : ScriptableRendererFeature
             ConfigureClear(ClearFlag.All, textureSettings.backgroundColor);
         }
 
-        [Obsolete]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
@@ -126,7 +124,7 @@ public class ReplacementShaderRT : ScriptableRendererFeature
                     new FilteringSettings(null, (int)textureSettings.layerMask);
                 if (textureSettings.depthPrePass)
                 {
-                    RenderStateBlock block= new RenderStateBlock(RenderStateMask.Depth);
+                    RenderStateBlock block = new RenderStateBlock(RenderStateMask.Depth);
                     block.depthState = new DepthState(true, CompareFunction.LessEqual);
                     context.DrawRenderers(renderingData.cullResults, ref drawSettings,
                         ref filteringSettings, ref block);
