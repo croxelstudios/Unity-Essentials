@@ -1,16 +1,13 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Linq;
-using UnityEngine.Rendering;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 [ExecuteAlways]
-public class BRenderersSetRenderQueue : MonoBehaviour
+public class RenderersSetRenderQueue : MonoBehaviour
 {
     Renderer[] rend;
 
     [SerializeField]
+    [Tooltip("Won't work on editor because it requires instancing components")]
     bool affectsChildren = true;
     [SerializeField]
     [Tooltip("It will be applied to all materials if set to a negative number")]
@@ -20,11 +17,56 @@ public class BRenderersSetRenderQueue : MonoBehaviour
     [SerializeField]
     int renderQueue = 3000;
 
-    Dictionary<Material, RenderQueueData> oldQueues = new Dictionary<Material, RenderQueueData>();
+    Dictionary<Material, RenderQueueData> oldQueues;
+    Dictionary<GameObject, RenderersSetRenderQueue> dicRSRQ;
+    static List<GameObject> dominated;
 
     void OnEnable()
     {
-        UpdateRenderersInternal();
+        if (dominated == null) dominated = new List<GameObject>();
+        if (!dominated.Contains(gameObject))
+            UpdateRenderersInternal();
+    }
+
+    void OnDisable()
+    {
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+#endif
+            if (affectsChildren)
+            {
+                if (dicRSRQ != null)
+                    foreach (KeyValuePair<GameObject, RenderersSetRenderQueue> pair in dicRSRQ)
+                    {
+                        pair.Value.enabled = false;
+                        pair.Value.UpdateRenderers();
+                    }
+            }
+    }
+
+    void OnDestroy()
+    {
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+#endif
+            if (affectsChildren)
+            {
+                KeyValuePair<GameObject, RenderersSetRenderQueue>[] pairs = 
+                    new KeyValuePair<GameObject, RenderersSetRenderQueue>[dicRSRQ.Count];
+                int ind = 0;
+                if (dicRSRQ != null)
+                    foreach (KeyValuePair<GameObject, RenderersSetRenderQueue> pair in dicRSRQ)
+                    {
+                        pairs[ind] = pair;
+                        ind++;
+                    }
+                for (int i = 0; i < pairs.Length; i++)
+                {
+                    dominated.Remove(pairs[i].Key);
+                    Destroy(pairs[i].Value);
+                }
+                dicRSRQ.Clear();
+            }
     }
 
     bool IsInitialized()
@@ -41,6 +83,28 @@ public class BRenderersSetRenderQueue : MonoBehaviour
             Renderer r = GetComponent<Renderer>();
             if (r != null) rend = new Renderer[] { r };
         }
+
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+#endif
+            if (affectsChildren)
+            {
+                if (dicRSRQ == null) dicRSRQ = new Dictionary<GameObject, RenderersSetRenderQueue>();
+                for (int i = 0; i < rend.Length; i++)
+                {
+                    if (dicRSRQ.ContainsKey(rend[i].gameObject))
+                        dicRSRQ[rend[i].gameObject].enabled = true;
+                    else if (rend[i].gameObject != gameObject)
+                    {
+                        dominated.Add(rend[i].gameObject);
+                        RenderersSetRenderQueue rsrq = rend[i].gameObject.AddComponent<RenderersSetRenderQueue>();
+                        rsrq.Set(false, materialIndex, false);
+                        rsrq.SetRenderQueue(renderQueue);
+                        rsrq.UpdateRenderers();
+                        dicRSRQ.Add(rend[i].gameObject, rsrq);
+                    }
+                }
+            }
     }
 
     public void UpdateRenderers()
@@ -113,6 +177,16 @@ public class BRenderersSetRenderQueue : MonoBehaviour
     public void SetRenderQueue(int queue)
     {
         renderQueue = queue;
+
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+#endif
+            if (affectsChildren)
+            {
+                if (dicRSRQ != null)
+                    foreach (KeyValuePair<GameObject, RenderersSetRenderQueue> pair in dicRSRQ)
+                        pair.Value.SetRenderQueue(queue);
+            }
     }
 
     struct RenderQueueData
