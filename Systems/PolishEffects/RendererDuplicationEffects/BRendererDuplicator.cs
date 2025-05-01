@@ -202,7 +202,8 @@ public class BRendererDuplicator : MonoBehaviour
             source.setProperties.Add(child, rsp);
         }
 
-        duplicate.setProperties.CreateAdd(target.transform, new BRenderersSetProperty[rsp.Length]);
+        duplicate.setProperties = duplicate.setProperties.CreateAdd(
+            target.transform, new BRenderersSetProperty[rsp.Length]);
         for (int i = 0; i < source.setProperties[child].Length; i++)
             duplicate.setProperties[target.transform][i] =
                 target.AddComponentCopy(source.setProperties[child][i], true);

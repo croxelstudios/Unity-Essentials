@@ -44,7 +44,7 @@ public static class BaseInspectorInjector
                 if (!pair.Value.rootVisualElement.Contains(pair.Key))
                 {
                     pair.Value.rootVisualElement.Add(pair.Key);
-                    references.CreateAdd(pair.Key, pair.Value);
+                    references = references.CreateAdd(pair.Key, pair.Value);
                 }
             }
             windowsDic.Clear();
