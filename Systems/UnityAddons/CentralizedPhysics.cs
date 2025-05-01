@@ -239,7 +239,7 @@ public class NDRigidbody
     {
         if (rigid == null) return null;
 
-        rigids2.CreateAdd(rigid, new NDRigidbody(rigid));
+        rigids2 = rigids2.CreateAdd(rigid, new NDRigidbody(rigid));
         return rigids2[rigid];
     }
 
@@ -247,7 +247,7 @@ public class NDRigidbody
     {
         if (rigid == null) return null;
 
-        rigids3.CreateAdd(rigid, new NDRigidbody(rigid));
+        rigids3 = rigids3.CreateAdd(rigid, new NDRigidbody(rigid));
         return rigids3[rigid];
     }
 
@@ -1255,7 +1255,7 @@ public class NDCollision
     {
         if (collision == null) return null;
 
-        cols2.CreateAdd(collision, new NDCollision(collision));
+        cols2 = cols2.CreateAdd(collision, new NDCollision(collision));
         return cols2[collision];
     }
 
@@ -1263,7 +1263,7 @@ public class NDCollision
     {
         if (collision == null) return null;
 
-        cols3.CreateAdd(collision, new NDCollision(collision));
+        cols3 = cols3.CreateAdd(collision, new NDCollision(collision));
         return cols3[collision];
     }
 }
