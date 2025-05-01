@@ -27,8 +27,6 @@ public class URPPipelineManager : MonoBehaviour
 
     void RecordFeatureState(ScriptableRendererFeature feature)
     {
-        if (originalStates == null) originalStates = new Dictionary<ScriptableRendererFeature, bool>();
-        if (!originalStates.ContainsKey(feature))
-            originalStates.Add(feature, feature.isActive);
+        originalStates.CreateAdd(feature, feature.isActive);
     }
 }

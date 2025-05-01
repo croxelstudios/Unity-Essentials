@@ -54,7 +54,7 @@ public class MaterialsReplacer : MonoBehaviour
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
-        if (changedMaterials == null) changedMaterials = new Dictionary<Renderer, int[]>();
+        changedMaterials = changedMaterials.CreateIfNull();
         if (!isChanged)
         {
             UpdateMaterials();

@@ -149,11 +149,6 @@ public class RavioliButton : RavioliButton_Button
         pressedButtonID?.Invoke(buttonId);
     }
 
-    void InitButtonsList()
-    {
-        buttons = new List<RavioliButton_Button>();
-    }
-
     public void ResetButtons()
     {
         if ((buttons != null) && (buttons.Count > 0))
@@ -547,7 +542,7 @@ public class RavioliButton : RavioliButton_Button
     #region Buttons management
     public void AddButton(RavioliButton_Button button)
     {
-        if (buttons == null) InitButtonsList();
+        buttons = buttons.CreateIfNull();
         button.TryDeselect();
         buttons.Add(button);
         buttons = buttons.OrderBy(x => x.transform.GetSiblingIndex()).ToList();

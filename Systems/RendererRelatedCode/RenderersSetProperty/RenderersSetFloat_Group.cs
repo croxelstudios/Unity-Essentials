@@ -16,10 +16,8 @@ public class RenderersSetFloat_Group : MonoBehaviour
 #if UNITY_EDITOR
     void OnValidate()
     {
-        if (rsfs == null) rsfs = new List<RenderersSetFloat>();
         RenderersSetFloat[] array = GetComponentsInChildren<RenderersSetFloat>();
-        foreach (RenderersSetFloat rsf in array)
-            if (!rsfs.Contains(rsf)) rsfs.Add(rsf);
+        rsfs = rsfs.CreateAddRange(array, true);
 
         for (int i = rsfs.Count; i-- > 0;)
         {
@@ -41,10 +39,8 @@ public class RenderersSetFloat_Group : MonoBehaviour
                 RenderersSetFloat.init = new RenderersSetFloat.CustomEvent();
             RenderersSetFloat.init.AddListener(SetValue);
 
-            rsfs = new List<RenderersSetFloat>();
             RenderersSetFloat[] array = GetComponentsInChildren<RenderersSetFloat>();
-            foreach (RenderersSetFloat rsf in array)
-                if (!rsfs.Contains(rsf)) rsfs.Add(rsf);
+            rsfs = rsfs.CreateAddRange(array, true);
 
             for (int i = rsfs.Count; i-- > 0;)
             {

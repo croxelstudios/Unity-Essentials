@@ -12,8 +12,7 @@ public class NavMeshAgentOverride : MonoBehaviour
     void OnEnable()
     {
         INavMeshAgentTypeContainer[] containers = GetComponentsInChildren<INavMeshAgentTypeContainer>();
-        if (oldValues == null)
-            oldValues = new Dictionary<INavMeshAgentTypeContainer, int> ();
+        oldValues = oldValues.CreateIfNull();
         for (int i = 0; i < containers.Length; i++)
         {
             containers[i].OverrideNavMeshAgentType(agentType, out int prevAgentType);

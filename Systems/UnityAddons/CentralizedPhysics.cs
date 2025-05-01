@@ -239,9 +239,7 @@ public class NDRigidbody
     {
         if (rigid == null) return null;
 
-        if (rigids2 == null) rigids2 = new Dictionary<Rigidbody2D, NDRigidbody>();
-        if (!rigids2.ContainsKey(rigid))
-            rigids2.Add(rigid, new NDRigidbody(rigid));
+        rigids2.CreateAdd(rigid, new NDRigidbody(rigid));
         return rigids2[rigid];
     }
 
@@ -249,9 +247,7 @@ public class NDRigidbody
     {
         if (rigid == null) return null;
 
-        if (rigids3 == null) rigids3 = new Dictionary<Rigidbody, NDRigidbody>();
-        if (!rigids3.ContainsKey(rigid))
-            rigids3.Add(rigid, new NDRigidbody(rigid));
+        rigids3.CreateAdd(rigid, new NDRigidbody(rigid));
         return rigids3[rigid];
     }
 
@@ -1259,9 +1255,7 @@ public class NDCollision
     {
         if (collision == null) return null;
 
-        if (cols2 == null) cols2 = new Dictionary<Collision2D, NDCollision>();
-        if (!cols2.ContainsKey(collision))
-            cols2.Add(collision, new NDCollision(collision));
+        cols2.CreateAdd(collision, new NDCollision(collision));
         return cols2[collision];
     }
 
@@ -1269,9 +1263,7 @@ public class NDCollision
     {
         if (collision == null) return null;
 
-        if (cols3 == null) cols3 = new Dictionary<Collision, NDCollision>();
-        if (!cols3.ContainsKey(collision))
-            cols3.Add(collision, new NDCollision(collision));
+        cols3.CreateAdd(collision, new NDCollision(collision));
         return cols3[collision];
     }
 }

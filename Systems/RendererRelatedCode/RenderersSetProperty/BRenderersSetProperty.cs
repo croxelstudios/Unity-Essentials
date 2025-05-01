@@ -182,7 +182,7 @@ public class BRenderersSetProperty : MonoBehaviour
     [ContextMenu("Reset Property Blocks")]
     public void ResetPropertyBlocks()
     {
-        if (block != null) block.Clear();
+        block.SmartClear();
         if (rend != null)
             for (int i = 0; i < rend.Length; i++)
                 if (rend[i] != null)

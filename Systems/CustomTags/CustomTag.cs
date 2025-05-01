@@ -19,14 +19,7 @@ public class CustomTag : MonoBehaviour
     
     public static void AddActiveTaggedObj(CustomTagItem item, CustomTag customTag)
     {
-        if (activeTagged == null)
-            activeTagged = new Dictionary<StringList, Dictionary<int, List<CustomTag>>>();
-        if (!activeTagged.ContainsKey(item.tagList))
-            activeTagged.Add(item.tagList, new Dictionary<int, List<CustomTag>>());
-        if (!activeTagged[item.tagList].ContainsKey(item.customTag))
-            activeTagged[item.tagList].Add(item.customTag, new List<CustomTag>());
-        if (!activeTagged[item.tagList][item.customTag].Contains(customTag))
-            activeTagged[item.tagList][item.customTag].Add(customTag);
+        activeTagged = activeTagged.CreateAdd(item.tagList, item.customTag, customTag);
     }
 
     public static void AddActiveTaggedObj(CustomTag customTag)
@@ -36,8 +29,7 @@ public class CustomTag : MonoBehaviour
 
     public static void RemoveActiveTaggedObj(CustomTagItem item, CustomTag customTag)
     {
-        if (IsItemActiveTagged(item) &&
-            activeTagged[item.tagList][item.customTag].Contains(customTag))
+        if (IsItemActiveTagged(item))
             activeTagged[item.tagList][item.customTag].Remove(customTag);
     }
 

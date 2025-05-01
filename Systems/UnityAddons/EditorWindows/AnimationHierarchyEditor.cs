@@ -23,9 +23,8 @@ public class AnimationHierarchyEditor : EditorWindow
     [MenuItem("Window/Animation Hierarchy Editor")]
     static void ShowWindow()
     {
-        EditorWindow.GetWindow<AnimationHierarchyEditor>();
+        GetWindow<AnimationHierarchyEditor>();
     }
-
 
     public AnimationHierarchyEditor()
     {

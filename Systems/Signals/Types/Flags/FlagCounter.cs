@@ -20,9 +20,8 @@ public class FlagCounter : MonoBehaviour
 
     void OnEnable()
     {
-        if (activeFlags == null)
-            activeFlags = new List<Flag>();
-        activeFlags.AddRange(BaseSignal.GetFromSubstring(flagNameSubstringToCount, exceptions));
+        activeFlags = activeFlags.CreateAddRange(
+            BaseSignal.GetFromSubstring(flagNameSubstringToCount, exceptions));
 
         if (checkFlagIsTrue)
             for (int i = 0; i < activeFlags.Count; i++)

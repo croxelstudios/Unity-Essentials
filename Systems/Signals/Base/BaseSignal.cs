@@ -53,16 +53,13 @@ public class BaseSignal : ScriptableObject
 
         OnEnableCallback?.Invoke(type, this);
 
-        if (activeSignals == null) activeSignals = new Dictionary<Type, List<BaseSignal>>();
-        if (!activeSignals.ContainsKey(type)) activeSignals.Add(type, new List<BaseSignal>());
-        activeSignals[type].Add(this);
+        activeSignals = activeSignals.CreateAdd(type, this);
     }
 
     protected virtual void OnUnload()
     {
         if (type == null) type = GetType();
-        if ((activeSignals != null) && activeSignals.ContainsKey(type))
-            activeSignals[type].Remove(this);
+        activeSignals.SmartRemove(type, this);
     }
 
     [ContextMenu("Set as dynamic")]
@@ -111,9 +108,7 @@ public class BaseSignal : ScriptableObject
 
     public void AddAction(BBaseSignalListener listener, int index)
     {
-        if (listeners == null) listeners = new List<Action>();
-        Action newAction = new Action(listener, index);
-        listeners.Add(newAction);
+        listeners = listeners.CreateAdd(new Action(listener, index));
     }
 
     public void RemoveAction(BBaseSignalListener receiver, int index)

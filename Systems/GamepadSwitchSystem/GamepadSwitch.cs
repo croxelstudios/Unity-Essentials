@@ -33,8 +33,7 @@ public class GamepadSwitch : MonoBehaviour
         if (Application.isPlaying)
 #endif
         {
-            if (updaters == null)
-                updaters = new Dictionary<BControllersData, GamepadSwitch_Updater>();
+            updaters = updaters.CreateIfNull();
             if (!updaters.ContainsKey(controllersData))
             {
                 controllersData.AwakeData();

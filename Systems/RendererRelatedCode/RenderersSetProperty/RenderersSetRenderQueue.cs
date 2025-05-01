@@ -23,7 +23,7 @@ public class RenderersSetRenderQueue : MonoBehaviour
 
     void OnEnable()
     {
-        if (dominated == null) dominated = new List<GameObject>();
+        dominated = dominated.CreateIfNull();
         if (!dominated.Contains(gameObject))
             UpdateRenderersInternal();
     }
@@ -49,17 +49,16 @@ public class RenderersSetRenderQueue : MonoBehaviour
 #if UNITY_EDITOR
         if (Application.isPlaying)
 #endif
-            if (affectsChildren)
+            if (affectsChildren && (dicRSRQ != null))
             {
-                KeyValuePair<GameObject, RenderersSetRenderQueue>[] pairs = 
+                KeyValuePair<GameObject, RenderersSetRenderQueue>[] pairs =
                     new KeyValuePair<GameObject, RenderersSetRenderQueue>[dicRSRQ.Count];
                 int ind = 0;
-                if (dicRSRQ != null)
-                    foreach (KeyValuePair<GameObject, RenderersSetRenderQueue> pair in dicRSRQ)
-                    {
-                        pairs[ind] = pair;
-                        ind++;
-                    }
+                foreach (KeyValuePair<GameObject, RenderersSetRenderQueue> pair in dicRSRQ)
+                {
+                    pairs[ind] = pair;
+                    ind++;
+                }
                 for (int i = 0; i < pairs.Length; i++)
                 {
                     dominated.Remove(pairs[i].Key);
@@ -89,7 +88,7 @@ public class RenderersSetRenderQueue : MonoBehaviour
 #endif
             if (affectsChildren)
             {
-                if (dicRSRQ == null) dicRSRQ = new Dictionary<GameObject, RenderersSetRenderQueue>();
+                dicRSRQ = dicRSRQ.CreateIfNull();
                 for (int i = 0; i < rend.Length; i++)
                 {
                     if (dicRSRQ.ContainsKey(rend[i].gameObject))
@@ -147,9 +146,7 @@ public class RenderersSetRenderQueue : MonoBehaviour
         {
             bool wasOverriden = false;
             //TO DO: Checking if the value is overriden seems imposible
-            if (oldQueues == null) oldQueues = new Dictionary<Material, RenderQueueData>();
-            if (!oldQueues.ContainsKey(mat))
-                oldQueues.Add(mat, new RenderQueueData(mat.renderQueue, wasOverriden));
+            oldQueues = oldQueues.CreateAdd(mat, new RenderQueueData(mat.renderQueue, wasOverriden));
             mat.renderQueue = renderQueue;
         }
     }

@@ -33,7 +33,7 @@ public class AndOrOp : MonoBehaviour
     {
         if (this.IsActiveAndEnabled() || !checkEnabled)
         {
-            if (argumentCount == null) argumentCount = new Dictionary<int, int>();
+            argumentCount = argumentCount.CreateIfNull();
             if (!argumentCount.ContainsKey(argument))
             {
                 argumentCount.Add(argument, 1);

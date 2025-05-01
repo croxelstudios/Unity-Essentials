@@ -34,7 +34,7 @@ public class PrefabInstancer_Periodically : PrefabInstancer
     {
         while (true)
         {
-            if (entities == null) entities = new List<SpawnedEntity>();
+            entities = entities.CreateIfNull();
             if (entities.Count < maxEntityCount)
             {
                 InstantiateRandom();

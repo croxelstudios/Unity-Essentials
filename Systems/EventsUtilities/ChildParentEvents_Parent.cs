@@ -21,13 +21,12 @@ public class ChildParentEvents_Parent : MonoBehaviour
 
     void OnDisable()
     {
-        childEvents.Clear();
+        childEvents.SmartClear();
         init = false;
     }
 
     void SearchChildEvents()
     {
-        CreateListIfNull();
         if (!init)
         {
             ChildParentEvents_Child[] arr = GetComponentsInChildren<ChildParentEvents_Child>();
@@ -96,20 +95,12 @@ public class ChildParentEvents_Parent : MonoBehaviour
 
     public void AddChild(ChildParentEvents_Child child)
     {
-        CreateListIfNull();
-        if (!childEvents.Contains(child))
-            childEvents.Add(child);
+        childEvents = childEvents.CreateAdd(child);
     }
 
     public void RemoveChild(ChildParentEvents_Child child)
     {
-        if ((childEvents != null) && childEvents.Contains(child))
-            childEvents.Remove(child);
-    }
-
-    void CreateListIfNull()
-    {
-        if (childEvents == null) childEvents = new List<ChildParentEvents_Child>();
+        childEvents.SmartRemove(child);
     }
 
     bool AreChildEventsAvailable(ChildParentEvents_Child childEvents)

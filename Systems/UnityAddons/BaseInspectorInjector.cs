@@ -44,9 +44,7 @@ public static class BaseInspectorInjector
                 if (!pair.Value.rootVisualElement.Contains(pair.Key))
                 {
                     pair.Value.rootVisualElement.Add(pair.Key);
-                    if (references == null)
-                        references = new Dictionary<VisualElement, EditorWindow>();
-                    references.Add(pair.Key, pair.Value);
+                    references.CreateAdd(pair.Key, pair.Value);
                 }
             }
             windowsDic.Clear();
@@ -73,9 +71,7 @@ public static class BaseInspectorInjector
 
     public static void AddVisualElement(VisualElement element, EditorWindow window)
     {
-        if (windowsDic == null) windowsDic = new Dictionary<VisualElement, EditorWindow>();
-        if (!windowsDic.ContainsKey(element))
-            windowsDic.Add(element, window);
+        windowsDic = windowsDic.CreateAdd(element, window);
     }
 
     struct WindowReference

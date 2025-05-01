@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
+using System.Linq;
 #endif
 
 #if UNITY_EDITOR
@@ -38,13 +39,9 @@ public class GenericNamedEvents_Inspector : Editor
 
     void Initialize()
     {
-        if (foldouts == null)
-            foldouts = new Dictionary<Object, List<bool>>();
-        if (!foldouts.ContainsKey(serializedObject.targetObject))
-        {
-            foldouts.Add(serializedObject.targetObject, new List<bool>());
-            for (int i = 0; i < events.arraySize; i++) foldouts[serializedObject.targetObject].Add(false);
-        }
+        foldouts = foldouts.CreateAdd(serializedObject.targetObject,
+            Enumerable.Repeat(false, events.arraySize).ToList());
+
         List<Object> keyList = new List<Object>(foldouts.Keys);
         for (int i = 0; i < keyList.Count; i++)
             if (keyList[i] == null) foldouts.Remove(keyList[i]);

@@ -50,7 +50,7 @@ public class PrefabInstancer : MonoBehaviour
     //TO DO: Support for keeping momentum of original object (DXVectorEvent originalMomentum on instance)
 
     WeightedPrefab[] wPrefabs;
-    public List<SpawnedEntity> entities = new List<SpawnedEntity>();
+    public List<SpawnedEntity> entities;
 
     bool wPrefabsFilled = false;
 
@@ -228,8 +228,7 @@ public class PrefabInstancer : MonoBehaviour
                 if (entity == null) entity = instance.AddComponent<SpawnedEntity>();
                 if (trackEntities)
                 {
-                    if (entities == null) entities = new List<SpawnedEntity>();
-                    entities.Add(entity);
+                    entities = entities.CreateAdd(entity);
                     entity.EntityDestroyed += EntityRemoved;
                     entity.instancer = this;
                 }
@@ -335,7 +334,7 @@ public class PrefabInstancer : MonoBehaviour
 
     void EntityRemoved(SpawnedEntity entity)
     {
-        entities.Remove(entity);
+        entities.SmartRemove(entity);
     }
     #endregion
 }

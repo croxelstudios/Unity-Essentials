@@ -39,19 +39,18 @@ public class BRemoteLauncher : MonoBehaviour
     protected void FillArray<T>(ref T[] array) where T : Component
     {
         Type t = typeof(T);
-        if (staticArray == null) staticArray = new Dictionary<Type, Dictionary<string, List<Component>>>();
-        if (!staticArray.ContainsKey(t)) staticArray.Add(t, new Dictionary<string, List<Component>>());
+        staticArray = staticArray.CreateAdd(t, new Dictionary<string, List<Component>>());
 
         if (staticArray[t].ContainsKey(filterByTag) &&
             ((searchMode == SearchMode.searchOnce) || ((searchMode == SearchMode.searchWhenNull) && (staticArray[t][filterByTag].Count > 0))))
             array = ComponentToTypeArray<T>(staticArray[t][filterByTag].ToArray());
         else
         {
-            if (!staticArray[t].ContainsKey(filterByTag))
-                staticArray[t].Add(filterByTag, new List<Component>());
-            if (filterByTag == "") staticArray[t][filterByTag].AddRange(
-                FindObjectsByType<T>(FindObjectsSortMode.None));
-            else staticArray[t][filterByTag].AddRange(FilterByTag<T>(filterByTag));
+            if (filterByTag == "")
+                staticArray[t] = staticArray[t].CreateAddRange(filterByTag,
+                    FindObjectsByType<T>(FindObjectsSortMode.None));
+            else staticArray[t] = staticArray[t].CreateAddRange(filterByTag,
+                FilterByTag<T>(filterByTag));
             array = ComponentToTypeArray<T>(staticArray[t][filterByTag].ToArray());
         }
 
@@ -64,9 +63,8 @@ public class BRemoteLauncher : MonoBehaviour
                     array.Concat(ComponentToTypeArray<T>(staticArray[t][extraTags[i]].ToArray())).ToArray();
                 else
                 {
-                    if (!staticArray[t].ContainsKey(filterByTag))
-                        staticArray[t].Add(extraTags[i], new List<Component>());
-                    staticArray[t][extraTags[i]].AddRange(FilterByTag<T>(extraTags[i]));
+                    staticArray[t] = staticArray[t].CreateAddRange(extraTags[i],
+                        FilterByTag<T>(extraTags[i]));
                     array.Concat(ComponentToTypeArray<T>(staticArray[t][extraTags[i]].ToArray())).ToArray();
                 }
             }

@@ -23,8 +23,7 @@ public class RenderersSetColor : BRenderersSetProperty
 
     protected override void Init()
     {
-        if (stackDictionary == null)
-            stackDictionary = new Dictionary<RendererMaterial, List<RenderersSetColor>>();
+        stackDictionary = stackDictionary.CreateIfNull();
         oldColor = color;
         oldBlendMode = blendMode;
         base.Init();
@@ -41,9 +40,7 @@ public class RenderersSetColor : BRenderersSetProperty
                     for (int i = 0; i < ren.sharedMaterials.Length; i++)
                     {
                         RendererMaterial renMat = new RendererMaterial(ren, i, propertyName);
-                        if ((stackDictionary != null) && stackDictionary.ContainsKey(renMat) &&
-                            stackDictionary[renMat].Contains(this))
-                            stackDictionary[renMat].Remove(this);
+                        stackDictionary.SmartRemove(renMat, this);
                     }
             }
             base.OnDisable();
@@ -65,14 +62,8 @@ public class RenderersSetColor : BRenderersSetProperty
     protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
         RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
-        if (stackDictionary.ContainsKey(rendMat))
-        {
-            if (stackDictionary[rendMat] == null)
-                stackDictionary[rendMat] = new List<RenderersSetColor>();
-            if (!stackDictionary[rendMat].Contains(this))
-                stackDictionary[rendMat].Add(this);
-        }
-        else stackDictionary.Add(rendMat, new List<RenderersSetColor>() { this });
+
+        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
 
         ApplyFullStackColor(block, rendMat);
     }
@@ -87,14 +78,8 @@ public class RenderersSetColor : BRenderersSetProperty
     protected override void VSetProperty(Renderer rend, int mat)
     {
         RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
-        if (stackDictionary.ContainsKey(rendMat))
-        {
-            if (stackDictionary[rendMat] == null)
-                stackDictionary[rendMat] = new List<RenderersSetColor>();
-            if (!stackDictionary[rendMat].Contains(this))
-                stackDictionary[rendMat].Add(this);
-        }
-        else stackDictionary.Add(rendMat, new List<RenderersSetColor>() { this });
+
+        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
 
         ApplyFullStackColor(rendMat);
     }

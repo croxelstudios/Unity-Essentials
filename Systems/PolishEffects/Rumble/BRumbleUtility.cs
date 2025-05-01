@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class BRumbleUtility : MonoBehaviour
 {
@@ -23,9 +24,7 @@ public class BRumbleUtility : MonoBehaviour
 
     protected virtual void Awake()
     {
-        if (rumbles == null) rumbles = new SortedDictionary<int, List<BRumbleUtility>>();
-        if (!rumbles.ContainsKey(priorityGroup)) rumbles.Add(priorityGroup, new List<BRumbleUtility>());
-        rumbles[priorityGroup].Add(this);
+        rumbles = rumbles.CreateAdd(priorityGroup, this);
     }
 
     [ContextMenu("Rumble by curve")]
