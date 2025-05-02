@@ -13,9 +13,7 @@ public class GoToScene_Launcher : BRemoteLauncher
     {
         if (this.IsActiveAndEnabled())
         {
-            if (goToScenes == null)
-                goToScenes = FindObjectsByType<GoToScene>(FindObjectsSortMode.None);
-            //FillArrayUpdate(ref goToScenes);
+            FillArrayUpdate(ref goToScenes);
             foreach (GoToScene goTo in goToScenes)
                 if (goTo != null)
                 {
