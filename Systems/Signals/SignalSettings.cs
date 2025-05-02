@@ -1,14 +1,16 @@
+using Sirenix.OdinInspector;
+using System.Collections.Generic;
+using System;
 using UnityEditor;
 using UnityEngine;
-using System;
-using System.Collections.Generic;
-using Sirenix.OdinInspector;
+using System.Linq;
 
-public class SignalSettings : MonoBehaviour
+[CreateAssetMenu(fileName = "SignalSettings", menuName = "Croxel Scriptables/SignalSettings")]
+public class SignalSettings : ScriptableObject
 {
     [SerializeField]
     [PropertyOrder(-1)]
-    string autoSubstring = "";
+    string substring = "";
 
     [DefaultDrawer]
     [SerializeField]
@@ -19,28 +21,28 @@ public class SignalSettings : MonoBehaviour
 #if UNITY_EDITOR
     void OnValidate()
     {
-        holder = new Holder(signals);
+        holder = new Holder(signals, substring);
     }
 
     [Button]
     [PropertyOrder(-1)]
     public void SearchSubstring()
     {
-        if (!string.IsNullOrEmpty(autoSubstring))
+        if (!string.IsNullOrEmpty(substring))
         {
-            List< BaseSignal> list = new List<BaseSignal>();
+            List<BaseSignal> list = new List<BaseSignal>();
             list.AddRange(signals);
             for (int i = list.Count - 1; i >= 0; i--)
-                if ((list[i] == null) || !list[i].name.Contains(autoSubstring))
+                if ((list[i] == null) || !list[i].name.Contains(substring))
                     list.RemoveAt(i);
 
-            BaseSignal[] sig = BaseSignal.GetFromSubstring<BaseSignal>(autoSubstring);
+            BaseSignal[] sig = BaseSignal.GetFromSubstring<BaseSignal>(substring);
             for (int i = 0; i < sig.Length; i++)
                 if (!list.Contains(sig[i]))
                     list.Add(sig[i]);
 
             signals = list.ToArray();
-            holder = new Holder(signals);
+            holder = new Holder(signals, substring);
         }
     }
 #endif
@@ -49,10 +51,18 @@ public class SignalSettings : MonoBehaviour
     public struct Holder
     {
         public BaseSignal[] signals;
+        public string substring;
 
         public Holder(BaseSignal[] signals)
         {
             this.signals = signals;
+            substring = "";
+        }
+
+        public Holder(BaseSignal[] signals, string substring)
+        {
+            this.signals = signals;
+            this.substring = substring;
         }
     }
 }
@@ -84,6 +94,7 @@ public class SignalSettingsHolderDrawer : PropertyDrawer
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
+        string substring = property.FindPropertyRelative("substring").stringValue;
         property = property.FindPropertyRelative("signals");
 
         SerializedProperty[] children = new SerializedProperty[property.arraySize];
@@ -97,7 +108,7 @@ public class SignalSettingsHolderDrawer : PropertyDrawer
 
         for (int i = 0; i < children.Length; i++)
         {
-            SerializedProperty prop = GetSignalValueProperty(children[i], out GUIContent lb);
+            SerializedProperty prop = GetSignalValueProperty(children[i], out GUIContent lb, substring);
             if (prop != null)
             {
                 EditorGUI.PropertyField(position, prop, lb);
@@ -109,7 +120,7 @@ public class SignalSettingsHolderDrawer : PropertyDrawer
         EditorGUI.EndProperty();
     }
 
-    SerializedProperty GetSignalValueProperty(SerializedProperty signalProp, out GUIContent label)
+    SerializedProperty GetSignalValueProperty(SerializedProperty signalProp, out GUIContent label, string substring = "")
     {
         BaseSignal sig = signalProp.objectReferenceValue as BaseSignal;
         if (sig == null)
@@ -121,8 +132,11 @@ public class SignalSettingsHolderDrawer : PropertyDrawer
         SerializedProperty prop = obj.FindProperty(
             Application.isPlaying ? "currentValue" : "startValue");
 
-        string[] namePath = sig.name.Split("_");
-        string name = namePath[namePath.Length - 1].ToDisplayName();
+        string name = sig.name;
+        if (!string.IsNullOrEmpty(substring))
+            name = name.Split(substring).Last().Replace("_", " ");
+        else name = name.Split("_").Last();
+        name = name.ToDisplayName();
         label = new GUIContent(name);
         return prop;
     }
