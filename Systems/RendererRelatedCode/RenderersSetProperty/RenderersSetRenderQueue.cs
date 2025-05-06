@@ -33,6 +33,7 @@ public class RenderersSetRenderQueue : MonoBehaviour
 #if UNITY_EDITOR
         if (Application.isPlaying)
 #endif
+        {
             if (affectsChildren)
             {
                 if (dicRSRQ != null)
@@ -42,6 +43,9 @@ public class RenderersSetRenderQueue : MonoBehaviour
                         pair.Value.UpdateRenderers();
                     }
             }
+
+            RestoreRenderQueue();
+        }
     }
 
     void OnDestroy()
@@ -124,19 +128,22 @@ public class RenderersSetRenderQueue : MonoBehaviour
 
     void ApplyRenderQueue()
     {
-        if (updateRenderers)
-            UpdateRenderersInternal();
+        if (this.IsActiveAndEnabled() && (dominated.Contains(gameObject) || !affectsChildren))
+        {
+            if (updateRenderers)
+                UpdateRenderersInternal();
 
-        if (IsInitialized())
-            for (int i = 0; i < rend.Length; i++)
-                if (rend[i] != null)
-                {
-                    if (materialIndex < 0)
-                        for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
-                            ApplyRenderQueue(i, j);
-                    else if (materialIndex < rend[i].sharedMaterials.Length)
-                        ApplyRenderQueue(i, materialIndex);
-                }
+            if (IsInitialized())
+                for (int i = 0; i < rend.Length; i++)
+                    if (rend[i] != null)
+                    {
+                        if (materialIndex < 0)
+                            for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
+                                ApplyRenderQueue(i, j);
+                        else if (materialIndex < rend[i].sharedMaterials.Length)
+                            ApplyRenderQueue(i, materialIndex);
+                    }
+        }
     }
 
     void ApplyRenderQueue(int rendId, int materialId)
@@ -153,15 +160,16 @@ public class RenderersSetRenderQueue : MonoBehaviour
 
     void RestoreRenderQueue()
     {
-        if (oldQueues != null)
-        {
-            foreach (KeyValuePair<Material, RenderQueueData> queue in oldQueues)
+        if (this.IsActiveAndEnabled() && (dominated.Contains(gameObject) || !affectsChildren))
+            if (oldQueues != null)
             {
-                queue.Key.renderQueue = queue.Value.renderQueue;
-                //TO DO: Changing if the value is overriden seems imposible
+                foreach (KeyValuePair<Material, RenderQueueData> queue in oldQueues)
+                {
+                    queue.Key.renderQueue += (queue.Value.renderQueue - renderQueue);
+                    //TO DO: Changing if the value is overriden seems imposible
+                }
+                oldQueues.Clear();
             }
-            oldQueues.Clear();
-        }
     }
 
     public void Set(bool affectsChildren, int materialIndex, bool updateRenderers)
