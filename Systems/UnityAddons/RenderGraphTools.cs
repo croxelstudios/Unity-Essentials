@@ -52,6 +52,24 @@ public static class RenderGraphTools
             name, true, FilterMode.Point, TextureWrapMode.Clamp);
     }
 
+    public static TextureHandle CreateCameraOpaqueTexture(this RenderGraph renderGraph, UniversalCameraData cameraData,
+        string name = "_CameraOpaqueTexture")
+    {
+        RenderTextureDescriptor normalsDesc = cameraData.cameraTargetDescriptor;
+        normalsDesc.depthStencilFormat = GraphicsFormat.None;
+        normalsDesc.msaaSamples = /*DepthPriming*/false ? cameraData.cameraTargetDescriptor.msaaSamples : 1;
+        normalsDesc.depthBufferBits = 0;
+        //if (false /*Is using deferred*/)
+        //{
+        //    m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferNormalSmoothnessIndex);
+        //}
+        //else
+        normalsDesc.graphicsFormat = DepthNormalOnlyPass.GetGraphicsFormat();
+
+        return UniversalRenderer.CreateRenderGraphTexture(renderGraph, normalsDesc,
+            name, true, FilterMode.Point, TextureWrapMode.Clamp);
+    }
+
     public static void SetUpUsableTextures(UniversalResourceData resourceData, IRasterRenderGraphBuilder builder)
     {
         TextureHandle mainShadowsTexture = resourceData.mainShadowsTexture;

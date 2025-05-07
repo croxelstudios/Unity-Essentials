@@ -95,7 +95,7 @@ public class DXRenderObjects : ScriptableRendererFeature
     public class TextureTargetSettings
     {
         public TextureTarget textureTarget = TextureTarget.Active;
-        public enum TextureTarget { Active, DepthTexture, NormalsTexture, GlobalTexture, RenderTexture }
+        public enum TextureTarget { Active, DepthTexture, NormalsTexture, OpaqueTexture, GlobalTexture, RenderTexture }
 
         [ShowIf("@textureTarget == TextureTarget.GlobalTexture")]
         public string textureName = "_CameraDepthTexture";
@@ -412,6 +412,20 @@ public class DXRenderObjects : ScriptableRendererFeature
                             texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
                         }
                         else passData.color = resourceData.cameraNormalsTexture;
+
+                        passData.clear = textureSettings.clear;
+                        passData.clearColor = textureSettings.clearColor;
+                        break;
+
+                    case TextureTargetSettings.TextureTarget.OpaqueTexture:
+                        texName = "_CameraOpaqueTexture";
+                        ConfigureInput(ScriptableRenderPassInput.Depth);
+                        if (!resourceData.cameraOpaqueTexture.CanBeUsed())
+                        {
+                            passData.color = renderGraph.CreateCameraNormalsTexture(cameraData, texName);
+                            texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
+                        }
+                        else passData.color = resourceData.cameraOpaqueTexture;
 
                         passData.clear = textureSettings.clear;
                         passData.clearColor = textureSettings.clearColor;
