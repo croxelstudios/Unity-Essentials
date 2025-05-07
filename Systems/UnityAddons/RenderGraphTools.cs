@@ -34,7 +34,7 @@ public static class RenderGraphTools
                 name, true, FilterMode.Point, TextureWrapMode.Clamp);
     }
 
-    public static TextureHandle CreateCameraNormalsTexture(this RenderGraph renderGraph, UniversalCameraData cameraData,
+    public static TextureHandle CreateCameraTexture(this RenderGraph renderGraph, UniversalCameraData cameraData,
         string name = "_CameraNormalsTexture")
     {
         RenderTextureDescriptor normalsDesc = cameraData.cameraTargetDescriptor;

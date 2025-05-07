@@ -95,7 +95,7 @@ public class DXRenderObjects : ScriptableRendererFeature
     public class TextureTargetSettings
     {
         public TextureTarget textureTarget = TextureTarget.Active;
-        public enum TextureTarget { Active, DepthTexture, NormalsTexture, OpaqueTexture, GlobalTexture, RenderTexture }
+        public enum TextureTarget { Active, GlobalTexture, RenderTexture, DepthTexture, NormalsTexture, OpaqueTexture }
 
         [ShowIf("@textureTarget == TextureTarget.GlobalTexture")]
         public string textureName = "_CameraDepthTexture";
@@ -211,6 +211,20 @@ public class DXRenderObjects : ScriptableRendererFeature
         if (renderingData.cameraData.cameraType == CameraType.Preview
             || UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
             return;
+
+        switch (settings.textureTargetSettings.textureTarget)
+        {
+            case TextureTargetSettings.TextureTarget.DepthTexture:
+                pass.ConfigureInput(ScriptableRenderPassInput.Depth);
+                break;
+            case TextureTargetSettings.TextureTarget.NormalsTexture:
+                pass.ConfigureInput(ScriptableRenderPassInput.Normal);
+                break;
+            case TextureTargetSettings.TextureTarget.OpaqueTexture:
+                pass.ConfigureInput(ScriptableRenderPassInput.Depth);
+                break;
+        }
+
         renderer.EnqueuePass(pass);
         if (depthPass != null)
             renderer.EnqueuePass(depthPass);
@@ -405,13 +419,17 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                     case TextureTargetSettings.TextureTarget.NormalsTexture:
                         texName = "_CameraNormalsTexture";
-                        ConfigureInput(ScriptableRenderPassInput.Depth);
-                        if (!resourceData.cameraNormalsTexture.CanBeUsed())
-                        {
-                            passData.color = renderGraph.CreateCameraNormalsTexture(cameraData, texName);
-                            texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
-                        }
-                        else passData.color = resourceData.cameraNormalsTexture;
+
+                        //WARNING: This is a failed attempt at creating the texture here to avoid redraw and not require the input.
+                        //  cameraNormalsTexture seems to always be valid even when it hasn't been created.
+                        //  Redraw seems to be unavoidable for now. Same issue occurs in the opaque Texture.
+                        //if (!resourceData.cameraNormalsTexture.IsValid()) 
+                        //{
+                        //    passData.color = renderGraph.CreateCameraNormalsTexture(cameraData, texName);
+                        //    texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
+                        //}
+                        //else
+                        passData.color = resourceData.cameraNormalsTexture;
 
                         passData.clear = textureSettings.clear;
                         passData.clearColor = textureSettings.clearColor;
@@ -419,13 +437,9 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                     case TextureTargetSettings.TextureTarget.OpaqueTexture:
                         texName = "_CameraOpaqueTexture";
-                        ConfigureInput(ScriptableRenderPassInput.Depth);
-                        if (!resourceData.cameraOpaqueTexture.CanBeUsed())
-                        {
-                            passData.color = renderGraph.CreateCameraNormalsTexture(cameraData, texName);
-                            texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
-                        }
-                        else passData.color = resourceData.cameraOpaqueTexture;
+
+                        passData.color = renderGraph.CreateCameraTexture(cameraData, texName);
+                        texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
 
                         passData.clear = textureSettings.clear;
                         passData.clearColor = textureSettings.clearColor;
