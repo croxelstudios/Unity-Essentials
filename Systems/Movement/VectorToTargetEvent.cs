@@ -25,6 +25,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [HideIf("useTagForOrigin")]
     [Tooltip("The transform that will move or the transform that the movement is calculated from. By default, this object's transform.")]
     Transform origin = null;
+    public Transform Origin { get { return origin; } set { origin = value; } }
     [Space]
     [SerializeField]
     [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
@@ -115,6 +116,8 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [SerializeField]
     [ShowIf("@move && !rotate")]
     bool reorientTransform = false;
+    [SerializeField]
+    bool sendFrameMovement = false;
     #region Events
     [SerializeField]
     [ShowIf("move")]
@@ -509,7 +512,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
 
             //Calculate and send vector with direction and amount of speed
             Vector3 result = direction * unitsPerSecondSpeed;
-            vector?.Invoke(result);
+            vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
             if (local && (origin.parent != null)) result = origin.parent.TransformVector(result);
             if (moveTransform) //TO DO: Implement this bool for each feature
                 origin.Translate(speedPerThisFrame, local ? Space.Self : Space.World);

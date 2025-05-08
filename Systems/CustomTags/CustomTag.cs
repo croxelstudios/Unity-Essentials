@@ -47,7 +47,7 @@ public class CustomTag : MonoBehaviour
 
     public static List<CustomTag> GetActiveTagged(CustomTagItem item)
     {
-        if (!IsItemActiveTagged(item)) return null;
+        if (!IsItemActiveTagged(item)) return new List<CustomTag>();
         else return activeTagged[item.tagList][item.customTag];
     }
     #endregion
@@ -110,8 +110,8 @@ public static class CustomTagExtension_Contains
 }
 
 [Serializable]
-[Sirenix.OdinInspector.InlineProperty]
-[Sirenix.OdinInspector.HideLabel]
+//[InlineProperty]
+//[HideLabel]
 public struct CustomTagItem : IEquatable<CustomTagItem>
 {
     public StringList tagList;
@@ -192,8 +192,8 @@ public struct CustomTagItem : IEquatable<CustomTagItem>
 }
 
 [Serializable]
-[Sirenix.OdinInspector.InlineProperty]
-[Sirenix.OdinInspector.HideLabel]
+//[InlineProperty]
+//[HideLabel]
 public struct CustomTagItems
 {
     public StringList tagList;

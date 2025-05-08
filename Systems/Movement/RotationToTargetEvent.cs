@@ -50,6 +50,8 @@ public class RotationToTargetEvent : MonoBehaviour
     [SerializeField]
     [Tooltip("If set to 'Positive' or 'Negative' it will force the rotation to be in a specific direction even if it's not the fastest")]
     RotationMode rotationMode = RotationMode.Shortest;
+    [SerializeField]
+    bool sendFrameMovement = false;
 
     [SerializeField]
     [Tooltip("Resulting rotation euler angles in degrees per second")]
@@ -378,10 +380,10 @@ public class RotationToTargetEvent : MonoBehaviour
 
             //Calculate and send euler angles with direction and amount of rotation
             Quaternion result = Quaternion.AngleAxis(degreesPerSecondSpeed, axis);
-            rotation?.Invoke(result.eulerAngles);
+            rotation?.Invoke(sendFrameMovement ? angleAxisPerThisFrame : result);
             if (local && (originTarget.origin.parent != null)) result = originTarget.origin.parent.rotation * result;
             if (rotateTransform)
-                originTarget.origin.Rotate(result.Scale(deltaTime).eulerAngles, local ? Space.Self : Space.World);
+                originTarget.origin.Rotate(angleAxisPerThisFrame.eulerAngles, local ? Space.Self : Space.World);
         }
     }
 
