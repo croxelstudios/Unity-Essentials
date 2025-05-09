@@ -1,12 +1,16 @@
-// void AdditionalLightsLoop_float(float4 Albedo, float3 Normal, float Smoothness,
+// void AdditionalLightsLoop_half(float3 Normal, float Smoothness,
 //     float LightCurveFactor, float RimLightAmount, float BackRimLightAmount,
 //     UnityTexture2D RampTexture, bool UseRampTexture, float ToonSubdivisions,
 //     bool BinaryShadows, float LightStepsCurveFactor, bool Invert,
-//     float4 SubgraphInitialization, float3 Position, float3 WorldSpaceNormal,
-//     bool ReceiveShadows, out float4 LightingResult, out float SpecularMask)
+//     float4 SubgraphInitialization, float3 Position, float3 WorldSpaceNormal, bool ReceiveShadows,
+//     out float4 Diffuse, out float3 Specular, out float3 RimLight, out float3 BackRimLight, out float SpecularMask)
 // {
-//     LightingResult = float4(0, 0, 0, 1);
+//     Diffuse = float4(0, 0, 0, 1);
+//     Specular = float3(0, 0, 0);
+//     RimLight = float3(0, 0, 0);
+//     BackRimLight = float3(0, 0, 0);
 //     SpecularMask = 0;
+
 // #if !defined(SHADERGRAPH_PREVIEW)
 // #ifdef _ADDITIONAL_LIGHTS
 //         uint lightsCount = GetAdditionalLightsCount();
@@ -34,20 +38,30 @@
 //                 if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 // #endif
 //             {
-//                 float4 OutVector4_1 = float4(0, 0, 0, 1);
-// 	            float sm = 0;
-                    	
-// 		        float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;
-//                 AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,
-// 	                RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,
-// 		            ToonSubdivisions, BinaryShadows, LightStepsCurveFactor, Invert, 0, Position, 
-// 		            WorldSpaceNormal, light.direction, light.color, 
-// 		            shadowAtten, light.distanceAttenuation,
-//                     OutVector4_1, sm);
+//                 float4 _Diffuse = float4(0, 0, 0, 1);
+//                 float3 _Specular = float3(0, 0, 0);
+//                 float3 _RimLight = float3(0, 0, 0);
+//                 float3 _BackRimLight = float3(0, 0, 0);
+//                 float _SpecularMask = 0;
+
+//                 float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;
+//                 Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;
+//                 bindings.WorldSpaceNormal = WorldSpaceNormal;
+//                 bindings.WorldSpacePosition = Position;
+//                 SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,
+// 	                Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, 
+// 	                UseRampTexture, RampTexture, UseRampTexture,
+// 	                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,
+// 	                light.direction, 1, light.color, 1, shadowAtten, 1,
+// 	                light.distanceAttenuation, Position, 1, bindings,
+//                     Diffuse, Specular, RimLight, BackRimLight, _SpecularMask);
     
-//                 LightingResult.rgb += OutVector4_1.rgb;
-//                 LightingResult.a *= OutVector4_1.a;
-// 	            SpecularMask += sm;
+//                 Diffuse.rgb += _Diffuse.rgb;
+//                 Diffuse.a *= _Diffuse.a;
+// 	            Specular += _Specular;
+//                 RimLight += _RimLight;
+//                 BackRimLight += _BackRimLight;
+//                 SpecularMask += _SpecularMask;
 //             }
 //         LIGHT_LOOP_END
 // #else
@@ -59,20 +73,31 @@
 //                 if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 // #endif
 //             {
-//                 float4 OutVector4_1 = float4(0, 0, 0, 1);
-// 	            float sm = 0;
-		    
-// 		        float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;
-//                 AdditionalLight_float(Albedo, Normal, Smoothness, LightCurveFactor,
-// 	                RimLightAmount, BackRimLightAmount, RampTexture, UseRampTexture,
-// 		            ToonSubdivisions, BinaryShadows, LightStepsCurveFactor, Invert, 0, Position, 
-// 		            WorldSpaceNormal, light.direction, light.color, 
-// 		            shadowAtten, light.distanceAttenuation,
-//                     OutVector4_1, sm);
+//                 float4 _Diffuse = float4(0, 0, 0, 1);
+//                 float3 _Specular = float3(0, 0, 0);
+//                 float3 _RimLight = float3(0, 0, 0);
+//                 float3 _BackRimLight = float3(0, 0, 0);
+//                 float _SpecularMask = 0;
+                    	
+
+//                 float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;
+//                 Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;
+//                 bindings.WorldSpaceNormal = WorldSpaceNormal;
+//                 bindings.WorldSpacePosition = Position;
+//                 SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,
+// 	                Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, 
+// 	                UseRampTexture, RampTexture, UseRampTexture,
+// 	                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,
+// 	                light.direction, 1, light.color, 1, shadowAtten, 1,
+// 	                light.distanceAttenuation, Position, 1, bindings,
+//                     Diffuse, Specular, RimLight, BackRimLight, _SpecularMask);
     
-//                 LightingResult.rgb += OutVector4_1.rgb;
-//                 LightingResult.a *= OutVector4_1.a;
-// 	            SpecularMask += sm;
+//                 Diffuse.rgb += _Diffuse.rgb;
+//                 Diffuse.a *= _Diffuse.a;
+// 	            Specular += _Specular;
+//                 RimLight += _RimLight;
+//                 BackRimLight += _BackRimLight;
+//                 SpecularMask += _SpecularMask;
 //             }
 //         }
 // #endif
@@ -80,20 +105,22 @@
 // #endif
 // }
 
-// void AdditionalLight_float(float4 Albedo, float3 Normal, float Smoothness,
+// void AdditionalLight_float(float3 Normal, float Smoothness,
 //     float LightCurveFactor, float RimLightAmount, float BackRimLightAmount,
 //     UnityTexture2D RampTexture, bool UseRampTexture, float ToonSubdivisions,
 //     bool BinaryShadows, float LightStepsCurveFactor, bool Invert,
 //     float4 SubgraphInitialization, float3 Position, float3 WorldSpaceNormal,
-//     bool ReceiveShadows, out float4 LightingResult, out float SpecularMask)
+//     float3 LightDir, float3 LightColor, float ShadowAtten, float DistanceAtten,
+//     out float4 Diffuse, out float3 Specular, out float3 RimLight, out float3 BackRimLight)
 // {
-//     Bindings_LightProcessing_e2dcdf5b1a4895c4b980fd3aca5d0224_float bindings;
+//     Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;
 //     bindings.WorldSpaceNormal = WorldSpaceNormal;
 //     bindings.WorldSpacePosition = Position;
-//     SG_LightProcessing_e2dcdf5b1a4895c4b980fd3aca5d0224_float(Albedo, Normal, 1,
+//     SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,
 // 	    Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, 
 // 	    UseRampTexture, RampTexture, UseRampTexture,
-// 	    ToonSubdivisions, BinaryShadows, LightStepsCurveFactor, Invert,
-// 	    LightDir, 1, LightColor, ShadowAtten,
-// 	    DistanceAtten, Position, bindings, OutVector4_1, SpecularMask);
+// 	    ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,
+// 	    LightDir, 1, LightColor, 1, ShadowAtten, 1,
+// 	    DistanceAtten, Position, 1, bindings,
+//         Diffuse, Specular, RimLight, BackRimLight);
 // }

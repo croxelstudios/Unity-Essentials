@@ -622,6 +622,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "MainLightData",
     "m_FunctionSource": "",
+    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\n\tDirection = half3(0.5, 0.5, 0);\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n\tShaddowAtten = 1;\r\n#else\n\tfloat4 positionCS = TransformWorldToHClip(Position);\r\n\t#if SHADOWS_SCREEN\r\n\t\tfloat4 shadowCoord = ComputeScreenPos(positionCS);\r\n\t#else\r\n\t\tfloat4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n\t#endif\r\n\tLight light = GetMainLight(shadowCoord, Position, 1);\n\tuint meshRenderingLayers = GetMeshRenderingLayer();\n\r\r\t\n\tDirection = half3(0, 0, 0);\n\tColor = float3(0, 0, 0);\n\tShaddowAtten = 1;\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\n\t{\n    \t\tDirection = light.direction;\n\t\t\r\r\t\tColor = light.color;\n\t\tShaddowAtten = light.shadowAttenuation;\n\t}\r\n#endif"
 }
 
