@@ -475,6 +475,8 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     {
         float maxDTSpeed = unsignedMaxSpd;
         float moveAmount = path.magnitude;
+        if (targetMode == TargetMode.StopAtMargin)
+            moveAmount -= margin;
         if ((moveAmount > maxDTSpeed) || (targetMode == TargetMode.NeverStop))
             moveAmount = maxDTSpeed;
         return path.Displacement(moveAmount);

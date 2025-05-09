@@ -167,64 +167,74 @@ public class DXVectorEvent
         magnitude.RemoveListener(call);
     }
 
-    public void AddListenerNormal(UnityAction<Vector3> call)
+    public void AddListener_Normal(UnityAction<Vector3> call)
     {
         unityEventNormal.AddListener(call);
     }
 
-    public void RemoveListenerNormal(UnityAction<Vector3> call)
+    public void RemoveListener_Normal(UnityAction<Vector3> call)
     {
         unityEventNormal.RemoveListener(call);
     }
 
-    public void AddListenerNormal(UnityAction<Vector2> call)
+    public void AddListener_Normal(UnityAction<Vector2> call)
     {
         vector2EventNormal.AddListener(call);
     }
 
-    public void RemoveListenerNormal(UnityAction<Vector2> call)
+    public void RemoveListener_Normal(UnityAction<Vector2> call)
     {
         vector2EventNormal.RemoveListener(call);
     }
 
-    public void AddListenerX(UnityAction<float> call)
+    public void AddListener_X(UnityAction<float> call)
     {
         xEvent.AddListener(call);
     }
 
-    public void RemoveListenerX(UnityAction<float> call)
+    public void RemoveListener_X(UnityAction<float> call)
     {
         xEvent.RemoveListener(call);
     }
 
-    public void AddListenerY(UnityAction<float> call)
+    public void AddListener_Y(UnityAction<float> call)
     {
         yEvent.AddListener(call);
     }
 
-    public void RemoveListenerY(UnityAction<float> call)
+    public void RemoveListener_Y(UnityAction<float> call)
     {
         yEvent.RemoveListener(call);
     }
 
-    public void AddListenerZ(UnityAction<float> call)
+    public void AddListener_Z(UnityAction<float> call)
     {
         zEvent.AddListener(call);
     }
 
-    public void RemoveListenerZ(UnityAction<float> call)
+    public void RemoveListener_Z(UnityAction<float> call)
     {
         zEvent.RemoveListener(call);
     }
 
-    public void AddListenerMagnitudeNonZero(UnityAction<float> call)
+    public void AddListener_MagnitudeNonZero(UnityAction<float> call)
     {
         magnitudeNonZero.AddListener(call);
     }
 
-    public void RemoveListenerMagnitudeNonZero(UnityAction<float> call)
+    public void RemoveListener_MagnitudeNonZero(UnityAction<float> call)
     {
         magnitudeNonZero.RemoveListener(call);
+    }
+
+    public void AddListener_MagnitudeZero(UnityAction call)
+    {
+        magnitudeZero.AddListener(call);
+    }
+
+    public void RemoveListener_MagnitudeZero(UnityAction call)
+    {
+        magnitudeZero.RemoveListener(call);
     }
 }
 
@@ -233,7 +243,6 @@ public class DXVectorEvent
 [CustomPropertyDrawer(typeof(DXVectorEvent))]
 public class DXVectorEventDrawer : DXDrawerBase
 {
-    const string eventTypesName = "types";
     const string vector2EventName = "vector2Event";
     const string vector2XZEventName = "vector2XZEvent";
     const string magnitudeEventName = "magnitude";
@@ -244,251 +253,96 @@ public class DXVectorEventDrawer : DXDrawerBase
     const string zEventName = "zEvent";
     const string magnitudeNonZeroEventName = "magnitudeNonZero";
     const string magnitudeZeroEventName = "magnitudeZero";
-    const float buttonSizeX = 80f;
-    const float buttonSizeY = 20f;
-    const float margin = 10f;
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        //Init
-        GUIStyle windowStyle = new GUIStyle(GUI.skin.window);
-        GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
-        boxStyle.alignment = TextAnchor.UpperLeft;
-        SerializedProperty eventTypes = property.FindPropertyRelative(eventTypesName);
-
-        //Window
-        Rect windowRect =
-            new Rect(position.min,
-            new Vector2(position.width, position.height - margin));
-        if (Event.current.type == EventType.Repaint)
-            windowStyle.Draw(windowRect, new GUIContent(""), 0);
-
-        //Label
-        Rect labelRect =
-            new Rect(new Vector2(position.xMin + 3f, position.yMin - 1f),
-            new Vector2(position.width, EditorGUIUtility.singleLineHeight));
-        EditorGUI.LabelField(labelRect, new GUIContent(property.displayName), boxStyle);
-        position.y += EditorGUIUtility.singleLineHeight;
-
-        //Events
-        Rect eventRect =
-            new Rect(new Vector2(position.xMin + 3f, position.yMin),
-            new Vector2(position.width - 6f, position.height));
-        for (int i = 0; i < eventTypes.arraySize; i++)
-        {
-            SerializedProperty eventType = eventTypes.GetArrayElementAtIndex(i);
-
-            //Popup rect
-            Vector2 popupSize = GUI.skin.label.CalcSize(
-                new GUIContent(eventType.enumDisplayNames[eventType.enumValueIndex]));
-            popupSize.x += 27f;
-            Rect popupRect =
-                new Rect(new Vector2(eventRect.xMin + 1f, eventRect.yMin + 1f), popupSize);
-
-            //Event
-            switch (eventType.enumValueIndex)
-            {
-                case (int)DXVectorEvent.EventType.Vector3:
-                    eventRect = DrawSubEvent(eventRect, property, unityEventName, "     ");
-                    break;
-                case (int)DXVectorEvent.EventType.Vector2:
-                    eventRect = DrawSubEvent(eventRect, property, vector2EventName, "     ");
-                    break;
-                case (int)DXVectorEvent.EventType.Vector2XZ:
-                    eventRect = DrawSubEvent(eventRect, property, vector2XZEventName, "     ");
-                    break;
-                case (int)DXVectorEvent.EventType.Magnitude:
-                    eventRect = DrawSubEvent(eventRect, property, magnitudeEventName, "             ");
-                    break;
-                case (int)DXVectorEvent.EventType.NormalizedVector3:
-                    eventRect = DrawSubEvent(eventRect, property, vector3NormalEventName, "                            ");
-                    break;
-                case (int)DXVectorEvent.EventType.NormalizedVector2:
-                    eventRect = DrawSubEvent(eventRect, property, vector2NormalEventName, "                            ");
-                    break;
-                case (int)DXVectorEvent.EventType.X:
-                    eventRect = DrawSubEvent(eventRect, property, xEventName, "");
-                    break;
-                case (int)DXVectorEvent.EventType.Y:
-                    eventRect = DrawSubEvent(eventRect, property, yEventName, "");
-                    break;
-                case (int)DXVectorEvent.EventType.Z:
-                    eventRect = DrawSubEvent(eventRect, property, zEventName, "");
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeNonZero:
-                    eventRect = DrawSubEvent(eventRect, property, magnitudeNonZeroEventName, "                               ");
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeZero:
-                    eventRect = DrawSubEvent(eventRect, property, magnitudeZeroEventName, "                                  ");
-                    break;
-            }
-
-            //Popup
-            EditorGUI.PropertyField(popupRect, eventType, new GUIContent(""));
-        }
-        position.y = eventRect.y;
-
-        //Plus and less button
-        if (eventTypes.arraySize > 0)
-        {
-            Rect lessButtonRect =
-                new Rect(new Vector2(position.center.x - buttonSizeX,
-                position.yMin - (buttonSizeY * 0.8f)),
-                new Vector2(buttonSizeX, buttonSizeY));
-            Rect plusButtonRect =
-                new Rect(new Vector2(position.center.x,
-                position.yMin - (buttonSizeY * 0.8f)),
-                new Vector2(buttonSizeX, buttonSizeY));
-            if (GUI.Button(plusButtonRect, "+"))
-                AddEvent(eventTypes);
-            if (GUI.Button(lessButtonRect, "-"))
-                RemoveEvent(eventTypes);
-        }
-        else
-        {
-            Rect plusButtonRect =
-                new Rect(new Vector2(position.center.x - (buttonSizeX / 2),
-                position.yMin - (buttonSizeY * 0.8f)),
-                new Vector2(buttonSizeX, buttonSizeY));
-            if (GUI.Button(plusButtonRect, "+"))
-                AddEvent(eventTypes);
-        }
-    }
-
-    void AddEvent(SerializedProperty eventTypes)
-    {
-        eventTypes.arraySize++;
-        SerializedProperty newEvent =
-            eventTypes.GetArrayElementAtIndex(eventTypes.arraySize - 1);
-        if (eventTypes.arraySize > 1)
-            newEvent.enumValueIndex =
-                (int)Mathf.Repeat(newEvent.enumValueIndex + 1, newEvent.enumNames.Length);
-    }
-
-    void RemoveEvent(SerializedProperty eventTypes)
-    {
-        eventTypes.arraySize--;
+        DrawComplexDXEvent(position, property, label);
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        float height = EditorGUIUtility.singleLineHeight;
-        SerializedProperty eventTypes = property.FindPropertyRelative(eventTypesName);
-        for (int i = 0; i < eventTypes.arraySize; i++)
+        return GetComplexDXEventHeight(property, label);
+    }
+
+    protected override void DrawEventType(ref Rect eventRect, SerializedProperty property, SerializedProperty eventType)
+    {
+        switch (eventType.enumValueIndex)
         {
-            SerializedProperty eventType = eventTypes.GetArrayElementAtIndex(i);
-            switch (eventType.enumValueIndex)
-            {
-                case (int)DXVectorEvent.EventType.Vector3:
-                    height += GetHeightOfEvent(property, unityEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.Vector2:
-                    height += GetHeightOfEvent(property, vector2EventName);
-                    break;
-                case (int)DXVectorEvent.EventType.Vector2XZ:
-                    height += GetHeightOfEvent(property, vector2XZEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.Magnitude:
-                    height += GetHeightOfEvent(property, magnitudeEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.NormalizedVector3:
-                    height += GetHeightOfEvent(property, vector3NormalEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.NormalizedVector2:
-                    height += GetHeightOfEvent(property, vector2NormalEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.X:
-                    height += GetHeightOfEvent(property, xEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.Y:
-                    height += GetHeightOfEvent(property, yEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.Z:
-                    height += GetHeightOfEvent(property, zEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeNonZero:
-                    height += GetHeightOfEvent(property, magnitudeNonZeroEventName);
-                    break;
-                case (int)DXVectorEvent.EventType.MagnitudeZero:
-                    height += GetHeightOfEvent(property, magnitudeZeroEventName);
-                    break;
-            }
+            case (int)DXVectorEvent.EventType.Vector3:
+                eventRect = DrawSubEvent(eventRect, property, unityEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.Vector2:
+                eventRect = DrawSubEvent(eventRect, property, vector2EventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.Vector2XZ:
+                eventRect = DrawSubEvent(eventRect, property, vector2XZEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.Magnitude:
+                eventRect = DrawSubEvent(eventRect, property, magnitudeEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.NormalizedVector3:
+                eventRect = DrawSubEvent(eventRect, property, vector3NormalEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.NormalizedVector2:
+                eventRect = DrawSubEvent(eventRect, property, vector2NormalEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.X:
+                eventRect = DrawSubEvent(eventRect, property, xEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.Y:
+                eventRect = DrawSubEvent(eventRect, property, yEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.Z:
+                eventRect = DrawSubEvent(eventRect, property, zEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.MagnitudeNonZero:
+                eventRect = DrawSubEvent(eventRect, property, magnitudeNonZeroEventName, eventType);
+                break;
+            case (int)DXVectorEvent.EventType.MagnitudeZero:
+                eventRect = DrawSubEvent(eventRect, property, magnitudeZeroEventName, eventType);
+                break;
         }
-        height += margin;
-        return height;
     }
 
-    //Enummed list system
-    Rect DrawSubEvent(Rect position, SerializedProperty property,
-        string eventName, string name)
+    protected override void GetEventTypeHeight(ref float height,
+        SerializedProperty property, SerializedProperty eventType)
     {
-        SerializedProperty unityEventProperty =
-            property.FindPropertyRelative(eventName);
-        float height = EditorGUI.GetPropertyHeight(unityEventProperty);
-
-        Rect eventRect =
-            new Rect(position.min,
-            new Vector2(position.width, height));
-
-        EditorGUI.PropertyField(eventRect, unityEventProperty, new GUIContent(name));
-        position.y += height;
-
-        return position;
-    }
-
-    float GetHeightOfEvent(SerializedProperty parentProperty, string name)
-    {
-        SerializedProperty unityEventProperty = parentProperty.FindPropertyRelative(name);
-        return EditorGUI.GetPropertyHeight(unityEventProperty);
-    }
-
-    //Multibox system
-    Rect DrawSubEvent(Rect position, SerializedProperty property, string eventName,
-        string name, GUIStyle boxStyle, GUIStyle foldoutStyle, bool defaultExpand = false)
-    {
-        SerializedProperty unityEventProperty =
-            property.FindPropertyRelative(eventName);
-        float height = EditorGUI.GetPropertyHeight(unityEventProperty);
-
-        Rect lineRect = new Rect(position.min,
-            new Vector2(position.width, EditorGUIUtility.singleLineHeight));
-        Rect boxRect =
-            new Rect(position.min,
-            new Vector2(position.width, height));
-        Rect eventRect =
-            new Rect(new Vector2(boxRect.xMin + 3f, boxRect.yMin + 3f),
-            new Vector2(boxRect.width - 6f, boxRect.height - 6f));
-
-        if (unityEventProperty.isExpanded ^ defaultExpand)
+        switch (eventType.enumValueIndex)
         {
-            if (Event.current.type == EventType.Repaint)
-                boxStyle.Draw(boxRect, new GUIContent(property.displayName), 0);
-            EditorGUI.PropertyField(eventRect, unityEventProperty, new GUIContent(name));
-            position.y += height;
+            case (int)DXVectorEvent.EventType.Vector3:
+                height += GetHeightOfEvent(property, unityEventName);
+                break;
+            case (int)DXVectorEvent.EventType.Vector2:
+                height += GetHeightOfEvent(property, vector2EventName);
+                break;
+            case (int)DXVectorEvent.EventType.Vector2XZ:
+                height += GetHeightOfEvent(property, vector2XZEventName);
+                break;
+            case (int)DXVectorEvent.EventType.Magnitude:
+                height += GetHeightOfEvent(property, magnitudeEventName);
+                break;
+            case (int)DXVectorEvent.EventType.NormalizedVector3:
+                height += GetHeightOfEvent(property, vector3NormalEventName);
+                break;
+            case (int)DXVectorEvent.EventType.NormalizedVector2:
+                height += GetHeightOfEvent(property, vector2NormalEventName);
+                break;
+            case (int)DXVectorEvent.EventType.X:
+                height += GetHeightOfEvent(property, xEventName);
+                break;
+            case (int)DXVectorEvent.EventType.Y:
+                height += GetHeightOfEvent(property, yEventName);
+                break;
+            case (int)DXVectorEvent.EventType.Z:
+                height += GetHeightOfEvent(property, zEventName);
+                break;
+            case (int)DXVectorEvent.EventType.MagnitudeNonZero:
+                height += GetHeightOfEvent(property, magnitudeNonZeroEventName);
+                break;
+            case (int)DXVectorEvent.EventType.MagnitudeZero:
+                height += GetHeightOfEvent(property, magnitudeZeroEventName);
+                break;
         }
-        else
-        {
-            if (Event.current.type == EventType.Repaint)
-                boxStyle.Draw(lineRect, new GUIContent(property.displayName), 0);
-            Rect labelRect = lineRect;
-            labelRect.x += 3f;
-            labelRect.y -= 1f;
-            EditorGUI.LabelField(labelRect, new GUIContent(name));
-            position.y += EditorGUIUtility.singleLineHeight;
-        }
-        unityEventProperty.isExpanded =
-            EditorGUI.Foldout(lineRect,
-            unityEventProperty.isExpanded ^ defaultExpand, "", foldoutStyle)
-            ^ defaultExpand;
-        return position;
-    }
-
-    float GetHeightOfEvent(SerializedProperty parentProperty, string name, bool reverseExpand)
-    {
-        SerializedProperty unityEventProperty = parentProperty.FindPropertyRelative(name);
-        if (reverseExpand ^ unityEventProperty.isExpanded)
-            return EditorGUI.GetPropertyHeight(unityEventProperty);
-        else return EditorGUIUtility.singleLineHeight;
     }
 }
 #endif

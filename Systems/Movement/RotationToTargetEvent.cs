@@ -45,6 +45,7 @@ public class RotationToTargetEvent : MonoBehaviour
     [Tooltip("When is this code executed")]
     TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
     [SerializeField]
+    [ShowIf("@targetMode == TargetMode.StopAtMargin")]
     [Tooltip("Minimum distance to the target before the resulting rotation becomes the identity.")]
     float margin = 1f;
     [SerializeField]
@@ -343,6 +344,8 @@ public class RotationToTargetEvent : MonoBehaviour
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed;
         float rotateAmount = rotPath.magnitude;
+        if (targetMode == TargetMode.StopAtMargin)
+            rotateAmount -= margin;
         if ((rotateAmount > maxDTSpeed) || (targetMode == TargetMode.NeverStop))
             rotateAmount = maxDTSpeed;
         return rotPath.Displacement(rotateAmount);

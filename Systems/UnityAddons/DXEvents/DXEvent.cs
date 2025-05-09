@@ -192,21 +192,260 @@ public class DXEventDrawer : DXDrawerBase
 
 public class DXDrawerBase : PropertyDrawer
 {
+    const string eventTypesName = "types";
     protected const string unityEventName = "unityEvent";
+    const float buttonSizeX = 80f;
+    const float buttonSizeY = 20f;
+    const float margin = 10f;
 
+    //Simple event
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         SerializedProperty unityEventProperty =
             property.FindPropertyRelative(unityEventName);
         Rect eventRect = position;
-        EditorGUI.PropertyField(eventRect, unityEventProperty,
+        CustomEventDrawer(eventRect, unityEventProperty,
             new GUIContent(property.displayName));
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         SerializedProperty unityEventProperty = property.FindPropertyRelative(unityEventName);
-        return EditorGUI.GetPropertyHeight(unityEventProperty);
+        return CustomEventHeight(unityEventProperty);
+    }
+
+    //Call custom drawer
+    void CustomEventDrawer(Rect position, SerializedProperty property, GUIContent label)
+    {
+        EditorGUI.PropertyField(position, property, label);
+    }
+
+    //Call custom drawer
+    float CustomEventHeight(SerializedProperty property)
+    {
+        return EditorGUI.GetPropertyHeight(property);
+    }
+
+    //ComplexDXEvent system
+    protected void DrawComplexDXEvent(Rect position, SerializedProperty property, GUIContent label)
+    {
+        //Init
+        SerializedProperty eventTypes = property.FindPropertyRelative(eventTypesName);
+
+        //Window
+        DrawWindow(position);
+
+        //Label
+        DrawLabel(ref position, property);
+
+        //Events
+        Rect eventRect = EventRect(position);
+        for (int i = 0; i < eventTypes.arraySize; i++)
+        {
+            SerializedProperty eventType = eventTypes.GetArrayElementAtIndex(i);
+
+            //Popup rect
+            Rect popupRect = PopupRect(eventRect, eventType);
+
+            //Event
+            DrawEventType(ref eventRect, property, eventType);
+
+            //Popup
+            EditorGUI.PropertyField(popupRect, eventType, new GUIContent(""));
+        }
+        position.y = eventRect.y;
+
+        //Plus and less button
+        DrawAddAndRemoveButtons(position, eventTypes);
+    }
+
+    protected virtual void DrawEventType(ref Rect eventRect,
+        SerializedProperty property, SerializedProperty eventType)
+    {
+        switch (eventType.enumValueIndex)
+        {
+            default:
+                eventRect = DrawSubEvent(eventRect, property, unityEventName, eventType);
+                break;
+        }
+    }
+
+    protected float GetComplexDXEventHeight(SerializedProperty property, GUIContent label)
+    {
+        float height = EditorGUIUtility.singleLineHeight;
+        SerializedProperty eventTypes = property.FindPropertyRelative(eventTypesName);
+        for (int i = 0; i < eventTypes.arraySize; i++)
+        {
+            SerializedProperty eventType = eventTypes.GetArrayElementAtIndex(i);
+            GetEventTypeHeight(ref height, property, eventType);
+        }
+        height += margin;
+        return height;
+    }
+
+    protected virtual void GetEventTypeHeight(ref float height,
+        SerializedProperty property, SerializedProperty eventType)
+    {
+        switch (eventType.enumValueIndex)
+        {
+            default:
+                height += GetHeightOfEvent(property, unityEventName);
+                break;
+        }
+    }
+
+    void DrawWindow(Rect position)
+    {
+        GUIStyle windowStyle = new GUIStyle(GUI.skin.window);
+        Rect windowRect =
+            new Rect(position.min,
+            new Vector2(position.width, position.height - margin));
+        if (Event.current.type == EventType.Repaint)
+            windowStyle.Draw(windowRect, new GUIContent(""), 0);
+    }
+
+    void DrawLabel(ref Rect position, SerializedProperty property)
+    {
+        GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
+        boxStyle.alignment = TextAnchor.UpperLeft;
+        Rect labelRect =
+            new Rect(new Vector2(position.xMin + 3f, position.yMin - 1f),
+            new Vector2(position.width, EditorGUIUtility.singleLineHeight));
+        EditorGUI.LabelField(labelRect, new GUIContent(property.displayName), boxStyle);
+        position.y += EditorGUIUtility.singleLineHeight;
+    }
+
+    Rect EventRect(Rect position)
+    {
+        return
+            new Rect(new Vector2(position.xMin + 3f, position.yMin),
+            new Vector2(position.width - 6f, position.height));
+    }
+
+    Rect PopupRect(Rect eventRect, SerializedProperty eventType)
+    {
+        Vector2 popupSize = GUI.skin.label.CalcSize(
+            new GUIContent(eventType.enumDisplayNames[eventType.enumValueIndex]));
+        popupSize.x += 27f;
+        return new Rect(new Vector2(eventRect.xMin + 1f, eventRect.yMin + 1f), popupSize);
+    }
+
+    void DrawAddAndRemoveButtons(Rect position, SerializedProperty eventTypes)
+    {
+        if (eventTypes.arraySize > 0)
+        {
+            Rect lessButtonRect =
+                new Rect(new Vector2(position.center.x - buttonSizeX,
+                position.yMin - (buttonSizeY * 0.8f)),
+                new Vector2(buttonSizeX, buttonSizeY));
+            Rect plusButtonRect =
+                new Rect(new Vector2(position.center.x,
+                position.yMin - (buttonSizeY * 0.8f)),
+                new Vector2(buttonSizeX, buttonSizeY));
+            if (GUI.Button(plusButtonRect, "+"))
+                AddEvent(eventTypes);
+            if (GUI.Button(lessButtonRect, "-"))
+                RemoveEvent(eventTypes);
+        }
+        else
+        {
+            Rect plusButtonRect =
+                new Rect(new Vector2(position.center.x - (buttonSizeX / 2),
+                position.yMin - (buttonSizeY * 0.8f)),
+                new Vector2(buttonSizeX, buttonSizeY));
+            if (GUI.Button(plusButtonRect, "+"))
+                AddEvent(eventTypes);
+        }
+    }
+
+    //Enummed list system
+    protected Rect DrawSubEvent(Rect position, SerializedProperty property,
+        string eventName, SerializedProperty eventType)
+    {
+        string name = eventType.enumDisplayNames[eventType.enumValueIndex] + new string(' ', 7);
+        SerializedProperty unityEventProperty =
+            property.FindPropertyRelative(eventName);
+        float height = EditorGUI.GetPropertyHeight(unityEventProperty);
+
+        Rect eventRect =
+            new Rect(position.min,
+            new Vector2(position.width, height));
+
+        CustomEventDrawer(eventRect, unityEventProperty, new GUIContent(name));
+        position.y += height;
+
+        return position;
+    }
+
+    protected float GetHeightOfEvent(SerializedProperty parentProperty, string name)
+    {
+        SerializedProperty unityEventProperty = parentProperty.FindPropertyRelative(name);
+        return CustomEventHeight(unityEventProperty);
+    }
+
+    //Multibox system (OBSOLETE)
+    protected Rect DrawSubEvent(Rect position, SerializedProperty property, string eventName,
+        string name, GUIStyle boxStyle, GUIStyle foldoutStyle, bool defaultExpand = false)
+    {
+        SerializedProperty unityEventProperty =
+            property.FindPropertyRelative(eventName);
+        float height = EditorGUI.GetPropertyHeight(unityEventProperty);
+
+        Rect lineRect = new Rect(position.min,
+            new Vector2(position.width, EditorGUIUtility.singleLineHeight));
+        Rect boxRect =
+            new Rect(position.min,
+            new Vector2(position.width, height));
+        Rect eventRect =
+            new Rect(new Vector2(boxRect.xMin + 3f, boxRect.yMin + 3f),
+            new Vector2(boxRect.width - 6f, boxRect.height - 6f));
+
+        if (unityEventProperty.isExpanded ^ defaultExpand)
+        {
+            if (Event.current.type == EventType.Repaint)
+                boxStyle.Draw(boxRect, new GUIContent(property.displayName), 0);
+            EditorGUI.PropertyField(eventRect, unityEventProperty, new GUIContent(name));
+            position.y += height;
+        }
+        else
+        {
+            if (Event.current.type == EventType.Repaint)
+                boxStyle.Draw(lineRect, new GUIContent(property.displayName), 0);
+            Rect labelRect = lineRect;
+            labelRect.x += 3f;
+            labelRect.y -= 1f;
+            EditorGUI.LabelField(labelRect, new GUIContent(name));
+            position.y += EditorGUIUtility.singleLineHeight;
+        }
+        unityEventProperty.isExpanded =
+            EditorGUI.Foldout(lineRect,
+            unityEventProperty.isExpanded ^ defaultExpand, "", foldoutStyle)
+            ^ defaultExpand;
+        return position;
+    }
+
+    protected float GetHeightOfEvent(SerializedProperty parentProperty, string name, bool reverseExpand)
+    {
+        SerializedProperty unityEventProperty = parentProperty.FindPropertyRelative(name);
+        if (reverseExpand ^ unityEventProperty.isExpanded)
+            return EditorGUI.GetPropertyHeight(unityEventProperty);
+        else return EditorGUIUtility.singleLineHeight;
+    }
+
+    //Add and Remove buttons for complex DXEvents
+    protected void AddEvent(SerializedProperty eventTypes)
+    {
+        eventTypes.arraySize++;
+        SerializedProperty newEvent =
+            eventTypes.GetArrayElementAtIndex(eventTypes.arraySize - 1);
+        if (eventTypes.arraySize > 1)
+            newEvent.enumValueIndex =
+                (int)Mathf.Repeat(newEvent.enumValueIndex + 1, newEvent.enumNames.Length);
+    }
+
+    protected void RemoveEvent(SerializedProperty eventTypes)
+    {
+        eventTypes.arraySize--;
     }
 }
 #endif
