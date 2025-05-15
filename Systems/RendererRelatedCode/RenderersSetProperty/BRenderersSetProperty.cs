@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq;
 using UnityEngine.Rendering;
+using System;
 
 [ExecuteAlways]
 public class BRenderersSetProperty : MonoBehaviour
@@ -216,7 +217,7 @@ public class BRenderersSetProperty : MonoBehaviour
         return block;
     }
 
-    protected struct RendererMaterial
+    protected struct RendererMaterial : IEquatable<RendererMaterial>
     {
         public Renderer rend;
         public int mat;
@@ -227,6 +228,34 @@ public class BRenderersSetProperty : MonoBehaviour
             this.rend = rend;
             this.mat = mat;
             this.property = property;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (!(other is RendererMaterial)) return false;
+            return Equals((RendererMaterial)other);
+        }
+
+        public bool Equals(RendererMaterial other)
+        {
+            return (rend == other.rend)
+                && (mat == other.mat)
+                && (property == other.property);
+        }
+
+        public override int GetHashCode()
+        {
+            return (rend.GetHashCode() * 31 + mat.GetHashCode()) * 31 + property.GetHashCode();
+        }
+
+        public static bool operator ==(RendererMaterial o1, RendererMaterial o2)
+        {
+            return o1.Equals(o2);
+        }
+
+        public static bool operator !=(RendererMaterial o1, RendererMaterial o2)
+        {
+            return !o1.Equals(o2);
         }
     }
 }

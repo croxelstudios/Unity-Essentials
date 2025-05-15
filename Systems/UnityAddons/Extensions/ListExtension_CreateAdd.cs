@@ -54,7 +54,7 @@ public static class ListExtension_CreateAdd
         T key, Y value)
     {
         dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].Add(value);
+        if (dict.ContainsKey(key)) dict[key].CreateAdd(value);
         else dict.Add(key, new List<Y>().CreateAdd(value));
         return dict;
     }
@@ -63,7 +63,7 @@ public static class ListExtension_CreateAdd
         T key, Y value)
     {
         dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].Add(value);
+        if (dict.ContainsKey(key)) dict[key].CreateAdd(value);
         else dict.Add(key, new List<Y>().CreateAdd(value));
         return dict;
     }
