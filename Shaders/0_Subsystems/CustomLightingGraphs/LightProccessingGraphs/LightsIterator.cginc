@@ -54,7 +54,7 @@
 // 	                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,
 // 	                light.direction, 1, light.color, 1, shadowAtten, 1,
 // 	                light.distanceAttenuation, Position, 1, bindings,
-//                     Diffuse, Specular, RimLight, BackRimLight, _SpecularMask);
+//                     _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);
     
 //                 Diffuse.rgb += _Diffuse.rgb;
 //                 Diffuse.a *= _Diffuse.a;
@@ -79,7 +79,6 @@
 //                 float3 _BackRimLight = float3(0, 0, 0);
 //                 float _SpecularMask = 0;
                     	
-
 //                 float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;
 //                 Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;
 //                 bindings.WorldSpaceNormal = WorldSpaceNormal;
@@ -90,7 +89,7 @@
 // 	                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,
 // 	                light.direction, 1, light.color, 1, shadowAtten, 1,
 // 	                light.distanceAttenuation, Position, 1, bindings,
-//                     Diffuse, Specular, RimLight, BackRimLight, _SpecularMask);
+//                     _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);
     
 //                 Diffuse.rgb += _Diffuse.rgb;
 //                 Diffuse.a *= _Diffuse.a;

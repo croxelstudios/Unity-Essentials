@@ -22,9 +22,13 @@ public class ScaleByCurve : MonoBehaviour
     TimeMode timeMode = TimeMode.Update;
     [SerializeField]
     DXEvent finishedScale = null;
+    [SerializeField]
+    DXEvent finishedReverseScale = null;
 
+    float currentTime;
+    bool negative;
     float lastScaleModifier;
-    bool initialized = false;
+    bool initialized;
     Coroutine co;
 
     void Awake()
@@ -42,38 +46,24 @@ public class ScaleByCurve : MonoBehaviour
         if (co != null) StopCoroutine(co);
     }
 
-    void Init()
+    void Update()
     {
-        if (!initialized)
-        {
-            lastScaleModifier = 1f;
-            initialized = true;
-        }
+        if (timeMode.IsSmooth())
+            DoUpdate(timeMode.DeltaTime());
     }
 
-    public void DoScaleAnimation()
+    void FixedUpdate()
     {
-        Init();
-        if (this.IsActiveAndEnabled())
-        {
-            if (co != null) StopCoroutine(co);
-            co = StartCoroutine(ScaleAnimation(time));
-        }
+        if (timeMode.IsFixed())
+            DoUpdate(timeMode.DeltaTime());
     }
 
-    IEnumerator ScaleAnimation(float time)
+    void DoUpdate(float deltaTime)
     {
-        float t = time;
-
-        if (normalizeScaleAtStart)
+        if (currentTime > 0f)
         {
-            if (transform.localScale.sqrMagnitude <= 0f) transform.localScale = Vector3.one;
-            else transform.localScale = transform.localScale.normalized;
-        }
-
-        while (t > 0f)
-        {
-            float current = curve.Evaluate(1 - (t / time)) * scale;
+            float factor = currentTime / time;
+            float current = curve.Evaluate(negative ? factor : 1 - factor) * scale;
 
             //Prevent 0 scale locks
             if (Mathf.Abs(current) < minScale) current = minScale * Mathf.Sign(current);
@@ -89,11 +79,60 @@ public class ScaleByCurve : MonoBehaviour
             transform.localScale = transform.localScale * currentMult;
 
             lastScaleModifier = current;
-            yield return timeMode.WaitFor();
-            t -= timeMode.DeltaTime();
-        }
 
-        finishedScale?.Invoke();
-        co = null;
+            currentTime -= deltaTime;
+
+            if (currentTime <= 0f)
+            {
+                currentTime = 0f;
+                if (negative) finishedReverseScale?.Invoke();
+                else finishedScale?.Invoke();
+            }
+        }
+    }
+
+    void Init()
+    {
+        if (!initialized)
+        {
+            lastScaleModifier = 1f;
+            initialized = true;
+        }
+    }
+
+    public void DoScaleAnimation()
+    {
+        Init();
+        if (this.IsActiveAndEnabled())
+        {
+            if (normalizeScaleAtStart)
+            {
+                if (transform.localScale.sqrMagnitude <= 0f) transform.localScale = Vector3.one;
+                else transform.localScale = transform.localScale.normalized;
+            }
+            if (currentTime <= 0)
+                currentTime = time;
+            else if (negative)
+                currentTime = time - currentTime;
+            negative = false;
+        }
+    }
+
+    public void ReverseScaleAnimation()
+    {
+        Init();
+        if (this.IsActiveAndEnabled())
+        {
+            if (normalizeScaleAtStart)
+            {
+                if (transform.localScale.sqrMagnitude <= 0f) transform.localScale = Vector3.one;
+                else transform.localScale = transform.localScale.normalized;
+            }
+            if (currentTime <= 0)
+                currentTime = time;
+            else if (!negative)
+                currentTime = time - currentTime;
+            negative = true;
+        }
     }
 }
