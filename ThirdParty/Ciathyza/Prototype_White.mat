@@ -72,11 +72,19 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ExtraMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _HeightMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _LightProcessing_8cc6abdbc5674936878361f22cc09ca7_RampTexture_2329177760_Texture2D:
+        m_Texture: {fileID: 2800000, guid: e4378ac4e56d0224f90c44a547cb9b76, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LightProcessor_7b8aa9446f6c47dfbb39a90a521a27de_RampTexture_2329177760_Texture2D:
         m_Texture: {fileID: 2800000, guid: e4378ac4e56d0224f90c44a547cb9b76, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -93,6 +101,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OutlineTexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -128,6 +140,7 @@ Material:
     m_Floats:
     - _3DBOOLEANS: 0
     - _AddPrecomputedVelocity: 0
+    - _AffineTextureMapping: 0
     - _AlphaClip: 0
     - _AlphaMaskChannelRed: 1
     - _AlphaNoiseBorder: 0
@@ -135,6 +148,7 @@ Material:
     - _AmbientLight: 1
     - _AvoidRepetition: 0
     - _BackRimLightAmount: 0
+    - _BinaryShadows: 1
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BorderHeight: 0
@@ -149,6 +163,7 @@ Material:
     - _CastShadows: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
+    - _ColorThreshold: 1
     - _Cull: 2
     - _Cutoff: 0.5
     - _Cutout: 0
@@ -160,6 +175,7 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _ExtraMapThreshold: 0.15
     - _FlipX: 0
     - _FlipY: 0
     - _GlossMapScale: 0
@@ -168,6 +184,7 @@ Material:
     - _HeightMultiplier: 1
     - _Invert: 0
     - _LightCurveFactor: 0
+    - _LightInfluence: 0
     - _LightPositionFromVertexColors: 0
     - _LightStepsCurveFactor: 0
     - _MapSaturation: 1
@@ -176,10 +193,13 @@ Material:
     - _NormalMultiplier: 30
     - _NormalThreshold: 0.67
     - _OcclusionStrength: 1
+    - _OutlinePerspective: 0
     - _Parallax: 0.005
     - _PixelThickness: 4.5
+    - _PositionInOtherSpace: 0
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _RainbowEffect: 0
     - _ReceiveShadows: 1
     - _RimLightAmount: 0
     - _Rotation: 0
@@ -208,6 +228,7 @@ Material:
     - _VDWorldSpaceX: 0
     - _VDWorldSpaceY: 0
     - _VDWorldSpaceZ: 0
+    - _VertexSnapping: 0
     - _Visualize: 0
     - _Wiggliness: 0.5
     - _WigglinessScale: 125
