@@ -774,7 +774,7 @@
                 "m_Node": {
                     "m_Id": "b58e1c357238436d9794329514ac3a4e"
                 },
-                "m_SlotId": 1
+                "m_SlotId": 0
             }
         },
         {
@@ -2539,10 +2539,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1143.0,
-            "y": 134.99998474121095,
-            "width": 171.9998779296875,
-            "height": 141.99998474121095
+            "x": 1142.9998779296875,
+            "y": 135.0,
+            "width": 172.0,
+            "height": 141.99996948242188
         }
     },
     "m_Slots": [
@@ -5359,8 +5359,8 @@
     "m_ObjectId": "3211ad2e60d648e29ee34e29db32efd7",
     "m_Title": "TimeData",
     "m_Position": {
-        "x": -3223.000244140625,
-        "y": -199.0
+        "x": -3223.0,
+        "y": -198.99996948242188
     }
 }
 
@@ -5593,7 +5593,7 @@
     "m_ObjectId": "374d6c81e6454ab88a30724fd934a978",
     "m_Title": "Noise",
     "m_Position": {
-        "x": -2076.000244140625,
+        "x": -2075.999755859375,
         "y": -87.0
     }
 }
@@ -6025,8 +6025,8 @@
     "m_ObjectId": "3d376e8b044345de9a2c40a8b8551ad4",
     "m_Title": "Dithering",
     "m_Position": {
-        "x": 932.9999389648438,
-        "y": 346.0000305175781
+        "x": 932.9995727539063,
+        "y": 346.0
     }
 }
 
@@ -6275,6 +6275,29 @@
         "z": 0.0,
         "w": 0.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "419306d4c269488e896729d5e92c5793",
+    "m_Id": 6,
+    "m_DisplayName": "Position",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Position",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -7407,9 +7430,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1022.0000610351563,
-            "y": 172.0,
-            "width": 123.00006103515625,
+            "x": 1021.9999389648438,
+            "y": 171.99998474121095,
+            "width": 122.99993896484375,
             "height": 34.0
         }
     },
@@ -8570,10 +8593,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "70bb5e65b34c4fd4a256165d75b8f072",
     "m_Id": 3,
-    "m_DisplayName": "ProjectedDistance",
+    "m_DisplayName": "FragmentHeight",
     "m_SlotType": 1,
     "m_Hidden": false,
-    "m_ShaderOutputName": "ProjectedDistance",
+    "m_ShaderOutputName": "FragmentHeight",
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
@@ -8586,8 +8609,8 @@
     "m_ObjectId": "70e74d11d3f54480bba118b7e63f9ce9",
     "m_Title": "Shape",
     "m_Position": {
-        "x": -3646.0,
-        "y": 375.0000305175781
+        "x": -3645.999755859375,
+        "y": 375.0
     }
 }
 
@@ -10602,7 +10625,7 @@
     "m_Title": "AlphaCard",
     "m_Position": {
         "x": -1241.0,
-        "y": 818.0000610351563
+        "y": 817.9999389648438
     }
 }
 
@@ -12375,6 +12398,9 @@
         },
         {
             "m_Id": "ae35943c9c154872a7e2f236949e4b7d"
+        },
+        {
+            "m_Id": "419306d4c269488e896729d5e92c5793"
         }
     ],
     "synonyms": [],
@@ -12649,8 +12675,8 @@
     "m_ObjectId": "bb20f9b6f2e740a6bde98a80645491d9",
     "m_Title": "Axis",
     "m_Position": {
-        "x": -4183.00048828125,
-        "y": 92.0
+        "x": -4183.0,
+        "y": 91.99998474121094
     }
 }
 
@@ -13963,8 +13989,8 @@
     "m_ObjectId": "d0938a0003ea455d84467bb4b39532e1",
     "m_Title": "Scale Depth Fade",
     "m_Position": {
-        "x": -246.9998779296875,
-        "y": -431.00006103515627
+        "x": -247.0,
+        "y": -431.0
     }
 }
 
@@ -15576,7 +15602,7 @@
     "m_Title": "Depth Test",
     "m_Position": {
         "x": -140.0,
-        "y": 440.0000305175781
+        "y": 440.0
     }
 }
 
