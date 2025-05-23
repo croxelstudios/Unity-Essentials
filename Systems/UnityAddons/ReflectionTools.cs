@@ -20,18 +20,11 @@ public static class ReflectionTools
     {
         fieldPath = fieldPath.Replace(".Array.data", "");
         string[] fieldStructure = fieldPath.Split('.');
-        Regex rgx = new Regex(@"\[\d+\]");
         for (int i = 0; i < fieldStructure.Length; i++)
         {
-            if (fieldStructure[i].Contains("["))
-            {
-                int index = Convert.ToInt32(new string(fieldStructure[i].Where(c => char.IsDigit(c)).ToArray()));
-                inObj = GetFieldValueWithIndex(rgx.Replace(fieldStructure[i], ""), inObj, index);
-            }
-            else
-            {
-                inObj = GetFieldValue(fieldStructure[i], inObj);
-            }
+            string text = fieldStructure[i].BreakDownArrayVariable(out int index);
+            if (index >= 0) inObj = GetFieldValueWithIndex(text, inObj, index);
+            else inObj = GetFieldValue(text, inObj);
         }
         return inObj;
     }
@@ -45,49 +38,33 @@ public static class ReflectionTools
     {
         fieldPath = fieldPath.Replace(".Array.data", "");
         string[] fieldStructure = fieldPath.Split('.');
-        Regex rgx = new Regex(@"\[\d+\]");
         for (int i = 0; i < fieldStructure.Length - 1; i++)
         {
-            if (fieldStructure[i].Contains("["))
-            {
-                int index = Convert.ToInt32(new string(fieldStructure[i].Where(c => char.IsDigit(c)).ToArray()));
-                inObj = GetFieldValueWithIndex(rgx.Replace(fieldStructure[i], ""), inObj, index);
-            }
-            else
-            {
-                inObj = GetFieldValue(fieldStructure[i], inObj);
-            }
+            string txt = fieldStructure[i].BreakDownArrayVariable(out int ind);
+            if (ind >= 0) inObj = GetFieldValueWithIndex(txt, inObj, ind);
+            else inObj = GetFieldValue(txt, inObj);
         }
 
         string fieldName = fieldStructure.Last();
-        if (fieldName.Contains("["))
-        {
-            int index = Convert.ToInt32(new string(fieldName.Where(c => char.IsDigit(c)).ToArray()));
-            return SetFieldValueWithIndex(rgx.Replace(fieldName, ""), inObj, index, newValue);
-        }
-        else
-        {
-            return SetFieldValue(fieldName, inObj, newValue);
-        }
+
+        string text = fieldName.BreakDownArrayVariable(out int index);
+        if (index >= 0) return SetFieldValueWithIndex(text, inObj, index, newValue);
+        else return SetFieldValue(text, inObj, newValue);
     }
 
     public static Type GetType(object inObj, string fieldPath)
     {
         fieldPath = fieldPath.Replace(".Array.data", "");
         string[] fieldStructure = fieldPath.Split('.');
-        Regex rgx = new Regex(@"\[\d+\]");
         Type type = null;
         for (int i = 0; i < fieldStructure.Length; i++)
         {
-            if (fieldStructure[i].Contains("["))
-            {
-                int index = Convert.ToInt32(new string(fieldStructure[i].Where(c => char.IsDigit(c)).ToArray()));
-                type = GetField(rgx.Replace(fieldStructure[i], ""), inObj)?.FieldType?.GetElementType();
-            }
+            string text = fieldStructure[i].BreakDownArrayVariable(out int index);
+            if (index >= 0) type = GetField(text, inObj)?.FieldType?.GetElementType();
             else
             {
-                type = GetField(fieldStructure[i], inObj)?.FieldType;
-                if (type == null) type = GetProperty(fieldStructure[i], inObj)?.PropertyType;
+                type = GetField(text, inObj)?.FieldType;
+                if (type == null) type = GetProperty(text, inObj)?.PropertyType;
             }
         }
         return type;

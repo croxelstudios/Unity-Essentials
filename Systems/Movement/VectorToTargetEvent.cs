@@ -11,6 +11,10 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [Header("Target")]
     #region Target
     [SerializeField]
+    [HideLabel]
+    [InlineProperty]
+    OriginTarget originTarget = new OriginTarget("Player");
+    [SerializeField]
     [TagSelector]
     [Tooltip("Tag used to find the transform in case it is not specified")]
     string targetTag = "Player";
@@ -39,6 +43,12 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [Tooltip("Projection plane normal")]
     Vector3 planeNormal = Vector3.back;
     #endregion
+
+    [Header("Speed behaviour")]
+    [SerializeField]
+    [InlineProperty]
+    [HideLabel]
+    SpeedBehaviour speedBehaviour = new SpeedBehaviour(SpeedBehaviour.SpeedMode.Linear);
 
     [Header("Speed behaviour")]
     #region Speed

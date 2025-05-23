@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 public class CentralizedSettings : MonoBehaviour
 {
@@ -47,7 +49,7 @@ public class CentralizedSettings : MonoBehaviour
 [CustomPropertyDrawer(typeof(CentralizedSettings.Holder))]
 public class CentralizedSettingsDrawer : PropertyDrawer
 {
-    const float EXTRASIZE = 10f;
+    const float EXTRASIZE = 5f;
     const string variablesName = "variables";
     const string componentName = "component";
     const string displayName = "displayName";
@@ -67,7 +69,9 @@ public class CentralizedSettingsDrawer : PropertyDrawer
         {
             SerializedProperty prop = GetReferenceValueProperty(children[i], out GUIContent lb);
             if (prop != null)
-                res += EditorGUI.GetPropertyHeight(prop, lb, true) + EXTRASIZE;
+                res += EditorGUI.GetPropertyHeight(prop, lb, true);
+            else res += EditorGUIUtility.singleLineHeight;
+            res += EXTRASIZE;
         }
         return res;
     }
@@ -82,8 +86,6 @@ public class CentralizedSettingsDrawer : PropertyDrawer
 
         EditorGUI.BeginProperty(position, label, property);
 
-        position.y += EditorGUIUtility.singleLineHeight;
-
         for (int i = 0; i < children.Length; i++)
         {
             SerializedProperty prop = GetReferenceValueProperty(children[i], out GUIContent lb);
@@ -92,8 +94,16 @@ public class CentralizedSettingsDrawer : PropertyDrawer
                 position.height = EditorGUI.GetPropertyHeight(prop, lb, true);
                 EditorGUI.PropertyField(position, prop, lb, true);
                 prop.serializedObject.ApplyModifiedProperties();
-                position.y += position.height + EXTRASIZE;
             }
+            else
+            {
+                position.height = EditorGUIUtility.singleLineHeight;
+                if ((lb == null) || (lb.text == ""))
+                    EditorGUI.LabelField(position, "*empty*");
+                else
+                    EditorGUI.DropShadowLabel(position, lb);
+            }
+            position.y += position.height + EXTRASIZE;
         }
 
         EditorGUI.EndProperty();
@@ -103,21 +113,36 @@ public class CentralizedSettingsDrawer : PropertyDrawer
     {
         Component comp = refProp.FindPropertyRelative(componentName).objectReferenceValue
             as Component;
-        if (comp == null)
-        {
-            label = new GUIContent("");
-            return null;
-        }
-        SerializedObject obj = new SerializedObject(comp);
-        //TO DO: Support sub-properties and arrays
+
         string propName = refProp.FindPropertyRelative(nameName).stringValue;
-        SerializedProperty prop = obj.FindProperty(propName);
         string dispName = refProp.FindPropertyRelative(displayName).stringValue;
 
         if (string.IsNullOrEmpty(dispName))
             dispName = propName.ToDisplayName();
         else dispName = dispName.ToDisplayName();
         label = new GUIContent(dispName);
+
+        if (comp == null)
+        {
+            if (!string.IsNullOrEmpty(propName))
+                label = null;
+            return null;
+        }
+
+        SerializedObject obj = new SerializedObject(comp);
+        string[] propStructure = propName.Split('.');
+        SerializedProperty prop = null;
+
+        for (int i = 0; i < propStructure.Length; i++)
+        {
+            string text = propStructure[i].BreakDownArrayVariable(out int index);
+
+            if (prop == null) prop = obj.FindProperty(text);
+            else prop = prop.FindPropertyRelative(text);
+
+            if (index >= 0) prop = prop.GetArrayElementAtIndex(index);
+        }
+
         return prop;
     }
 }
