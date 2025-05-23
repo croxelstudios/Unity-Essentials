@@ -16,15 +16,16 @@ public struct SpeedBehaviour
     [Tooltip("Start speed in units per second")]
     [ShowIf("@speedMode == SpeedMode.Linear || speedMode == SpeedMode.LerpSmooth")]
     public float speed;
-    [Tooltip("Maximum movement speed in units per second")]
-    [ShowIf("@speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp || speedMode == SpeedMode.Teleport")]
-    public float maxSpeed;
     [ShowIf("@speedMode == SpeedMode.Accelerated")]
     public float acceleration;
     [SerializeField]
     [ShowIf("@speedMode == SpeedMode.Accelerated")]
     [Tooltip("Friction multiplier relative to acceleration. Applied when doAccelerate is false. Greater = stops faster")]
     float frictionBias;
+    [Tooltip("Maximum movement speed in units per second")]
+    [ShowIf("@speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp || speedMode == SpeedMode.Teleport")]
+    public float maxSpeed;
+    [SerializeField]
     [ShowIf("@speedMode == SpeedMode.Accelerated")]
     [Tooltip("Wether the object is accelerating towards the target or slowly stopping")]
     bool _doAccelerate;
