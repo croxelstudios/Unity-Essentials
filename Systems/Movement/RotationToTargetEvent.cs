@@ -16,6 +16,7 @@ public class RotationToTargetEvent : MonoBehaviour
     [InlineProperty]
     OriginTarget originTarget = new OriginTarget("Player");
     public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
+    public Transform origin { get { return originTarget.origin; } set { originTarget.SetTarget(value); } }
     [SerializeField]
     [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
     bool projectOnPlane = false;
@@ -79,7 +80,7 @@ public class RotationToTargetEvent : MonoBehaviour
     public void UpdatePrevPos()
     {
         //WARNING: Non dynamic. Must be updated when "local" is changed.
-        prevRot = originTarget.origin.Rotation(local);
+        prevRot = origin.Rotation(local);
     }
 
     void OnValidate()
@@ -132,7 +133,7 @@ public class RotationToTargetEvent : MonoBehaviour
         if (speedBehaviour.AffectedByCurrentSpeed() && (deltaTime != 0f))
         {
             speed = accelHalf *
-                (originTarget.origin.Rotation(local) * Quaternion.Inverse(prevRot)).Scale(1f / deltaTime);
+                (origin.Rotation(local) * Quaternion.Inverse(prevRot)).Scale(1f / deltaTime);
         }
         accelHalf = Quaternion.identity;
 
@@ -228,10 +229,10 @@ public class RotationToTargetEvent : MonoBehaviour
 
     RotationPath GetRotation()
     {
-        Quaternion oRot = originTarget.origin.Rotation(local);
-        Quaternion tRot = originTarget.target.rotation;
-        if (local && (originTarget.origin.parent != null))
-            tRot = Quaternion.Inverse(originTarget.origin.parent.rotation) * tRot;
+        Quaternion oRot = origin.Rotation(local);
+        Quaternion tRot = target.rotation;
+        if (local && (origin.parent != null))
+            tRot = Quaternion.Inverse(origin.parent.rotation) * tRot;
         if (speedBehaviour.MoveAway())
             tRot = Quaternion.Inverse(tRot);
 
@@ -384,9 +385,9 @@ public class RotationToTargetEvent : MonoBehaviour
             //Calculate and send euler angles with direction and amount of rotation
             Quaternion result = Quaternion.AngleAxis(degreesPerSecondSpeed, axis);
             rotation?.Invoke(sendFrameMovement ? angleAxisPerThisFrame : result);
-            if (local && (originTarget.origin.parent != null)) result = originTarget.origin.parent.rotation * result;
+            if (local && (origin.parent != null)) result = origin.parent.rotation * result;
             if (rotateTransform)
-                originTarget.origin.Rotate(angleAxisPerThisFrame.eulerAngles, local ? Space.Self : Space.World);
+                origin.Rotate(angleAxisPerThisFrame.eulerAngles, local ? Space.Self : Space.World);
         }
     }
 
@@ -400,8 +401,8 @@ public class RotationToTargetEvent : MonoBehaviour
     /// </summary>
     public void Teleport()
     {
-        Quaternion dif = originTarget.target.rotation.Subtract(originTarget.origin.rotation);
-        originTarget.origin.Rotate(dif.eulerAngles, Space.World);
+        Quaternion dif = target.rotation.Subtract(origin.rotation);
+        origin.Rotate(dif.eulerAngles, Space.World);
         speed = Quaternion.identity;
     }
 }

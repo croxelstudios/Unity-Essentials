@@ -6,7 +6,7 @@ public static class QuaternionExtension_BasicOperators
 {
     public static Quaternion Add(this Quaternion addee, Quaternion adder)
     {
-        return Quaternion.Inverse(adder) * addee;
+        return adder * addee;
     }
 
     public static Quaternion Subtract(this Quaternion subtractee, Quaternion subtractor, RotationMode mode = RotationMode.Shortest)

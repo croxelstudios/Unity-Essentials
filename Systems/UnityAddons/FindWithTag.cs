@@ -2,9 +2,200 @@ using Sirenix.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System;
+using System.Reflection;
+using Object = UnityEngine.Object;
 
 public static class FindWithTag
 {
+    #region
+    public static T Any<T>(params string[] tags) where T : Object
+    {
+        const string name = "Component";
+        const string parameter = "string[]";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObject(tags) as T;
+
+        if (typeof(T) == typeof(Transform))
+            return Transform(tags) as T;
+
+        //Invoke Component method by reflection
+        MethodInfo baseMethod = typeof(FindWithTag)
+                .GetMethod(
+                    name,
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new Type[] { typeof(string[]) },
+                    null
+                );
+        if (baseMethod == null)
+            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
+        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
+
+        object result = genericMethod.Invoke(
+                null,
+                new object[] { tags }
+            );
+        return (T)result;
+    }
+
+    public static T Anys<T>(params string[] tags) where T : Object
+    {
+        const string name = "Components";
+        const string parameter = "string[]";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObjects(tags) as T;
+
+        if (typeof(T) == typeof(Transform))
+            return Transforms(tags) as T;
+
+        //Invoke Component method by reflection
+        MethodInfo baseMethod = typeof(FindWithTag)
+                .GetMethod(
+                    name,
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new Type[] { typeof(string[]) },
+                    null
+                );
+        if (baseMethod == null)
+            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
+        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
+
+        object result = genericMethod.Invoke(
+                null,
+                new object[] { tags }
+            );
+        return (T)result;
+    }
+
+    public static T Any<T>(params string[][] tags) where T : Object
+    {
+        const string name = "Component";
+        const string parameter = "string[][]";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObject(tags) as T;
+
+        if (typeof(T) == typeof(Transform))
+            return Transform(tags) as T;
+
+        //Invoke Component method by reflection
+        MethodInfo baseMethod = typeof(FindWithTag)
+                .GetMethod(
+                    name,
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new Type[] { typeof(string[][]) },
+                    null
+                );
+        if (baseMethod == null)
+            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
+        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
+
+        object result = genericMethod.Invoke(
+                null,
+                new object[] { tags }
+            );
+        return (T)result;
+    }
+
+    public static T Anys<T>(params string[][] tags) where T : Object
+    {
+        const string name = "Components";
+        const string parameter = "string[][]";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObjects(tags) as T;
+
+        if (typeof(T) == typeof(Transform))
+            return Transforms(tags) as T;
+
+        //Invoke Component method by reflection
+        MethodInfo baseMethod = typeof(FindWithTag)
+                .GetMethod(
+                    name,
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new Type[] { typeof(string[][]) },
+                    null
+                );
+        if (baseMethod == null)
+            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
+        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
+
+        object result = genericMethod.Invoke(
+                null,
+                new object[] { tags }
+            );
+        return (T)result;
+    }
+
+    public static T Any<T>(string tag, params string[] extraTags) where T : Object
+    {
+        const string name = "Component";
+        const string parameter = "string, string[]";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObject(tag, extraTags) as T;
+
+        if (typeof(T) == typeof(Transform))
+            return Transform(tag, extraTags) as T;
+
+        //Invoke Component method by reflection
+        MethodInfo baseMethod = typeof(FindWithTag)
+                .GetMethod(
+                    name,
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new Type[] { typeof(string), typeof(string[]) },
+                    null
+                );
+        if (baseMethod == null)
+            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
+        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
+
+        object result = genericMethod.Invoke(
+                null,
+                new object[] { tag, extraTags }
+            );
+        return (T)result;
+    }
+
+    public static T Anys<T>(string tag, params string[] extraTags) where T : Object
+    {
+        const string name = "Components";
+        const string parameter = "string, string[]";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObjects(tag, extraTags) as T;
+
+        if (typeof(T) == typeof(Transform))
+            return Transforms(tag, extraTags) as T;
+
+        //Invoke Component method by reflection
+        MethodInfo baseMethod = typeof(FindWithTag)
+                .GetMethod(
+                    name,
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new Type[] { typeof(string), typeof(string[]) },
+                    null
+                );
+        if (baseMethod == null)
+            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
+        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
+
+        object result = genericMethod.Invoke(
+                null,
+                new object[] { tag, extraTags }
+            );
+        return (T)result;
+    }
+    #endregion
+
     #region GameObject
     public static GameObject GameObject(params string[] tags)
     {
@@ -61,6 +252,20 @@ public static class FindWithTag
         list.AddRange(GameObjects(new string[] { tag }));
         list.AddRange(GameObjects(extraTags));
         return list.ToArray();
+    }
+
+    public static GameObject GoCheckEmpty(string tag)
+    {
+        GameObject target = null;
+        if (tag != "") target = GameObject(tag);
+        return target;
+    }
+
+    public static GameObject[] GosCheckEmpty(string tag)
+    {
+        GameObject[] targets = null;
+        if (tag != "") targets = GameObjects(tag);
+        return targets;
     }
     #endregion
 
@@ -231,6 +436,20 @@ public static class FindWithTag
         list.AddRange(Components<T>(new string[] { tag }));
         list.AddRange(Components<T>(extraTags));
         return list.ToArray();
+    }
+
+    public static T CompCheckEmpty<T>(string tag) where T : Component
+    {
+        T target = null;
+        if (tag != "") target = Component<T>(tag);
+        return target;
+    }
+
+    public static T[] CompsCheckEmpty<T>(string tag) where T : Component
+    {
+        T[] targets = null;
+        if (tag != "") targets = Components<T>(tag);
+        return targets;
     }
     #endregion
 
