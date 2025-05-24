@@ -35,6 +35,11 @@ public class RotationToTargetEvent : MonoBehaviour
     [InlineProperty]
     [HideLabel]
     SpeedBehaviour speedBehaviour = new SpeedBehaviour(SpeedMode.Linear);
+    public bool doAccelerate
+    {
+        get { return speedBehaviour.doAccelerate; }
+        set { speedBehaviour.doAccelerate = value; }
+    }
 
     [SerializeField]
     bool local = false;
@@ -102,7 +107,7 @@ public class RotationToTargetEvent : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculates vectors and checks if the events should be sent.
+    /// Calculates rotations and checks if the events should be sent.
     /// </summary>
     /// <param name="deltaTime">Last frame deltaTime</param>
     public void CheckEvents(float deltaTime)
@@ -139,7 +144,6 @@ public class RotationToTargetEvent : MonoBehaviour
 
         UpdatePrevPos();
     }
-
 
     void Rotate(float deltaTime)
     {
@@ -219,7 +223,7 @@ public class RotationToTargetEvent : MonoBehaviour
                     spd = RotateTeleport(rotPath, deltaTime);
                     break;
 
-                default:
+                default: //Linear
                     spd = RotateLinear(rotPath, deltaTime);
                     break;
             }
@@ -263,7 +267,7 @@ public class RotationToTargetEvent : MonoBehaviour
         Vector3 taxis;
 
         Quaternion accelHalf0 = Quaternion.identity;
-        if (speedBehaviour.doAccelerate)
+        if (doAccelerate)
         {
             float accel = speedBehaviour.acceleration * deltaTime * 0.5f;
             //if (keepInStraightPath)
@@ -332,13 +336,15 @@ public class RotationToTargetEvent : MonoBehaviour
     Quaternion RotateSmoothDamp(RotationPath rotPath, float deltaTime)
     {
         //TO DO: Doesn't work with keepinpath feature
-        return rotPath.SmoothDamp(ref speed, speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime).Subtract(rotPath.origin);
+        return rotPath.SmoothDamp(ref speed, speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime)
+            .Subtract(rotPath.origin);
     }
 
     Quaternion RotateLerpSmooth(RotationPath rotPath, float deltaTime)
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
-        return rotPath.Displacement(Mathf.Min(0f.LerpSmooth(rotPath.magnitude, speedBehaviour.decay, deltaTime), maxDTSpeed));
+        return rotPath.Displacement(
+            Mathf.Min(0f.LerpSmooth(rotPath.magnitude, speedBehaviour.decay, deltaTime), maxDTSpeed));
     }
 
     Quaternion RotateTeleport(RotationPath rotPath, float deltaTime)

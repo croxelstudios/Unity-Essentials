@@ -75,6 +75,21 @@ public struct SpeedBehaviour
         }
     }
 
+    public void SetMaxSpeed(float speed)
+    {
+        switch (speedMode)
+        {
+            case SpeedMode.Accelerated:
+            case SpeedMode.SmoothDamp:
+            case SpeedMode.Teleport:
+                maxSpeed = speed;
+                break;
+            default:
+                this.speed = speed;
+                break;
+        }
+    }
+
     public bool IsInstantaneous()
     {
         switch (speedMode)
