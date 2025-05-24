@@ -16,7 +16,7 @@ public class RotationToTargetEvent : MonoBehaviour
     [InlineProperty]
     OriginTarget originTarget = new OriginTarget("Player");
     public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
-    public Transform origin { get { return originTarget.origin; } set { originTarget.SetTarget(value); } }
+    public Transform origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
     [SerializeField]
     [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
     bool projectOnPlane = false;
@@ -83,9 +83,9 @@ public class RotationToTargetEvent : MonoBehaviour
         prevRot = origin.Rotation(local);
     }
 
-    void OnValidate()
+    void Reset()
     {
-        originTarget.SetDefaultOrigin(transform);
+        originTarget.SetOrigin(transform);
     }
 
     void Awake()
