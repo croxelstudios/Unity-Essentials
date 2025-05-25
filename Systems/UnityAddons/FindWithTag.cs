@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 public static class FindWithTag
 {
-    #region
+    #region Any
     public static T Any<T>(params string[] tags) where T : Object
     {
         const string name = "Component";
@@ -199,43 +199,51 @@ public static class FindWithTag
     #region GameObject
     public static GameObject GameObject(params string[] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         GameObject result = null;
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-            {
-                result = UnityEngine.GameObject.FindGameObjectWithTag(tags[i]);
-                if (result != null) break;
-            }
+        for (int i = 0; i < tags.Length; i++)
+        {
+            result = UnityEngine.GameObject.FindGameObjectWithTag(tags[i]);
+            if (result != null) break;
+        }
         return result;
     }
 
     public static GameObject[] GameObjects(params string[] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<GameObject> list = new List<GameObject>();
-        if (tags != null)
-            foreach (string tag in tags)
-                list.AddRange(UnityEngine.GameObject.FindGameObjectsWithTag(tag));
+        foreach (string tag in tags)
+            list.AddRange(UnityEngine.GameObject.FindGameObjectsWithTag(tag));
         return list.ToArray();
     }
 
     public static GameObject GameObject(params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         GameObject result = null;
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-            {
-                result = GameObject(tags[i]);
-                if (result != null) break;
-            }
+        for (int i = 0; i < tags.Length; i++)
+        {
+            result = GameObject(tags[i]);
+            if (result != null) break;
+        }
         return result;
     }
 
     public static GameObject[] GameObjects(params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<GameObject> list = new List<GameObject>();
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-                list.AddRange(GameObjects(tags[i]));
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(GameObjects(tags[i]));
         return list.ToArray();
     }
 
@@ -278,35 +286,41 @@ public static class FindWithTag
 
     public static Transform[] Transforms(params string[] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<Transform> list = new List<Transform>();
-        if (tags != null)
-            foreach (string tag in tags)
-            {
-                GameObject[] objs = UnityEngine.GameObject.FindGameObjectsWithTag(tag);
-                for (int i = 0; i < objs.Length; i++)
-                    list.Add(objs[i].transform);
-            }
+        foreach (string tag in tags)
+        {
+            GameObject[] objs = UnityEngine.GameObject.FindGameObjectsWithTag(tag);
+            for (int i = 0; i < objs.Length; i++)
+                list.Add(objs[i].transform);
+        }
         return list.ToArray();
     }
 
     public static Transform Transform(params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         Transform result = null;
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-            {
-                result = Transform(tags[i]);
-                if (result != null) break;
-            }
+        for (int i = 0; i < tags.Length; i++)
+        {
+            result = Transform(tags[i]);
+            if (result != null) break;
+        }
         return result;
     }
 
     public static Transform[] Transforms(params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<Transform> list = new List<Transform>();
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-                list.AddRange(Transforms(tags[i]));
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(Transforms(tags[i]));
         return list.ToArray();
     }
 
@@ -324,6 +338,7 @@ public static class FindWithTag
         list.AddRange(Transforms(extraTags));
         return list.ToArray();
     }
+
     public static Transform Transform(bool onlyParents, params string[] tags)
     {
         Transform[] result = Transforms(onlyParents, tags).RemoveChildren();
@@ -379,47 +394,57 @@ public static class FindWithTag
     public static T Component<T>(params string[] tags) where T : Component
     {
         GameObject[] objs = GameObjects(tags);
+
+        if (objs == null)
+            return null;
+
         T component = null;
-        if (objs != null)
-            foreach (GameObject obj in objs)
-            {
-                component = obj.GetComponent<T>();
-                if (component != null) break;
-            }
+        foreach (GameObject obj in objs)
+        {
+            component = obj.GetComponent<T>();
+            if (component != null) break;
+        }
         return component;
     }
 
     public static T[] Components<T>(params string[] tags) where T : Component
     {
         GameObject[] objs = GameObjects(tags);
+
+        if (objs == null)
+            return null;
+
         List<T> components = new List<T>();
-        if (objs != null)
-            foreach (GameObject obj in objs)
-            {
-                T component = obj.GetComponent<T>();
-                if (component != null) components.Add(component);
-            }
+        foreach (GameObject obj in objs)
+        {
+            T component = obj.GetComponent<T>();
+            if (component != null) components.Add(component);
+        }
         return components.ToArray();
     }
 
     public static T Component<T>(params string[][] tags) where T : Component
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         T result = null;
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-            {
-                result = Component<T>(tags[i]);
-                if (result != null) break;
-            }
+        for (int i = 0; i < tags.Length; i++)
+        {
+            result = Component<T>(tags[i]);
+            if (result != null) break;
+        }
         return result;
     }
 
     public static T[] Components<T>(params string[][] tags) where T : Component
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<T> list = new List<T>();
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-                list.AddRange(Components<T>(tags[i]));
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(Components<T>(tags[i]));
         return list.ToArray();
     }
 
@@ -457,27 +482,33 @@ public static class FindWithTag
     public static T OnlyEnabled<T>(params string[] tags) where T : Behaviour
     {
         T[] objs = Components<T>(tags);
+
+        if (objs == null)
+            return null;
+
         T component = null;
-        if (objs != null)
-            foreach (T obj in objs)
+        foreach (T obj in objs)
+        {
+            if ((obj != null) && obj.enabled)
             {
-                if ((obj != null) && obj.enabled)
-                {
-                    component = obj;
-                    break;
-                }
+                component = obj;
+                break;
             }
+        }
         return component;
     }
 
     public static T[] OnlyEnableds<T>(params string[] tags) where T : Behaviour
     {
         T[] objs = Components<T>(tags);
+
+        if (objs == null)
+            return null;
+
         List<T> components = new List<T>();
-        if (objs != null)
-            foreach (T obj in objs)
-                if ((obj != null) && obj.enabled)
-                    components.Add(obj);
+        foreach (T obj in objs)
+            if ((obj != null) && obj.enabled)
+                components.Add(obj);
         return components.ToArray();
     }
 
@@ -495,10 +526,12 @@ public static class FindWithTag
 
     public static T[] OnlyEnableds<T>(params string[][] tags) where T : Behaviour
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<T> list = new List<T>();
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-                list.AddRange(OnlyEnableds<T>(tags[i]));
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(OnlyEnableds<T>(tags[i]));
         return list.ToArray();
     }
 
@@ -526,6 +559,9 @@ public static class FindWithTag
 
     public static GameObject[] GameObjectsInChildren(GameObject obj, params string[] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<GameObject> list = new List<GameObject>();
 
         Transform[] children = obj.GetComponentsInChildren<Transform>();
@@ -539,22 +575,26 @@ public static class FindWithTag
 
     public static GameObject GameObjectInChildren(GameObject obj, params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         GameObject result = null;
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-            {
-                result = GameObjectInChildren(obj, tags[i]);
-                if (result != null) break;
-            }
+        for (int i = 0; i < tags.Length; i++)
+        {
+            result = GameObjectInChildren(obj, tags[i]);
+            if (result != null) break;
+        }
         return result;
     }
 
     public static GameObject[] GameObjectsInChildren(GameObject obj, params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<GameObject> list = new List<GameObject>();
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-                list.AddRange(GameObjectsInChildren(obj, tags[i]));
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(GameObjectsInChildren(obj, tags[i]));
         return list.ToArray();
     }
 
@@ -575,8 +615,11 @@ public static class FindWithTag
 
     public static Transform TransformInChildren(GameObject obj, params string[] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         Transform[] children = obj.GetComponentsInChildren<Transform>();
-        for (int i = 0;i < children.Length; i++)
+        for (int i = 0; i < children.Length; i++)
         {
             if (tags.Contains(children[i].tag))
                 return children[i];
@@ -586,6 +629,9 @@ public static class FindWithTag
 
     public static Transform[] TransformsInChildren(GameObject obj, params string[] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<Transform> list = new List<Transform>();
 
         Transform[] children = obj.GetComponentsInChildren<Transform>();
@@ -599,22 +645,26 @@ public static class FindWithTag
 
     public static Transform TransformInChildren(GameObject obj, params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         Transform result = null;
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-            {
-                result = TransformInChildren(obj, tags[i]);
-                if (result != null) break;
-            }
+        for (int i = 0; i < tags.Length; i++)
+        {
+            result = TransformInChildren(obj, tags[i]);
+            if (result != null) break;
+        }
         return result;
     }
 
     public static Transform[] TransformsInChildren(GameObject obj, params string[][] tags)
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<Transform> list = new List<Transform>();
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-                list.AddRange(TransformsInChildren(obj, tags[i]));
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(TransformsInChildren(obj, tags[i]));
         return list.ToArray();
     }
 
@@ -635,6 +685,9 @@ public static class FindWithTag
 
     public static T ComponentInChildren<T>(GameObject obj, params string[] tags) where T : Component
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         T[] children = obj.GetComponentsInChildren<T>();
         for (int i = 0; i < children.Length; i++)
         {
@@ -646,6 +699,9 @@ public static class FindWithTag
 
     public static T[] ComponentsInChildren<T>(GameObject obj, params string[] tags) where T : Component
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<T> list = new List<T>();
 
         T[] children = obj.GetComponentsInChildren<T>();
@@ -659,22 +715,26 @@ public static class FindWithTag
 
     public static T ComponentInChildren<T>(GameObject obj, params string[][] tags) where T : Component
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         T result = null;
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-            {
-                result = ComponentInChildren<T>(obj, tags[i]);
-                if (result != null) break;
-            }
+        for (int i = 0; i < tags.Length; i++)
+        {
+            result = ComponentInChildren<T>(obj, tags[i]);
+            if (result != null) break;
+        }
         return result;
     }
 
     public static T[] ComponentsInChildren<T>(GameObject obj, params string[][] tags) where T : Component
     {
+        if (tags.IsNullOrEmpty())
+            return null;
+
         List<T> list = new List<T>();
-        if (tags != null)
-            for (int i = 0; i < tags.Length; i++)
-                list.AddRange(ComponentsInChildren<T>(obj, tags[i]));
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(ComponentsInChildren<T>(obj, tags[i]));
         return list.ToArray();
     }
 

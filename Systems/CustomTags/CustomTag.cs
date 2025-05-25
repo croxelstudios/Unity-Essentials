@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using System;
 using Sirenix.OdinInspector;
+using UnityEngine.Rendering;
 
 [DefaultExecutionOrder(-9999)]
 public class CustomTag : MonoBehaviour
@@ -16,7 +17,7 @@ public class CustomTag : MonoBehaviour
 
     #region Statics
     public static Dictionary<StringList, Dictionary<int, List<CustomTag>>> activeTagged { get; private set; }
-    
+
     public static void AddActiveTaggedObj(CustomTagItem item, CustomTag customTag)
     {
         activeTagged = activeTagged.CreateAdd(item.tagList, item.customTag, customTag);
@@ -96,6 +97,72 @@ public class CustomTag : MonoBehaviour
     {
         item.customTag = newTag;
         TagUpdateAction();
+    }
+
+    public static Transform[] FindTransforms(CustomTagItem[] customTags, string[] tags = null)
+    {
+        if (!customTags.IsNullOrEmpty())
+        {
+            List<Transform> trs = new List<Transform>();
+
+            for (int i = 0; i < customTags.Length; i++)
+            {
+                Component[] comp = customTags[i].GetActiveTagged();
+                for (int j = 0; j < comp.Length; j++)
+                    trs.Add(comp[j].transform);
+            }
+
+            if (!tags.IsNullOrEmpty())
+                for (int i = trs.Count - 1; i >= 0; i--)
+                    if (!tags.Contains(trs[i].tag))
+                        trs.RemoveAt(i);
+
+            return trs.ToArray();
+        }
+        else return FindWithTag.Transforms(tags);
+    }
+
+    public static Transform[] FindTransforms(CustomTagItems customTags, string[] tags = null)
+    {
+        if (!customTags.customTags.IsNullOrEmpty())
+        {
+            List<Transform> trs = new List<Transform>();
+
+            Component[] comp = customTags.GetActiveTagged();
+            for (int j = 0; j < comp.Length; j++)
+                trs.Add(comp[j].transform);
+
+            if (!tags.IsNullOrEmpty())
+                for (int i = trs.Count - 1; i >= 0; i--)
+                    if (!tags.Contains(trs[i].tag))
+                        trs.RemoveAt(i);
+
+            return trs.ToArray();
+        }
+        else return FindWithTag.Transforms(tags);
+    }
+
+    public static Transform[] FindTransforms(CustomTagItems[] customTags, string[] tags = null)
+    {
+        if (!customTags.IsNullOrEmpty())
+        {
+            List<Transform> trs = new List<Transform>();
+
+            for (int i = 0; i < customTags.Length; i++)
+            {
+                Component[] comp = customTags[i].GetActiveTagged();
+                for (int j = 0; j < comp.Length; j++)
+                    trs.Add(comp[j].transform);
+            }
+
+            if (!tags.IsNullOrEmpty())
+                for (int i = trs.Count - 1; i >= 0; i--)
+                    if (!tags.Contains(trs[i].tag))
+                        trs.RemoveAt(i);
+
+            return trs.ToArray();
+        }
+        else return FindWithTag.Transforms(tags);
     }
 }
 
@@ -264,5 +331,14 @@ public struct CustomTagItems
         if ((customTags == null) || (customTags.Length <= 0))
             customTags = new int[] { id };
         else customTags[0] = id;
+    }
+
+    public CustomTag[] GetActiveTagged()
+    {
+        List<CustomTag> list = new List<CustomTag>();
+        for (int i = 0; i < customTags.Length; i++)
+            list.AddRange(CustomTag.GetActiveTagged(new CustomTagItem(tagList, customTags[i])));
+
+        return list.ToArray();
     }
 }

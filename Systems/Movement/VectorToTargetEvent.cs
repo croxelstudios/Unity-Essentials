@@ -15,8 +15,6 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [HideLabel]
     [InlineProperty]
     OriginTarget originTarget = new OriginTarget("Player");
-    public Transform Target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
-    public Transform Origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
     public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
     public Transform origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
     [Space]
@@ -121,7 +119,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     public void UpdatePrevPos()
     {
         //WARNING: Non dynamic. Must be updated when "local" is changed.
-        prevPos = Origin.Position(local);
+        prevPos = origin.Position(local);
     }
 
     void Reset()
@@ -175,8 +173,8 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
 
         if (speedBehaviour.AffectedByCurrentSpeed() && (deltaTime != 0f))
         {
-            if (Vector3.Distance(prevTarg, Origin.Position(local)) > Mathf.Epsilon)
-                speed = ((Origin.Position(local) - prevPos) / deltaTime) + accelHalf;
+            if (Vector3.Distance(prevTarg, origin.Position(local)) > Mathf.Epsilon)
+                speed = ((origin.Position(local) - prevPos) / deltaTime) + accelHalf;
         }
         accelHalf = Vector3.zero;
 
@@ -216,10 +214,10 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
 
     MovementPath GetPath()
     {
-        Vector3 oPos = Origin.Position(local);
-        Vector3 tPos = Target.position;
-        if (local && (Origin.parent != null))
-            tPos = Origin.parent.InverseTransformPoint(tPos);
+        Vector3 oPos = origin.Position(local);
+        Vector3 tPos = target.position;
+        if (local && (origin.parent != null))
+            tPos = origin.parent.InverseTransformPoint(tPos);
         if (speedBehaviour.MoveAway())
             tPos = oPos - (tPos - oPos);
 
@@ -370,11 +368,11 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
             //Calculate and send vector with direction and amount of speed
             Vector3 result = direction * unitsPerSecondSpeed;
             vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
-            if (local && (Origin.parent != null)) result = Origin.parent.TransformVector(result);
+            if (local && (origin.parent != null)) result = origin.parent.TransformVector(result);
             if (moveTransform) //TO DO: Implement this bool for each feature
-                Origin.Translate(speedPerThisFrame, local ? Space.Self : Space.World);
+                origin.Translate(speedPerThisFrame, local ? Space.Self : Space.World);
             if (reorientTransform) //TO DO: Properly implement LookAt feature
-                Origin.forward = result;
+                origin.forward = result;
         }
     }
 
@@ -388,8 +386,8 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     /// </summary>
     public void Teleport()
     {
-        Vector3 dif = Target.position - Origin.position;
-        Origin.Translate(dif, Space.World);
+        Vector3 dif = target.position - origin.position;
+        origin.Translate(dif, Space.World);
         speed = Vector3.zero;
     }
 }
