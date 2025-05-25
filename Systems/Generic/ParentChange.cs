@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Sirenix.OdinInspector;
+using UnityEngine;
 
 public class ParentChange : MonoBehaviour
 {
@@ -6,21 +7,23 @@ public class ParentChange : MonoBehaviour
     Transform target;
     [SerializeField]
     [TagSelector]
-    string targetTag = "";
+    string targetTag = ""; //TO DO: Use the new ObjectRef<> system
     [SerializeField]
     bool searchEveryTime = true;
     [SerializeField]
-    bool onEnable = false;
+    bool onEnable = false; //TO DO: Should be an enum "OnEnableBehaviour"
     [SerializeField]
     bool nullOnEnable = false;
     [SerializeField]
     bool changePositionAfterParentChange = false;
     [SerializeField]
+    [ShowIf("@changePositionAfterParentChange")] //TO DO: Must make more clear that this is the LOCAL position
     Vector3 positionAfterParentChange = Vector3.zero;
     [SerializeField]
     bool checkActiveState = true;
     [SerializeField]
     bool destroyWithOldParent = false;
+    //TO DO: These should be an enum. The second bool is hard to understand, it destroys itslef only if it has no new parent.
     [SerializeField]
     bool destroyWithOldParentWhenIsNull = false;
     

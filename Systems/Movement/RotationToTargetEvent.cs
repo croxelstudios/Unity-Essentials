@@ -48,18 +48,19 @@ public class RotationToTargetEvent : MonoBehaviour
     [SerializeField]
     TargetMode targetMode = TargetMode.ToExactPoint;
     [SerializeField]
-    [Tooltip("When is this code executed")]
-    TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
-    [SerializeField]
     [ShowIf("@targetMode == TargetMode.StopAtMargin")]
     [Tooltip("Minimum distance to the target before the resulting rotation becomes the identity.")]
     float margin = 1f;
     [SerializeField]
-    [Tooltip("If set to 'Positive' or 'Negative' it will force the rotation to be in a specific direction even if it's not the fastest")]
-    RotationMode rotationMode = RotationMode.Shortest;
+    [Tooltip("When is this code executed")]
+    TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
     [SerializeField]
     bool sendFrameMovement = false;
 
+    [SerializeField]
+    [Tooltip("If set to 'Positive' or 'Negative' it will force the rotation to be in a specific direction even if it's not the fastest")]
+    RotationMode rotationMode = RotationMode.Shortest;
+    #region Events
     [SerializeField]
     [Tooltip("Resulting rotation euler angles in degrees per second")]
     DXRotationEvent rotation = null;
@@ -74,6 +75,7 @@ public class RotationToTargetEvent : MonoBehaviour
     [FoldoutGroup("START and STOP rotation")]
     [Tooltip("Resulting rotation was not zero and is zero now")]
     DXEvent stoppedRotating = null;
+    #endregion
 
     enum TargetMode { ToExactPoint, NeverStop, StopAtMargin }
 

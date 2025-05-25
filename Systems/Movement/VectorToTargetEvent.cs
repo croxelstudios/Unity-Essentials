@@ -43,6 +43,22 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     }
 
     [SerializeField]
+    bool local = false;
+    [SerializeField]
+    bool sendWhenZeroToo = false;
+    [SerializeField]
+    TargetMode targetMode = TargetMode.ToExactPoint;
+    [SerializeField]
+    [ShowIf("@targetMode == TargetMode.StopAtMargin")]
+    [Tooltip("Minimum distance to the target before the resulting vector becomes zero.")]
+    float margin = 0.01f;
+    [SerializeField]
+    [Tooltip("When is this code executed")]
+    TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
+    [SerializeField]
+    bool sendFrameMovement = false;
+
+    [SerializeField]
     [Tooltip("Use NavMesh system to calculate the direction")]
     bool useNavMesh = false;
     [SerializeField]
@@ -54,29 +70,13 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [ShowIf("@useNavMesh")]
     [Tooltip("NavMesh area to use")]
     NavMeshAreas navMeshAreaMask = NavMeshAreas.Walkable;
-
-    [SerializeField]
-    bool local = false;
-    [SerializeField]
-    bool sendWhenZeroToo = false;
-    [SerializeField]
-    TargetMode targetMode = TargetMode.ToExactPoint;
-    [SerializeField]
-    [Tooltip("When is this code executed")]
-    TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
     //[SerializeField]
     //[Tooltip("If this is set to true this code will keep the object in a straight path to the target instead of overshooting")]
     //[ShowIf("@useNavMesh && (speedBehaviour.speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp)")]
     //bool keepInStraightPath = false;
     [SerializeField]
     [Min(0.0000001f)]
-    [ShowIf("@targetMode == TargetMode.StopAtMargin")]
-    [Tooltip("Minimum distance to the target before the resulting vector becomes zero.")]
-    float margin = 0.01f;
-    [SerializeField]
     bool reorientTransform = false;
-    [SerializeField]
-    bool sendFrameMovement = false;
     #region Events
     [SerializeField]
     [Tooltip("Resulting movement vector in units per second")]
