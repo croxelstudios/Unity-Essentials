@@ -17,6 +17,8 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     OriginTarget originTarget = new OriginTarget("Player");
     public Transform Target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
     public Transform Origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
+    public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
+    public Transform origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
     [Space]
     [SerializeField]
     [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
