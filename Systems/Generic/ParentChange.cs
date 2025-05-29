@@ -10,6 +10,8 @@ public class ParentChange : MonoBehaviour
     [SerializeField]
     bool nullOnEnable = false;
     [SerializeField]
+    OnEnableBehaviour onEnableBehaviour = OnEnableBehaviour.None;
+    [SerializeField]
     bool changePositionAfterParentChange = false;
     [SerializeField]
     [ShowIf("@changePositionAfterParentChange")] //TO DO: Must make more clear that this is the LOCAL position
@@ -21,9 +23,14 @@ public class ParentChange : MonoBehaviour
     //TO DO: These should be an enum. The second bool is hard to understand, it destroys itself only if it has no new parent.
     [SerializeField]
     bool destroyWithOldParentWhenIsNull = false;
-    
+    [SerializeField]
+    DestroyBehaviour destroyBehaviour = DestroyBehaviour.None;
+
     bool hadParent = false;
     GameObject oldParent;
+
+    enum OnEnableBehaviour { None, SetTargetParent, SetNullParent }
+    enum DestroyBehaviour { None, DestroyWithOldParent, DestroyWithOldParentWhenParentless }
 
     void OnEnable()
     {
