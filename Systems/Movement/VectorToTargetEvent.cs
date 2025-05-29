@@ -7,9 +7,6 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
 {
     [SerializeField]
     [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
-    bool moveTransform = false;
-    [SerializeField]
-    [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
     bool applyInTransform = false;
 
     [Header("Target")]
@@ -23,16 +20,13 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [Space]
     [SerializeField]
     [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
-    bool projection = false;
-    [SerializeField]
-    [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
     bool projectOnPlane = false;
     [SerializeField]
-    [ShowIf("projection")]
+    [ShowIf("projectOnPlane")]
     [Tooltip("Wether or not the projection plane should be calculated in origin's local space")]
     bool projectionLocal = false;
     [SerializeField]
-    [ShowIf("projection")]
+    [ShowIf("projectOnPlane")]
     [Tooltip("Projection plane normal")]
     Vector3 planeNormal = Vector3.back;
     #endregion
@@ -229,7 +223,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
 
         MovementPath path = new MovementPath(oPos, tPos, useNavMesh, (int)navMeshAreaMask, navMeshAgentType);
 
-        if (projection)
+        if (projectOnPlane)
         {
             Vector3 localPlaneNormal = projectionLocal ? transform.rotation * planeNormal : planeNormal;
             path.ProjectOnPlane(localPlaneNormal);
@@ -375,7 +369,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
             Vector3 result = direction * unitsPerSecondSpeed;
             vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
             if (local && (origin.parent != null)) result = origin.parent.TransformVector(result);
-            if (moveTransform)
+            if (applyInTransform)
                 origin.Translate(speedPerThisFrame, local ? Space.Self : Space.World);
             if (reorientTransform)
                 origin.forward = result;

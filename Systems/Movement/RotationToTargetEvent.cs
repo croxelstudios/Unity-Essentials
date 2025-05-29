@@ -5,9 +5,6 @@ using static SpeedBehaviour;
 public class RotationToTargetEvent : MonoBehaviour
 {
     [SerializeField]
-    [Tooltip("Wether this code should apply rotation to the 'origin' or it should just send the rotation events elsewhere")]
-    bool rotateTransform = false;
-    [SerializeField]
     [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
     bool applyInTransform = false;
 
@@ -396,7 +393,7 @@ public class RotationToTargetEvent : MonoBehaviour
             Quaternion result = Quaternion.AngleAxis(degreesPerSecondSpeed, axis);
             rotation?.Invoke(sendFrameMovement ? angleAxisPerThisFrame : result);
             if (local && (origin.parent != null)) result = origin.parent.rotation * result;
-            if (rotateTransform)
+            if (applyInTransform)
                 origin.Rotate(angleAxisPerThisFrame.eulerAngles, local ? Space.Self : Space.World);
         }
     }
