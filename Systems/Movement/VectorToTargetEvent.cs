@@ -25,6 +25,9 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
     bool projection = false;
     [SerializeField]
+    [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
+    bool projectOnPlane = false;
+    [SerializeField]
     [ShowIf("projection")]
     [Tooltip("Wether or not the projection plane should be calculated in origin's local space")]
     bool projectionLocal = false;
