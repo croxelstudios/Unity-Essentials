@@ -4,12 +4,7 @@ using UnityEngine;
 public class ParentChange : MonoBehaviour
 {
     [SerializeField]
-    Transform target;
-    [SerializeField]
-    [TagSelector]
-    string targetTag = ""; //TO DO: Use the new ObjectRef<> system
-    [SerializeField]
-    bool searchEveryTime = true;
+    ObjectRef<Transform> targetParent = new ObjectRef<Transform>("Target Parent", "");
     [SerializeField]
     bool onEnable = false; //TO DO: Should be an enum "OnEnableBehaviour"
     [SerializeField]
@@ -27,14 +22,11 @@ public class ParentChange : MonoBehaviour
     [SerializeField]
     bool destroyWithOldParentWhenIsNull = false;
     
-
     bool hadParent = false;
     GameObject oldParent;
 
     void OnEnable()
     {
-        if ((target == null) && !searchEveryTime && !string.IsNullOrEmpty(targetTag))
-            target = GameObject.FindGameObjectWithTag(targetTag)?.transform;
         if (nullOnEnable) SetParentToNull();
         else if (onEnable) SetParent();
     }
@@ -73,8 +65,7 @@ public class ParentChange : MonoBehaviour
         if (this.IsActiveAndEnabled() || !checkActiveState)
         {
             SetOldParentToBeDestroyed();
-            if ((target == null) && searchEveryTime) target = GameObject.FindGameObjectWithTag(targetTag)?.transform;
-            transform.SetParent(target);
+            transform.SetParent(targetParent);
             if (changePositionAfterParentChange)
                 transform.localPosition = positionAfterParentChange;
         }
