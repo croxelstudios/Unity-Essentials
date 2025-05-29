@@ -15,7 +15,7 @@ public static class BoundsExtension_Transform
     public static Bounds Transform(this Bounds bounds,
         Vector3 position, Vector3 scale, Quaternion rotation)
     {
-        //TO DO: The transformation applied is different to the
+        //The transformation applied is different to the
         //one applied by unity to the renderer when scaling a parent
         //of a rotated object, but the one used by unity results in
         //completely broken bounds, so this might be better.

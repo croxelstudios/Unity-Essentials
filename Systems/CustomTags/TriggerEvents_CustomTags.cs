@@ -19,9 +19,9 @@ public class TriggerEvents_CustomTags : TriggerEvents
     bool CheckCollisionCustom(GameObject other)
     {
         //TO DO: This should work with this thing,
-        //but unfortunately it causes issues when the object is deactivated in the same phisics step
+        //but unfortunately it causes issues when the object is deactivated in the same physics step
         //return customTag.Check(other);
-        return customTags.CheckDirty(other);
+        return customTags.Check_Dirty(other);
     }
 
     public void SetFirstCustomTag(int id)

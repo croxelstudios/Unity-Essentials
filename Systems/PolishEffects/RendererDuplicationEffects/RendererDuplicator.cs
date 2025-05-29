@@ -23,7 +23,7 @@ public class RendererDuplicator : BRendererDuplicator
     string replaceLayer = "";
     [Header("Renderer multipliers")]
     [SerializeField]
-    int queueMultiplier = 0; //TO DO: Desplegable con opciones de a qué material aplicárselo
+    int queueMultiplier = 0; //TO DO: Popup with options to select which materials to apply render queue addition to
     [SerializeField]
     [SortingLayerSelector]
     string replaceSortingLayer = "";

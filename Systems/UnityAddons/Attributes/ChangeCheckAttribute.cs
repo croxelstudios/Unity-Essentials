@@ -54,7 +54,7 @@ public class ChangeCheckAttribute_Drawer : PropertyDrawer
         return EditorGUI.GetPropertyHeight(property, true);
     }
 
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) //TO DO: Maybe use this label? could be an argument for DrawIntOrStringProperty
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.BeginChangeCheck();
         bool prev = property.isExpanded;
@@ -76,7 +76,7 @@ public class BeginChangeCheckAttribute_Drawer : PropertyDrawer
         return EditorGUI.GetPropertyHeight(property, true);
     }
 
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) //TO DO: Maybe use this label? could be an argument for DrawIntOrStringProperty
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.BeginChangeCheck();
         EditorGUI.PropertyField(position, property, label);
@@ -91,7 +91,7 @@ public class EndChangeCheckAttribute_Drawer : PropertyDrawer
         return EditorGUI.GetPropertyHeight(property, true);
     }
 
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) //TO DO: Maybe use this label? could be an argument for DrawIntOrStringProperty
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.PropertyField(position, property, label, true);
         if (EditorGUI.EndChangeCheck())

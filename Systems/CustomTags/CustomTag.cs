@@ -306,7 +306,7 @@ public struct CustomTagItems
         return hasTag;
     }
 
-    public bool CheckDirty(GameObject other)
+    public bool Check_Dirty(GameObject other)
     {
         if (tagList == null) return true;
 

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Linq;
 
-public class ColorSignalListener : BBaseSignalListener
+public class ColorSignalListener : BBaseSignalListener<Color>
 {
     //[ChangeCheck("UpdateSignals")]
     public SignalAction[] signalActions;
@@ -37,13 +37,13 @@ public class ColorSignalListener : BBaseSignalListener
     }
 #endif
 
-    public void LaunchActions()
+    public override void LaunchActions()
     {
         for (int i = 0; i < signalActions.Length; i++)
             LaunchActions(i, signalActions[i].signal.currentValue);
     }
 
-    public void LaunchActions(int index, Color color) //Change type here
+    public override void LaunchActions(int index, Color color) //Change type here
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
             signalActions[index].actions?.Invoke(color * multiplier); //Change type here

@@ -44,7 +44,6 @@ public class RenderersSetKeyword : MonoBehaviour
     {
         init?.Invoke(this);
         oldValue = enable;
-        //TO DO: Should work on a stack like the colors maybe
         originals = new Dictionary<RendererMaterial, bool>();
         UpdateRenderers();
         if (IsInitialized()) SetBlocksProperty();

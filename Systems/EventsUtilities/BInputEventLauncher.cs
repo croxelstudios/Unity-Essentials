@@ -77,7 +77,7 @@ public class BInputEventLauncher : MonoBehaviour
 
             }
         }
-        //TO DO: Setter as a sepparate function
+        //TO DO: Setter as a separate function
     }
 
     void Update()
@@ -130,7 +130,7 @@ public class BInputEventLauncher : MonoBehaviour
             if (state) { if (!prevState) axes[n].events.Pressed?.Invoke(value); }
             else if (prevState) axes[n].events.Released?.Invoke();
         }
-        //TO DO: Setter as a sepparate function
+        //TO DO: Setter as a separate function
 
         //Joysticks
         for (int n = 0; n < joysticks.Length; n++)
@@ -192,7 +192,7 @@ public class BInputEventLauncher : MonoBehaviour
             else if (prevState)
                 joysticks[n].events.Released?.Invoke();
         }
-        //TO DO: Setter as a sepparate function
+        //TO DO: Setter as a separate function
 
         //Button states
         for (int n = 0; n < buttonStates.Length; n++)
@@ -239,7 +239,7 @@ public class BInputEventLauncher : MonoBehaviour
             }
             buttonStates[n].SetPrevState(state);
         }
-        //TO DO: Setter as a sepparate function
+        //TO DO: Setter as a separate function
     }
 
     public void UnpressAll(bool resetToggles)

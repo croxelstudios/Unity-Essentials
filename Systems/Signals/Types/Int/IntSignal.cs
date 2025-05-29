@@ -1,56 +1,25 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 using QFSW.QC;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/IntSignal")] //Change type here
-public class IntSignal : BaseSignal //Change type here
+public class IntSignal : BaseSignal<int, IntSignalListener> //Change type here
 {
-    [SerializeField]
-    bool resetValueOnStart = true;
-    [SerializeField]
-    [ShowIf("CanShowStartValue")]
-    int startValue = 0; //Change type here
-    [HideIf("CanShowStartValue")]
-    [OnValueChanged("CallSignalOnCurrentTagAndValues")]
-    public int currentValue = 0; //Change type here
-
-    [TagSelector]
-    public void CallSignal(int value, string tag = "") //Change type here
+    protected override void SetValue(int value) //Change type here
     {
-        if (value != currentValue)
-        {
-            currentValue = value;
-            beforeCall?.Invoke();
-            if (dynamicSearch) DynamicSearch<IntSignalListener>(); //Change type here
-            if (listeners != null)
-            {
-                int finalValue = Calculate(); //Change type here
-                for (int i = (listeners.Count - 1); i >= 0; i--)
-                {
-                    if ((tag == "") || (tag == listeners[i].receiver.tag))
-                        ((IntSignalListener)listeners[i].receiver). //Change type here
-                            LaunchActions(listeners[i].index, finalValue);
-                }
-            }
-            if (dynamicSearch) listeners = null;
-            called?.Invoke();
-        }
+        base.SetValue(value);
     }
     //TO DO: Add and Subtract events. Repeat these n times when the value jumps?
     //Should be implemented in function above.
 
-    public void CallSignal(int value) //Change type here
-    {
-        CallSignal(value, "");
-    }
-
     [Command("set-int")]
     public static void SetInt(IntSignal signal, int value) //Change type here
     {
-        signal.CallSignal(value);
+        Set(signal, value);
     }
 
     public void Add(int amount, string tag = "")
@@ -83,34 +52,9 @@ public class IntSignal : BaseSignal //Change type here
         Subtract(1, "");
     }
 
-    int Calculate() //Change type here
+    protected override int Calculate() //Change type here
     {
         return currentValue;
-    }
-
-#if UNITY_EDITOR
-    public bool CanShowStartValue()
-    {
-        return resetValueOnStart && !Application.isPlaying;
-    }
-
-    public void CallSignalOnCurrentTagAndValues()
-    {
-        if (Application.isPlaying)
-            CallSignal(currentValue, currentTag);
-    }
-#endif
-
-    protected override void OnLoad()
-    {
-        base.OnLoad();
-        Reset();
-    }
-
-    public override void Reset()
-    {
-        if (resetValueOnStart)
-            currentValue = startValue;
     }
 }
 

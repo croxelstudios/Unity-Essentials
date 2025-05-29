@@ -32,7 +32,7 @@ public class TagSelectorAttribute : PropertyAttribute
         else return false;
     }
 
-    public static void DrawTagField(TagSelectorAttribute attrib, SerializedProperty property, Rect argRect, bool drawWithLabel = false)
+    public static void DrawTagField(TagSelectorAttribute attrib, SerializedProperty property, Rect argRect, bool drawWithLabel = false, GUIContent label = null)
     {
         if (attrib.UseDefaultTagFieldDrawer)
         {
@@ -72,7 +72,9 @@ public class TagSelectorAttribute : PropertyAttribute
 
             //Draw the popup box with the current selected index
             if (drawWithLabel)
-                index = EditorGUI.Popup(argRect, property.displayName, index, tagArray);
+                index = EditorGUI.Popup(argRect,
+                    label == null ? new GUIContent(property.displayName) : label,
+                    index, tagArray.ToGUIContent<GUIContent[]>());
             else index = EditorGUI.Popup(argRect, index, tagArray);
 
             //Adjust the actual string value of the property based on the selection
@@ -100,7 +102,7 @@ public class TagSelectorAttribute : PropertyAttribute
 [CustomPropertyDrawer(typeof(TagSelectorAttribute))]
 public class TagSelectorAttributeDrawer : PropertyDrawer
 {
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) //TO DO: Maybe use this label? could be an argument for DrawTagField
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         if (property.propertyType == SerializedPropertyType.String)
         {
@@ -108,7 +110,7 @@ public class TagSelectorAttributeDrawer : PropertyDrawer
 
             var attrib = attribute as TagSelectorAttribute;
 
-            TagSelectorAttribute.DrawTagField(attrib, property, position, true);
+            TagSelectorAttribute.DrawTagField(attrib, property, position, true, label);
 
             EditorGUI.EndProperty();
         }

@@ -28,7 +28,7 @@ public class SortingLayerSelectorAttribute : PropertyAttribute
         else return false;
     }
 
-    public static void DrawSortingLayerField(SortingLayerSelectorAttribute attrib, SerializedProperty property, Rect argRect, bool drawWithLabel = false)
+    public static void DrawSortingLayerField(SortingLayerSelectorAttribute attrib, SerializedProperty property, Rect argRect, bool drawWithLabel = false, GUIContent label = null)
     {
         if (attrib.UseDefaultTagFieldDrawer)
         {
@@ -39,9 +39,9 @@ public class SortingLayerSelectorAttribute : PropertyAttribute
         else
         {
             //generate the taglist + custom tags
-            List<string> sortingLayersList = new List<string>();
-            sortingLayersList.Add("<NoSortingLayer>");
-            sortingLayersList.AddRange(SortingLayer.layers.Select(x => x.name));
+            List<GUIContent> sortingLayersList = new List<GUIContent>
+            { new GUIContent("<NoSortingLayer>") };
+            sortingLayersList.AddRange(SortingLayer.layers.Select(x => new GUIContent(x.name)));
             string propertyString = property.stringValue;
             int index = -1;
             if (propertyString == "")
@@ -55,7 +55,7 @@ public class SortingLayerSelectorAttribute : PropertyAttribute
                 //we skip index 0 as that is a special custom case
                 for (int i = 1; i < sortingLayersList.Count; i++)
                 {
-                    if (sortingLayersList[i] == propertyString)
+                    if (sortingLayersList[i].text == propertyString)
                     {
                         index = i;
                         break;
@@ -63,11 +63,13 @@ public class SortingLayerSelectorAttribute : PropertyAttribute
                 }
             }
 
-            string[] sortingLayersArray = sortingLayersList.ToArray();
+            GUIContent[] sortingLayersArray = sortingLayersList.ToArray();
 
             //Draw the popup box with the current selected index
             if (drawWithLabel)
-                index = EditorGUI.Popup(argRect, property.displayName, index, sortingLayersArray);
+                index = EditorGUI.Popup(argRect,
+                    label == null ? new GUIContent(property.displayName) : label,
+                    index, sortingLayersArray);
             else index = EditorGUI.Popup(argRect, index, sortingLayersArray);
 
             //Adjust the actual string value of the property based on the selection
@@ -77,7 +79,7 @@ public class SortingLayerSelectorAttribute : PropertyAttribute
             }
             else if (index >= 1)
             {
-                property.stringValue = sortingLayersArray[index];
+                property.stringValue = sortingLayersArray[index].text;
             }
             else
             {
@@ -89,13 +91,10 @@ public class SortingLayerSelectorAttribute : PropertyAttribute
 }
 
 #if UNITY_EDITOR
-//Original by DYLAN ENGELMAN http://jupiterlighthousestudio.com/custom-inspectors-unity/
-//Altered by Brecht Lecluyse http://www.brechtos.com
-//Altered by HypercubeCore to add event calls support
 [CustomPropertyDrawer(typeof(SortingLayerSelectorAttribute))]
 public class SortingLayerSelectorAttributeDrawer : PropertyDrawer
 {
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) //TO DO: Maybe use this label? could be an argument for DrawTagField
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         if (property.propertyType == SerializedPropertyType.String)
         {
@@ -103,7 +102,7 @@ public class SortingLayerSelectorAttributeDrawer : PropertyDrawer
 
             var attrib = attribute as SortingLayerSelectorAttribute;
 
-            SortingLayerSelectorAttribute.DrawSortingLayerField(attrib, property, position, true);
+            SortingLayerSelectorAttribute.DrawSortingLayerField(attrib, property, position, true, label);
 
             EditorGUI.EndProperty();
         }

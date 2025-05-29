@@ -369,9 +369,9 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
             Vector3 result = direction * unitsPerSecondSpeed;
             vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
             if (local && (origin.parent != null)) result = origin.parent.TransformVector(result);
-            if (moveTransform) //TO DO: Implement this bool for each feature
+            if (moveTransform)
                 origin.Translate(speedPerThisFrame, local ? Space.Self : Space.World);
-            if (reorientTransform) //TO DO: Properly implement LookAt feature
+            if (reorientTransform)
                 origin.forward = result;
         }
     }

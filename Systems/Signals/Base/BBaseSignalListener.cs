@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class BBaseSignalListener : MonoBehaviour
@@ -29,5 +30,18 @@ public class BBaseSignalListener : MonoBehaviour
 
     public virtual void UpdateSignals()
     {
+    }
+}
+
+public class BBaseSignalListener<T> : BBaseSignalListener
+{
+    public virtual void LaunchActions()
+    {
+        Debug.LogError("LaunchActions not implemented for this Listener");
+    }
+
+    public virtual void LaunchActions(int index, T gameObject)
+    {
+        Debug.LogError("LaunchActions not implemented for this Listener");
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 using QFSW.QC;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -34,8 +35,28 @@ public class Flag : BaseSignal //Change type here
 
     int currentConditionCount = 0;
 
+    public void SetFlag(bool value, IEnumerable<GameObject> objects) //Change type here
+    {
+        SetFlag(value, "", objects);
+    }
+
+    public void SetFlag(bool value, IEnumerable<Transform> transforms) //Change type here
+    {
+        SetFlag(value, "", transforms);
+    }
+
     [TagSelector]
     public void SetFlag(bool value, string tag) //Change type here
+    {
+        SetFlag<Transform>(value, tag, null);
+    }
+
+    public void SetFlag(bool value) //Change type here
+    {
+        SetFlag(value, "");
+    }
+
+    void SetFlag<O>(bool value, string tag, IEnumerable<O> objects = null) where O : Object //Change type here
     {
         bool canExecute = false;
         if (!checkMultipleConditions)
@@ -67,18 +88,16 @@ public class Flag : BaseSignal //Change type here
             else whenFalse_?.Invoke();
 
             currentValue = value;
-            Launch(Calculate(), tag);
+            if (objects == null)
+                Launch(Calculate(), tag);
+            else
+                Launch(Calculate(), objects);
 
             called?.Invoke();
 
             if (value) whenTrue?.Invoke();
             else whenFalse?.Invoke();
         }
-    }
-
-    public void SetFlag(bool value) //Change type here
-    {
-        SetFlag(value, "");
     }
 
     [Command("set-flag")]
@@ -155,6 +174,30 @@ public class Flag : BaseSignal //Change type here
                     ((FlagChecker)listeners[i].receiver). //Change type here
                         LaunchActions(listeners[i].index, value);
 
+        if (dynamicSearch) listeners = null;
+    }
+
+    void Launch<O>(bool value, IEnumerable<O> objects) where O : Object
+    {
+        if (dynamicSearch) DynamicSearch<FlagChecker>(); //Change type here
+
+        if (listeners != null)
+            for (int i = (listeners.Count - 1); i >= 0; i--)
+            {
+                bool isChild = false;
+                foreach (O obj in objects)
+                {
+                    Transform tr = obj.GetTransform();
+                    if (listeners[i].receiver.transform.IsChildOf(tr))
+                    {
+                        isChild = true;
+                        break;
+                    }
+                }
+                if (isChild)
+                    ((FlagChecker)listeners[i].receiver). //Change type here
+                        LaunchActions(listeners[i].index, value);
+            }
         if (dynamicSearch) listeners = null;
     }
 }

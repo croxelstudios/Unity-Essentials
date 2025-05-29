@@ -31,22 +31,6 @@ public class PrefabInstancer : MonoBehaviour
     Transform customReference = null;
     [SerializeField]
     bool trackEntities = false;
-
-#if UNITY_EDITOR
-#pragma warning disable 414
-    [SerializeField]
-    EventNamesData entityNamesData = null;
-#pragma warning restore 414
-    [SerializeField]
-    [HideInInspector]
-    EventNamesData namesData = null;
-    [SerializeField]
-    [HideInInspector]
-    string[] eventNames;
-#endif
-    [SerializeField]
-    [HideInInspector]
-    DXEvent[] events;
     //TO DO: Support for keeping momentum of original object (DXVectorEvent originalMomentum on instance)
 
     WeightedPrefab[] wPrefabs;
@@ -73,32 +57,6 @@ public class PrefabInstancer : MonoBehaviour
             if (trackEntities && (entities != null)) foreach (SpawnedEntity entity in entities)
                     entity.EntityDestroyed -= EntityRemoved;
     }
-
-    //
-#if UNITY_EDITOR
-    bool hasValidated = false;
-
-    void OnValidate()
-    {
-        if ((!Application.isPlaying) && (!hasValidated))
-        {
-            SyncNames();
-            hasValidated = true;
-        }
-    }
-
-    void Update() //TO DO: Should execute even when disabled
-    {
-        if (!Application.isPlaying) SyncNames();
-    }
-
-    public void SyncNames(bool priorizeLocal = false)
-    {
-        if (namesData != null) namesData.SyncNames(ref eventNames, priorizeLocal);
-        //StringPopupData.SyncArray(ref stringPairArray, this);
-    }
-#endif
-    //
 
     #region Public functions
     public void InstantiatePrefab(GameObject prefab)
@@ -166,7 +124,9 @@ public class PrefabInstancer : MonoBehaviour
 
     public void SetActiveAllEntities(bool state)
     {
-        if (!trackEntities) Debug.LogError(gameObject.name + " PrefabInstancer can't interact with spawned entities if they are not being tracked");
+        if (!trackEntities)
+            Debug.LogError(gameObject.name +
+                " PrefabInstancer can't interact with spawned entities if they are not being tracked");
         else if (this.IsActiveAndEnabled() && (entities != null))
         {
             for (int i = entities.Count - 1; i >= 0; i--)
@@ -176,33 +136,27 @@ public class PrefabInstancer : MonoBehaviour
 
     public void DestroyAllEntities()
     {
-        if (!trackEntities) Debug.LogError(gameObject.name + " PrefabInstancer can't interact with spawned entities if they are not being tracked");
+        if (!trackEntities)
+            Debug.LogError(gameObject.name +
+                " PrefabInstancer can't interact with spawned entities if they are not being tracked");
         else if (this.IsActiveAndEnabled() && (entities != null))
         {
             for (int i = entities.Count - 1; i >= 0; i--)
                 Destroy(entities[i].gameObject);
         }
     }
+    #endregion
 
-    //#if UNITY_EDITOR
-    //[HideInInspector]
-    //public StringPopupData[] stringPairArray = null;
-    //#endif
-    [StringPopup("entityNamesData"/*, "stringPairArray"*/)]
-    public void LaunchEventInAllEntities(int index)
+    #region Entity-filtered signals
+    public void CallSignalOnEntities(EventSignal signal)
     {
-        if (!trackEntities) Debug.LogError(gameObject.name + " PrefabInstancer can't interact with spawned entities if they are not being tracked");
+        if (!trackEntities)
+            Debug.LogError(gameObject.name +
+                " PrefabInstancer can't interact with spawned entities if they are not being tracked");
         else if (this.IsActiveAndEnabled() && (entities != null))
         {
-            for (int i = entities.Count - 1; i >= 0; i--)
-                entities[i].LaunchEvent(index);
+            signal.CallSignal(entities.GetTransforms());
         }
-    }
-
-    [StringPopup("eventNames"/*, "stringPairArray"*/)]
-    public void FromEntityLaunch(int index)
-    {
-        if (this.IsActiveAndEnabled()) events[index]?.Invoke();
     }
     #endregion
 
@@ -338,39 +292,3 @@ public class PrefabInstancer : MonoBehaviour
     }
     #endregion
 }
-
-#if UNITY_EDITOR
-[CanEditMultipleObjects]
-[CustomEditor(typeof(PrefabInstancer))]
-public class PrefabInstancer_Inspector : GenericNamedEvents_Inspector
-{
-    SerializedProperty namesData;
-    static bool foldout;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        namesData = serializedObject.FindProperty("namesData");
-    }
-
-    protected override void NameArrayChanged(bool priorizeLocal = true)
-    {
-        base.NameArrayChanged();
-        ((PrefabInstancer)target).SyncNames(priorizeLocal);
-    }
-
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-        foldout = EditorGUILayout.Foldout(foldout, "From entity actions");
-        if (foldout)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(namesData);
-            DoLayoutList();
-            EditorGUI.indentLevel--;
-        }
-        serializedObject.ApplyModifiedProperties();
-    }
-}
-#endif

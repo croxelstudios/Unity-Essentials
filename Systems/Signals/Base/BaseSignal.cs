@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Linq;
@@ -166,6 +167,136 @@ public class BaseSignal : ScriptableObject
     }
 }
 
+public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
+{
+    [SerializeField]
+    bool resetValueOnStart = true;
+    [SerializeField]
+    [ShowIf("CanShowStartValue")]
+    T startValue = default;
+    [HideIf("CanShowStartValue")]
+    [OnValueChanged("CallSignalOnCurrentTagAndValues")]
+    public T currentValue = default;
+
+    protected virtual void SetValue(T value)
+    {
+        currentValue = value;
+    }
+
+    [TagSelector]
+    public void CallSignal(T value, string tag = "")
+    {
+        if (IsDifferentFromCurrent(value))
+        {
+            SetValue(value);
+            beforeCall?.Invoke();
+            if (dynamicSearch) DynamicSearch<L>();
+            if (listeners != null)
+            {
+                T finalValue = Calculate();
+                for (int i = (listeners.Count - 1); i >= 0; i--)
+                {
+                    if ((tag == "") || (tag == listeners[i].receiver.tag))
+                        LaunchActions(((L)listeners[i].receiver), listeners[i].index, finalValue);
+                }
+            }
+            if (dynamicSearch) listeners = null;
+            called?.Invoke();
+        }
+    }
+
+    public void CallSignal(T value, IEnumerable<GameObject> objects)
+    {
+        CallSignal<GameObject>(value, objects);
+    }
+
+    public void CallSignal(T value, IEnumerable<Transform> transforms)
+    {
+        CallSignal<Transform>(value, transforms);
+    }
+
+    void CallSignal<O>(T value, IEnumerable<O> objects) where O : Object
+    {
+        if (IsDifferentFromCurrent(value))
+        {
+            SetValue(value);
+            beforeCall?.Invoke();
+            if (dynamicSearch) DynamicSearch<L>();
+            if (listeners != null)
+            {
+                T finalValue = Calculate();
+                for (int i = (listeners.Count - 1); i >= 0; i--)
+                {
+                    bool isChild = false;
+                    foreach (O obj in objects)
+                    {
+                        Transform tr = obj.GetTransform();
+                        if (listeners[i].receiver.transform.IsChildOf(tr))
+                        {
+                            isChild = true;
+                            break;
+                        }
+                    }
+                    if (isChild)
+                        LaunchActions(((L)listeners[i].receiver), listeners[i].index, finalValue);
+                }
+            }
+            if (dynamicSearch) listeners = null;
+            called?.Invoke();
+        }
+    }
+
+    void LaunchActions(L listener, int index, T value)
+    {
+        listener.LaunchActions(index, value);
+    }
+
+    public void CallSignal(T value)
+    {
+        CallSignal(value, "");
+    }
+
+    public static void Set(BaseSignal<T, L> signal, T value)
+    {
+        signal.CallSignal(value);
+    }
+
+    protected virtual T Calculate()
+    {
+        return currentValue;
+    }
+
+    protected virtual bool IsDifferentFromCurrent(T value)
+    {
+        return !value.Equals(currentValue);
+    }
+
+#if UNITY_EDITOR
+    public bool CanShowStartValue()
+    {
+        return resetValueOnStart && !Application.isPlaying;
+    }
+
+    public void CallSignalOnCurrentTagAndValues()
+    {
+        if (Application.isPlaying)
+            CallSignal(currentValue, currentTag);
+    }
+#endif
+
+    protected override void OnLoad()
+    {
+        base.OnLoad();
+        Reset();
+    }
+
+    public override void Reset()
+    {
+        if (resetValueOnStart)
+            currentValue = startValue;
+    }
+}
+
 #if UNITY_EDITOR
 class BaseSignalManager : IDisposable
 {
@@ -202,7 +333,7 @@ class BaseSignalManager : IDisposable
             if (asset != null)
                 yield return asset;
         }
-    } //TO DO: Should be generic static function, outside this
+    }
 
     public static BaseSignal CreateSignalAssetInstance(Type type, string path)
     {

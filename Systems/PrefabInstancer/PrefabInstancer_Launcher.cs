@@ -14,20 +14,6 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
     bool trackEntitiesLocally = false;
     [SerializeField]
     GameObject[] prefabOverrides = null;
-#pragma warning disable 414
-    [SerializeField]
-    EventNamesData entityNamesData = null;
-#pragma warning restore 414
-
-    [SerializeField]
-    [HideInInspector]
-    EventNamesData namesData = null;
-    [SerializeField]
-    [HideInInspector]
-    DXEvent[] events;
-    [SerializeField]
-    [HideInInspector]
-    string[] eventNames;
 
     List<SpawnedEntity> entities;
 
@@ -42,31 +28,6 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
         }
     }
 
-    //
-#if UNITY_EDITOR
-    bool hasValidated = false;
-
-    void OnValidate()
-    {
-        if ((!Application.isPlaying) && (!hasValidated))
-        {
-            SyncNames();
-            hasValidated = true;
-        }
-    }
-
-    void Update() //TO DO: Should execute even when disabled
-    {
-        if (!Application.isPlaying) SyncNames();
-    }
-#endif
-
-    public void SyncNames(bool priorizeLocal = false)
-    {
-        if (namesData != null) namesData.SyncNames(ref eventNames, priorizeLocal);
-        //StringPopupData.SyncArray(ref stringPairArray, this);
-    }
-    //
     public void InstantiatePrefab(GameObject prefab)
     {
         if (this.IsActiveAndEnabled())
@@ -172,7 +133,10 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
 
     public void SetActiveAllLocalEntities(bool state)
     {
-        if (!trackEntitiesLocally) Debug.LogError(gameObject.name + " PrefabInstancer_Launcher can't interact with spawned entities if they are not being locally tracked");
+        if (!trackEntitiesLocally)
+            Debug.LogError(gameObject.name +
+                " PrefabInstancer_Launcher can't interact with spawned entities" +
+                "if they are not being locally tracked");
         else if (this.IsActiveAndEnabled())
         {
             for (int i = entities.Count - 1; i >= 0; i--)
@@ -182,7 +146,10 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
 
     public void DestroyAllLocalEntities()
     {
-        if (!trackEntitiesLocally) Debug.LogError(gameObject.name + " PrefabInstancer_Launcher can't interact with spawned entities if they are not being locally tracked");
+        if (!trackEntitiesLocally)
+            Debug.LogError(gameObject.name +
+                " PrefabInstancer_Launcher can't interact with spawned entities" +
+                "if they are not being locally tracked");
         else if (this.IsActiveAndEnabled())
         {
             for (int i = entities.Count - 1; i >= 0; i--)
@@ -190,76 +157,28 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
         }
     }
 
-    //#if UNITY_EDITOR
-    //[HideInInspector]
-    //public StringPopupData[] stringPairArray = null;
-    //#endif
-    [StringPopup("entityNamesData"/*, "stringPairArray"*/)]
-    public void LaunchEventInAllTargetEntities(int index)
-    {
-        if (this.IsActiveAndEnabled())
-        {
-            FillArrayUpdate(ref instancer);
-            foreach (PrefabInstancer instancer in instancer)
-                if (instancer != null) instancer.LaunchEventInAllEntities(index);
-        }
-    }
-
-    [StringPopup("entityNamesData"/*, "stringPairArray"*/)]
-    public void LaunchEventInAllLocalEntities(int index)
-    {
-        if (!trackEntitiesLocally) Debug.LogError(gameObject.name + " PrefabInstancer can't interact with spawned entities if they are not being tracked");
-        else if (this.IsActiveAndEnabled())
-        {
-            for (int i = entities.Count - 1; i >= 0; i--)
-                entities[i].LaunchEvent(index);
-        }
-    }
-
-    [StringPopup("eventNames"/*, "stringPairArray"*/)]
-    public void FromEntityLaunch(int index)
-    {
-        if (this.IsActiveAndEnabled()) events[index]?.Invoke();
-    }
-
     void EntityRemoved(SpawnedEntity entity)
     {
         entities.Remove(entity);
     }
+
+    #region Target-filtered signals
+    public void CallSignalOnTargetEntities(EventSignal signal)
+    {
+        FillArrayUpdate(ref instancer);
+        foreach (PrefabInstancer instancer in instancer)
+            if (instancer != null) instancer.CallSignalOnEntities(signal);
+    }
+    #endregion
+
+    #region Launcher-filtered signals
+    public void CallSignalOnLocalEntities(EventSignal signal)
+    {
+        if (!trackEntitiesLocally)
+            Debug.LogError(gameObject.name +
+                " PrefabInstancer_Launcher can't interact with spawned entities if they are not being locally tracked");
+        else if (this.IsActiveAndEnabled())
+            signal.CallSignal(entities.GetTransforms());
+    }
+    #endregion
 }
-
-#if UNITY_EDITOR
-[CanEditMultipleObjects]
-[CustomEditor(typeof(PrefabInstancer_Launcher))]
-public class PrefabInstancer_Launcher_inspector : GenericNamedEvents_Inspector
-{
-    SerializedProperty namesData;
-    static bool foldout;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        namesData = serializedObject.FindProperty("namesData");
-    }
-
-    protected override void NameArrayChanged(bool priorizeLocal = true)
-    {
-        base.NameArrayChanged();
-        ((PrefabInstancer_Launcher)target).SyncNames(priorizeLocal);
-    }
-
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-        foldout = EditorGUILayout.Foldout(foldout, "From entity actions");
-        if (foldout)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(namesData);
-            DoLayoutList();
-            EditorGUI.indentLevel--;
-        }
-        serializedObject.ApplyModifiedProperties();
-    }
-}
-#endif

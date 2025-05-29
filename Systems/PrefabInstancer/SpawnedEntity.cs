@@ -14,23 +14,6 @@ public class SpawnedEntity : MonoBehaviour
     [HideInInspector]
     public PrefabInstancer_Launcher instancerLauncher = null;
 
-    [SerializeField]
-    [HideInInspector]
-    EventNamesData namesData;
-    [SerializeField]
-    [HideInInspector]
-    DXEvent[] events;
-    [SerializeField]
-    [HideInInspector]
-    EventNamesData instancerNamesData;
-    [SerializeField]
-    [HideInInspector]
-    EventNamesData instancerLauncherNamesData;
-
-    [SerializeField]
-    [HideInInspector]
-    string[] eventNames;
-
     void OnDestroy()
     {
 #if UNITY_EDITOR
@@ -39,92 +22,19 @@ public class SpawnedEntity : MonoBehaviour
             EntityDestroyed?.Invoke(this);
     }
 
-#if UNITY_EDITOR
-    bool hasValidated = false;
-
-    void OnValidate()
+    #region Instancer-filtered signals
+    public void CallSignalOnInstancer(EventSignal signal)
     {
-        if ((!Application.isPlaying) && (!hasValidated))
-        {
-            SyncNames();
-            hasValidated = true;
-        }
+        signal.CallSignal(new Transform[] { instancer.GetTransform() });
     }
+    #endregion
 
-    void Update() //TO DO: Should execute even when disabled
+    #region Launcher-filtered signals
+    public void CallSignalOnLauncher(EventSignal signal)
     {
-        if (!Application.isPlaying) SyncNames();
+        if (instancerLauncher != null)
+            signal.CallSignal(new Transform[] { instancerLauncher.GetTransform() });
+        else CallSignalOnInstancer(signal);
     }
-
-    public void SyncNames(bool priorizeLocal = false)
-    {
-        if (namesData != null) namesData.SyncNames(ref eventNames, priorizeLocal);
-        //StringPopupData.SyncArray(ref stringPairArray, this);
-    }
-#endif
-
-    //#if UNITY_EDITOR
-    //[HideInInspector]
-    //public StringPopupData[] stringPairArray = null;
-    //#endif
-    [StringPopup("eventNames"/*, "stringPairArray"*/)]
-    public void LaunchEvent(int index)
-    {
-        if ((this.IsActiveAndEnabled()) && (index < events.Length))
-            events[index]?.Invoke();
-    }
-
-    [StringPopup("instancerNamesData"/*, "stringPairArray"*/)]
-    public void LaunchEventInInstancer(int index)
-    {
-        if (this.IsActiveAndEnabled()) instancer?.FromEntityLaunch(index);
-    }
-
-    [StringPopup("instancerLauncherNamesData"/*, "stringPairArray"*/)]
-    public void LaunchEventInInstancerLauncher(int index)
-    {
-        if (this.IsActiveAndEnabled()) instancerLauncher?.FromEntityLaunch(index);
-    }
+    #endregion
 }
-
-#if UNITY_EDITOR
-[CanEditMultipleObjects]
-[CustomEditor(typeof(SpawnedEntity))]
-public class SpawnedEntity_Inspector : GenericNamedEvents_Inspector
-{
-    SerializedProperty namesData;
-    SerializedProperty instancerNamesData;
-    SerializedProperty instancerLauncherNamesData;
-    static bool foldout;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        namesData = serializedObject.FindProperty("namesData");
-        instancerNamesData = serializedObject.FindProperty("instancerNamesData");
-        instancerLauncherNamesData = serializedObject.FindProperty("instancerLauncherNamesData");
-    }
-
-    protected override void NameArrayChanged(bool priorizeLocal = true)
-    {
-        base.NameArrayChanged();
-        ((SpawnedEntity)target).SyncNames(priorizeLocal);
-    }
-
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-        foldout = EditorGUILayout.Foldout(foldout, "Remote PrefabInstancer names");
-        if (foldout)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(instancerNamesData);
-            EditorGUILayout.PropertyField(instancerLauncherNamesData);
-            EditorGUI.indentLevel--;
-        }
-        EditorGUILayout.PropertyField(namesData);
-        DoLayoutList();
-        serializedObject.ApplyModifiedProperties();
-    }
-}
-#endif

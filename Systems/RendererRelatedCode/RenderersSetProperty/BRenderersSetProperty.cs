@@ -135,7 +135,7 @@ public class BRenderersSetProperty : MonoBehaviour
     void CheckRendererBlocks(Renderer rend)
     {
         if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-        {   //TO DO: This is a bit ugly, but unity would reset properties here if this is not done
+        {   //This is a bit ugly, but unity would reset properties here if this is not done
             //I probably need more of these for other highly specific renderers
             SpriteRenderer sprRend = (SpriteRenderer)rend;
             if (sprRend.sprite != null)

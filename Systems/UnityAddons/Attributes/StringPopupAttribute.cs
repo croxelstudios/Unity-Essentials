@@ -64,7 +64,7 @@ public class StringPopupAttribute : PropertyAttribute
         else return result;
     }
 
-    public bool DrawIntOrStringProperty(object targetObj, SerializedProperty property, Rect argRect, bool drawWithLabel = false)
+    public bool DrawIntOrStringProperty(object targetObj, SerializedProperty property, Rect argRect, bool drawWithLabel = false, GUIContent label = null)
     {
         string[] optionsArray = GetStringArray(targetObj);
 
@@ -99,7 +99,9 @@ public class StringPopupAttribute : PropertyAttribute
                 Rect fieldPosition = new Rect(argRect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
                     argRect.y, argRect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, argRect.height);
 
-                EditorGUI.LabelField(labelPosition, property.displayName, labelStyle);
+                EditorGUI.LabelField(labelPosition,
+                    label == null ? new GUIContent(property.displayName) : label,
+                    labelStyle);
                 intValue = EditorGUI.Popup(fieldPosition, intValue, optionsArray);
             }
             else intValue = EditorGUI.Popup(argRect, intValue, optionsArray);
@@ -278,11 +280,6 @@ public class StringPopupAttribute : PropertyAttribute
                 else break;
             }
             string[] result = obj as string[];
-            if (result == null)
-            {
-                EventNamesData namesData = obj as EventNamesData;
-                if (namesData != null) result = namesData.names;
-            }
             return result;
         }
         else return null;
@@ -451,11 +448,10 @@ public struct UnityEventPropertyIdentifier
 public class StringPopupAttribute_Drawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        //TO DO: Maybe use this label? could be an argument for DrawIntOrStringProperty
     {
         StringPopupAttribute field = attribute as StringPopupAttribute;
         object obj = field.GetSubObject(property.serializedObject.targetObject, property);
-        bool popupWasDrawn = field.DrawIntOrStringProperty(obj, property, position, true);
+        bool popupWasDrawn = field.DrawIntOrStringProperty(obj, property, position, true, label);
         if (!popupWasDrawn) EditorGUI.PropertyField(position, property, new GUIContent(label.text + " *sp"));
     }
 }

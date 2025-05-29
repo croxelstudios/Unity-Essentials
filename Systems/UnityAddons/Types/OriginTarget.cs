@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 [Serializable]
 public struct OriginTarget
 {
-    //TO DO: Include local bool here to generate the paths here?
+    //TO DO: Include local bool here to generate the paths?
     public ObjectRef<Transform> target;
     public ObjectRef<Transform> origin;
 

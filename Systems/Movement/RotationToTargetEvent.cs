@@ -8,7 +8,6 @@ public class RotationToTargetEvent : MonoBehaviour
     [Tooltip("Wether this code should apply rotation to the 'origin' or it should just send the rotation events elsewhere")]
     bool rotateTransform = false;
 
-    //TO DO: Should maybe get this into a global structure like I did with speedbehaviour
     [Header("Target")]
     #region Target
     [SerializeField]

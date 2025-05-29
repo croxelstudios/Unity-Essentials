@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using Sirenix.OdinInspector;
 
-public class IntSignalListener : BBaseSignalListener
+public class IntSignalListener : BBaseSignalListener<int>
 {
     //[ChangeCheck("UpdateSignals")]
     public SignalAction[] signalActions;
@@ -50,13 +50,13 @@ public class IntSignalListener : BBaseSignalListener
     }
 #endif
 
-    public void LaunchActions()
+    public override void LaunchActions()
     {
         for (int i = 0; i < signalActions.Length; i++)
             LaunchActions(i, signalActions[i].signal.currentValue);
     }
 
-    public void LaunchActions(int index, int value) //Change type here
+    public override void LaunchActions(int index, int value) //Change type here
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
             signalActions[index].actions?.Invoke(Mathf.FloorToInt(value * multiplier)); //Change type here

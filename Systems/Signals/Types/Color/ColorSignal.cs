@@ -1,84 +1,23 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 using QFSW.QC;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/ColorSignal")] //Change type here
-public class ColorSignal : BaseSignal //Change type here
+public class ColorSignal : BaseSignal<Color, ColorSignalListener> //Change type here
 {
-    [SerializeField]
-    bool resetValueOnStart = true;
-    [SerializeField]
-    [ShowIf("CanShowStartValue")]
-    Color startValue = Color.white; //Change type here
-    [HideIf("CanShowStartValue")]
-    [OnValueChanged("CallSignalOnCurrentTagAndValues")]
-    public Color currentValue = Color.white; //Change type here
-
-    [TagSelector]
-    public void CallSignal(Color value, string tag = "") //Change type here
-    {
-        if (value != currentValue)
-        {
-            currentValue = value;
-            beforeCall?.Invoke();
-            if (dynamicSearch) DynamicSearch<ColorSignalListener>(); //Change type here
-            if (listeners != null)
-            {
-                Color finalValue = Calculate(); //Change type here
-                for (int i = (listeners.Count - 1); i >= 0; i--)
-                {
-                    if ((tag == "") || (tag == listeners[i].receiver.tag))
-                        ((ColorSignalListener)listeners[i].receiver). //Change type here
-                            LaunchActions(listeners[i].index, finalValue);
-                }
-            }
-            if (dynamicSearch) listeners = null;
-            called?.Invoke();
-        }
-    }
-
-    public void CallSignal(Color value) //Change type here
-    {
-        CallSignal(value, "");
-    }
-
     [Command("set-color")]
     public static void SetColor(ColorSignal signal, Color value) //Change type here
     {
-        signal.CallSignal(value);
+        Set(signal, value);
     }
 
-    Color Calculate() //Change type here
+    protected override Color Calculate() //Change type here
     {
         return currentValue;
-    }
-
-#if UNITY_EDITOR
-    public bool CanShowStartValue()
-    {
-        return resetValueOnStart && !Application.isPlaying;
-    }
-
-    public void CallSignalOnCurrentTagAndValues()
-    {
-        if (Application.isPlaying)
-            CallSignal(currentValue, currentTag);
-    }
-#endif
-
-    protected override void OnLoad()
-    {
-        base.OnLoad();
-        Reset();
-    }
-
-    public override void Reset()
-    {
-        if (resetValueOnStart)
-            currentValue = startValue;
     }
 }
 

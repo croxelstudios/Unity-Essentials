@@ -23,7 +23,7 @@ public class ParentChange : MonoBehaviour
     bool checkActiveState = true;
     [SerializeField]
     bool destroyWithOldParent = false;
-    //TO DO: These should be an enum. The second bool is hard to understand, it destroys itslef only if it has no new parent.
+    //TO DO: These should be an enum. The second bool is hard to understand, it destroys itself only if it has no new parent.
     [SerializeField]
     bool destroyWithOldParentWhenIsNull = false;
     

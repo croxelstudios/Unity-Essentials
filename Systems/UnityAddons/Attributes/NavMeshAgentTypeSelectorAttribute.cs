@@ -42,25 +42,35 @@ public class NavMeshAgentTypeSelectorAttribute : PropertyAttribute
 
     public static void AgentTypePopup(string labelName, SerializedProperty agentTypeID)
     {
+        AgentTypePopup(new GUIContent(labelName), agentTypeID);
+    }
+
+    public static void AgentTypePopup(GUIContent label, SerializedProperty agentTypeID)
+    {
         Rect rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-        AgentTypePopup(labelName, agentTypeID, rect);
+        AgentTypePopup(label, agentTypeID, rect);
     }
 
     public static void AgentTypePopup(string labelName, SerializedProperty agentTypeID, Rect rect)
     {
-        var index = -1;
-        var count = NavMesh.GetSettingsCount();
-        var agentTypeNames = new string[count + 2];
+        AgentTypePopup(new GUIContent(labelName), agentTypeID, rect);
+    }
+
+    public static void AgentTypePopup(GUIContent label, SerializedProperty agentTypeID, Rect rect)
+    {
+        int index = -1;
+        int count = NavMesh.GetSettingsCount();
+        GUIContent[] agentTypeNames = new GUIContent[count + 2];
         for (var i = 0; i < count; i++)
         {
-            var id = NavMesh.GetSettingsByIndex(i).agentTypeID;
-            var name = NavMesh.GetSettingsNameFromID(id);
-            agentTypeNames[i] = name;
+            int id = NavMesh.GetSettingsByIndex(i).agentTypeID;
+            string name = NavMesh.GetSettingsNameFromID(id);
+            agentTypeNames[i] = new GUIContent(name);
             if (id == agentTypeID.intValue)
                 index = i;
         }
-        agentTypeNames[count] = "";
-        agentTypeNames[count + 1] = "Open Agent Settings...";
+        agentTypeNames[count] = null;
+        agentTypeNames[count + 1] = new GUIContent("Open Agent Settings...");
 
         bool validAgentType = index != -1;
         if (!validAgentType)
@@ -71,7 +81,7 @@ public class NavMeshAgentTypeSelectorAttribute : PropertyAttribute
         EditorGUI.BeginProperty(rect, GUIContent.none, agentTypeID);
 
         EditorGUI.BeginChangeCheck();
-        index = EditorGUI.Popup(rect, labelName, index, agentTypeNames);
+        index = EditorGUI.Popup(rect, label, index, agentTypeNames);
         if (EditorGUI.EndChangeCheck())
         {
             if (index >= 0 && index < count)
@@ -94,11 +104,11 @@ public class NavMeshAgentTypeSelectorAttribute : PropertyAttribute
 [CustomPropertyDrawer(typeof(NavMeshAgentTypeSelectorAttribute))]
 public class NavMeshAgentTypeSelectorAttributeDrawer : PropertyDrawer
 {
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) //TO DO: Maybe use this label? could be an argument for DrawTagField
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         if (property.propertyType == SerializedPropertyType.Integer)
         {
-            NavMeshAgentTypeSelectorAttribute.AgentTypePopup(property, position);
+            NavMeshAgentTypeSelectorAttribute.AgentTypePopup(label, property, position);
         }
         else
         {

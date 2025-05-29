@@ -154,7 +154,7 @@ public class BRendererDuplicator : MonoBehaviour
                 for (int j = 0; j < rend.sharedMaterials.Length; j++)
                 {
                     rend.materials[j].renderQueue += queueAdd;
-                    //TO DO: Desplegable con opciones de a qué material aplicárselo
+                    //TO DO: Popup with options to select which materials to apply render queue addition to
                 }
             rend.sortingOrder += sortOrderAdd;
         }

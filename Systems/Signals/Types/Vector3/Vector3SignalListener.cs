@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class Vector3SignalListener : BBaseSignalListener
+public class Vector3SignalListener : BBaseSignalListener<Vector3>
 {
     //[ChangeCheck("UpdateSignals")]
     public SignalAction[] signalActions;
@@ -49,13 +49,13 @@ public class Vector3SignalListener : BBaseSignalListener
     }
 #endif
 
-    public void LaunchActions()
+    public override void LaunchActions()
     {
         for (int i = 0; i < signalActions.Length; i++)
             LaunchActions(i, signalActions[i].signal.currentValue);
     }
 
-    public void LaunchActions(int index, Vector3 value) //Change type here
+    public override void LaunchActions(int index, Vector3 value) //Change type here
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
             signalActions[index].actions?.Invoke(value * multiplier); //Change type here

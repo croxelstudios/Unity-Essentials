@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
-public class FlagChecker : BBaseSignalListener
+public class FlagChecker : BBaseSignalListener<bool>
 {
     //[ChangeCheck("UpdateSignals")]
     public FlagAction[] flags;
@@ -46,7 +46,17 @@ public class FlagChecker : BBaseSignalListener
             LaunchActions(i, flags[i].flag.currentValue, justEnabled);
     }
 
-    public void LaunchActions(int index, bool value, bool justEnabled = false) //Change type here
+    public override void LaunchActions()
+    {
+        CheckFlags();
+    }
+
+    public override void LaunchActions(int index, bool value)
+    {
+        LaunchActions(index, value, false);
+    }
+
+    public void LaunchActions(int index, bool value, bool justEnabled) //Change type here
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
         {

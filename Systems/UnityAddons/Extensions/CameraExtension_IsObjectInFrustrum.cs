@@ -4,7 +4,7 @@ public static class CameraExtension_IsObjectInFrustrum
 {
     public static bool IsObjectInFrustrum(this Camera cam, Renderer renderer)
     {
-        //TO DO: Caused massive lag in Serfs Galore
+        //WARNING: Caused massive lag in Serfs Galore
         return GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(cam), renderer.bounds);
     }
 
@@ -16,7 +16,7 @@ public static class CameraExtension_IsObjectInFrustrum
     
     public static bool IsObjectInFrustrum(this Camera cam, Bounds bounds)
     {
-        //TO DO: Caused massive lag in Serfs Galore
+        //WARNING: Caused massive lag in Serfs Galore
         return GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(cam), bounds);
     }
 
