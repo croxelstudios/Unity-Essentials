@@ -35,4 +35,11 @@ public class GenericCallbacks : MonoBehaviour
     {
         onDestroy?.Invoke();
     }
+
+    public static GenericCallbacks Get(GameObject obj)
+    {
+        GenericCallbacks gc = obj.GetComponent<GenericCallbacks>();
+        if (gc != null) return gc;
+        else return obj.AddComponent<GenericCallbacks>();
+    }
 }

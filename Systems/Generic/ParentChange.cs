@@ -6,25 +6,26 @@ public class ParentChange : MonoBehaviour
     [SerializeField]
     ObjectRef<Transform> targetParent = new ObjectRef<Transform>("Target Parent", "");
     [SerializeField]
-    bool onEnable = false; //TO DO: Should be an enum "OnEnableBehaviour"
-    [SerializeField]
-    bool nullOnEnable = false;
-    [SerializeField]
     OnEnableBehaviour onEnableBehaviour = OnEnableBehaviour.None;
     [SerializeField]
-    bool changePositionAfterParentChange = false;
+    DestroyBehaviour destroyBehaviour = DestroyBehaviour.None;
     [SerializeField]
-    [ShowIf("@changePositionAfterParentChange")] //TO DO: Must make more clear that this is the LOCAL position
-    Vector3 positionAfterParentChange = Vector3.zero;
+    bool resetPosition = false;
+    [SerializeField]
+    [ShowIf("@resetPosition")]
+    Vector3 newLocalPosition = Vector3.zero;
+    [SerializeField]
+    bool resetRotation = false;
+    [SerializeField]
+    [ShowIf("@resetRotation")]
+    Vector3 newLocalEulerAngles = Vector3.zero;
+    [SerializeField]
+    bool resetScale = false;
+    [SerializeField]
+    [ShowIf("@resetScale")]
+    Vector3 newLocalScale = Vector3.one;
     [SerializeField]
     bool checkActiveState = true;
-    [SerializeField]
-    bool destroyWithOldParent = false;
-    //TO DO: These should be an enum. The second bool is hard to understand, it destroys itself only if it has no new parent.
-    [SerializeField]
-    bool destroyWithOldParentWhenIsNull = false;
-    [SerializeField]
-    DestroyBehaviour destroyBehaviour = DestroyBehaviour.None;
 
     bool hadParent = false;
     GameObject oldParent;
@@ -34,57 +35,90 @@ public class ParentChange : MonoBehaviour
 
     void OnEnable()
     {
-        if (nullOnEnable) SetParentToNull();
-        else if (onEnable) SetParent();
+        switch (onEnableBehaviour)
+        {
+            case OnEnableBehaviour.SetTargetParent:
+                SetParent();
+                break;
+            case OnEnableBehaviour.SetNullParent:
+                SetParentToNull();
+                break;
+            default:
+                break;
+        }
     }
 
     public void SetParentToNull()
     {
-        SetOldParentToBeDestroyed();
+        SetOldParentToTrackDestruction();
         if (this.IsActiveAndEnabled() || !checkActiveState) transform.parent = null;
     }
 
     void OldParentDestroyed()
     {
-        if ((this && destroyWithOldParent) || (this && destroyWithOldParentWhenIsNull && hadParent && !transform.parent))
-            Destroy(gameObject);
+        switch (destroyBehaviour)
+        {
+            case DestroyBehaviour.DestroyWithOldParent:
+                Destroy(gameObject);
+                break;
+            case DestroyBehaviour.DestroyWithOldParentWhenParentless:
+                if ((hadParent) && (transform.parent == null))
+                    Destroy(gameObject);
+                break;
+            default:
+                break;
+        }
     }
 
     public void SetNewParent(Transform parent)
     {
-        SetOldParentToBeDestroyed();
-        if (this.IsActiveAndEnabled() || !checkActiveState) transform.parent = parent;
-        if (changePositionAfterParentChange)
-            transform.localPosition = positionAfterParentChange;
+        SetOldParentToTrackDestruction();
+        if (this.IsActiveAndEnabled() || !checkActiveState) transform.SetParent(parent, true);
+        ApplyLocalTransformChanges();
     }
 
     [TagSelector]
     public void SetParentByTag(string tag)
     {
-        SetOldParentToBeDestroyed();
-        if (this.IsActiveAndEnabled() || !checkActiveState) transform.parent = GameObject.FindGameObjectWithTag(tag).transform;
-        if (changePositionAfterParentChange)
-            transform.localPosition = positionAfterParentChange;
+        SetOldParentToTrackDestruction();
+        if (this.IsActiveAndEnabled() || !checkActiveState) transform.parent = FindWithTag.GameObject(tag).transform;
+        ApplyLocalTransformChanges();
     }
 
     public void SetParent()
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
         {
-            SetOldParentToBeDestroyed();
+            SetOldParentToTrackDestruction();
             transform.SetParent(targetParent);
-            if (changePositionAfterParentChange)
-                transform.localPosition = positionAfterParentChange;
+            ApplyLocalTransformChanges();
         }
     }
 
-    void SetOldParentToBeDestroyed()
+    void ApplyLocalTransformChanges()
     {
-        if ((destroyWithOldParent || destroyWithOldParentWhenIsNull) && transform.parent)
+        if (resetPosition)
+            transform.localPosition = newLocalPosition;
+        if (resetRotation)
+            transform.localEulerAngles = newLocalEulerAngles;
+        if (resetScale)
+            transform.localScale = newLocalScale;
+    }
+
+    void SetOldParentToTrackDestruction()
+    {
+        if (transform.parent != null)
         {
-            oldParent = transform.parent.gameObject;
-            oldParent.AddComponent<GenericCallbacks>();
-            oldParent.GetComponent<GenericCallbacks>().onDestroy += OldParentDestroyed;
+            switch (destroyBehaviour)
+            {
+                case DestroyBehaviour.DestroyWithOldParent:
+                case DestroyBehaviour.DestroyWithOldParentWhenParentless:
+                    oldParent = transform.parent.gameObject;
+                    GenericCallbacks.Get(oldParent).onDestroy += OldParentDestroyed;
+                    break;
+                default:
+                    break;
+            }
             hadParent = true;
         }
     }
@@ -93,16 +127,15 @@ public class ParentChange : MonoBehaviour
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
         {
-            SetOldParentToBeDestroyed();
+            SetOldParentToTrackDestruction();
             for (int i = 0; i < iterations; i++)
             {
                 Transform parent = transform.parent;
                 if (parent && parent.parent)
                     transform.SetParent(parent.parent);
             }
-            
-            if (changePositionAfterParentChange)
-                transform.localPosition = positionAfterParentChange;
+
+            ApplyLocalTransformChanges();
         }
     }
 }
