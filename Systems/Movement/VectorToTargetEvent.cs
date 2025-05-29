@@ -8,6 +8,9 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     [SerializeField]
     [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
     bool moveTransform = false;
+    [SerializeField]
+    [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
+    bool applyInTransform = false;
 
     [Header("Target")]
     #region Target

@@ -7,6 +7,9 @@ public class RotationToTargetEvent : MonoBehaviour
     [SerializeField]
     [Tooltip("Wether this code should apply rotation to the 'origin' or it should just send the rotation events elsewhere")]
     bool rotateTransform = false;
+    [SerializeField]
+    [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
+    bool applyInTransform = false;
 
     [Header("Target")]
     #region Target
