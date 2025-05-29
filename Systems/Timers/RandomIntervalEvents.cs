@@ -101,7 +101,8 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
             t -= speed * (unscaledTime ? Time.unscaledDeltaTime : Time.deltaTime);
         }
         StopInterval();
-        co = StartCoroutine(WaitForInterval());
+        if (this.IsActiveAndEnabled())
+            co = StartCoroutine(WaitForInterval());
     }
 
     IEnumerator WaitForInterval()
@@ -112,6 +113,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
             yield return null;
             t -= speed * (unscaledTime ? Time.unscaledDeltaTime : Time.deltaTime);
         }
-        co = StartCoroutine(Interval());
+        if (this.IsActiveAndEnabled())  
+            co = StartCoroutine(Interval());
     }
 }
