@@ -102,7 +102,8 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         [ShowIf("@textureTarget == TextureTarget.GlobalTexture")]
         public TextureSettings settings =
-            new TextureSettings(RenderTextureFormat.Default, FilterMode.Point, TextureWrapMode.Clamp, 0);
+            new TextureSettings(RenderTextureFormat.Default, FilterMode.Point, TextureWrapMode.Clamp,
+                TextureSettings.MSAAType._1);
 
         [ShowIf("@textureTarget == TextureTarget.RenderTexture")]
         public RenderTexture targetTexture = null;
@@ -467,8 +468,8 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                     data.SetKeywords(rgContext.cmd);
 
-                    rgContext.cmd.ExecuteRenderObjects(cameraData, passData.rendererListHdl,
-                        cameraData.IsYFlipped(passData.color), passData.cameraSettings);
+                    rgContext.cmd.ExecuteRenderObjects(cameraData, data.rendererListHdl,
+                        cameraData.IsYFlipped(data.color), data.cameraSettings);
 
                     data.SetKeywords(rgContext.cmd);
 

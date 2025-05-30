@@ -218,7 +218,7 @@ public static class RenderGraphTools
     {
         RenderTextureDescriptor desc = baseDescriptor;
         desc.colorFormat = settings.colorFormat;
-        desc.msaaSamples = settings.MSAA;
+        desc.msaaSamples = settings.MSAAInt;
         desc.depthBufferBits = depthBufferBits;
 
         return UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc,
@@ -288,11 +288,29 @@ public struct TextureSettings
     public RenderTextureFormat colorFormat;
     public FilterMode filterMode;
     public TextureWrapMode wrapMode;
-    [Min(0)]
-    public int MSAA;
+    public MSAAType MSAA;
+    public int MSAAInt
+    {
+        get
+        {
+            switch (MSAA)
+            {
+                case MSAAType._2:
+                    return 2;
+                case MSAAType._4:
+                    return 4;
+                case MSAAType._8:
+                    return 8;
+                default:
+                    return 1;
+            }
+        }
+    }
+
+    public enum MSAAType { _1, _2, _4, _8 }
 
     public TextureSettings(RenderTextureFormat colorFormat,
-        FilterMode filterMode, TextureWrapMode wrapMode, int MSAA)
+        FilterMode filterMode, TextureWrapMode wrapMode, MSAAType MSAA)
     {
         this.colorFormat = colorFormat;
         this.filterMode = filterMode;
