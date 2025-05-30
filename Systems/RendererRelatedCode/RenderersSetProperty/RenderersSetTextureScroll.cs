@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
+using System.Collections.Generic;
 
 [ExecuteAlways]
 public class RenderersSetTextureScroll : BRenderersSetProperty
@@ -17,9 +19,19 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
     Vector2 direction;
     Vector2 currentOffset;
 
+    static Dictionary<RendererMaterial, Vector4> originals;
+    public static CustomEvent init;
+    public class CustomEvent : UnityEvent<RenderersSetTextureScroll> { }
+
+    void Reset()
+    {
+        propertyName = "_MainTex";
+    }
+
     protected override void Init()
     {
-        if (propertyName == "") propertyName = "_MainTex";
+        init?.Invoke(this);
+        originals = new Dictionary<RendererMaterial, Vector4>();
         currentOffset = referenceOffset;
         base.Init();
     }
@@ -45,12 +57,17 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         
         tilingOffset.z = currentOffset.x;
         tilingOffset.w = currentOffset.y;
+
+        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        if (!originals.ContainsKey(rendMat))
+            originals.Add(rendMat, block.GetVector(propertyName));
         block.SetVector(fullPropertyName, tilingOffset);
     }
 
     protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
-        //TO DO
+        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        if (originals.ContainsKey(rendMat)) block.SetVector(propertyName, originals[rendMat]);
     }
 
     protected override void VSetProperty(Renderer rend, int mat)
@@ -60,12 +77,18 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
 
         tilingOffset.z = currentOffset.x;
         tilingOffset.w = currentOffset.y;
+
+        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        if (!originals.ContainsKey(rendMat))
+            originals.Add(rendMat, rend.materials[mat].GetVector(propertyName));
         rend.materials[mat].SetVector(fullPropertyName, tilingOffset);
     }
 
     protected override void VResetProperty(Renderer rend, int mat)
     {
-        //TO DO
+        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        if (originals.ContainsKey(rendMat))
+            rend.materials[mat].SetVector(propertyName, originals[rendMat]);
         base.VResetProperty(rend, mat);
     }
 }

@@ -99,8 +99,8 @@ public static class RenderGraphTools
         builder.AllowPassCulling(false);
         builder.AllowGlobalStateModification(true);
         if (cameraData.xr.enabled)
-            builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
-        //TO DO: Original code checks for another thing here. What is it?
+            builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering
+                /* && cameraData.xrUniversal.canFoveateIntermediatePasses*/);
     }
 
     public static void SetupRenderingObjects(this IRasterRenderGraphBuilder builder, RenderGraph graph,

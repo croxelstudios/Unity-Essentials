@@ -1,5 +1,4 @@
 using UnityEngine;
-using static UnityEngine.UI.Image;
 
 public static class QuaternionExtension_SmoothDamp
 {
@@ -7,38 +6,41 @@ public static class QuaternionExtension_SmoothDamp
         ref Quaternion tmpSpeed, float smoothTime, float maxSpeed, float deltaTime,
         bool dontCorrectLongPaths = false)
     {
-        // ChatGPT code:
-        // Ensure that smoothTime is greater than a minimum value
-        smoothTime = Mathf.Max(0.0001f, smoothTime);
+        Quaternion dif = target.Subtract(rot);
+        dif.ToAngleAxis(out float difAngle, out Vector3 difAxis);
 
-        // Ensure the quaternions are in the same hemisphere to avoid taking the long path
-        float dot = Quaternion.Dot(rot, target);
-        if ((dot < 0f) && !dontCorrectLongPaths)
-            target = new Quaternion(-target.x, -target.y, -target.z, -target.w);
+        //Limit smoothTime to avoid division by 0f;
+        smoothTime = Mathf.Max(0.0001F, smoothTime);
 
-        // Calculate the maximum angular velocity in radians per second
-        float maxRadiansDelta = maxSpeed * Mathf.Deg2Rad * deltaTime;
+        //Calculate omega and exponent
+        float omega = 2f / smoothTime;
+        float x = omega * deltaTime;
+        float exp = 1f / (1f + x + 0.48f * x * x + 0.235f * x * x * x);
 
-        // Damping function
-        float t = 1 - Mathf.Exp(-deltaTime / smoothTime);
+        float change = Mathf.Min(maxSpeed * smoothTime, difAngle);
+        Quaternion targ = rot.Add(Quaternion.AngleAxis(change, difAxis));
+        Quaternion subRot = rot.Subtract(targ);
+        subRot.ToAngleAxis(out float subRotAngle, out Vector3 subRotAxis);
 
-        // Smoothly interpolate the rotation towards the target using Slerp with the new t
-        Quaternion result = Quaternion.Slerp(rot, target, t);
+        tmpSpeed.ToAngleAxis(out float tangle, out Vector3 taxis);
 
-        // Calculate the angular derivative (velocity)
-        //TO DO: I suspect this is not correct because it isn't using the tmpSpeed variable
-        Vector4 deriv4 = new Vector4(tmpSpeed.x, tmpSpeed.y, tmpSpeed.z, tmpSpeed.w);
-        Vector4 current4 = new Vector4(rot.x, rot.y, rot.z, rot.w);
-        Vector4 result4 = new Vector4(result.x, result.y, result.z, result.w);
+        Quaternion temp = Quaternion.AngleAxis(tangle * deltaTime * exp, taxis).Add(
+            Quaternion.AngleAxis((subRotAngle + (omega * subRotAngle) * deltaTime) * exp, subRotAxis));
 
-        deriv4 = (result4 - current4) / deltaTime;
-        tmpSpeed = new Quaternion(deriv4.x, deriv4.y, deriv4.z, deriv4.w);
+        Quaternion output = targ.Add(temp);
 
-        // Limit angular velocity if necessary
-        if (Quaternion.Angle(rot, result) > maxRadiansDelta)
-            result = Quaternion.RotateTowards(rot, result, maxRadiansDelta);
+        //Avoid overshoot
+        Quaternion outputDif = output.Subtract(rot);
+        if (outputDif.Angle() > difAngle)
+        {
+            output = target;
+            outputDif = target.Subtract(rot);
+        }
 
-        return result;
+        outputDif.ToAngleAxis(out tangle, out taxis);
+        tmpSpeed = Quaternion.AngleAxis(tangle / deltaTime, taxis);
+
+        return output;
     }
 
     public static Quaternion EulerSmoothDamp(this Quaternion rot, Quaternion target,

@@ -135,7 +135,7 @@ public class CentralizedSettingsDrawer : PropertyDrawer
 
         for (int i = 0; i < propStructure.Length; i++)
         {
-            string text = propStructure[i].BreakDownArrayVariable(out int index);
+            string text = propStructure[i].BreakDownArrayVariableName(out int index);
 
             if (prop == null) prop = obj.FindProperty(text);
             else prop = prop.FindPropertyRelative(text);

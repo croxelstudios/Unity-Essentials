@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
 
 [ExecuteAlways]
 public class RenderersSetTexture : BRenderersSetProperty
@@ -7,11 +9,17 @@ public class RenderersSetTexture : BRenderersSetProperty
     Texture _texture = null;
     public Texture texture { get { return _texture; } set { _texture = value; } }
 
+    static Dictionary<RendererMaterial, Texture> originals;
+    public static CustomEvent init;
+    public class CustomEvent : UnityEvent<RenderersSetTexture> { }
+
     //Texture oldTexture;
 
     protected override void Init()
     {
+        init?.Invoke(this);
         //oldTexture = texture;
+        originals = new Dictionary<RendererMaterial, Texture>();
         base.Init();
     }
 
@@ -32,22 +40,36 @@ public class RenderersSetTexture : BRenderersSetProperty
     protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
         if (texture != null)
+        {
+            RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+            if (!originals.ContainsKey(rendMat))
+                originals.Add(rendMat, block.GetTexture(propertyName));
             block.SetTexture(propertyName, texture);
+        }
     }
 
     protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
-        //TO DO
+        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        if (originals.ContainsKey(rendMat)) block.SetTexture(propertyName, originals[rendMat]);
     }
 
     protected override void VSetProperty(Renderer rend, int mat)
     {
-        rend.materials[mat].SetTexture(propertyName, texture);
+        if (texture != null)
+        {
+            RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+            if (!originals.ContainsKey(rendMat))
+                originals.Add(rendMat, rend.materials[mat].GetTexture(propertyName));
+            rend.materials[mat].SetTexture(propertyName, texture);
+        }
     }
 
     protected override void VResetProperty(Renderer rend, int mat)
     {
-        //TO DO
+        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        if (originals.ContainsKey(rendMat))
+            rend.materials[mat].SetTexture(propertyName, originals[rendMat]);
         base.VResetProperty(rend, mat);
     }
 }

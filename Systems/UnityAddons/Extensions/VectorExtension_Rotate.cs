@@ -18,4 +18,6 @@ public static class VectorExtension_Rotate
     {
         return Quaternion.AngleAxis(degrees, axis) * v;
     }
+
+    //TO DO: 4D?
 }

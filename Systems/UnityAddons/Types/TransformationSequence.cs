@@ -2,7 +2,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public struct RotationPath
+public interface ITransformationSequence
+{
+    public float GetMagnitude();
+    public void ProjectOnPlane(Vector3 normal);
+    public void CalculateMagnitude();
+    public float CalculateDistanceTo(int point);
+    public void Draw();
+    public void Draw(Color color);
+}
+
+public struct RotationPath : ITransformationSequence
 {
     public Quaternion origin;
     public Quaternion target;
@@ -35,6 +45,11 @@ public struct RotationPath
         magnitude = 0f;
         CalculateMagnitude();
     }
+    
+    public float GetMagnitude()
+    {
+        return magnitude;
+    }
 
     public void ProjectOnPlane(Vector3 normal)
     {
@@ -59,6 +74,25 @@ public struct RotationPath
             magnitude = lengthSoFar;
         }
         else magnitude = dif.Angle();
+    }
+
+    public float CalculateDistanceTo(int point)
+    {
+        if (IsComplexPath())
+        {
+            Quaternion previousCorner = path[0];
+            float lengthSoFar = 0f;
+            int i = 1;
+            while (i <= point)
+            {
+                Quaternion currentCorner = path[i];
+                lengthSoFar += Quaternion.Angle(previousCorner, currentCorner);
+                previousCorner = currentCorner;
+                i++;
+            }
+            return lengthSoFar;
+        }
+        else return (point > 0) ? magnitude : 0f;
     }
 
     public Quaternion RotationAlong(float distance)
@@ -237,13 +271,24 @@ public struct RotationPath
         }
     }
 
+    public void Draw()
+    {
+        Draw(Color.red);
+    }
+
+    public void Draw(Color color)
+    {
+        for (int i = 0; i < path.Length - 1; i++)
+            Debug.DrawLine(path[i] * Vector3.forward, path[i + 1] * Vector3.forward, color);
+    }
+
     bool IsComplexPath()
     {
         return (path != null) && (path.Length > 2);
     }
 }
 
-public struct MovementPath
+public struct MovementPath : ITransformationSequence
 {
     public Vector3 origin;
     public Vector3 target;
@@ -280,6 +325,11 @@ public struct MovementPath
         dif = target - origin;
         magnitude = 0f;
         CalculateMagnitude();
+    }
+
+    public float GetMagnitude()
+    {
+        return magnitude;
     }
 
     public void ProjectOnPlane(Vector3 normal)
@@ -407,7 +457,7 @@ public struct MovementPath
             Vector3 clos = path[0];
             for (int i = 0; i < path.Length - 1; i++)
             {
-                Vector3 c = ClosestPointOnSegment(point, path[i], path[i + 1], out float dispAdd_c);
+                Vector3 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd_c);
                 float d = Vector3.Distance(point, c);
                 if (d < dist)
                 {
@@ -424,32 +474,7 @@ public struct MovementPath
 
             return clos;
         }
-        else return ClosestPointOnSegment(point, origin, target, out disp);
-    }
-
-    Vector3 ClosestPointOnLine(Vector3 p, Vector3 l0, Vector3 l1, out float dist)
-    {
-        Vector3 normal = (l1 - l0).normalized;
-
-        dist = Vector3.Dot(p - l0, normal) / Vector3.Dot(normal, normal);
-        return l0 + (normal * dist);
-    }
-
-    Vector3 ClosestPointOnSegment(Vector3 p, Vector3 l0, Vector3 l1, out float d)
-    {
-        Vector3 dir = l1 - l0;
-        Vector3 clos = ClosestPointOnLine(p, l0, l1, out d);
-        if (d < 0f)
-        {
-            d = 0f;
-            clos = l0;
-        }
-        else if ((d * d) > dir.sqrMagnitude)
-        {
-            d = 1f;
-            clos = l1;
-        }
-        return clos;
+        else return point.ClosestPointOnSegment(origin, target, out disp);
     }
 
     MovementPath SubPath(float distance, float offset, bool invert = false)

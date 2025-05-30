@@ -1,12 +1,10 @@
-using UnityEngine;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-public static class StringExtension_BreakDownArrayVariable
+public static class StringExtension_BreakDownArrayVariableName
 {
-    public static string BreakDownArrayVariable(this string text, out int index)
+    public static string BreakDownArrayVariableName(this string text, out int index)
     {
         Regex rgx = new Regex(@"\[\d+\]");
         if (rgx.Matches(text).Count > 0)

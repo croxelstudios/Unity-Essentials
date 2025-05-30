@@ -22,7 +22,7 @@ public static class ReflectionTools
         string[] fieldStructure = fieldPath.Split('.');
         for (int i = 0; i < fieldStructure.Length; i++)
         {
-            string text = fieldStructure[i].BreakDownArrayVariable(out int index);
+            string text = fieldStructure[i].BreakDownArrayVariableName(out int index);
             if (index >= 0) inObj = GetFieldValueWithIndex(text, inObj, index);
             else inObj = GetFieldValue(text, inObj);
         }
@@ -40,14 +40,14 @@ public static class ReflectionTools
         string[] fieldStructure = fieldPath.Split('.');
         for (int i = 0; i < fieldStructure.Length - 1; i++)
         {
-            string txt = fieldStructure[i].BreakDownArrayVariable(out int ind);
+            string txt = fieldStructure[i].BreakDownArrayVariableName(out int ind);
             if (ind >= 0) inObj = GetFieldValueWithIndex(txt, inObj, ind);
             else inObj = GetFieldValue(txt, inObj);
         }
 
         string fieldName = fieldStructure.Last();
 
-        string text = fieldName.BreakDownArrayVariable(out int index);
+        string text = fieldName.BreakDownArrayVariableName(out int index);
         if (index >= 0) return SetFieldValueWithIndex(text, inObj, index, newValue);
         else return SetFieldValue(text, inObj, newValue);
     }
@@ -59,7 +59,7 @@ public static class ReflectionTools
         Type type = null;
         for (int i = 0; i < fieldStructure.Length; i++)
         {
-            string text = fieldStructure[i].BreakDownArrayVariable(out int index);
+            string text = fieldStructure[i].BreakDownArrayVariableName(out int index);
             if (index >= 0) type = GetField(text, inObj)?.FieldType?.GetElementType();
             else
             {

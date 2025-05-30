@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class RenderTextureExtension_Blit
+public static class MaterialExtension_Blit
 {
     public static void Blit(this Material material, ref RenderTexture rt,
         string name, Vector2Int textureResolution, int depth = 32,

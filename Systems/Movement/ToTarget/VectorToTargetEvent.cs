@@ -3,61 +3,8 @@ using UnityEngine;
 using UnityEngine.AI;
 using static SpeedBehaviour;
 
-public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
+public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAgentTypeContainer
 {
-    [SerializeField]
-    [Tooltip("Wether this code should apply movement to the 'origin' or it should just send the movement events elsewhere")]
-    bool applyInTransform = false;
-
-    [Header("Target")]
-    #region Target
-    [SerializeField]
-    [HideLabel]
-    [InlineProperty]
-    OriginTarget originTarget = new OriginTarget("Player");
-    public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
-    public Transform origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
-    [Space]
-    [SerializeField]
-    [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
-    bool projectOnPlane = false;
-    [SerializeField]
-    [ShowIf("projectOnPlane")]
-    [Tooltip("Wether or not the projection plane should be calculated in origin's local space")]
-    bool projectionLocal = false;
-    [SerializeField]
-    [ShowIf("projectOnPlane")]
-    [Tooltip("Projection plane normal")]
-    Vector3 planeNormal = Vector3.back;
-    #endregion
-
-    [Header("Speed behaviour")]
-    [SerializeField]
-    [InlineProperty]
-    [HideLabel]
-    SpeedBehaviour speedBehaviour = new SpeedBehaviour(SpeedMode.Linear);
-    public bool doAccelerate
-    {
-        get { return speedBehaviour.doAccelerate; }
-        set { speedBehaviour.doAccelerate = value; }
-    }
-
-    [SerializeField]
-    bool local = false;
-    [SerializeField]
-    bool sendWhenZeroToo = false;
-    [SerializeField]
-    TargetMode targetMode = TargetMode.ToExactPoint;
-    [SerializeField]
-    [ShowIf("@targetMode == TargetMode.StopAtMargin")]
-    [Tooltip("Minimum distance to the target before the resulting vector becomes zero.")]
-    float margin = 0.01f;
-    [SerializeField]
-    [Tooltip("When is this code executed")]
-    TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
-    [SerializeField]
-    bool sendFrameMovement = false;
-
     [SerializeField]
     [Tooltip("Use NavMesh system to calculate the direction")]
     bool useNavMesh = false;
@@ -75,7 +22,6 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     //[ShowIf("@useNavMesh && (speedBehaviour.speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp)")]
     //bool keepInStraightPath = false;
     [SerializeField]
-    [Min(0.0000001f)]
     bool reorientTransform = false;
     #region Events
     [SerializeField]
@@ -94,14 +40,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     DXEvent stoppedMoving = null;
     #endregion
 
-    enum TargetMode { ToExactPoint, NeverStop, StopAtMargin }
-
-    Vector3 speed;
-    Vector3 prevPos;
-    Vector3 prevTarg;
     float prevSpd;
-
-    Vector3 accelHalf;
 
     //Agent type
     public void OverrideNavMeshAgentType(int navMeshAgentType, out int prevAgentType)
@@ -111,110 +50,15 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
     }
     //
 
-    public void SetMaxSpeed(float speed)
+    protected override void OnEnable()
     {
-        speedBehaviour.SetMaxSpeed(speed);
-    }
-
-    public void UpdatePrevPos()
-    {
-        //WARNING: Non dynamic. Must be updated when "local" is changed.
-        prevPos = origin.Position(local);
-    }
-
-    void Reset()
-    {
-        originTarget.SetOrigin(transform);
-    }
-
-    void Awake()
-    {
-        speed = Vector3.zero;
-        UpdatePrevPos();
-    }
-
-    void OnEnable()
-    {
-        speed = Vector3.zero;
         prevSpd = 0f;
-        if (timeMode.OnEnable()) CheckEvents(timeMode.DeltaTime());
+        base.OnEnable();
     }
 
-    /// <summary>
-    /// Calculates vectors and checks if the events should be sent.
-    /// </summary>
-    /// <param name="deltaTime">Last frame deltaTime</param>
-    public void CheckEvents(float deltaTime)
+    protected override MovementPath GetPath()
     {
-        if (originTarget.IsNotNull() && (deltaTime > 0f))
-            Move(deltaTime);
-    }
-
-    void Update()
-    {
-        if (timeMode.IsSmooth()) OnUpdate();
-    }
-
-    void FixedUpdate()
-    {
-        if (timeMode.IsFixed()) OnUpdate();
-    }
-
-    /// <summary>
-    /// Calculates vectors and checks if the events should be sent.
-    /// Then, if "accountForCurrentSpeed" is true,
-    /// it calculates current speed based on previous transform position to account for external forces.
-    /// </summary>
-    void OnUpdate()
-    {
-        float deltaTime = timeMode.DeltaTime();
-
-        CheckEvents(deltaTime);
-
-        if (speedBehaviour.AffectedByCurrentSpeed() && (deltaTime != 0f))
-        {
-            if (Vector3.Distance(prevTarg, origin.Position(local)) > Mathf.Epsilon)
-                speed = ((origin.Position(local) - prevPos) / deltaTime) + accelHalf;
-        }
-        accelHalf = Vector3.zero;
-
-        UpdatePrevPos();
-    }
-
-    void Move(float deltaTime)
-    {
-        float inverseDeltaTime = InverseDeltaTime(deltaTime);
-
-        MovementPath path = GetPath();
-        //path.Draw();
-
-        Vector3 spd = Vector3.zero;
-        if (ShouldIMove(path))
-            switch (speedBehaviour.speedMode)
-            {
-                case SpeedMode.Accelerated:
-                    spd = MoveAccelerated(path, deltaTime);
-                    break;
-                case SpeedMode.SmoothDamp:
-                    spd = MoveSmoothDamp(path, deltaTime);
-                    break;
-                case SpeedMode.LerpSmooth:
-                    spd = MoveLerpSmooth(path, deltaTime);
-                    break;
-                case SpeedMode.Teleport:
-                    spd = MoveTeleport(path, deltaTime);
-                    break;
-                default: //Linear
-                    spd = MoveLinear(path, deltaTime);
-                    break;
-            }
-
-        ExecuteMovement(spd, deltaTime);
-    }
-
-    MovementPath GetPath()
-    {
-        Vector3 oPos = origin.Position(local);
+        Vector3 oPos = Current();
         Vector3 tPos = target.position;
         if (local && (origin.parent != null))
             tPos = origin.parent.InverseTransformPoint(tPos);
@@ -232,17 +76,9 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
         return path;
     }
 
-    bool ShouldIMove(MovementPath path)
+    protected override Vector3 Accelerated(MovementPath path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
-        float distanceToTarget = path.magnitude;
-        if ((distanceToTarget < margin) && (targetMode == TargetMode.StopAtMargin))
-            distanceToTarget = 0f;
-        return distanceToTarget > 0f;
-    }
-
-    Vector3 MoveAccelerated(MovementPath path, float deltaTime)
-    {
-        float inverseDeltaTime = InverseDeltaTime(deltaTime);
+        float inverseDeltaTime = deltaTime.Reciprocal();
         Vector3 accelerationHalf0 = Vector3.zero;
         if (doAccelerate)
         {
@@ -257,7 +93,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
             //else
             {
                 accelerationHalf0 = path.Direction(accel);
-                accelHalf = accelerationHalf0;
+                dynamicInfo.accelHalf = accelerationHalf0;
             }
         }
         else
@@ -275,24 +111,24 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
                 float accelMag = speedBehaviour.friction * deltaTime;
                 float accelMagHalf1 = accelMag * 0.5f;
                 float accelMagHalf2 = accelMagHalf1;
-                if (accelMag > speed.magnitude)
+                if (accelMag > dynamicInfo.speed.magnitude)
                 {
-                    float rest = speed.magnitude - accelMagHalf1;
+                    float rest = dynamicInfo.speed.magnitude - accelMagHalf1;
                     if (rest < 0f)
                     {
-                        accelMagHalf1 = speed.magnitude;
+                        accelMagHalf1 = dynamicInfo.speed.magnitude;
                         accelMagHalf2 = 0f;
                     }
                     else accelMagHalf2 = rest;
                 }
 
-                accelerationHalf0 = -speed.normalized * accelMagHalf1;
-                accelHalf = -speed.normalized * accelMagHalf2;
+                accelerationHalf0 = -dynamicInfo.speed.normalized * accelMagHalf1;
+                dynamicInfo.accelHalf = -dynamicInfo.speed.normalized * accelMagHalf2;
             }
         }
 
-        speed += accelerationHalf0;
-        Vector3 spd = speed * deltaTime;
+        dynamicInfo.speed += accelerationHalf0;
+        Vector3 spd = dynamicInfo.speed * deltaTime;
 
         //Limit speed by maximum speed
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
@@ -305,26 +141,26 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
             spd = spd.normalized * moveAmount;
 
         //Add the other acceleration half to the global speed for use in next frame
-        speed += accelHalf;
+        dynamicInfo.speed += dynamicInfo.accelHalf;
 
         return spd;
     }
 
-    Vector3 MoveSmoothDamp(MovementPath path, float deltaTime)
+    protected override Vector3 SmoothDamp(MovementPath path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
         //TO DO: Doesn't work with keepinpath feature
-        return path.SmoothDamp(ref speed, speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime)
+        return path.SmoothDamp(ref dynamicInfo.speed, speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime)
             - path.origin;
     }
 
-    Vector3 MoveLerpSmooth(MovementPath path, float deltaTime)
+    protected override Vector3 LerpSmooth(MovementPath path, float deltaTime)
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
         return path.Displacement(
             Mathf.Min(0f.LerpSmooth(path.magnitude, speedBehaviour.decay, deltaTime), maxDTSpeed));
     }
 
-    Vector3 MoveTeleport(MovementPath path, float deltaTime)
+    protected override Vector3 Teleport(MovementPath path, float deltaTime)
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed;
         float moveAmount = path.magnitude;
@@ -333,7 +169,7 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
         return path.Displacement(moveAmount);
     }
 
-    Vector3 MoveLinear(MovementPath path, float deltaTime)
+    protected override Vector3 Linear(MovementPath path, float deltaTime)
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
         float moveAmount = path.magnitude;
@@ -344,9 +180,9 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
         return path.Displacement(moveAmount);
     }
 
-    void ExecuteMovement(Vector3 speedPerThisFrame, float deltaTime)
+    protected override void Execute(Vector3 speedPerThisFrame, float deltaTime)
     {
-        float unitsPerSecondSpeed = speedPerThisFrame.magnitude * InverseDeltaTime(deltaTime);
+        float unitsPerSecondSpeed = speedPerThisFrame.magnitude * deltaTime.Reciprocal();
 
         if (prevSpd <= 0f)
         {
@@ -376,18 +212,23 @@ public class VectorToTargetEvent : MonoBehaviour, INavMeshAgentTypeContainer
         }
     }
 
-    float InverseDeltaTime(float deltaTime)
-    {
-        return (deltaTime != 0f) ? 1f / deltaTime : Mathf.Infinity;
-    }
-
     /// <summary>
-    /// Instantly moves the origin transform to the target position
+    /// Instantly applies transformations to the origin transform
     /// </summary>
-    public void Teleport()
+    public override void Teleport()
     {
         Vector3 dif = target.position - origin.position;
         origin.Translate(dif, Space.World);
-        speed = Vector3.zero;
+        ResetSpeed();
+    }
+
+    public override Vector3 Current()
+    {
+        return origin.Position(local);
+    }
+
+    public override void UpdateSpeed(ref Vector3 speed, Vector3 prev, Vector3 accelHalf, float deltaTime)
+    {
+        speed = ((Current() - prev) / deltaTime) + accelHalf;
     }
 }
