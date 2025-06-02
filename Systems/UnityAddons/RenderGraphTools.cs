@@ -13,8 +13,8 @@ public static class RenderGraphTools
 {
     class TextureCollection : ContextItem
     {
-        static Dictionary<string, TextureHandleData> textures;
-        static Dictionary<TextureHandle, TextureHandle> depthAttachments;
+        Dictionary<string, TextureHandleData> textures;
+        Dictionary<TextureHandle, TextureHandle> depthAttachments;
 
         public override void Reset()
         {

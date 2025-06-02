@@ -27,7 +27,7 @@ public static class ProcMesh
     public static void RegisterQuad(int v0, int v1, int v2, int v3, ref List<int> triangles)
     {
         RegisterTriangle(v0, v1, v3, ref triangles);
-        RegisterTriangle(v3, v2, v0, ref triangles);
+        RegisterTriangle(v3, v1, v2, ref triangles);
     }
 
     public static void PositionQuad<T>(int br, int bl, int tr, int tl,
@@ -115,7 +115,7 @@ public static class ProcMesh
         tr = transform.MultiplyPoint(vtr);
         tl = transform.MultiplyPoint(vtl);
 
-        Vector3 normal = Vector3.Cross(bl - br, tl - bl);
+        Vector3 normal = Vector3.Cross(br - bl, tl - bl);
         nbr = normal;
         nbl = normal;
         ntr = normal;
