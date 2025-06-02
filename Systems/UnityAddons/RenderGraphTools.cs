@@ -11,7 +11,71 @@ using UnityEngine.Rendering.Universal.Internal;
 
 public static class RenderGraphTools
 {
-    public static bool CanBeUsed(this TextureHandle tex)
+    class TextureCollection : ContextItem
+    {
+        static Dictionary<string, TextureHandleData> textures;
+        static Dictionary<TextureHandle, TextureHandle> depthAttachments;
+
+        public override void Reset()
+        {
+            textures.Clear();
+            depthAttachments.Clear();
+        }
+
+        public void CleanTextures()
+        {
+            if (textures != null)
+            {
+                List<string> remove = new List<string>();
+                foreach (KeyValuePair<string, TextureHandleData> pair in textures)
+                {
+                    if (!pair.Value.handle.IsValid())
+                    {
+                        depthAttachments.SmartRemove(pair.Value.handle);
+                        remove.Add(pair.Key);
+                    }
+                }
+                foreach (string key in remove)
+                    textures.Remove(key);
+            }
+        }
+
+        public void RegisterTexture(string name, TextureHandle texture, TextureSettings settings)
+        {
+            textures = textures.CreateAdd(name, new TextureHandleData(texture, settings));
+        }
+
+        public bool GetTexture(string name, out TextureHandleData texture)
+        {
+            if (textures == null)
+            {
+                texture = new TextureHandleData();
+                return false;
+            }
+
+            return textures.TryGetValue(name, out texture);
+        }
+
+        public void RemoveTexture(string name)
+        {
+            if (textures != null)
+                textures.SmartRemove(name);
+        }
+
+        public TextureHandle GetDepth(TextureHandle color)
+        {
+            if ((depthAttachments != null) && depthAttachments.ContainsKey(color))
+                return depthAttachments[color];
+            else return new TextureHandle();
+        }
+
+        public void RegisterDepth(TextureHandle color, TextureHandle depth)
+        {
+            depthAttachments = depthAttachments.CreateAdd(color, depth);
+        }
+    }
+
+    public static bool CanBeUsedAsRTHandle(this TextureHandle tex)
     {
         if (!tex.IsValid())
             return false;
@@ -155,7 +219,6 @@ public static class RenderGraphTools
     public static void ExecuteRenderObjects(this RasterCommandBuffer cmd, UniversalCameraData cameraData,
         RendererListHandle renderersList, bool isYFlipped = false, CameraSettings cameraSettings = null)
     {
-
         Camera camera = cameraData.camera;
 
         // In case of camera stacking we need to take the viewport rect from base camera //Isn't it the same?
@@ -196,15 +259,30 @@ public static class RenderGraphTools
 
     public static bool IsYFlipped(this UniversalCameraData cameraData, TextureHandle tex)
     {
-        return tex.CanBeUsed() ? cameraData.IsRenderTargetProjectionMatrixFlipped(tex) : false;
+        return tex.IsValid() ? cameraData.IsRenderTargetProjectionMatrixFlipped(tex) : false;
     }
 
-    public static void SetAttachments(this IRasterRenderGraphBuilder builder, TextureHandle color, TextureHandle depth,
+    public static void SetAttachments(this IRasterRenderGraphBuilder builder, ContextContainer context, TextureHandle color, TextureHandle depth,
         AccessFlags colorAccess, AccessFlags? depthAccess = null)
     {
+        TextureCollection textures = GetSavedTextures(context);
+
         builder.SetRenderAttachment(color, 0, colorAccess);
-        if (depth.CanBeUsed())
+        
+        if (!depth.IsValid())
+            depth = textures.GetDepth(color);
+
+        if (depth.IsValid())
             builder.SetRenderAttachmentDepth(depth, depthAccess == null ? colorAccess : (AccessFlags)depthAccess);
+    }
+
+    static TextureCollection GetSavedTextures(ContextContainer context)
+    {
+        TextureCollection textures;
+        if (context.Contains<TextureCollection>())
+            textures = context.Get<TextureCollection>();
+        else textures = context.Create<TextureCollection>();
+        return textures;
     }
 
     public static void SetGlobalTextureAfterPass(this IRasterRenderGraphBuilder builder, TextureHandle texture, string name)
@@ -213,16 +291,73 @@ public static class RenderGraphTools
         builder.SetGlobalTextureAfterPass(texture, globalID);
     }
 
-    public static TextureHandle CreateTexture(this RenderGraph renderGraph, string name,
-        RenderTextureDescriptor baseDescriptor, TextureSettings settings, bool clear = true, int depthBufferBits = 0)
+    public static TextureHandle GetTexture(this RenderGraph renderGraph, ContextContainer context, string name,
+        RenderTextureDescriptor baseDescriptor, TextureSettings settings, bool clear = false)
     {
-        RenderTextureDescriptor desc = baseDescriptor;
-        desc.colorFormat = settings.colorFormat;
-        desc.msaaSamples = settings.MSAAInt;
-        desc.depthBufferBits = depthBufferBits;
+        TextureCollection textures = GetSavedTextures(context);
 
-        return UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc,
-            name, clear, settings.filterMode, settings.wrapMode);
+        RenderTextureDescriptor desc = baseDescriptor;
+        desc.graphicsFormat = settings.colorFormat;
+        desc.msaaSamples = settings.MSAA.Int();
+        desc.depthBufferBits = 0;
+
+        TextureHandle texture = new TextureHandle();
+        TextureHandleData textureData;
+        if (textures.GetTexture(name, out textureData) && (textureData.settings == settings))
+        {
+            if (textureData.settings == settings)
+                texture = textureData.handle;
+            else textures.RemoveTexture(name);
+        }
+
+        if (!texture.IsValid())
+        {
+            texture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc,
+                name, clear, settings.filterMode, settings.wrapMode);
+            if (settings.depthBufferBits != DepthBits.None)
+            {
+                desc.graphicsFormat = GraphicsFormat.None;
+                desc.depthBufferBits = settings.depthBufferBits.Int();
+                textures.RegisterDepth(texture,
+                    UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc,
+                    name + "_Depth", clear, settings.filterMode, settings.wrapMode));
+            }
+            textures.RegisterTexture(name, texture, settings);
+        }
+
+        return texture;
+    }
+
+    public static int Int(this MSAASamples samples)
+    {
+        switch (samples)
+        {
+            case MSAASamples.MSAA2x:
+                return 2;
+            case MSAASamples.MSAA4x:
+                return 4;
+            case MSAASamples.MSAA8x:
+                return 8;
+            default:
+                return 1;
+        }
+    }
+
+    public static int Int(this DepthBits bits)
+    {
+        switch (bits)
+        {
+            case DepthBits.Depth8:
+                return 8;
+            case DepthBits.Depth16:
+                return 16;
+            case DepthBits.Depth24:
+                return 24;
+            case DepthBits.Depth32:
+                return 32;
+            default:
+                return 0;
+        }
     }
 
     /// <summary>
@@ -280,42 +415,69 @@ public static class RenderGraphTools
             }
         }
     }
+
+    public struct TextureHandleData
+    {
+        public TextureHandle handle;
+        public TextureSettings settings;
+
+        public TextureHandleData(TextureHandle handle, TextureSettings settings)
+        {
+            this.handle = handle;
+            this.settings = settings;
+        }
+    }
 }
 
 [Serializable]
-public struct TextureSettings
+public struct TextureSettings : IEquatable<TextureSettings>
 {
-    public RenderTextureFormat colorFormat;
+    public GraphicsFormat colorFormat;
     public FilterMode filterMode;
     public TextureWrapMode wrapMode;
-    public MSAAType MSAA;
-    public int MSAAInt
-    {
-        get
-        {
-            switch (MSAA)
-            {
-                case MSAAType._2:
-                    return 2;
-                case MSAAType._4:
-                    return 4;
-                case MSAAType._8:
-                    return 8;
-                default:
-                    return 1;
-            }
-        }
-    }
+    public MSAASamples MSAA;
+    public DepthBits depthBufferBits;
 
-    public enum MSAAType { _1, _2, _4, _8 }
-
-    public TextureSettings(RenderTextureFormat colorFormat,
-        FilterMode filterMode, TextureWrapMode wrapMode, MSAAType MSAA)
+    public TextureSettings(GraphicsFormat colorFormat,
+        FilterMode filterMode, TextureWrapMode wrapMode, MSAASamples MSAA,
+        DepthBits depthBufferBits)
     {
         this.colorFormat = colorFormat;
         this.filterMode = filterMode;
         this.wrapMode = wrapMode;
         this.MSAA = MSAA;
+        this.depthBufferBits = depthBufferBits;
+    }
+
+    public override bool Equals(object other)
+    {
+        if (!(other is TextureSettings)) return false;
+        return Equals((TextureSettings)other);
+    }
+
+    public bool Equals(TextureSettings other)
+    {
+        return (colorFormat == other.colorFormat) &&
+            (filterMode == other.filterMode) &&
+            (wrapMode == other.wrapMode) &&
+            (MSAA == other.MSAA) &&
+            (depthBufferBits == other.depthBufferBits);
+    }
+
+    public override int GetHashCode()
+    {
+        return (((colorFormat.GetHashCode() * 31 + filterMode.GetHashCode()) * 31 +
+            wrapMode.GetHashCode()) * 31 + MSAA.GetHashCode()) * 31 + depthBufferBits.GetHashCode();
+    }
+
+    public static bool operator ==(TextureSettings o1, TextureSettings o2)
+    {
+        return o1.Equals(o2);
+    }
+
+    public static bool operator !=(TextureSettings o1, TextureSettings o2)
+    {
+        return !o1.Equals(o2);
     }
 }
 

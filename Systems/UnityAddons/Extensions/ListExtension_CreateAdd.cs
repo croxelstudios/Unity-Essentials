@@ -35,16 +35,14 @@ public static class ListExtension_CreateAdd
     public static Dictionary<T, Y> CreateAdd<T, Y>(this Dictionary<T, Y> dict, T key, Y value)
     {
         dict = dict.CreateIfNull();
-        if (!dict.ContainsKey(key))
-            dict.Add(key, value);
+        dict.TryAdd(key, value);
         return dict;
     }
 
     public static SortedDictionary<T, Y> CreateAdd<T, Y>(this SortedDictionary<T, Y> dict, T key, Y value)
     {
         dict = dict.CreateIfNull();
-        if (!dict.ContainsKey(key))
-            dict.Add(key, value);
+        dict.TryAdd(key, value);
         return dict;
     }
     #endregion

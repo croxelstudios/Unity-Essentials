@@ -102,17 +102,23 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         [ShowIf("@textureTarget == TextureTarget.GlobalTexture")]
         public TextureSettings settings =
-            new TextureSettings(RenderTextureFormat.Default, FilterMode.Point, TextureWrapMode.Clamp,
-                TextureSettings.MSAAType._1);
+            new TextureSettings(GraphicsFormat.R32G32B32A32_SFloat, FilterMode.Point, TextureWrapMode.Clamp,
+                MSAASamples.None, DepthBits.None);
 
         [ShowIf("@textureTarget == TextureTarget.RenderTexture")]
         public RenderTexture targetTexture = null;
 
         [ShowIf("@textureTarget != TextureTarget.Active")]
-        public bool clear = true;
+        public bool clearColor = true;
 
-        [ShowIf("@(textureTarget != TextureTarget.Active) && clear")]
-        public Color clearColor = Color.black;
+        [ShowIf("@(textureTarget != TextureTarget.Active) && clearColor")]
+        public Color color = Color.black;
+
+        [ShowIf("@textureTarget != TextureTarget.Active")]
+        public bool clearDepth = true;
+
+        [ShowIf("@(textureTarget != TextureTarget.Active) && clearDepth")]
+        public float depth = 1.0f;
     }
 
     /// <summary>
@@ -258,8 +264,10 @@ public class DXRenderObjects : ScriptableRendererFeature
 
             public UniversalCameraData cameraData;
 
-            public bool clear;
-            public Color clearColor;
+            public bool clearColor;
+            public Color clColor;
+            public bool clearDepth;
+            public float clDepth;
             public ShaderKeyword[] overrideKeywords;
 
             public RTHandle toRelease;
@@ -388,13 +396,16 @@ public class DXRenderObjects : ScriptableRendererFeature
                 AccessFlags depthAccess = AccessFlags.Write;
                 string texName = textureSettings.textureName;
                 TextureTargetSettings.TextureTarget texMode = textureSettings.textureTarget;
+                passData.clearColor = textureSettings.clearColor;
+                passData.clColor = textureSettings.color;
+                passData.clearDepth = textureSettings.clearDepth;
+                passData.clDepth = textureSettings.depth;
                 switch (texMode)
                 {
                     case TextureTargetSettings.TextureTarget.GlobalTexture:
-                        passData.color = renderGraph.CreateTexture(
-                            texName, cameraData.cameraTargetDescriptor, textureSettings.settings, textureSettings.clear);
-                        passData.clear = textureSettings.clear;
-                        passData.clearColor = textureSettings.clearColor;
+                        passData.color = renderGraph.GetTexture(frameData,
+                            texName, cameraData.cameraTargetDescriptor,
+                            textureSettings.settings);
                         break;
 
                     case TextureTargetSettings.TextureTarget.RenderTexture:
@@ -404,8 +415,6 @@ public class DXRenderObjects : ScriptableRendererFeature
                         TextureHandle intermediate = renderGraph.ImportTexture(rt);
 
                         passData.color = intermediate;
-                        passData.clear = textureSettings.clear;
-                        passData.clearColor = textureSettings.clearColor;
                         passData.toRelease = rt;
                         break;
 
@@ -414,8 +423,6 @@ public class DXRenderObjects : ScriptableRendererFeature
                         colorDepth = renderGraph.CreateCameraDepthTexture(cameraData, texName);
 
                         passData.color = colorDepth;
-                        passData.clear = textureSettings.clear;
-                        passData.clearColor = textureSettings.clearColor;
                         break;
 
                     case TextureTargetSettings.TextureTarget.NormalsTexture:
@@ -431,9 +438,6 @@ public class DXRenderObjects : ScriptableRendererFeature
                         //}
                         //else
                         passData.color = resourceData.cameraNormalsTexture;
-
-                        passData.clear = textureSettings.clear;
-                        passData.clearColor = textureSettings.clearColor;
                         break;
 
                     case TextureTargetSettings.TextureTarget.OpaqueTexture:
@@ -441,19 +445,18 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                         passData.color = renderGraph.CreateCameraTexture(cameraData, texName);
                         texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
-
-                        passData.clear = textureSettings.clear;
-                        passData.clearColor = textureSettings.clearColor;
                         break;
 
-                    default:
+                    default: //Active
                         texName = "_CameraTargetAttachmentA";
                         passData.color = resourceData.activeColorTexture;
                         passData.depth = resourceData.activeDepthTexture;
+                        passData.clearColor = false;
+                        passData.clearDepth = false;
                         break;
                 }
 
-                builder.SetAttachments(passData.color, passData.depth, colorAccess, depthAccess);
+                builder.SetAttachments(frameData, passData.color, passData.depth, colorAccess, depthAccess);
 
                 if (texMode == TextureTargetSettings.TextureTarget.GlobalTexture)
                     builder.SetGlobalTextureAfterPass(passData.color, texName);
@@ -463,8 +466,9 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    if (data.clear)
-                        rgContext.cmd.ClearRenderTarget(true, true, data.clearColor);
+                    if (data.clearColor || data.clearDepth)
+                        rgContext.cmd.ClearRenderTarget(
+                            data.clearDepth, data.clearColor, data.clColor, data.clDepth);
 
                     data.SetKeywords(rgContext.cmd);
 
@@ -501,7 +505,7 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameContext)
         {
-            if (colorDepth.CanBeUsed())
+            if (colorDepth.CanBeUsedAsRTHandle())
             {
                 UniversalCameraData cameraData = frameContext.Get<UniversalCameraData>();
 
