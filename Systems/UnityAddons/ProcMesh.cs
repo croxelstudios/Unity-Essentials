@@ -18,16 +18,16 @@ public static class ProcMesh
         triangles.Add(v2);
     }
 
-    public static void RegisterQuad(uint v0, uint v1, uint v2, uint v3, int index, ref NativeArray<uint> triangles)
+    public static void RegisterQuad(uint bl, uint tl, uint tr, uint br, int index, ref NativeArray<uint> triangles)
     {
-        RegisterTriangle(v0, v1, v3, index, ref triangles);
-        RegisterTriangle(v3, v1, v2, index + 3, ref triangles);
+        RegisterTriangle(bl, tl, br, index, ref triangles);
+        RegisterTriangle(br, tl, tr, index + 3, ref triangles);
     }
 
-    public static void RegisterQuad(int v0, int v1, int v2, int v3, ref List<int> triangles)
+    public static void RegisterQuad(int bl, int tl, int tr, int br, ref List<int> triangles)
     {
-        RegisterTriangle(v0, v1, v3, ref triangles);
-        RegisterTriangle(v3, v1, v2, ref triangles);
+        RegisterTriangle(bl, tl, br, ref triangles);
+        RegisterTriangle(br, tl, tr, ref triangles);
     }
 
     public static void PositionQuad<T>(int br, int bl, int tr, int tl,
@@ -354,14 +354,14 @@ public static class ProcMesh
         Mesh mesh = new Mesh();
         Vector3[] vertices = new Vector3[4];
         Vector3[] normals = new Vector3[4];
-        PositionQuad(0, 1, 2, 3, Matrix4x4.identity, ref vertices, ref normals);
+        PositionQuad(3, 0, 2, 1, Matrix4x4.identity, ref vertices, ref normals);
         mesh.SetVertices(vertices);
         mesh.SetNormals(normals);
         List<int> triangles = new List<int>();
-        RegisterQuad(0, 1, 2, 3, ref triangles);
+        RegisterQuad(0, 3, 2, 1, ref triangles); // TO DO: Order is different for this function??
         mesh.SetTriangles(triangles, 0);
         Vector2[] uvs = new Vector2[4];
-        MapQuadUVs(0, 1, 2, 3, ref uvs);
+        MapQuadUVs(3, 0, 2, 1, ref uvs);
         mesh.SetUVs(0, uvs);
         mesh.RecalculateTangents();
         mesh.RecalculateBounds();

@@ -18,8 +18,8 @@ public static class RenderGraphTools
 
         public override void Reset()
         {
-            textures.Clear();
-            depthAttachments.Clear();
+            if (textures != null) textures.Clear();
+            if (depthAttachments != null) depthAttachments.Clear();
         }
 
         public void CleanTextures()
