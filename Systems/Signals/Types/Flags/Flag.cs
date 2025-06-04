@@ -2,6 +2,8 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using QFSW.QC;
 using System.Collections.Generic;
+using QFSW.QC.Actions;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -151,7 +153,8 @@ public class Flag : BaseSignal //Change type here
 
     public void LaunchOnTrue(string tag)
     {
-        Launch(true, tag);
+        if (currentValue)
+            Launch(true, tag);
     }
 
     public void LaunchOnFalse()
@@ -161,7 +164,8 @@ public class Flag : BaseSignal //Change type here
 
     public void LaunchOnFalse(string tag)
     {
-        Launch(false, tag);
+        if (!currentValue)
+            Launch(false, tag);
     }
 
     void Launch(bool value, string tag)

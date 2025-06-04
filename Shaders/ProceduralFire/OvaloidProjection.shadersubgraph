@@ -515,7 +515,7 @@
     "m_FunctionName": "OvaloidProjection",
     "m_FunctionSource": "",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "float h = (1 / Length) - 1;\nfloat3 o = Position + (dot(Position, Axis) * h * Axis);\nfloat3 d = ViewDirection + (dot(ViewDirection, Axis) * h * Axis);\nfloat r = Radius * Radius;\nfloat A = dot(d, d);\nfloat B = dot(o, d) * 2.0;\nfloat C = dot(o, o) - r;\nfloat i = (B * B) - (4 * A * C);\nif (i < 0)\n{\n\tFront = Position;\n\tMask = 0.0;\n}\nelse\n{\n\tfloat sq = sqrt(i);\n\tfloat a2 = 2.0 * A;\n\tfloat f0 = (-B + sq) / a2;\n\tfloat f1 = (-B - sq) / a2;\n\tfloat f = max(f0, f1);\n\tFront = Position + (f * ViewDirection);\n\tf = min(f0, f1);\n\tBack = Position + (f * ViewDirection);\n\tMask = 1.0;\n}"
+    "m_FunctionBody": "float h = (1 / Length) - 1;\nfloat3 o = Position + (dot(Position, Axis) * h * Axis);\nfloat3 d = ViewDirection + (dot(ViewDirection, Axis) * h * Axis);\nfloat r = Radius * Radius;\nfloat A = dot(d, d);\nfloat B = dot(o, d) * 2.0;\nfloat C = dot(o, o) - r;\nfloat i = (B * B) - (4 * A * C);\nif (i < 0)\n{\n\tFront = Position;\n\tBack = Position;\n\tMask = 0.0;\n}\nelse\n{\n\tfloat sq = sqrt(i);\n\tfloat a2 = 2.0 * A;\n\tfloat f0 = (-B + sq) / a2;\n\tfloat f1 = (-B - sq) / a2;\n\tfloat f = max(f0, f1);\n\tFront = Position + (f * ViewDirection);\n\tf = min(f0, f1);\n\tBack = Position + (f * ViewDirection);\n\tMask = 1.0;\n}"
 }
 
 {

@@ -51,7 +51,8 @@ public class RenderersSetTexture : BRenderersSetProperty
     protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
         RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
-        if (originals.ContainsKey(rendMat)) block.SetTexture(propertyName, originals[rendMat]);
+        if (originals.ContainsKey(rendMat) && (originals[rendMat] != null))
+            block.SetTexture(propertyName, originals[rendMat]); //TO DO: This won't reset if the texture is null
     }
 
     protected override void VSetProperty(Renderer rend, int mat)

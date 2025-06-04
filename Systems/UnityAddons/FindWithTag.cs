@@ -258,7 +258,7 @@ public static class FindWithTag
     {
         List<GameObject> list = new List<GameObject>();
         list.AddRange(GameObjects(new string[] { tag }));
-        list.AddRange(GameObjects(extraTags));
+        if (!extraTags.IsNullOrEmpty()) list.AddRange(GameObjects(extraTags));
         return list.ToArray();
     }
 
@@ -278,13 +278,13 @@ public static class FindWithTag
     #endregion
 
     #region Transform
-    public static Transform Transform(params string[] tags)
+    public static Transform Transform(bool onlyParents, params string[] tags)
     {
-        GameObject result = GameObject(tags);
-        return result.transform;
+        Transform[] result = Transforms(onlyParents, tags);
+        return result.NullOrEmpty() ? null : result[0];
     }
 
-    public static Transform[] Transforms(params string[] tags)
+    public static Transform[] Transforms(bool onlyParents, params string[] tags)
     {
         if (tags.IsNullOrEmpty())
             return null;
@@ -296,83 +296,71 @@ public static class FindWithTag
             for (int i = 0; i < objs.Length; i++)
                 list.Add(objs[i].transform);
         }
-        return list.ToArray();
-    }
-
-    public static Transform Transform(params string[][] tags)
-    {
-        if (tags.IsNullOrEmpty())
-            return null;
-
-        Transform result = null;
-        for (int i = 0; i < tags.Length; i++)
-        {
-            result = Transform(tags[i]);
-            if (result != null) break;
-        }
-        return result;
-    }
-
-    public static Transform[] Transforms(params string[][] tags)
-    {
-        if (tags.IsNullOrEmpty())
-            return null;
-
-        List<Transform> list = new List<Transform>();
-        for (int i = 0; i < tags.Length; i++)
-            list.AddRange(Transforms(tags[i]));
-        return list.ToArray();
-    }
-
-    public static Transform Transform(string tag, params string[] extraTags)
-    {
-        Transform result = Transform(new string[] { tag });
-        if (result == null) result = Transform(extraTags);
-        return result;
-    }
-
-    public static Transform[] Transforms(string tag, params string[] extraTags)
-    {
-        List<Transform> list = new List<Transform>();
-        list.AddRange(Transforms(new string[] { tag }));
-        list.AddRange(Transforms(extraTags));
-        return list.ToArray();
-    }
-
-    public static Transform Transform(bool onlyParents, params string[] tags)
-    {
-        Transform[] result = Transforms(onlyParents, tags).RemoveChildren();
-        return result.NullOrEmpty() ? null : result[0];
-    }
-
-    public static Transform[] Transforms(bool onlyParents, params string[] tags)
-    {
-        Transform[] transforms = Transforms(tags);
+        Transform[] transforms = list.ToArray();
         return onlyParents ? transforms.RemoveChildren() : transforms;
     }
 
     public static Transform Transform(bool onlyParents, params string[][] tags)
     {
-        Transform[] result = Transforms(onlyParents, tags).RemoveChildren();
+        Transform[] result = Transforms(onlyParents, tags);
         return result.NullOrEmpty() ? null : result[0];
     }
 
     public static Transform[] Transforms(bool onlyParents, params string[][] tags)
     {
-        Transform[] transforms = Transforms(tags);
+        if (tags.IsNullOrEmpty())
+            return null;
+
+        List<Transform> list = new List<Transform>();
+        for (int i = 0; i < tags.Length; i++)
+            list.AddRange(Transforms(false, tags[i]));
+        Transform[] transforms = list.ToArray();
         return onlyParents ? transforms.RemoveChildren() : transforms;
     }
 
     public static Transform Transform(string tag, bool onlyParents, params string[] extraTags)
     {
-        Transform[] result = Transforms(tag, onlyParents, extraTags).RemoveChildren();
+        Transform[] result = Transforms(tag, onlyParents, extraTags);
         return result.NullOrEmpty() ? null : result[0];
     }
 
     public static Transform[] Transforms(string tag, bool onlyParents, params string[] extraTags)
     {
-        Transform[] transforms = Transforms(tag, extraTags);
+        List<Transform> list = new List<Transform>();
+        list.AddRange(Transforms(false, new string[] { tag }));
+        if (!extraTags.IsNullOrEmpty()) list.AddRange(Transforms(false, extraTags));
+        Transform[] transforms = list.ToArray();
         return onlyParents ? transforms.RemoveChildren() : transforms;
+    }
+
+    public static Transform Transform(params string[] tags)
+    {
+        return Transform(true, tags);
+    }
+
+    public static Transform[] Transforms(params string[] tags)
+    {
+        return Transforms(true, tags);
+    }
+
+    public static Transform Transform(params string[][] tags)
+    {
+        return Transform(true, tags);
+    }
+
+    public static Transform[] Transforms(params string[][] tags)
+    {
+        return Transforms(true, tags);
+    }
+
+    public static Transform Transform(string tag, params string[] extraTags)
+    {
+        return Transform(tag, true, extraTags);
+    }
+
+    public static Transform[] Transforms(string tag, params string[] extraTags)
+    {
+        return Transforms(tag, true, extraTags);
     }
 
     public static Transform TrCheckEmpty(string tag, bool onlyParents = true)
@@ -459,7 +447,7 @@ public static class FindWithTag
     {
         List<T> list = new List<T>();
         list.AddRange(Components<T>(new string[] { tag }));
-        list.AddRange(Components<T>(extraTags));
+        if (!extraTags.IsNullOrEmpty()) list.AddRange(Components<T>(extraTags));
         return list.ToArray();
     }
 
@@ -546,7 +534,7 @@ public static class FindWithTag
     {
         List<T> list = new List<T>();
         list.AddRange(OnlyEnableds<T>(new string[] { tag }));
-        list.AddRange(OnlyEnableds<T>(extraTags));
+        if (!extraTags.IsNullOrEmpty()) list.AddRange(OnlyEnableds<T>(extraTags));
         return list.ToArray();
     }
     #endregion
@@ -609,7 +597,7 @@ public static class FindWithTag
     {
         List<GameObject> list = new List<GameObject>();
         list.AddRange(GameObjectsInChildren(obj, new string[] { tag }));
-        list.AddRange(GameObjectsInChildren(obj, extraTags));
+        if (!extraTags.IsNullOrEmpty()) list.AddRange(GameObjectsInChildren(obj, extraTags));
         return list.ToArray();
     }
 
@@ -679,7 +667,7 @@ public static class FindWithTag
     {
         List<Transform> list = new List<Transform>();
         list.AddRange(TransformsInChildren(obj, new string[] { tag }));
-        list.AddRange(TransformsInChildren(obj, extraTags));
+        if (!extraTags.IsNullOrEmpty()) list.AddRange(TransformsInChildren(obj, extraTags));
         return list.ToArray();
     }
 
@@ -749,7 +737,7 @@ public static class FindWithTag
     {
         List<T> list = new List<T>();
         list.AddRange(ComponentsInChildren<T>(obj, new string[] { tag }));
-        list.AddRange(ComponentsInChildren<T>(obj, extraTags));
+        if (!extraTags.IsNullOrEmpty()) list.AddRange(ComponentsInChildren<T>(obj, extraTags));
         return list.ToArray();
     }
     #endregion
