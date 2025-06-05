@@ -23,13 +23,8 @@ public struct Randomizable
     [ShowIf("randomize")]
     [OnValueChanged("ApplyMin")]
     float max;
-    [SerializeField]
-    [ShowIf("randomize")]
-    [HorizontalGroup(GroupName = "high", LabelWidth = 35f, Width = 50f)]
-    bool once;
-    [SerializeField]
     [HorizontalGroup(GroupName = "high", LabelWidth = 70f, Width = 90f)]
-    bool randomize;
+    public bool randomize;
 
     public Randomizable(string name, float minAtr, float value)
     {
@@ -39,11 +34,10 @@ public struct Randomizable
         min = minAtr;
         this.value = value;
         randomize = false;
-        once = false;
         max = value;
     }
 
-    public Randomizable(string name, float minAtr, float min, float max, bool randomizeOnce = false)
+    public Randomizable(string name, float minAtr, float min, float max)
     {
         this.name = name;
         randomizedValue = min;
@@ -51,7 +45,6 @@ public struct Randomizable
         this.min = minAtr;
         value = min;
         randomize = true;
-        this.once = randomizeOnce;
         this.max = max;
     }
 
@@ -70,7 +63,7 @@ public struct Randomizable
     {
         if (randomize)
         {
-            if (!once || !wasRandomized)
+            if (!wasRandomized)
             {
                 randomizedValue = Random.Range(value, max);
                 wasRandomized = true;
@@ -80,10 +73,16 @@ public struct Randomizable
         else return value;
     }
 
-    public void Reset()
+    public float Reset()
     {
-        if (once)
-            wasRandomized = false;
+        wasRandomized = false;
+        return GetValue();
+    }
+
+    public void SetValue(float value)
+    {
+        this.value = value;
+        randomize = false;
     }
 
     public static implicit operator float(Randomizable obj) => obj.GetValue();

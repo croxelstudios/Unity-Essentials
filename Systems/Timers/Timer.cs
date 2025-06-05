@@ -6,6 +6,13 @@ using Sirenix.OdinInspector;
 public class Timer : MonoBehaviour
 {
     [SerializeField]
+    Randomizable secs = new Randomizable("Seconds", 0.02f, 1f);
+    //public float seconds
+    //{
+    //    get { return secs; }
+    //    set { secs.SetValue(value); }
+    //}
+    [SerializeField]
     [MinValue(0.02f)]
     protected float seconds = 1f;
     [SerializeField]

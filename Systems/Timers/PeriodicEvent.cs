@@ -7,12 +7,12 @@ public class PeriodicEvent : MonoBehaviour
     [SerializeField]
     Randomizable secs = new Randomizable("Seconds", 0.02f, 0.02f);
     [SerializeField]
-    [Min(0.02f)]
-    protected float _seconds = 0.02f;
+    [ShowIf("@secs.randomize")]
+    bool randomizeOnlyOnEnable = false;
     public float seconds
     {
-        get { return _seconds; }
-        set { _seconds = value; }
+        get { return randomizeOnlyOnEnable ? secs : secs.Reset(); }
+        set { secs.SetValue(value); }
     }
     [SerializeField]
     float _speed = 1f;
@@ -38,11 +38,6 @@ public class PeriodicEvent : MonoBehaviour
     void OnDisable()
     {
         if (co != null) StopCoroutine(co);
-    }
-
-    public void SetSeconds(float newSeconds) //TO DO: Should be a variable setter
-    {
-        _seconds = newSeconds;
     }
 
     IEnumerator LaunchPeriodicEvent()
