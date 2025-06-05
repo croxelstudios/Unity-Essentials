@@ -1,20 +1,15 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
-using System.Collections;
-using Sirenix.OdinInspector;
+﻿using System.Collections;
+using UnityEngine;
 
 public class Timer : MonoBehaviour
 {
     [SerializeField]
     Randomizable secs = new Randomizable("Seconds", 0.02f, 1f);
-    //public float seconds
-    //{
-    //    get { return secs; }
-    //    set { secs.SetValue(value); }
-    //}
-    [SerializeField]
-    [MinValue(0.02f)]
-    protected float seconds = 1f;
+    public float seconds
+    {
+        get { return secs.Reset(); }
+        set { secs.SetValue(value); }
+    }
     [SerializeField]
     float _speed = 1f;
     public float speed

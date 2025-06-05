@@ -14,16 +14,16 @@ public struct Randomizable
     [HideInInspector]
     public float min;
     [SerializeField]
-    [HorizontalGroup(GroupName = "high", LabelWidth = 100f)]
+    [HorizontalGroup(LabelWidth = 100f)]
     [LabelText("@GetValueLabel()")]
     [OnValueChanged("ApplyMin")]
     float value;
     [SerializeField]
-    [HorizontalGroup(GroupName = "high", LabelWidth = 30f)]
+    [HorizontalGroup(LabelWidth = 30f)]
     [ShowIf("randomize")]
     [OnValueChanged("ApplyMin")]
     float max;
-    [HorizontalGroup(GroupName = "high", LabelWidth = 70f, Width = 90f)]
+    [HorizontalGroup(LabelWidth = 70f, Width = 90f)]
     public bool randomize;
 
     public Randomizable(string name, float minAtr, float value)
