@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from periodic event random probably
+public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from periodic event probably
 {
     [SerializeField]
     Randomizable timeBetweenIntervals = new Randomizable("Time Between Intervals", 0.02f, 0.3f, 1f);
