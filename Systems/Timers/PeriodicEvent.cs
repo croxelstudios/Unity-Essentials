@@ -1,8 +1,11 @@
-﻿using System.Collections;
+﻿using Sirenix.OdinInspector;
+using System.Collections;
 using UnityEngine;
 
 public class PeriodicEvent : MonoBehaviour
 {
+    [SerializeField]
+    Randomizable secs = new Randomizable("Seconds", 0.02f, 0.02f);
     [SerializeField]
     [Min(0.02f)]
     protected float _seconds = 0.02f;
