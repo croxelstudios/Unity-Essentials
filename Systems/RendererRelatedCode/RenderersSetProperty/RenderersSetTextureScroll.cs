@@ -20,8 +20,6 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
     Vector2 currentOffset;
 
     static Dictionary<RendererMaterial, Vector4> originals;
-    public static CustomEvent init;
-    public class CustomEvent : UnityEvent<RenderersSetTextureScroll> { }
 
     void Reset()
     {
@@ -30,7 +28,6 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
 
     protected override void Init()
     {
-        init?.Invoke(this);
         originals = new Dictionary<RendererMaterial, Vector4>();
         currentOffset = referenceOffset;
         base.Init();

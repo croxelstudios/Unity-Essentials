@@ -10,14 +10,11 @@ public class RenderersSetTexture : BRenderersSetProperty
     public Texture texture { get { return _texture; } set { _texture = value; } }
 
     static Dictionary<RendererMaterial, Texture> originals;
-    public static CustomEvent init;
-    public class CustomEvent : UnityEvent<RenderersSetTexture> { }
 
     //Texture oldTexture;
 
     protected override void Init()
     {
-        init?.Invoke(this);
         //oldTexture = texture;
         originals = new Dictionary<RendererMaterial, Texture>();
         base.Init();

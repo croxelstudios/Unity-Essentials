@@ -24,8 +24,6 @@ public class RenderersSetKeyword : MonoBehaviour
 
     bool oldValue;
     static Dictionary<RendererMaterial, bool> originals;
-    public static CustomEvent init;
-    public class CustomEvent : UnityEvent<RenderersSetKeyword> { }
 
     protected virtual void OnEnable()
     {
@@ -42,7 +40,6 @@ public class RenderersSetKeyword : MonoBehaviour
 
     protected virtual void Init()
     {
-        init?.Invoke(this);
         oldValue = enable;
         originals = new Dictionary<RendererMaterial, bool>();
         UpdateRenderers();

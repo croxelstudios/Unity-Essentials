@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 [ExecuteAlways]
 public class RenderersSetFloat : BRenderersSetProperty
@@ -9,8 +8,6 @@ public class RenderersSetFloat : BRenderersSetProperty
 
     float oldValue;
     static Dictionary<RendererMaterial, float> originals;
-    public static CustomEvent init;
-    public class CustomEvent : UnityEvent<RenderersSetFloat> { }
 
     void Reset()
     {
@@ -19,7 +16,6 @@ public class RenderersSetFloat : BRenderersSetProperty
 
     protected override void Init()
     {
-        init?.Invoke(this);
         oldValue = value;
         //TO DO: Should work on a stack like the colors maybe
         originals = new Dictionary<RendererMaterial, float>();

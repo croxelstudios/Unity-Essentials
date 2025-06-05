@@ -9,8 +9,6 @@ public class RenderersSetFloat4 : BRenderersSetProperty
 
 	Vector4 oldValue;
 	static Dictionary<RendererMaterial, Vector4> originals;
-    public static CustomEvent init;
-	public class CustomEvent : UnityEvent<RenderersSetFloat4> { }
 
     void Reset()
     {
@@ -19,7 +17,6 @@ public class RenderersSetFloat4 : BRenderersSetProperty
 
     protected override void Init()
     {
-        init?.Invoke(this);
         oldValue = value;
         //TO DO: Should work on a stack like the colors maybe
 	    originals = new Dictionary<RendererMaterial, Vector4>();
