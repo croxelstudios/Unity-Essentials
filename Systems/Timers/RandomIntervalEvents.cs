@@ -8,10 +8,6 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
     [SerializeField]
     Randomizable intervalsDuration = new Randomizable("intervalsDuration", 0.02f, 0.02f, 0.1f);
     [SerializeField]
-    Vector2 timeBetweenIntervalsRange = new Vector2(0.3f, 1f);
-    [SerializeField]
-    Vector2 intervalsDurationRange = new Vector2(0.01f, 0.1f);
-    [SerializeField]
     float _speed = 1f;
     public float speed
     {
@@ -23,7 +19,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
     [SerializeField]
     DXEvent stopInterval = null;
     [SerializeField]
-    [Tooltip("This will ignore randomizing factor and use the minimum values")]
+    [Tooltip("This will only randomize at start")]
     bool useGlobalTime = false;
     [SerializeField]
     bool unscaledTime = false;
@@ -39,7 +35,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
     void OnEnable()
     {
         if (useGlobalTime)
-            fullDuration = timeBetweenIntervalsRange.x + intervalsDurationRange.x;
+            fullDuration = timeBetweenIntervals + intervalsDuration;
         else
         {
             if (onEnableInterval) co = StartCoroutine(Interval());
@@ -52,7 +48,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
         if (useGlobalTime)
         {
             float current = Mathf.Repeat(unscaledTime ? Time.unscaledTime : Time.time, fullDuration);
-            float comparator = onEnableInterval ? intervalsDurationRange.x : timeBetweenIntervalsRange.x;
+            float comparator = onEnableInterval ? timeBetweenIntervals : intervalsDuration;
             if ((current > comparator) ^ onEnableInterval) StartInterval();
             else StopInterval();
         }
@@ -98,7 +94,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
     IEnumerator Interval()
     {
         StartInterval();
-        float t = Random.Range(intervalsDurationRange.x, intervalsDurationRange.y);
+        float t = intervalsDuration.Reset();
         while (t > 0f)
         {
             yield return null;
@@ -111,7 +107,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
 
     IEnumerator WaitForInterval()
     {
-        float t = Random.Range(timeBetweenIntervalsRange.x, timeBetweenIntervalsRange.y);
+        float t = timeBetweenIntervals.Reset();
         while (t > 0f)
         {
             yield return null;

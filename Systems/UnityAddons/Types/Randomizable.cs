@@ -2,19 +2,25 @@ using Sirenix.OdinInspector;
 using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
+#if UNITY_EDITOR
+using Sirenix.OdinInspector.Editor;
+using System.Reflection;
+using System.Collections.Generic;
+#endif
 
 [Serializable]
 [HideLabel]
 [InlineProperty]
 public struct Randomizable
 {
-    string name;
+    [HideInInspector]
+    public string name;
     float randomizedValue;
     bool wasRandomized;
     [HideInInspector]
     public float min;
     [SerializeField]
-    [HorizontalGroup(LabelWidth = 100f)]
+    [HorizontalGroup]
     [LabelText("@GetValueLabel()")]
     [OnValueChanged("ApplyMin")]
     float value;
@@ -50,7 +56,7 @@ public struct Randomizable
 
     public string GetValueLabel()
     {
-        return randomize ? name + " Min" : name + "    ";
+        return randomize ? name + " Min" : name;
     }
 
     public void ApplyMin()
@@ -88,22 +94,22 @@ public struct Randomizable
     public static implicit operator float(Randomizable obj) => obj.GetValue();
 }
 
-//public class MiClaseAttributeProcessor : OdinAttributeProcessor<Randomizable>
-//{
-//    public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
-//    {
-//        if (member.Name == "value")
-//        {
-//            Randomizable myProp = (parentProperty.ValueEntry as IPropertyValueEntry<Randomizable>).SmartValue;
-//            string label = myProp.GetValueLabel();
-//            float width = GetValueLabelSize(label);
-//            attributes.Add(new LabelWidthAttribute(width));
-//        }
-//    }
+public class MiClaseAttributeProcessor : OdinAttributeProcessor<Randomizable>
+{
+    public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
+    {
+        if (member.Name == "value")
+        {
+            Randomizable myProp = (parentProperty.ValueEntry as IPropertyValueEntry<Randomizable>).SmartValue;
+            string label = myProp.name + " Min";
+            float width = GetValueLabelSize(label);
+            attributes.Add(new LabelWidthAttribute(width));
+        }
+    }
 
-//    public float GetValueLabelSize(string text)
-//    {
-//        GUIStyle labelStyle = GUI.skin.label;
-//        return labelStyle.CalcSize(new GUIContent(text)).x;
-//    }
-//}
+    public float GetValueLabelSize(string text)
+    {
+        GUIStyle labelStyle = GUI.skin.label;
+        return labelStyle.CalcSize(new GUIContent(text)).x;
+    }
+}
