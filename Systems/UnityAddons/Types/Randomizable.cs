@@ -1,12 +1,7 @@
-using UnityEngine;
 using Sirenix.OdinInspector;
-using System.Reflection;
 using System;
-using System.Collections.Generic;
+using UnityEngine;
 using Random = UnityEngine.Random;
-#if UNITY_EDITOR
-using Sirenix.OdinInspector.Editor;
-#endif
 
 [Serializable]
 [HideLabel]
@@ -21,12 +16,12 @@ public struct Randomizable
     [SerializeField]
     [HorizontalGroup(GroupName = "high", LabelWidth = 100f)]
     [LabelText("@GetValueLabel()")]
-    [MinValue("@min")]
+    [OnValueChanged("ApplyMin")]
     float value;
     [SerializeField]
     [HorizontalGroup(GroupName = "high", LabelWidth = 30f)]
     [ShowIf("randomize")]
-    [MinValue("@value")]
+    [OnValueChanged("ApplyMin")]
     float max;
     [SerializeField]
     [ShowIf("randomize")]
@@ -63,6 +58,12 @@ public struct Randomizable
     public string GetValueLabel()
     {
         return randomize ? name + " Min" : name + "    ";
+    }
+
+    public void ApplyMin()
+    {
+        value = Mathf.Max(min, value);
+        max = Mathf.Max(value, max);
     }
 
     public float GetValue()
