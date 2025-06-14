@@ -48,6 +48,20 @@ public class ParentChange : MonoBehaviour
         }
     }
 
+    void OnDisable()
+    {
+        switch (destroyBehaviour)
+        {
+            case DestroyBehaviour.DestroyWithOldParent:
+            case DestroyBehaviour.DestroyWithOldParentWhenParentless:
+                if (oldParent != null)
+                    GenericCallbacks.Get(oldParent).onDestroy -= OldParentDestroyed;
+                break;
+            default:
+                break;
+        }
+    }
+
     public void SetParentToNull()
     {
         SetOldParentToTrackDestruction();
@@ -81,7 +95,8 @@ public class ParentChange : MonoBehaviour
     public void SetParentByTag(string tag)
     {
         SetOldParentToTrackDestruction();
-        if (this.IsActiveAndEnabled() || !checkActiveState) transform.parent = FindWithTag.GameObject(tag).transform;
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            transform.parent = FindWithTag.GameObject(tag).transform;
         ApplyLocalTransformChanges();
     }
 

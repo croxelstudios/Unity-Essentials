@@ -8,6 +8,8 @@ public class RendererDuplicator : BRendererDuplicator
     //TO DO: TransformOffsets animated variant for hotline miami effects
 
     [SerializeField]
+    Component[] extraDuplicableComponents = null;
+    [SerializeField]
     protected GameObject objectToDuplicate = null;
     [SerializeField]
     bool updateRenderers = false;
@@ -63,7 +65,7 @@ public class RendererDuplicator : BRendererDuplicator
     protected override void EnableActions()
     {
         base.EnableActions();
-        source = new RenderingAgent(objectToDuplicate);
+        source = new RenderingAgent(objectToDuplicate, extraDuplicableComponents);
         CreateDuplicates();
     }
 
@@ -187,7 +189,7 @@ public class RendererDuplicator : BRendererDuplicator
         if (this.IsActiveAndEnabled())
         {
             DisableActions();
-            source = new RenderingAgent(objectToDuplicate);
+            source = new RenderingAgent(objectToDuplicate, extraDuplicableComponents);
             EnableActions();
         }
     }

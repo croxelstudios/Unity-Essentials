@@ -9,8 +9,6 @@ public class BRendererDuplicator : MonoBehaviour
 {
     [SerializeField]
     bool waitOneFrameForInit = false;
-    [SerializeField]
-    Component[] extraDuplicableComponents = null;
 
     //TO DO: duplicateChildren bool variable
     static bool enabling;
@@ -18,6 +16,8 @@ public class BRendererDuplicator : MonoBehaviour
     UniqueIntList hierarchyIds;
 
     const int DECIMALIDPRECISION = 2;
+    string[] rspExclusions = new string[] { "rend", "block", "oldValue" };
+    //string[] rendExclusions = new string[] { "m_MaterialPropertyBlock" };
 
     #region Unity Actions
     protected virtual void Awake()
@@ -100,7 +100,7 @@ public class BRendererDuplicator : MonoBehaviour
         //
 
         //Structure replication
-        AddComponentsToDuplicate(ref source, ref duplicate, source.transform, duplicate.gameObject, extraDuplicableComponents);
+        AddComponentsToDuplicate(ref source, ref duplicate, source.transform, duplicate.gameObject);
         foreach (KeyValuePair<UniqueIntList, Transform> keyValue in source.trEquivalence)
         {
             List<int> intList = new List<int>();
@@ -116,7 +116,7 @@ public class BRendererDuplicator : MonoBehaviour
                 current = current.GetChild(key[i]);
             }
             current.name = keyValue.Value.name;
-            AddComponentsToDuplicate(ref source, ref duplicate, keyValue.Value, current.gameObject, extraDuplicableComponents);
+            AddComponentsToDuplicate(ref source, ref duplicate, keyValue.Value, current.gameObject);
         }
         //
 
@@ -171,8 +171,8 @@ public class BRendererDuplicator : MonoBehaviour
         }
     }
 
-    void AddComponentsToDuplicate(ref RenderingAgent source, ref RenderingAgent duplicate, Transform child,
-        GameObject target, Component[] extraDuplicableComponents = null)
+    void AddComponentsToDuplicate(ref RenderingAgent source, ref RenderingAgent duplicate,
+        Transform child, GameObject target)
     {
         Renderer rend = source.RendererOfTransform(child);
         if (rend != null)
@@ -180,13 +180,18 @@ public class BRendererDuplicator : MonoBehaviour
             MeshFilter mf = rend.GetComponent<MeshFilter>();
             if (mf != null) target.AddComponentCopy(mf);
 
+            Component[] extraDuplicableComponents = source.extraDuplicable;
             if (extraDuplicableComponents != null)
+            {
+                if (duplicate.extraDuplicable == null)
+                    duplicate.extraDuplicable = new Component[extraDuplicableComponents.Length];
                 for (int i = 0; i < extraDuplicableComponents.Length; i++)
                 {
                     Component c = extraDuplicableComponents[i];
                     if (c.gameObject == child.gameObject)
-                        target.AddComponentCopy(c);
+                        duplicate.extraDuplicable[i] = target.AddComponentCopy(c);
                 }
+            }
 
             Renderer copy = target.AddComponentCopy(rend);
             copy.sortingLayerID = rend.sortingLayerID;
@@ -198,7 +203,7 @@ public class BRendererDuplicator : MonoBehaviour
             rsp = source.setProperties[child];
         else
         {
-            rsp = source.gameObject.GetComponents<BRenderersSetProperty>();
+            rsp = child.GetComponents<BRenderersSetProperty>();
             source.setProperties.Add(child, rsp);
         }
 
@@ -206,7 +211,7 @@ public class BRendererDuplicator : MonoBehaviour
             target.transform, new BRenderersSetProperty[rsp.Length]);
         for (int i = 0; i < source.setProperties[child].Length; i++)
             duplicate.setProperties[target.transform][i] =
-                target.AddComponentCopy(source.setProperties[child][i], true);
+                target.AddComponentCopy(source.setProperties[child][i], rspExclusions);
     }
 
     void UpdateSkinnedMeshes(RenderingAgent source, ref RenderingAgent duplicate)
@@ -269,9 +274,10 @@ public class BRendererDuplicator : MonoBehaviour
         //TO DO: Optimize this by adding components to all children of origin to track changes.
         //Maybe have a struct with info on changes?
         CopyChildsActiveState(source, duplicate);
-        CopyRSPActiveState(source, duplicate);
+        CopyRSPData(source, duplicate);
         CopyChildTransforms(source, duplicate.transform);
         CopyRenderersData(source.renderers, duplicate.renderers);
+        CopyExtraDuplicableData(source, duplicate);
         UpdateSkinnedMeshes(source, ref duplicate);
     }
 
@@ -281,7 +287,7 @@ public class BRendererDuplicator : MonoBehaviour
             UpdateDuplicate(source, ref duplicates[i]);
     }
 
-    void CopyRSPActiveState(RenderingAgent source, RenderingAgent target, Transform duplicate, ref UniqueIntList id)
+    void CopyRSPData(RenderingAgent source, RenderingAgent target, Transform duplicate, ref UniqueIntList id)
     {
         id.Add(0);
         for (int i = 0; i < duplicate.childCount; i++)
@@ -289,21 +295,23 @@ public class BRendererDuplicator : MonoBehaviour
             Transform child = duplicate.GetChild(i);
 
             id.ReplaceLast(i);
-            CopyRSPActiveState(source, target, child, ref id);
+            CopyRSPData(source, target, child, ref id);
 
             Transform from = source.trEquivalence[id];
             for (int j = 0; j < source.setProperties[from].Length; j++)
-                target.setProperties[child][j].enabled = source.setProperties[from][j].enabled;
+                target.setProperties[child][j].GetCopyOf(
+                    source.setProperties[from][j], rspExclusions);
         }
         id.RemoveLast();
     }
 
-    void CopyRSPActiveState(RenderingAgent source, RenderingAgent target)
+    void CopyRSPData(RenderingAgent source, RenderingAgent target)
     {
         hierarchyIds.Clear();
-        CopyRSPActiveState(source, target, target.transform, ref hierarchyIds);
+        CopyRSPData(source, target, target.transform, ref hierarchyIds);
         for (int j = 0; j < source.setProperties[source.transform].Length; j++)
-            target.setProperties[target.transform][j].enabled = source.setProperties[source.transform][j].enabled;
+            target.setProperties[target.transform][j].GetCopyOf(
+                source.setProperties[source.transform][j], rspExclusions);
     }
 
     void CopyChildsActiveState(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
@@ -343,6 +351,13 @@ public class BRendererDuplicator : MonoBehaviour
     {
         for (int i = 0; i < source.Length; i++)
             CopyRendererData(source[i], target[i]);
+    }
+
+    void CopyExtraDuplicableData(RenderingAgent source, RenderingAgent duplicate)
+    {
+        if (!source.extraDuplicable.IsNullOrEmpty())
+            for (int i = 0; i < source.extraDuplicable.Length; i++)
+                duplicate.extraDuplicable[i].GetCopyOf(source.extraDuplicable[i]);
     }
 
     void CopyChildTransforms(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
@@ -532,6 +547,7 @@ public class BRendererDuplicator : MonoBehaviour
                 return _largestHierarchy;
             }
         }
+        public Component[] extraDuplicable = null;
 
         Transform[] GetChildrenRecursive(Transform tr)
         {
@@ -606,23 +622,25 @@ public class BRendererDuplicator : MonoBehaviour
             return null;
         }
 
-        public RenderingAgent(GameObject gameObject)
-        {
-            this.gameObject = gameObject;
-            _renderers = null;
-            _trEquivalence = null;
-            _trInverseEquivalence = null;
-            _skinnedRends = null;
-            setProperties = new Dictionary<Transform, BRenderersSetProperty[]>();
-        }
-
-        public RenderingAgent(GameObject gameObject, Renderer[] renderers)
+        public RenderingAgent(GameObject gameObject, Renderer[] renderers = null)
         {
             this.gameObject = gameObject;
             _renderers = renderers;
             _trEquivalence = null;
             _trInverseEquivalence = null;
             _skinnedRends = null;
+            extraDuplicable = null;
+            setProperties = new Dictionary<Transform, BRenderersSetProperty[]>();
+        }
+
+        public RenderingAgent(GameObject gameObject, Component[] extraDuplicable, Renderer[] renderers = null)
+        {
+            this.gameObject = gameObject;
+            _renderers = renderers;
+            _trEquivalence = null;
+            _trInverseEquivalence = null;
+            _skinnedRends = null;
+            this.extraDuplicable = extraDuplicable;
             setProperties = new Dictionary<Transform, BRenderersSetProperty[]>();
         }
 

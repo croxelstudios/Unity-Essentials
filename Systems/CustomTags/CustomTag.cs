@@ -177,8 +177,8 @@ public static class CustomTagExtension_Contains
 }
 
 [Serializable]
-//[InlineProperty]
-//[HideLabel]
+[InlineProperty]
+[HideLabel]
 public struct CustomTagItem : IEquatable<CustomTagItem>
 {
     public StringList tagList;

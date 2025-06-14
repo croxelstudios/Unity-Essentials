@@ -81,4 +81,19 @@ public class RenderersSetFloat4 : BRenderersSetProperty
     {
         value = new Vector4(value.x, value.y, value.z, n);
     }
+
+    public void Set(Vector2 value)
+    {
+        this.value = new Vector4(value.x, value.y, this.value.z, this.value.w);
+    }
+
+    public void Set(Vector3 value)
+    {
+        this.value = new Vector4(value.x, value.y, value.z, this.value.w);
+    }
+
+    public void Set(Vector4 value)
+    {
+        this.value = value;
+    }
 }
