@@ -36,8 +36,10 @@ public class AndOrOp : MonoBehaviour
             argumentCount = argumentCount.CreateIfNull();
             if (!argumentCount.ContainsKey(argument))
             {
+                int prev = argumentCount.Count;
                 argumentCount.Add(argument, 1);
-                if (argumentCount.Count >= andArguments)
+                if ((prev < andArguments) &&
+                    (argumentCount.Count >= andArguments))
                     becomesTrue?.Invoke();
             }
             else if (!clampConditionsValue)
@@ -56,8 +58,10 @@ public class AndOrOp : MonoBehaviour
             argumentCount[argument]--;
             if (argumentCount[argument] <= 0)
             {
+                int prev = argumentCount.Count;
                 argumentCount.Remove(argument);
-                if (argumentCount.Count < andArguments)
+                if ((prev >= andArguments) &&
+                    (argumentCount.Count < andArguments))
                     becomesFalse?.Invoke();
             }
 
