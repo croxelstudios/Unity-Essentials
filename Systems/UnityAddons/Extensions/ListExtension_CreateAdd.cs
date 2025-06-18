@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public static class ListExtension_CreateAdd
 {
@@ -335,6 +336,23 @@ public static class ListExtension_CreateAdd
     {
         if (dict == null) return false;
         return dict.ContainsKey(key);
+    }
+    #endregion
+
+    #region ClearNulls
+    public static void ClearNulls<T>(this List<T> list)
+    {
+        for (int i = list.Count - 1; i >= 0; i--)
+            if (list[i] == null)
+                list.RemoveAt(i);
+    }
+
+    public static Dictionary<T, Y> ClearNulls<T, Y>(this Dictionary<T, Y> dict)
+    {
+        if (dict == null) return null;
+
+        return (from kv in dict
+                where kv.Key != null select kv).ToDictionary(kv => kv.Key, kv => kv.Value);
     }
     #endregion
 }

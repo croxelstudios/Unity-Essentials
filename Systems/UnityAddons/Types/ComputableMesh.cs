@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Linq;
-using static UnityEngine.LightAnchor;
+using System;
 
 public class ComputableMesh
 {
+    public Mesh original { get; private set; }
     public Mesh mesh { get; private set; }
     public GraphicsBuffer vertexBuffer
     {
@@ -26,7 +27,7 @@ public class ComputableMesh
     }
 
     NativeArray<VertexData> vertexData;
-    NativeArray<uint> triangleData;
+    NativeArray<uint>[] triangleData;
     GraphicsBuffer vertexBuf;
     GraphicsBuffer indexBuf;
 
@@ -35,6 +36,8 @@ public class ComputableMesh
 
     struct VertexData //TO DO: Posibility of using less data? ->
                       //Would require different versions of compute shaders
+                      //or implementing custom stride reading by passing a
+                      //parameter to the compute shader that holds info on the data structure
     {
         public Vector3 position;
         public Vector3 normal;
@@ -63,9 +66,27 @@ public class ComputableMesh
         }
     }
 
-    static ComputeShader genericCompute;
+    static ComputeShader _genericCompute;
+    public static ComputeShader genericCompute
+    {
+        get
+        {
+            if (_genericCompute == null)
+                _genericCompute = (ComputeShader)Resources.Load(genericComputeShaderName);
+            return _genericCompute;
+        }
+    }
+    const string computeShader_ApplyDisplacementKernel = "ApplyDisplacement";
+    const string computeShader_ResetDisplacementKernel = "ResetDisplacement";
+    const string computeShader_ResetColorsKernel = "ResetColors";
+    const string computeShader_ResetVerticesKernel = "ResetVertices";
+    const string computeShader_ResetVerticesAndColorKernel = "ResetVerticesAndColor";
+    const string computeShader_RecordVerticesKernel = "RecordVertices";
     const string genericComputeShaderName = "ComputableMeshGenericCompute";
     const string cleanNullAreaTrianglesKernel = "CleanNullAreaTriangles";
+    const string clearMaskKernel = "ClearMask";
+    const string fillMaskKernel = "FillMask";
+    const string getSubmeshMaskKernel = "GetSubmeshMask";
 
     #region Initialize
     public ComputableMesh(string name, int vCount, int tCount)
@@ -78,7 +99,7 @@ public class ComputableMesh
         Initialize(meshToCopy, name);
     }
 
-    public void Initialize(string name, int vCount, int tCount)
+    public void Initialize(string name, int vCount, params int[] tCount)
     {
         if (mesh != null)
             mesh.Clear();
@@ -93,21 +114,29 @@ public class ComputableMesh
         SetMeshData(vertexData);
 
         //Triangles
-        triangleData = new NativeArray<uint>(tCount, Allocator.Persistent);
+        triangleData = new NativeArray<uint>[tCount.Length];
+        for (int i = 0; i < tCount.Length; i++)
+            triangleData[i] = new NativeArray<uint>(tCount[i], Allocator.Persistent);
         SetTriangles(triangleData);
     }
 
     public void Initialize(Mesh meshToCopy, string name)
     {
-        Initialize(name, meshToCopy.vertexCount, meshToCopy.triangles.Length);
-        CopyMesh(meshToCopy, 0, 0);
+        int[] tCount = new int[meshToCopy.subMeshCount];
+        for (int i = 0; i < tCount.Length; i++)
+            tCount[i] = (int)meshToCopy.GetIndexCount(i);
+        Initialize(name, meshToCopy.vertexCount, tCount);
+        for (int i = 0; i < meshToCopy.subMeshCount; i++)
+            CopyMesh(meshToCopy, 0, 0, i, i);
+        original = meshToCopy;
     }
     #endregion
 
     #region Automatic methods
-    public void CopyMesh(Mesh meshToCopy, int vOffset, int indexOffset)
+    public void CopyMesh(Mesh meshToCopy, int vOffset, int indexOffset,
+        int originSubmesh = 0, int targetSubmesh = 0)
     {
-        Prepare_CopyMesh(meshToCopy, vOffset, indexOffset);
+        Prepare_CopyMesh(meshToCopy, vOffset, indexOffset, originSubmesh, targetSubmesh);
 
         UpdateMeshData();
     }
@@ -119,9 +148,9 @@ public class ComputableMesh
         UpdateTrianglesData();
     }
 
-    public void SetIndex(int id, uint newTri)
+    public void SetIndex(int id, uint newTri, int submesh = 0)
     {
-        Prepare_SetIndex(id, newTri);
+        Prepare_SetIndex(id, newTri, submesh);
         UpdateTrianglesData();
     }
 
@@ -170,22 +199,25 @@ public class ComputableMesh
     #endregion
 
     #region Preparation methods
-    public void Prepare_CopyMesh(Mesh meshToCopy, int vOffset, int indexOffset)
+    public void Prepare_CopyMesh(Mesh meshToCopy, int vOffset, int indexOffset,
+        int originSubmesh = 0, int targetSubmesh = 0)
     {
-        Prepare_CopyTriangles(meshToCopy, vOffset, indexOffset);
+        Prepare_CopyTriangles(meshToCopy, vOffset, indexOffset, originSubmesh, targetSubmesh);
 
         Prepare_CopyAllVertexData(meshToCopy, vOffset, indexOffset);
     }
 
-    public void Prepare_CopyTriangles(Mesh meshToCopy, int vOffset, int indexOffset)
+    public void Prepare_CopyTriangles(Mesh meshToCopy, int vOffset, int indexOffset,
+        int originSubmesh = 0, int targetSubmesh = 0)
     {
         int tCount = meshToCopy.triangles.Length;
-        ProcMesh.RegisterArbitraryMesh(meshToCopy, vOffset, indexOffset, ref triangleData);
+        ProcMesh.RegisterArbitraryMesh(meshToCopy, vOffset, indexOffset,
+            ref triangleData[targetSubmesh], originSubmesh);
     }
 
-    public void Prepare_SetIndex(int id, uint newTri)
+    public void Prepare_SetIndex(int id, uint newTri, int submesh = 0)
     {
-        triangleData[id] = newTri;
+        triangleData[submesh][id] = newTri;
     }
 
     public void Prepare_CopyAllVertexData(Mesh meshToCopy, int vOffset, int indexOffset)
@@ -289,23 +321,44 @@ public class ComputableMesh
         vertexBuf = null;
     }
 
-    void SetTriangles(NativeArray<uint> triangles)
+    void SetTriangles(NativeArray<uint>[] triangles)
     {
-        int count = triangles.Length;
+        int subMeshCount = triangles.Length;
 
-        bool changeSize = count != indexCount;
+        int count = 0;
+        for (int i = 0; i < subMeshCount; i++)
+            count += triangles[i].Length;
+
+        bool changeSize = count != totalIndexCount;
         if (changeSize)
             mesh.SetIndexBufferParams(count, IndexFormat.UInt32);
 
-        MeshUpdateFlags updateFlags = MeshUpdateFlags.DontRecalculateBounds;
-        if (count < indexCount) updateFlags |= MeshUpdateFlags.DontValidateIndices;
-        mesh.SetIndexBufferData(triangles, 0, 0, count, updateFlags);
+        mesh.subMeshCount = subMeshCount;
 
-        //Submesh //TO DO: Support for more than one submesh?
-        if (changeSize)
+        int offset = 0;
+        for (int i = 0; i < subMeshCount; i++)
         {
-            SubMeshDescriptor submesh = new SubMeshDescriptor(0, count);
-            mesh.SetSubMesh(0, submesh);
+            count = triangles[i].Length;
+
+            MeshUpdateFlags updateFlags = MeshUpdateFlags.DontRecalculateBounds;
+            if (count < mesh.GetIndexCount(i))
+                updateFlags |= MeshUpdateFlags.DontValidateIndices;
+
+            mesh.SetIndexBufferData(triangles[i], 0, offset, count, updateFlags);
+
+            offset += count;
+        }
+
+        offset = 0;
+        for (int i = 0; i < subMeshCount; i++)
+        {
+            count = triangles[i].Length;
+            if (count != mesh.GetIndexCount(i))
+            {
+                SubMeshDescriptor submesh = new SubMeshDescriptor(offset, count);
+                mesh.SetSubMesh(i, submesh);
+            }
+            offset += count;
         }
 
         indexBuf = null;
@@ -355,6 +408,17 @@ public class ComputableMesh
     public Bounds bounds { get { return mesh.bounds; } }
 
     public int indexCount { get { return (int)mesh.GetIndexCount(0); } }
+
+    public int totalIndexCount
+    {
+        get
+        {
+            int count = 0;
+            for (int i = 0; i < mesh.subMeshCount; i++)
+                count += (int)mesh.GetIndexCount(i);
+            return count;
+        }
+    }
 
     public int vertexCount { get { return mesh.vertexCount; } }
 
@@ -521,73 +585,162 @@ public class ComputableMesh
         }
     };
 
-    public void CutMesh(Vector3 planeNormal, Vector3 planePoint, float minArea = -1f)
+    public void CutMesh(Vector3 planeNormal, Vector3 planePoint, int submesh = -1)
     {
-        CutMesh(planeNormal, planePoint, out int[] side1, out int[] side2, out int[] extremes, minArea);
+        CutMesh(planeNormal, planePoint, out int[] side1, out int[] side2, out int[] extremes,
+            -1, submesh);
+    }
+
+    public void CutMesh(Vector3 planeNormal, Vector3 planePoint, float minArea, int submesh = -1)
+    {
+        CutMesh(planeNormal, planePoint, out int[] side1, out int[] side2, out int[] extremes,
+            minArea, submesh);
     }
 
     public void CutMesh(Vector3 planeNormal, Vector3 planePoint,
-        out int[] side1, out int[] side2, out int[] extremes, float minArea = -1f)
+        out int[] side1, out int[] side2, out int[] extremes, int submesh = -1)
+    {
+        CutMesh(planeNormal, planePoint, out side1, out side2, out extremes,
+            -1, submesh);
+    }
+
+    public void CutMesh(Vector3 planeNormal, Vector3 planePoint,
+        out int[] side1, out int[] side2, out int[] extremes, float minArea, int submesh = -1)
     {
         if (cuttingCompute == null)
             cuttingCompute = (ComputeShader)Resources.Load(cutMeshComputeShaderName);
 
-        GetPlaneCutData(planeNormal, planePoint, out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
+        if (submesh < 0)
+        {
+            List<int> side1l = new List<int>();
+            List<int> side2l = new List<int>();
+            List<int> extremesl = new List<int>();
+            for (int i = 0; i < subMeshCount; i++)
+            {
+                CutMesh_Internal(planeNormal, planePoint,
+                    out side1, out side2, out extremes, i, minArea);
+                side1l.AddRange(side1);
+                side2l.AddRange(side2);
+                extremesl.AddRange(extremes);
+            }
+            side1 = side1l.ToArray();
+            side2 = side2l.ToArray();
+            extremes = extremesl.ToArray();
+        }
+        else CutMesh_Internal(planeNormal, planePoint,
+            out side1, out side2, out extremes, submesh, minArea);
+    }
+
+    void CutMesh_Internal(Vector3 planeNormal, Vector3 planePoint,
+        out int[] side1, out int[] side2, out int[] extremes, int submesh, float minArea = -1f)
+    {
+        GetPlaneCutData(planeNormal, planePoint, submesh,
+            out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
 
         //
         //
 
         if (minArea > 0f)
-            Compute_CleanNullAreaTriangles(intersectionsBuff, cutsDataBuff, minArea);
+            Compute_CleanNullAreaTriangles(intersectionsBuff, cutsDataBuff,
+                minArea, (int)mesh.GetIndexCount(submesh));
 
-        RebuildMeshFromCutData(intersectionsBuff, cutsDataBuff, out side1, out side2, out extremes);
+        RebuildMeshFromCutData(intersectionsBuff, cutsDataBuff, submesh,
+            out side1, out side2, out extremes);
     }
 
-    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint, Vector3 upDirection, float squareSize, float minArea = -1f)
+    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint, Vector3 upDirection,
+        float squareSize, int submesh = -1)
     {
         CutMesh_Square(planeNormal, planePoint, upDirection, squareSize,
-            out int[] side1, out int[] side2, out int[] extremes, minArea);
+            out int[] side1, out int[] side2, out int[] extremes, -1, submesh);
+    }
+
+    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint, Vector3 upDirection,
+        float squareSize, float minArea, int submesh = -1)
+    {
+        CutMesh_Square(planeNormal, planePoint, upDirection, squareSize,
+            out int[] side1, out int[] side2, out int[] extremes, minArea, submesh);
     }
 
     public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint,
         Vector3 upDirection, float squareSize, out int[] side1, out int[] side2,
-        out int[] extremes, float minArea = -1f)
+        out int[] extremes, int submesh = -1)
+    {
+        CutMesh_Square(planeNormal, planePoint, upDirection, squareSize,
+            out side1, out side2, out extremes, -1, submesh);
+    }
+
+    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint,
+        Vector3 upDirection, float squareSize, out int[] side1, out int[] side2,
+        out int[] extremes, float minArea, int submesh = -1)
     {
         if (cuttingCompute == null)
             cuttingCompute = (ComputeShader)Resources.Load(cutMeshComputeShaderName);
-        
-        GetPlaneCutData(planeNormal, planePoint, out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
-        
-        //
-        if (squareSize > 0f)
-            Compute_GetTriangleCutDatas_SquareCut(intersectionsBuff, cutsDataBuff, upDirection, squareSize);
-        //
-        
-        if (minArea > 0f)
-            Compute_CleanNullAreaTriangles(intersectionsBuff, cutsDataBuff, minArea);
 
-        RebuildMeshFromCutData(intersectionsBuff, cutsDataBuff, out side1, out side2, out extremes);
+        if (submesh < 0)
+        {
+            List<int> side1l = new List<int>();
+            List<int> side2l = new List<int>();
+            List<int> extremesl = new List<int>();
+            for (int i = 0; i < subMeshCount; i++)
+            {
+                CutMesh_Square_Internal(planeNormal, planePoint, upDirection, squareSize,
+                    out side1, out side2, out extremes, i, minArea);
+                side1l.AddRange(side1);
+                side2l.AddRange(side2);
+                extremesl.AddRange(extremes);
+            }
+            side1 = side1l.ToArray();
+            side2 = side2l.ToArray();
+            extremes = extremesl.ToArray();
+        }
+        else CutMesh_Square_Internal(planeNormal, planePoint, upDirection, squareSize,
+            out side1, out side2, out extremes, submesh, minArea);
     }
 
-    void GetPlaneCutData(Vector3 planeNormal, Vector3 planePoint, out ComputeBuffer intersectionsBuff, out ComputeBuffer triangleCutsDataBuff)
+    public void CutMesh_Square_Internal(Vector3 planeNormal, Vector3 planePoint,
+        Vector3 upDirection, float squareSize, out int[] side1, out int[] side2,
+        out int[] extremes, int submesh, float minArea = -1f)
     {
+        GetPlaneCutData(planeNormal, planePoint, submesh,
+            out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
+
+        //
+        if (squareSize > 0f)
+            Compute_GetTriangleCutDatas_SquareCut(intersectionsBuff, cutsDataBuff,
+                upDirection, squareSize, submesh);
+        //
+
+        if (minArea > 0f)
+            Compute_CleanNullAreaTriangles(intersectionsBuff, cutsDataBuff,
+                minArea, (int)mesh.GetIndexCount(submesh));
+
+        RebuildMeshFromCutData(intersectionsBuff, cutsDataBuff, submesh,
+            out side1, out side2, out extremes);
+    }
+
+    void GetPlaneCutData(Vector3 planeNormal, Vector3 planePoint, int submesh,
+        out ComputeBuffer intersectionsBuff, out ComputeBuffer triangleCutsDataBuff)
+    {
+        int indexCount = (int)mesh.GetIndexCount(submesh);
+
         //Get edges
         ComputeBuffer edgesBuff = new ComputeBuffer(indexCount, Edge.Size());
-        Compute_GetEdges(edgesBuff);
+        Compute_GetEdges(edgesBuff, submesh);
         Compute_ProccessEdges(edgesBuff);
 
         //Get intersections
         intersectionsBuff = new ComputeBuffer(indexCount, Intersection.Size());
         Compute_GetIntersections(edgesBuff, intersectionsBuff,
-            planeNormal, planePoint);
+            planeNormal, planePoint, indexCount);
 
         triangleCutsDataBuff = new ComputeBuffer(
             indexCount / 3, TriangleCutProperties.Size());
-        Compute_GetTriangleCutDatas(intersectionsBuff, triangleCutsDataBuff);
+        Compute_GetTriangleCutDatas(intersectionsBuff, triangleCutsDataBuff, submesh);
     }
 
     void RebuildMeshFromCutData(ComputeBuffer intersectionsBuff, ComputeBuffer triangleCutsDataBuff,
-        out int[] side1, out int[] side2, out int[] extremes)
+        int submesh, out int[] side1, out int[] side2, out int[] extremes)
     {
         Intersection[] interArr = new Intersection[intersectionsBuff.count];
         intersectionsBuff.GetData(interArr);
@@ -654,11 +807,11 @@ public class ComputableMesh
             {
                 int ind = (int)trianglesToRemove[0];
                 trianglesToRemove.RemoveAt(0);
-                triangleData[ind] = indicesToAdd[i];
+                triangleData[submesh][ind] = indicesToAdd[i];
                 indicesToAdd.RemoveAt(i);
-                triangleData[ind + 1] = indicesToAdd[i];
+                triangleData[submesh][ind + 1] = indicesToAdd[i];
                 indicesToAdd.RemoveAt(i);
-                triangleData[ind + 2] = indicesToAdd[i];
+                triangleData[submesh][ind + 2] = indicesToAdd[i];
                 indicesToAdd.RemoveAt(i);
                 i -= 3;
             }
@@ -666,12 +819,17 @@ public class ComputableMesh
         }
 
         //Add triangles
-        AddIndices(indicesToAdd);
+        AddIndices(indicesToAdd, submesh);
     }
 
-    void Compute_GetEdges(ComputeBuffer edgesDataBuff)
+    void Compute_GetEdges(ComputeBuffer edgesDataBuff, int submesh)
     {
+        int indexStart = (int)mesh.GetIndexStart(submesh);
+        int indexCount = (int)mesh.GetIndexCount(submesh);
+
         int ki = cuttingCompute.FindKernel(getEdgesKernel);
+        cuttingCompute.SetInt("indexStart", indexStart);
+        cuttingCompute.SetInt("indexCount", indexCount);
         cuttingCompute.SetInt("indexStride", indexBuffer.stride);
         cuttingCompute.SetBuffer(ki, "indices", indexBuffer);
         cuttingCompute.SetBuffer(ki, "edges", edgesDataBuff);
@@ -691,7 +849,7 @@ public class ComputableMesh
 
     void Compute_GetIntersections(
         ComputeBuffer edgesDataBuff, ComputeBuffer intersectionsBuff,
-        Vector3 planeNormal, Vector3 planePoint)
+        Vector3 planeNormal, Vector3 planePoint, int indexCount)
     {
         cuttingCompute.SetVector("planeNormal", planeNormal);
         cuttingCompute.SetVector("planePoint", planePoint);
@@ -707,9 +865,14 @@ public class ComputableMesh
     }
 
     void Compute_GetTriangleCutDatas(
-        ComputeBuffer intersectionsBuff, ComputeBuffer cutsDataBuff)
+        ComputeBuffer intersectionsBuff, ComputeBuffer cutsDataBuff, int submesh)
     {
+        int indexStart = (int)mesh.GetIndexStart(submesh);
+        int indexCount = (int)mesh.GetIndexCount(submesh);
+
         int ki = cuttingCompute.FindKernel(getTriangleCutDataKernel);
+        cuttingCompute.SetInt("indexStart", indexStart);
+        cuttingCompute.SetInt("indexCount", indexCount);
         cuttingCompute.SetInt("indexStride", indexBuffer.stride);
         cuttingCompute.SetBuffer(ki, "indices", indexBuffer);
         cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
@@ -721,12 +884,17 @@ public class ComputableMesh
 
     void Compute_GetTriangleCutDatas_SquareCut(
         ComputeBuffer intersectionsBuff, ComputeBuffer cutsDataBuff,
-        Vector3 upDirection, float size)
+        Vector3 upDirection, float size, int submesh)
     {
+        int indexStart = (int)mesh.GetIndexStart(submesh);
+        int indexCount = (int)mesh.GetIndexCount(submesh);
+
         cuttingCompute.SetVector("upDirection", upDirection);
         cuttingCompute.SetFloat("size", size);
 
         int ki = cuttingCompute.FindKernel(getTriangleCutDataSquareKernel);
+        cuttingCompute.SetInt("indexStart", indexStart);
+        cuttingCompute.SetInt("indexCount", indexCount);
         cuttingCompute.SetInt("indexStride", indexBuffer.stride);
         cuttingCompute.SetBuffer(ki, "indices", indexBuffer);
         cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
@@ -737,7 +905,7 @@ public class ComputableMesh
     }
 
     void Compute_CleanNullAreaTriangles(ComputeBuffer intersectionsBuff,
-        ComputeBuffer cutsDataBuff, float minArea)
+        ComputeBuffer cutsDataBuff, float minArea, int indexCount)
     {
         cuttingCompute.SetFloat("minArea", minArea);
 
@@ -755,48 +923,59 @@ public class ComputableMesh
     #region Utilities
     public void CleanNullAreaTriangles(float minArea)
     {
-        if (genericCompute == null)
-            genericCompute = (ComputeShader)Resources.Load(genericComputeShaderName);
+        if (_genericCompute == null)
+            _genericCompute = (ComputeShader)Resources.Load(genericComputeShaderName);
 
-        ComputeBuffer toClean = new ComputeBuffer(indexCount / 3, sizeof(uint));
-        Compute_CleanNullAreaTriangles(toClean, minArea);
-
-        uint[] nullTris = new uint[toClean.count];
-        toClean.GetData(nullTris);
-
-        int toRemove = 0;
-        for (int i = 0; i < nullTris.Length; i++)
-            if (nullTris[i] > 0) toRemove += 3;
-        NativeArray<uint> newIndexData = new NativeArray<uint>(
-            indexCount - toRemove, Allocator.Persistent);
-        int n = 0;
-        for (int i = 0; i < indexCount; i++)
+        for (int i = 0; i < subMeshCount; i++)
         {
-            int ind = i / 3;
-            if (nullTris[ind] < 1)
-            {
-                newIndexData[n] = triangleData[i];
-                n++;
-            }
-        }
+            int indexCount = (int)mesh.GetIndexCount(i);
+            ComputeBuffer toClean = new ComputeBuffer(indexCount / 3, sizeof(uint));
+            Compute_CleanNullAreaTriangles(toClean, minArea, i);
 
-        triangleData.Dispose();
-        triangleData = newIndexData;
+            uint[] nullTris = new uint[toClean.count];
+            toClean.GetData(nullTris);
+
+            int toRemove = 0;
+            for (int j = 0; j < nullTris.Length; j++)
+                if (nullTris[j] > 0) toRemove += 3;
+            NativeArray<uint> newIndexData = new NativeArray<uint>(
+                indexCount - toRemove, Allocator.Persistent);
+
+            int n = 0;
+            for (int j = 0; j < indexCount; j++)
+            {
+                int ind = j / 3;
+                if (nullTris[ind] < 1)
+                {
+                    newIndexData[n] = triangleData[i][j];
+                    n++;
+                }
+            }
+
+            triangleData[i].Dispose();
+            triangleData[i] = newIndexData;
+        }
         UpdateMeshData();
     }
 
-    void Compute_CleanNullAreaTriangles(ComputeBuffer toClean, float minArea)
+    void Compute_CleanNullAreaTriangles(ComputeBuffer toClean, float minArea, int submesh = 0)
     {
-        genericCompute.SetFloat("minArea", minArea);
+        int indexStart = (int)mesh.GetIndexStart(submesh);
+        int indexCount = (int)mesh.GetIndexCount(submesh);
 
-        int ki = genericCompute.FindKernel(cleanNullAreaTrianglesKernel);
-        genericCompute.SetInt("vertexStride", vertexBuffer.stride);
-        genericCompute.SetBuffer(ki, "vertices", vertexBuffer);
-        genericCompute.SetInt("indexStride", indexBuffer.stride);
-        genericCompute.SetBuffer(ki, "indices", indexBuffer);
-        genericCompute.SetBuffer(ki, "toClean", toClean);
+        _genericCompute.SetFloat("minArea", minArea);
 
-        genericCompute.Dispatch(ki, Mathf.CeilToInt(
+        int ki = _genericCompute.FindKernel(cleanNullAreaTrianglesKernel);
+        _genericCompute.SetInt("vertexStride", vertexBuffer.stride);
+        _genericCompute.SetInt("vertexCount", vertexBuffer.count);
+        _genericCompute.SetBuffer(ki, "vertices", vertexBuffer);
+        _genericCompute.SetInt("indexStart", indexStart);
+        _genericCompute.SetInt("indexCount", indexCount);
+        _genericCompute.SetInt("indexStride", indexBuffer.stride);
+        _genericCompute.SetBuffer(ki, "indices", indexBuffer);
+        _genericCompute.SetBuffer(ki, "toClean", toClean);
+
+        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
             (indexCount / 3f) / Numthreads_Small), 1, 1);
     }
 
@@ -811,10 +990,19 @@ public class ComputableMesh
 
     public void UpdateIndexDataToCPU()
     {
-        uint[] indices = new uint[indexCount];
+        uint[] indices = new uint[totalIndexCount];
         indexBuf.GetData(indices);
-        for (int i = 0; i < vertices.Length; i++)
-            triangleData[i] = indices[i];
+        int prev = 0;
+        int tri = 0;
+        for (int i = 0; i < indices.Length; i++)
+        {
+            if (i - prev == triangleData[tri].Length)
+            {
+                prev += triangleData[tri].Length;
+                tri++;
+            }
+            triangleData[tri][i - prev] = indices[i];
+        }
         UpdateTrianglesData();
     }
 
@@ -822,6 +1010,183 @@ public class ComputableMesh
     {
         UpdateVertexDataToCPU();
         UpdateIndexDataToCPU();
+    }
+
+    public void SetNull()
+    {
+        mesh = null;
+    }
+
+    public ComputeBuffer SubmeshVertexMask(int submesh)
+    {
+        if (_genericCompute == null)
+            _genericCompute = (ComputeShader)Resources.Load(genericComputeShaderName);
+
+        ComputeBuffer mask = new ComputeBuffer(vertexCount, sizeof(uint));
+        if (submesh < 0)
+        {
+            Compute_FillMask(mask);
+            return mask;
+        }
+        else
+        {
+            Compute_ClearMask(mask);
+            if (submesh >= subMeshCount)
+                return mask;
+            else
+            {
+                Compute_SubmeshVertexMask(mask, submesh);
+                return mask;
+            }
+        }
+    }
+
+    void Compute_ClearMask(ComputeBuffer mask)
+    {
+        int ki = _genericCompute.FindKernel(clearMaskKernel);
+        _genericCompute.SetBuffer(ki, "mask", mask);
+
+        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
+            vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    void Compute_FillMask(ComputeBuffer mask)
+    {
+        int ki = _genericCompute.FindKernel(fillMaskKernel);
+        _genericCompute.SetBuffer(ki, "mask", mask);
+
+        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
+            vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    void Compute_SubmeshVertexMask(ComputeBuffer mask, int submesh)
+    {
+        int indexStart = (int)mesh.GetIndexStart(submesh);
+        int indexCount = (int)mesh.GetIndexCount(submesh);
+
+        int ki = _genericCompute.FindKernel(getSubmeshMaskKernel);
+        _genericCompute.SetInt("indexStart", indexStart);
+        _genericCompute.SetInt("indexCount", indexCount);
+        _genericCompute.SetInt("indexStride", indexBuffer.stride);
+        _genericCompute.SetBuffer(ki, "indices", indexBuffer);
+        _genericCompute.SetBuffer(ki, "mask", mask);
+
+        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
+            indexCount / Numthreads_Small), 1, 1);
+    }
+
+    public static void Compute_ResetDisplacement(ComputeBuffer displacement)
+    {
+        ComputeShader compute = genericCompute;
+        int ki = compute.FindKernel(computeShader_ResetDisplacementKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            displacement.count / Numthreads_Small), 1, 1);
+    }
+
+    public static void Compute_ResetColors(ComputeBuffer colors)
+    {
+        ComputeShader compute = genericCompute;
+        int ki = compute.FindKernel(computeShader_ResetColorsKernel);
+
+        compute.SetInt("colorsStride", colors.stride);
+        compute.SetInt("colorsSize", colors.count);
+        compute.SetBuffer(ki, "colors", colors);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            colors.count / Numthreads_Small), 1, 1);
+    }
+
+    public static void Compute_ApplyDisplacement(ComputableMesh mesh, ComputeBuffer mask,
+        ComputeBuffer displacement)
+    {
+        ComputeShader compute = genericCompute;
+
+        int ki = compute.FindKernel(computeShader_ApplyDisplacementKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetBuffer(ki, "mask", mask);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            mesh.vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    public static void Compute_ResetVertexData(ComputableMesh mesh, ComputeBuffer mask,
+        ComputeBuffer displacement)
+    {
+        ComputeShader compute = genericCompute;
+
+        int ki = compute.FindKernel(computeShader_ResetVerticesKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetBuffer(ki, "mask", mask);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            mesh.vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    public static void Compute_ResetVertexData(ComputableMesh mesh, ComputeBuffer mask,
+        ComputeBuffer displacement, ComputeBuffer colors)
+    {
+        ComputeShader compute = genericCompute;
+
+        int ki = compute.FindKernel(computeShader_ResetVerticesAndColorKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.SetInt("colorsStride", colors.stride);
+        compute.SetInt("colorsSize", colors.count);
+        compute.SetBuffer(ki, "colors", colors);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetBuffer(ki, "mask", mask);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            mesh.vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    public static void Compute_RecordVertices(ComputableMesh mesh, ComputeBuffer recorded,
+        Matrix4x4 transform)
+    {
+        ComputeShader compute = genericCompute;
+
+        compute.SetMatrix("modelMatrix", transform);
+
+        int ki = compute.FindKernel(computeShader_RecordVerticesKernel);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetInt("dispStride", recorded.stride);
+        compute.SetInt("dispSize", recorded.count);
+        compute.SetBuffer(ki, "displacement", recorded);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            recorded.count / Numthreads_Small), 1, 1);
     }
     #endregion
 
@@ -841,19 +1206,332 @@ public class ComputableMesh
         UpdateVertexData();
     }
 
-    void AddIndices<T>(T indices) where T : IEnumerable<uint>
+    void AddIndices<T>(T indices, int submesh = 0) where T : IEnumerable<uint>
     {
         uint[] t = indices.ToArray();
+        int indexCount = (int)mesh.GetIndexCount(submesh);
         NativeArray<uint> newIndexData = new NativeArray<uint>(
             indexCount + t.Length, Allocator.Persistent);
         for (int i = 0; i < indexCount; i++)
-            newIndexData[i] = triangleData[i];
+            newIndexData[i] = triangleData[submesh][i];
         for (int i = 0; i < t.Length; i++)
             newIndexData[indexCount + i] = t[i];
-        triangleData.Dispose();
-        triangleData = newIndexData;
+        triangleData[submesh].Dispose();
+        triangleData[submesh] = newIndexData;
 
         UpdateTrianglesData();
+    }
+    #endregion
+
+    #region Automatic modularity
+    static Dictionary<MeshFilter, ComputableMesh> meshes = null;
+    static Dictionary<MeshFilter, List<Component>> usedBy = null;
+
+    public static ComputableMesh[] Get(Component comp, string nameSufix = "_Computable")
+    {
+        return Get(comp, false, nameSufix);
+    }
+
+    public static ComputableMesh[] Get(Component comp, bool reinitialize, string nameSufix = "_Computable")
+    {
+        if (comp == null)
+            return null;
+
+        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
+
+        if (filter.isNull)
+            return null;
+
+        if (filter.isMeshFilter) return new ComputableMesh[] { Get(filter.filter, comp) };
+        else return filter.customRenderer.enabled ?
+                filter.customRenderer.GetComputables() : new ComputableMesh[0];
+    }
+
+    public static void Create(Component comp, string name, int vCount, int tCount)
+    {
+        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
+
+        if (!filter.isNull)
+        {
+            if (filter.isMeshFilter) Create(filter.filter, name, vCount, tCount);
+            else filter.customRenderer.CreateComputables(name, vCount, tCount);
+        }
+    }
+
+    public static void StopUsing(Component comp)
+    {
+        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
+
+        if (!filter.isNull)
+        {
+            if (filter.isMeshFilter) StopUsing(filter.filter, comp);
+            else filter.customRenderer.StopUsingComputables();
+        }
+    }
+
+    public static Matrix4x4 LocalToWorldMatrix(Component comp, int id)
+    {
+        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
+        return filter.LocalToWorldMatrix(id);
+    }
+
+    public static Matrix4x4 WorldToLocalMatrix(Component comp, int id)
+    {
+        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
+        return filter.WorldToLocalMatrix(id);
+    }
+
+    public static bool IsEnabled(Component comp)
+    {
+        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
+
+        if (filter.isNull)
+            return false;
+
+        if (filter.isMeshFilter) return true;
+        else return filter.customRenderer.enabled;
+    }
+
+    public static bool Changed(Component comp)
+    {
+        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
+
+        if (filter.isNull)
+            return true;
+
+        if (filter.isMeshFilter)
+        {
+            if (!usedBy.NotNullContainsKey(filter.filter))
+                return true;
+
+            if (!meshes.NotNullContainsKey(filter.filter))
+                return true;
+
+            if (filter.filter.sharedMesh != meshes[filter.filter].original)
+                return true;
+        }
+        
+        return false;
+    }
+
+    static ComputableMesh Get(MeshFilter filter, Component comp, string nameSufix = "_Computable")
+    {
+        return Get(filter, comp, false, nameSufix);
+    }
+
+    static ComputableMesh Get(MeshFilter filter, Component comp, bool reinitialize, string nameSufix = "_Computable")
+    {
+        if (meshes == null)
+        {
+            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += EndCameraRendering;
+        }
+        else ClearNullMeshes();
+
+        if (!usedBy.NotNullContainsKey(filter))
+            usedBy = usedBy.CreateAdd(filter, new List<Component>());
+
+        ComputableMesh mesh = null;
+        bool validMeshExists = false;
+        if (meshes.NotNullContainsKey(filter))
+        {
+            mesh = meshes[filter];
+            if (filter.sharedMesh == mesh.original)
+                validMeshExists = true;
+            else meshes.SmartRemove(filter);
+        }
+
+        if (validMeshExists)
+        {
+            if (reinitialize)
+                mesh.Initialize(filter.sharedMesh, filter.sharedMesh.name + nameSufix);
+            else mesh.mesh.name = filter.sharedMesh.name + nameSufix;
+
+            usedBy = usedBy.CreateAdd(filter, comp);
+
+            return mesh;
+        }
+        else
+        {
+            if (filter.sharedMesh != null)
+            {
+                mesh = new ComputableMesh(filter.sharedMesh, filter.sharedMesh.name + nameSufix);
+
+                meshes = meshes.CreateAdd(filter, mesh);
+                usedBy = usedBy.CreateAdd(filter, comp);
+                return mesh;
+            }
+            else return null;
+        }
+    }
+
+    static void Create(MeshFilter filter, string name, int vCount, int tCount)
+    {
+        ComputableMesh mesh = new ComputableMesh(name, vCount, tCount);
+        meshes = meshes.CreateAdd(filter, mesh);
+    }
+
+    static void StopUsing(MeshFilter filter, Component comp)
+    {
+        ComputableMesh mesh;
+        if (meshes.NotNullContainsKey(filter))
+        {
+            mesh = meshes[filter];
+            usedBy.SmartRemove(filter, comp);
+            if (usedBy[filter].Count <= 0)
+            {
+                meshes.SmartRemove(filter);
+                usedBy.SmartRemove(filter);
+            }
+        }
+    }
+
+    static void ClearNullMeshes()
+    {
+        if (meshes != null)
+        {
+            meshes = meshes.ClearNulls();
+            List<MeshFilter> filters = new List<MeshFilter>();
+            foreach (KeyValuePair<MeshFilter, ComputableMesh> pair in meshes)
+                if ((pair.Value == null) || (pair.Value.mesh == null))
+                    filters.Add(pair.Key);
+            foreach (MeshFilter filter in filters)
+                meshes.Remove(filter);
+        }
+    }
+
+    public static void RestoreAllFilters()
+    {
+        MeshFilter[] filters = meshes.Keys.ToArray();
+        foreach (MeshFilter filter in filters)
+            for (int i = usedBy[filter].Count - 1; i >= 0; i--)
+                StopUsing(filter, usedBy[filter][i]);
+    }
+
+    static void BeginCameraRendering(ScriptableRenderContext context, Camera cam)
+    {
+        meshes = meshes.ClearNulls();
+        usedBy = usedBy.ClearNulls();
+
+        MeshFilter[] filters = meshes.Keys.ToArray();
+
+        foreach (MeshFilter filter in filters)
+            if ((usedBy[filter].Count > 0) && (filter.sharedMesh != meshes[filter].original))
+            {
+                string sufix = meshes[filter].mesh.name.Replace(meshes[filter].original.name, "");
+                meshes[filter].SetNull();
+                meshes[filter] = new ComputableMesh(filter.sharedMesh, filter.sharedMesh.name + sufix);
+            }
+
+        foreach (MeshFilter filter in filters)
+            if (usedBy[filter].Count > 0)
+                filter.sharedMesh = meshes[filter];
+    }
+
+    static void EndCameraRendering(ScriptableRenderContext context, Camera cam)
+    {
+        meshes = meshes.ClearNulls();
+        usedBy = usedBy.ClearNulls();
+
+        MeshFilter[] filters = meshes.Keys.ToArray();
+        foreach (MeshFilter filter in filters)
+            if (usedBy[filter].Count > 0)
+                filter.sharedMesh = meshes[filter].original;
+    }
+
+    struct ComputableFilter : IEquatable<ComputableFilter>
+    {
+        static Dictionary<GameObject, ComputableFilter> filters = null;
+        public MeshFilter filter;
+        public CustomRenderer customRenderer;
+        public bool isMeshFilter { get { return (filter != null); } }
+        public bool isNull { get { return (filter == null) && (customRenderer == null); } }
+        public Matrix4x4 LocalToWorldMatrix(int id)
+        {
+            return isMeshFilter ? filter.transform.localToWorldMatrix :
+                customRenderer.LocalToWorldMatrix(id);
+        }
+        public Matrix4x4 WorldToLocalMatrix(int id)
+        {
+            return isMeshFilter ? filter.transform.worldToLocalMatrix :
+                customRenderer.WorldToLocalMatrix(id);
+        }
+
+        public ComputableFilter(MeshFilter filter)
+        {
+            this.filter = filter;
+            customRenderer = null;
+        }
+
+        public ComputableFilter(CustomRenderer customRenderer)
+        {
+            filter = null;
+            this.customRenderer = customRenderer;
+        }
+
+        public ComputableFilter(GameObject gameObject)
+        {
+            filter = gameObject.GetComponent<MeshFilter>();
+            customRenderer = null;
+            if (filter == null)
+                customRenderer = gameObject.GetComponent<CustomRenderer>();
+        }
+
+        public static ComputableFilter Get(GameObject gameObject)
+        {
+            ClearNulls();
+
+            ComputableFilter filter;
+            if (filters.NotNullContainsKey(gameObject))
+                filter = filters[gameObject];
+            else
+            {
+                filter = new ComputableFilter(gameObject);
+                filters = filters.CreateAdd(gameObject, filter);
+            }
+            return filter;
+        }
+
+        static void ClearNulls()
+        {
+            if (filters != null)
+            {
+                filters = filters.ClearNulls();
+                List<GameObject> gos = new List<GameObject>();
+                foreach (KeyValuePair<GameObject, ComputableFilter> pair in filters)
+                    if (pair.Value.isNull)
+                        gos.Add(pair.Key);
+                foreach (GameObject go in gos)
+                    filters.Remove(go);
+            }
+        }
+
+        public override bool Equals(object other)
+        {
+            if (!(other is ComputableFilter)) return false;
+            return Equals((ComputableFilter)other);
+        }
+
+        public bool Equals(ComputableFilter other)
+        {
+            return (filter == other.filter)
+                && (customRenderer == other.customRenderer);
+        }
+
+        public override int GetHashCode()
+        {
+            return isMeshFilter ? filter.GetHashCode() : customRenderer.GetHashCode();
+        }
+
+        public static bool operator ==(ComputableFilter o1, ComputableFilter o2)
+        {
+            return o1.Equals(o2);
+        }
+
+        public static bool operator !=(ComputableFilter o1, ComputableFilter o2)
+        {
+            return !o1.Equals(o2);
+        }
     }
     #endregion
 }
