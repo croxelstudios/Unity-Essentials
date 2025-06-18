@@ -3,6 +3,8 @@ using UnityEngine;
 public class CollisionEvents : BCollisionManager
 {
     [SerializeField]
+    float maxImpact = 3f;
+    [SerializeField]
     Transform[] toContactPoints = null;
     [SerializeField]
     protected DXFloatEvent entered = null;
@@ -37,7 +39,7 @@ public class CollisionEvents : BCollisionManager
                 tr.up = normal;
             }
         }
-        entered?.Invoke(impact);
+        entered?.Invoke(Mathf.Clamp01(Mathf.InverseLerp(minImpact, maxImpact, impact)));
     }
 
     public override void OnColExit(NDCollision collision)

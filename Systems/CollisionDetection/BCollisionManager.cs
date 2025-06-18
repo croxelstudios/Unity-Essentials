@@ -14,9 +14,10 @@ public class BCollisionManager : MonoBehaviour
     [SerializeField]
     LayerMask layerMask = -1;
     [SerializeField]
-    float minImpact = 0f;
-    //TO DO: Only detect hits withing a range of a Normal
+    protected float minImpact = 0f;
+    //TO DO: Only detect hits within a range of a Normal
 
+    NDRigidbody rigid;
     CollisionManager_Detector detector;
     List<NDCollision> collisions;
     NDCollider[] selfColliders;
@@ -26,7 +27,7 @@ public class BCollisionManager : MonoBehaviour
         collisions = new List<NDCollision>();
         selfColliders = NDCollider.GetNDCollidersFrom(gameObject);
 
-        NDRigidbody rigid = NDRigidbody.GetNDRigidbodyFrom(gameObject, NDRigidbody.Scope.inParents);
+        rigid = NDRigidbody.GetNDRigidbodyFrom(gameObject, NDRigidbody.Scope.inParents);
         if (rigid != null) SetUpDetector(rigid.gameObject);
         else SetUpDetector(gameObject);
     }
@@ -50,7 +51,7 @@ public class BCollisionManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!HasEnabledCollider())
+        if (!HasEnabledColliderOrRigidbody())
             OnDisable();
 
         for (int i = collisions.Count - 1; i > -1; i--)
@@ -68,7 +69,7 @@ public class BCollisionManager : MonoBehaviour
 
     bool IsThisEnabled()
     {
-        return this.IsActiveAndEnabled() && HasEnabledCollider();
+        return this.IsActiveAndEnabled() && HasEnabledColliderOrRigidbody();
     }
 
     public void CollisionStay(NDCollision collision)
@@ -191,13 +192,18 @@ public class BCollisionManager : MonoBehaviour
 
     }
 
-    bool HasEnabledCollider()
+    bool HasEnabledColliderOrRigidbody()
     {
+        if (rigid.gameObject == gameObject)
+            return true;
+
         if ((selfColliders == null) || (selfColliders.Length <= 0))
             return false;
+
         for (int i = 0; i < selfColliders.Length; i++)
             if ((!selfColliders[i].IsNull()) && selfColliders[i].enabled)
                 return true;
+
         return false;
     }
 
