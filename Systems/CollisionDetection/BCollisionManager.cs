@@ -74,24 +74,24 @@ public class BCollisionManager : MonoBehaviour
     public void CollisionStay(NDCollision collision)
     {
         if (IsThisEnabled() && (minImpact > Mathf.Epsilon) && CheckCollision(collision.gameObject) &&
-            CheckImpact(collision, out NDContactPoint[] points))
+            CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
             OnColEnter(collision);
-            OnColEnter(points);
+            OnColEnter(points, impact);
         }
     }
 
     public void CollisionEnter(NDCollision collision)
     {
         if (IsThisEnabled() && CheckCollision(collision.gameObject)
-            && CheckImpact(collision, out NDContactPoint[] points))
+            && CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
             int prevCount = collisions.Count;
             if (!collisions.Contains(collision))
                 collisions.Add(collision);
             if (prevCount == 0) OnFirstColEnter();
             OnColEnter(collision);
-            OnColEnter(points);
+            OnColEnter(points, impact);
         }
     }
 
@@ -105,18 +105,20 @@ public class BCollisionManager : MonoBehaviour
         }
     }
 
-    protected virtual bool CheckImpact(NDCollision collision, int point)
+    protected virtual bool CheckImpact(NDCollision collision, int point, out float impact)
     {
         Vector3 normal = collision.contacts[point].normal;
 
         Vector3 projectedVelocity = Vector3.Project(collision.relativeVelocity, normal);
-        float sqrMag = projectedVelocity.sqrMagnitude * Mathf.Sign(Vector3.Dot(normal, projectedVelocity));
+        impact = projectedVelocity.magnitude * Mathf.Sign(Vector3.Dot(normal, projectedVelocity));
 
-        return sqrMag > (minImpact * minImpact);
+        return impact > minImpact;
     }
 
-    protected virtual bool CheckImpact(NDCollision collision, out NDContactPoint[] points)
+    protected virtual bool CheckImpact(NDCollision collision, out NDContactPoint[] points,
+        out float impact)
     {
+        impact = 0f;
         if ((collision.contactCount <= 0) && (minImpact > Mathf.Epsilon))
         {
             points = null;
@@ -128,7 +130,7 @@ public class BCollisionManager : MonoBehaviour
         Vector3 normal = Vector3.zero;
         for (int i = 0; i < collision.contactCount; i++)
         {
-            if (CheckImpact(collision, i))
+            if (CheckImpact(collision, i, out impact))
                 lPoints.Add(collision.contacts[i]);
             normal += collision.contacts[i].normal;
         }
@@ -179,7 +181,7 @@ public class BCollisionManager : MonoBehaviour
 
     }
 
-    public virtual void OnColEnter(NDContactPoint[] contacts)
+    public virtual void OnColEnter(NDContactPoint[] contacts, float impact)
     {
 
     }

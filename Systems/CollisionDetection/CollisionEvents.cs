@@ -5,11 +5,11 @@ public class CollisionEvents : BCollisionManager
     [SerializeField]
     Transform[] toContactPoints = null;
     [SerializeField]
-    protected DXEvent entered = null;
+    protected DXFloatEvent entered = null;
     [SerializeField]
     protected DXEvent exited = null;
 
-    public override void OnColEnter(NDContactPoint[] contacts)
+    public override void OnColEnter(NDContactPoint[] contacts, float impact)
     {
         if ((toContactPoints != null) && (toContactPoints.Length > 0))
         {
@@ -37,7 +37,7 @@ public class CollisionEvents : BCollisionManager
                 tr.up = normal;
             }
         }
-        entered?.Invoke();
+        entered?.Invoke(impact);
     }
 
     public override void OnColExit(NDCollision collision)
