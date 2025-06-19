@@ -17,26 +17,19 @@ public class BComputeDisplacement : MonoBehaviour
     protected ComputeBuffer[] mask;
     protected ComputeBuffer[] displacement;
 
-    void OnEnable()
-    {
-        RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-        RenderPipelineManager.endCameraRendering += EndCameraRendering;
-    }
-
     void OnDisable()
     {
         if (meshes != null)
             for (int i = 0; i < meshes.Length; i++)
                 ResetData(i);
         ComputableMesh.StopUsing(this);
-
-        RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-        RenderPipelineManager.endCameraRendering -= EndCameraRendering;
     }
 
     void LateUpdate()
     {
         meshes = ComputableMesh.Get(this);
+        ComputableMesh.SetRenderingEvent_Start(this, BeginRendering);
+        ComputableMesh.SetRenderingEvent_Finished(this, FinishRendering);
 
         mask = UpdateBufferArray(mask);
         displacement = UpdateBufferArray(displacement);
@@ -58,14 +51,14 @@ public class BComputeDisplacement : MonoBehaviour
         }
     }
 
-    void BeginCameraRendering(ScriptableRenderContext context, Camera cam)
+    void BeginRendering()
     {
         if ((meshes != null) && (mask != null))
             for (int i = 0; i < meshes.Length; i++)
                 OnBeginRenderingMesh(i);
     }
 
-    void EndCameraRendering(ScriptableRenderContext context, Camera cam)
+    void FinishRendering()
     {
         if ((meshes != null) && (mask != null))
             for (int i = 0; i < meshes.Length; i++)
@@ -112,5 +105,23 @@ public class BComputeDisplacement : MonoBehaviour
     protected virtual void OnBeginRenderingMesh(int i)
     {
 
+    }
+
+    bool rendering;
+
+    void OnWillRenderObject()
+    {
+        if ((!rendering) && ComputableMesh.IsRenderingAgentFilter(this))
+        {
+            rendering = true;
+            ComputableMesh.PrepareStartRendering(this);
+            BeginRendering();
+        }
+    }
+
+    void OnRenderObject()
+    {
+        if (rendering)
+            rendering = false;
     }
 }
