@@ -99,7 +99,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
         P path = GetPath();
         //path.Draw();
 
-        T spd = default;
+        T spd = Default<T>.Value;
         if (ShouldIExecute(path))
             switch (speedBehaviour.speedMode)
             {
@@ -130,7 +130,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     protected void ResetSpeed()
     {
-        dynamicInfo.speed = default;
+        dynamicInfo.speed = Vector3.zero;
     }
 
     protected virtual void Awake()
@@ -156,10 +156,8 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
         CheckEvents(deltaTime);
 
         if (speedBehaviour.AffectedByCurrentSpeed() && (deltaTime != 0f))
-        {
-            UpdateSpeed(ref dynamicInfo.speed, dynamicInfo.prev, dynamicInfo.accelHalf, deltaTime);
-        }
-        dynamicInfo.accelHalf = default;
+            UpdateSpeed(ref dynamicInfo.speed, dynamicInfo.accelHalf, dynamicInfo.prev, deltaTime);
+        dynamicInfo.accelHalf = Vector3.zero;
 
         UpdatePrev(ref dynamicInfo.prev);
     }
@@ -179,27 +177,27 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     protected virtual T Accelerated(P path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
-        return default;
+        return Default<T>.Value;
     }
 
     protected virtual T SmoothDamp(P path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
-        return default;
+        return Default<T>.Value;
     }
 
     protected virtual T LerpSmooth(P path, float deltaTime)
     {
-        return default;
+        return Default<T>.Value;
     }
 
     protected virtual T Teleport(P path, float deltaTime)
     {
-        return default;
+        return Default<T>.Value;
     }
 
     protected virtual T Linear(P path, float deltaTime)
     {
-        return default;
+        return Default<T>.Value;
     }
 
     protected virtual void Execute(T spd, float deltaTime)
@@ -215,20 +213,20 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     public virtual T Current()
     {
-        return default;
+        return Default<T>.Value;
     }
 
-    public virtual void UpdateSpeed(ref T speed, T prev, T accelHalf, float deltaTime)
+    public virtual void UpdateSpeed(ref Vector3 speed, Vector3 accelHalf, T prev, float deltaTime)
     {
     }
 
     protected struct DynamicInfo
     {
-        public T speed;
+        public Vector3 speed;
+        public Vector3 accelHalf;
         public T prev;
-        public T accelHalf;
 
-        public DynamicInfo(T speed, T prev, T accelHalf)
+        public DynamicInfo(Vector3 speed, Vector3 accelHalf, T prev)
         {
             this.speed = speed;
             this.prev = prev;

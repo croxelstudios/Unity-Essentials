@@ -194,7 +194,7 @@ public class BCollisionManager : MonoBehaviour
 
     bool HasEnabledColliderOrRigidbody()
     {
-        if (rigid.gameObject == gameObject)
+        if ((rigid != null) && (rigid.gameObject == gameObject))
             return true;
 
         if ((selfColliders == null) || (selfColliders.Length <= 0))

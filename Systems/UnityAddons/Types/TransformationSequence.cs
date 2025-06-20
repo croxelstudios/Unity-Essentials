@@ -28,10 +28,12 @@ public struct RotationPath : ITransformationSequence
         this.origin = origin;
         this.target = target;
         this.mode = mode;
-        dif = target.Subtract(origin, mode);
-        dif.ToAngleAxis(out difAngle, out difAxis);
+        dif = target.Subtract(origin);
+        dif.ToAngleAxis(mode, out difAngle, out difAxis);
+        if (difAngle == 360f)
+            difAngle = 0f;
         path = new Quaternion[] { origin, target };
-        magnitude = dif.Angle();
+        magnitude = difAngle;
     }
 
     public RotationPath(Quaternion[] rotations, RotationMode mode = RotationMode.Shortest)
@@ -40,10 +42,14 @@ public struct RotationPath : ITransformationSequence
         target = rotations[rotations.Length - 1];
         this.mode = mode;
         path = rotations;
-        dif = target.Subtract(origin, mode);
-        dif.ToAngleAxis(out difAngle, out difAxis);
+        dif = target.Subtract(origin);
+        dif.ToAngleAxis(mode, out difAngle, out difAxis);
+        if (difAngle == 360f)
+            difAngle = 0f;
         magnitude = 0f;
         CalculateMagnitude();
+        if (magnitude == 360f)
+            magnitude = 0f;
     }
     
     public float GetMagnitude()
@@ -54,7 +60,7 @@ public struct RotationPath : ITransformationSequence
     public void ProjectOnPlane(Vector3 normal)
     {
         for (int i = 0; i < path.Length; i++)
-            path[i] = Quaternion.AngleAxis(path[i].Angle(), normal);
+            path[i] = Quaternion.AngleAxis(path[i].Angle(mode), normal);
     }
 
     public void CalculateMagnitude()
@@ -73,7 +79,7 @@ public struct RotationPath : ITransformationSequence
             }
             magnitude = lengthSoFar;
         }
-        else magnitude = dif.Angle();
+        else magnitude = dif.Angle(mode);
     }
 
     public float CalculateDistanceTo(int point)
@@ -86,7 +92,7 @@ public struct RotationPath : ITransformationSequence
             while (i <= point)
             {
                 Quaternion currentCorner = path[i];
-                lengthSoFar += Quaternion.Angle(previousCorner, currentCorner);
+                lengthSoFar += currentCorner.Angle(mode, previousCorner);
                 previousCorner = currentCorner;
                 i++;
             }
@@ -109,7 +115,7 @@ public struct RotationPath : ITransformationSequence
             {
                 Quaternion currentCorner = path[i];
 
-                currentCorner.Subtract(previousCorner).ToAngleAxis(out tangle, out taxis);
+                currentCorner.Subtract(previousCorner).ToAngleAxis(mode, out tangle, out taxis);
 
                 if ((wholeDist + tangle) > distance)
                     return previousCorner.Add(Quaternion.AngleAxis(distance - wholeDist, taxis));
@@ -118,7 +124,7 @@ public struct RotationPath : ITransformationSequence
                 i++;
             }
 
-            path[path.Length - 2].Subtract(previousCorner).ToAngleAxis(out tangle, out taxis);
+            path[path.Length - 2].Subtract(previousCorner).ToAngleAxis(mode, out tangle, out taxis);
 
             return previousCorner.Add(Quaternion.AngleAxis(distance - wholeDist, taxis));
         }
@@ -134,11 +140,18 @@ public struct RotationPath : ITransformationSequence
     public Quaternion Direction(float multiplier = 1f)
     {
         if (IsComplexPath())
-            return Quaternion.AngleAxis(multiplier, path[1].Subtract(path[0]).Axis());
+            return Quaternion.AngleAxis(multiplier, path[1].Subtract(path[0]).Axis(mode));
         else return Quaternion.AngleAxis(multiplier, difAxis);
     }
 
-    public Quaternion SmoothDamp(ref Quaternion currentVelocity, float smoothTime, float maxSpeed, float deltaTime, bool alongPath = true)
+    public Vector3 DirectionAxis()
+    {
+        if (IsComplexPath())
+            return path[1].Subtract(path[0]).Axis(mode);
+        else return difAxis;
+    }
+
+    public Quaternion SmoothDamp(ref Vector3 angularVelocity, float smoothTime, float maxSpeed, float deltaTime, bool alongPath = true)
     {
         //Limit smoothTime to avoid division by 0f;
         smoothTime = Mathf.Max(0.0001F, smoothTime);
@@ -153,7 +166,8 @@ public struct RotationPath : ITransformationSequence
         RotationPath subPath = alongPath ? new RotationPath(target, origin, mode)/*SubPath(change, 0, true)*/ :
             new RotationPath(target, origin, mode);
 
-        currentVelocity.ToAngleAxis(out float tangle, out Vector3 taxis);
+        float tangle = angularVelocity.magnitude;
+        Vector3 taxis = angularVelocity / tangle;
 
         Quaternion temp = Quaternion.AngleAxis(tangle * deltaTime * exp, taxis).Add(
             subPath.Displacement((subPath.magnitude + (omega * subPath.magnitude) * deltaTime) * exp, alongPath));
@@ -164,8 +178,8 @@ public struct RotationPath : ITransformationSequence
         ClosestInPath(output, out float disp);
         if (disp > magnitude) output = this.target;
 
-        output.Subtract(origin).ToAngleAxis(out tangle, out taxis);
-        currentVelocity = Quaternion.AngleAxis(tangle / deltaTime, taxis);
+        output.Subtract(origin).ToAngleAxis(RotationMode.Shortest, out tangle, out taxis);
+        angularVelocity = taxis * (tangle / deltaTime);
 
         return output;
     }
@@ -180,7 +194,6 @@ public struct RotationPath : ITransformationSequence
         return SubPath(magnitude - offset, offset).Displacement(distance, alongPath);
     }
 
-    //TO DO
     public Quaternion ClosestInPath(Quaternion point)
     {
         return ClosestInPath(point, out float d);
@@ -217,7 +230,7 @@ public struct RotationPath : ITransformationSequence
                 i++;
             }
 
-            previousCorner.Subtract(currentCorner).ToAngleAxis(out float tangle, out Vector3 taxis);
+            previousCorner.Subtract(currentCorner).ToAngleAxis(mode, out float tangle, out Vector3 taxis);
 
             corners.Add(currentCorner.Add(Quaternion.AngleAxis(wholeDist, taxis)));
 
@@ -245,7 +258,7 @@ public struct RotationPath : ITransformationSequence
                     i++;
                 }
 
-                currentCorner.Subtract(previousCorner).ToAngleAxis(out tangle, out taxis);
+                currentCorner.Subtract(previousCorner).ToAngleAxis(mode, out tangle, out taxis);
 
                 corners.Add(previousCorner.Add(Quaternion.AngleAxis(wholeDist, taxis)));
             }

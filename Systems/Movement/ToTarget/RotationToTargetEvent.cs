@@ -1,5 +1,5 @@
-using UnityEngine;
 using Sirenix.OdinInspector;
+using UnityEngine;
 using static SpeedBehaviour;
 
 public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
@@ -41,7 +41,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
         if (speedBehaviour.MoveAway())
             tRot = Quaternion.Inverse(tRot);
 
-        RotationPath rotPath = new RotationPath(oRot, tRot);
+        RotationPath rotPath = new RotationPath(oRot, tRot, rotationMode);
 
         if (projectOnPlane)
         {
@@ -52,14 +52,15 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
         return rotPath;
     }
 
-    protected override Quaternion Accelerated(RotationPath rotPath, ref DynamicInfo dynamicInfo, float deltaTime)
+    protected override Quaternion Accelerated(RotationPath rotPath,
+        ref DynamicInfo dynamicInfo, float deltaTime)
     {
         float inverseDeltaTime = deltaTime.Reciprocal();
 
-        float tangle;
-        Vector3 taxis;
+        float tAngle;
+        Vector3 tAxis;
 
-        Quaternion accelHalf0 = Quaternion.identity;
+        Vector3 accelHalf0 = Vector3.zero;
         if (doAccelerate)
         {
             float accel = speedBehaviour.acceleration * deltaTime * 0.5f;
@@ -72,7 +73,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
             //}
             //else
             {
-                accelHalf0 = rotPath.Direction(accel);
+                accelHalf0 = rotPath.DirectionAxis() * accel;
                 dynamicInfo.accelHalf = accelHalf0;
             }
         }
@@ -92,45 +93,55 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
                 float accelMagHalf1 = accelMag * 0.5f;
                 float accelMagHalf2 = accelMagHalf1;
 
-                dynamicInfo.speed.ToAngleAxis(out tangle, out taxis);
+                tAngle = dynamicInfo.speed.magnitude;
+                tAxis = dynamicInfo.speed / tAngle;
 
-                if (accelMag > tangle)
+                if (accelMag > tAngle)
                 {
-                    float rest = tangle - accelMagHalf1;
+                    float rest = tAngle - accelMagHalf1;
                     if (rest < 0f)
                     {
-                        accelMagHalf1 = tangle;
+                        accelMagHalf1 = tAngle;
                         accelMagHalf2 = 0f;
                     }
                     else accelMagHalf2 = rest;
                 }
 
-                accelHalf0 = Quaternion.AngleAxis(-accelMagHalf1, taxis);
-                dynamicInfo.accelHalf = Quaternion.AngleAxis(-accelMagHalf2, taxis);
+                accelHalf0 = -accelMagHalf1 * tAxis;
+                dynamicInfo.accelHalf = -accelMagHalf2 * tAxis;
             }
         }
 
-        dynamicInfo.speed = dynamicInfo.speed.Add(accelHalf0);
-        dynamicInfo.speed.ToAngleAxis(out tangle, out taxis);
-        Quaternion spd = Quaternion.AngleAxis(tangle * deltaTime, taxis);
+        dynamicInfo.speed = dynamicInfo.speed + accelHalf0;
+        tAngle = dynamicInfo.speed.magnitude;
+        tAxis = dynamicInfo.speed / tAngle;
+        Quaternion spd = Quaternion.AngleAxis(tAngle * deltaTime, tAxis);
 
         //Limit speed by maximum speed
-        spd.ToAngleAxis(out tangle, out taxis);
+        spd.ToAngleAxis(out tAngle, out tAxis);
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
-        if (tangle > maxDTSpeed)
-            spd = Quaternion.AngleAxis(maxDTSpeed, taxis);
+        if (tAngle > maxDTSpeed)
+            spd = Quaternion.AngleAxis(maxDTSpeed, tAxis);
+
+        //Limit speed by target point
+        spd.ToAngleAxis(out tAngle, out tAxis);
+        float rotAmount = rotPath.magnitude;
+        if ((tAngle > rotAmount) && (targetMode != TargetMode.NeverStop))
+            spd = Quaternion.AngleAxis(rotAmount, tAxis);
 
         //Add the other acceleration half to the global speed for use in next frame
-        dynamicInfo.speed = dynamicInfo.speed.Add(dynamicInfo.accelHalf);
+        dynamicInfo.speed = dynamicInfo.speed + dynamicInfo.accelHalf;
 
         return spd;
     }
 
-    protected override Quaternion SmoothDamp(RotationPath rotPath, ref DynamicInfo dynamicInfo, float deltaTime)
+    protected override Quaternion SmoothDamp(RotationPath rotPath,
+        ref DynamicInfo dynamicInfo, float deltaTime)
     {
         //TO DO: Doesn't work with keepinpath feature
-        return rotPath.SmoothDamp(ref dynamicInfo.speed, speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime)
-            .Subtract(rotPath.origin);
+        //TO DO: Only works with Shortest RotationMode
+        return rotPath.SmoothDamp(ref dynamicInfo.speed,
+            speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime).Subtract(rotPath.origin);
     }
 
     protected override Quaternion LerpSmooth(RotationPath rotPath, float deltaTime)
@@ -205,9 +216,13 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
         return origin.Rotation(local);
     }
 
-    public override void UpdateSpeed(ref Quaternion speed, Quaternion prev, Quaternion accelHalf, float deltaTime)
+    public override void UpdateSpeed(ref Vector3 speed,
+        Vector3 accelHalf, Quaternion prev, float deltaTime)
     {
-        speed = accelHalf *
-            (Current() * Quaternion.Inverse(prev)).Scale(1f / deltaTime);
+        //WARNING: This assumes shortest rotation, but it is technically possible for the object
+        //to be rotated externally by a speed greater than 180 degrees per frame,
+        //and this will fail in that case. Can't really see a way to fix this.
+        Current().Subtract(prev).ToAngleAxis(RotationMode.Shortest, out float angle, out Vector3 axis);
+        speed = accelHalf + (axis * (angle / deltaTime));
     }
 }

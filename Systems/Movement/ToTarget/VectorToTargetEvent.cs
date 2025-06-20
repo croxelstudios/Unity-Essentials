@@ -137,7 +137,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
 
         //Limit speed by target point
         float moveAmount = path.magnitude;
-        if ((spd.magnitude > moveAmount) || (targetMode == TargetMode.NeverStop))
+        if ((spd.magnitude > moveAmount) && (targetMode != TargetMode.NeverStop))
             spd = spd.normalized * moveAmount;
 
         //Add the other acceleration half to the global speed for use in next frame
@@ -227,7 +227,8 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
         return origin.Position(local);
     }
 
-    public override void UpdateSpeed(ref Vector3 speed, Vector3 prev, Vector3 accelHalf, float deltaTime)
+    public override void UpdateSpeed(ref Vector3 speed,
+        Vector3 accelHalf, Vector3 prev, float deltaTime)
     {
         speed = ((Current() - prev) / deltaTime) + accelHalf;
     }
