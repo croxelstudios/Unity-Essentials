@@ -34,6 +34,8 @@ public class StateMachine_ByChildren : StateMachine
                 }
             states = newStates;
             SyncNames();
+            EditorUtility.SetDirty(this);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(this);
         }
     }
 

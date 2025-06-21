@@ -184,11 +184,11 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
     {
         float unitsPerSecondSpeed = speedPerThisFrame.magnitude * deltaTime.Reciprocal();
 
-        if (prevSpd <= 0f)
+        if (prevSpd <= Mathf.Epsilon)
         {
-            if (unitsPerSecondSpeed > 0f) startedMoving?.Invoke();
+            if (unitsPerSecondSpeed > Mathf.Epsilon) startedMoving?.Invoke();
         }
-        else if (unitsPerSecondSpeed <= 0f) stoppedMoving?.Invoke();
+        else if (unitsPerSecondSpeed <= Mathf.Epsilon) stoppedMoving?.Invoke();
         prevSpd = unitsPerSecondSpeed;
 
         if ((unitsPerSecondSpeed > 0f) || sendWhenZeroToo)

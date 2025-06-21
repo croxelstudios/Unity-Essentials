@@ -177,11 +177,11 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
 
         float degreesPerSecondSpeed = angle * deltaTime.Reciprocal();
 
-        if (prevSpd <= 0f)
+        if (prevSpd <= Mathf.Epsilon)
         {
-            if (degreesPerSecondSpeed > 0f) startedRotating?.Invoke();
+            if (degreesPerSecondSpeed > Mathf.Epsilon) startedRotating?.Invoke();
         }
-        else if (degreesPerSecondSpeed <= 0f) stoppedRotating?.Invoke();
+        else if (degreesPerSecondSpeed <= Mathf.Epsilon) stoppedRotating?.Invoke();
         prevSpd = degreesPerSecondSpeed;
 
         if ((degreesPerSecondSpeed > 0f) || sendWhenZeroToo)

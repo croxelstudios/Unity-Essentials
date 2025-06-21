@@ -54,7 +54,7 @@ public class DontDestroyUniqueName : MonoBehaviour
         }
         else
         {
-            DontDestroyOnLoad(gameObject);
+            DontDestroy();
             SceneManager.sceneLoaded += SceneLoaded;
             onFirstLoad?.Invoke();
             isFirstLoad = firstLoad;
@@ -90,7 +90,7 @@ public class DontDestroyUniqueName : MonoBehaviour
             duplicateDestroyed = false;
         }
         if(gameObject.scene.name != "DontDestroyOnLoad")
-            DontDestroyOnLoad(gameObject);
+            DontDestroy();
     }
 
     void SceneLoaded(Scene scene, LoadSceneMode mode)
@@ -124,5 +124,11 @@ public class DontDestroyUniqueName : MonoBehaviour
             OnDisable();
             sceneReset = true;
         }
+    }
+
+    void DontDestroy()
+    {
+        transform.parent = null;
+        DontDestroyOnLoad(gameObject);
     }
 }
