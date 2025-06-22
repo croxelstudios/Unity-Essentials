@@ -69,7 +69,8 @@ public class DontDestroyUniqueName : MonoBehaviour
         if (imChosen)
         {
             Scene sceneCurrent = SceneManager.GetActiveScene();
-            SceneManager.MoveGameObjectToScene(gameObject, SceneManager.GetActiveScene());
+            if (sceneCurrent.isLoaded)
+                SceneManager.MoveGameObjectToScene(gameObject, sceneCurrent);
             SceneManager.sceneLoaded -= SceneLoaded;
             imChosen = false;
         }

@@ -9,13 +9,21 @@ public class GoToScene : MonoBehaviour
     [SerializeField]
     float seconds = 0.5f;
     [SerializeField]
+    bool unscaledTime = false;
+    [SerializeField]
     DXEvent loadNextScene = null;
 
     Coroutine co;
 
     IEnumerator WaitForSceneTransition(float seconds)
     {
-        yield return new WaitForSeconds(seconds);
+        float deltaTime = unscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+        for (float time = 0f; time < seconds; time += deltaTime)
+        {
+            yield return null;
+            deltaTime = unscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+            if (deltaTime > 0.1f) deltaTime = 0f; //Don't progress if lag spike
+        }
         GoSceneInstant_Internal();
     }
 

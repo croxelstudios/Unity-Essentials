@@ -137,13 +137,16 @@ public class Flag : BaseSignal //Change type here
         Reset();
     }
 
-    public override void Reset()
+    protected override void Reset()
     {
         if (resetValueOnStart)
-        {
-            currentValue = startValue;
-            currentConditionCount = 0;
-        }
+            DoReset();
+    }
+
+    public void DoReset()
+    {
+        currentValue = startValue;
+        currentConditionCount = 0;
     }
 
     public void LaunchOnTrue()

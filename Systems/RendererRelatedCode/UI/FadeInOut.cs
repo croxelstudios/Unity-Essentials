@@ -137,6 +137,7 @@ public class FadeInOut : MonoBehaviour
         do
         {
             float deltaTime = unscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+            if (deltaTime > 0.1f) deltaTime = 0f; //Don't progress if lag spike
             currentAlpha = alphaHolder.alpha;
 
             if (fadingIn) currentAlpha = Mathf.Min(1f, currentAlpha + (deltaTime / timeFadeIn));

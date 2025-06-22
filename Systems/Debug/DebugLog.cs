@@ -1,6 +1,7 @@
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class DebugLog : MonoBehaviour
@@ -71,4 +72,16 @@ public class DebugLog : MonoBehaviour
     {
         Debug.Log(value.ToString());
     }
+
+#if UNITY_EDITOR
+    public void Pause()
+    {
+        EditorApplication.isPaused = true;
+    }
+
+    public void Unpause()
+    {
+        EditorApplication.isPaused = false;
+    }
+#endif
 }

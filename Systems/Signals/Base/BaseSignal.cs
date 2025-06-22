@@ -161,7 +161,7 @@ public class BaseSignal : ScriptableObject
         return signals.ToArray();
     }
 
-    public virtual void Reset()
+    protected virtual void Reset()
     {
 
     }
@@ -290,7 +290,7 @@ public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
         Reset();
     }
 
-    public override void Reset()
+    protected override void Reset()
     {
         if (resetValueOnStart)
             currentValue = startValue;
