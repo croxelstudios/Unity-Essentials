@@ -11,6 +11,10 @@ public class StateMachine : MonoBehaviour
     [PropertyOrder(-1)]
     public StateMachine connectedStateMachine = null;
     [SerializeField]
+    bool launchOnEnable = false;
+    [SerializeField]
+    bool lastLinkedObjectsRemain = false;
+    [SerializeField]
     [StringPopup("stateNames")]
     [OnValueChanged("UpdateState")]
     int _currentState = 0;
@@ -20,6 +24,12 @@ public class StateMachine : MonoBehaviour
     private void Awake()
     {
         _initialState = _currentState;
+    }
+
+    void OnEnable()
+    {
+        if (launchOnEnable)
+            EnterStateAction();
     }
 
     public int currentState
@@ -40,7 +50,7 @@ public class StateMachine : MonoBehaviour
         }
 #endif
     }
-    
+
     [OnValueChanged("SyncNames", true)]
     [OnValueChanged("ClampCurrentState")]
     public State[] states = null;
@@ -74,7 +84,7 @@ public class StateMachine : MonoBehaviour
             prevState = _currentState;
             wasprevStateUpdated = true;
         }
-        
+
         if (connectedStateMachine != null)
         {
             if (prevConnectedSM != connectedStateMachine)
@@ -126,25 +136,36 @@ public class StateMachine : MonoBehaviour
              //            ) &&
              (_currentState != newState))
         {
-            if (_currentState < states.Length && _currentState >= 0)
-            {
-                if (states[_currentState].linkedObjects != null)
-                    //WARNING: For some reason it turns null in _ByChildren variant
-                    foreach (GameObject obj in states[_currentState].linkedObjects)
-                        obj.SetActive(false);
-                states[_currentState].exit?.Invoke();
-            }
+            ExitStateAction();
             StateSwitchActions(_currentState, newState);
             _currentState = newState;
             if (connectedStateMachine != null)
                 connectedStateMachine.SwitchState(newState);
-            if (_currentState < states.Length)
-            {
-                if (states[_currentState].linkedObjects != null)
+            EnterStateAction();
+        }
+    }
+
+    void ExitStateAction()
+    {
+        if (_currentState < states.Length && _currentState >= 0)
+        {
+            if (states[_currentState].linkedObjects != null)
+                if ((_currentState < (states.Length - 1)) || !lastLinkedObjectsRemain)
+                    //WARNING: For some reason it turns null in _ByChildren variant
                     foreach (GameObject obj in states[_currentState].linkedObjects)
-                        obj.SetActive(true);
-                states[_currentState].enter?.Invoke();
-            }
+                        obj.SetActive(false);
+            states[_currentState].exit?.Invoke();
+        }
+    }
+
+    void EnterStateAction()
+    {
+        if (_currentState < states.Length)
+        {
+            if (states[_currentState].linkedObjects != null)
+                foreach (GameObject obj in states[_currentState].linkedObjects)
+                    obj.SetActive(true);
+            states[_currentState].enter?.Invoke();
         }
     }
 
