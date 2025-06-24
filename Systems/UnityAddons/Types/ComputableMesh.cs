@@ -1425,6 +1425,7 @@ public class ComputableMesh
         filtersProcessor.RestoreFilterMeshes();
         if (!meshFinishActions.IsNullOrEmpty())
         {
+            filtersProcessor.CleanNullValues();
             foreach (KeyValuePair<Mesh, UnityAction> pair in meshFinishActions)
                 pair.Value.Invoke();
             meshFinishActions.SmartClear();
