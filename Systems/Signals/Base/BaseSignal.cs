@@ -161,7 +161,7 @@ public class BaseSignal : ScriptableObject
         return signals.ToArray();
     }
 
-    protected virtual void Reset()
+    public virtual void Reset()
     {
 
     }
@@ -290,7 +290,7 @@ public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
         Reset();
     }
 
-    protected override void Reset()
+    public override void Reset()
     {
         if (resetValueOnStart)
             currentValue = startValue;
@@ -445,8 +445,12 @@ public class BaseSignalPropertyDrawer : PropertyDrawer
     {
         EditorGUI.BeginProperty(position, label, property);
         string t = property.type;
-        property.objectReferenceValue = BaseSignalManager.DrawSignalNames(Type.GetType(property.type.Replace("PPtr<$", "").Replace(">", "")),
-            property.objectReferenceValue, position, label, false);
+        t = t.Replace("PPtr<$", "").Replace(">", "");
+        if (typeof(BaseSignal).Name == t)
+            EditorGUI.PropertyField(position, property);
+        else
+            property.objectReferenceValue = BaseSignalManager.DrawSignalNames(Type.GetType(t),
+                property.objectReferenceValue, position, label, false);
         EditorGUI.EndProperty();
     }
 }

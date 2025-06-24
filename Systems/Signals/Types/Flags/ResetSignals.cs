@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class ResetFlags : MonoBehaviour
+public class ResetSignals : MonoBehaviour
 {
     [SerializeField]
-    Flag[] flags = null;
+    BaseSignal[] signals = null;
     [SerializeField]
     bool onEnable = false;
 
@@ -15,7 +15,7 @@ public class ResetFlags : MonoBehaviour
 
     public void DoReset()
     {
-        for (int i = 0; i < flags.Length; i++)
-            flags[i].DoReset();
+        for (int i = 0; i < signals.Length; i++)
+            signals[i].Reset();
     }
 }

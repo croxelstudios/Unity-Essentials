@@ -30,6 +30,7 @@ public class FadeInOut : MonoBehaviour
     Coroutine co;
     FadeBehaviour current;
     FadeBehaviour onEnableOverride = FadeBehaviour.None;
+    bool init;
 
     enum FadeBehaviour { FadeIn, FadeOut, None }
 
@@ -41,29 +42,34 @@ public class FadeInOut : MonoBehaviour
 
     void OnEnable()
     {
-        GetAlphaHolder();
-        //alphaHolder.alpha = 0f; //Alpha 0 when disabled
-
-        FadeBehaviour check;
-        if (onEnableOverride != FadeBehaviour.None)
-            check = onEnableOverride;
-        else check = onEnableBehaviour;
-
-        switch (check)
+        if (!init)
         {
-            case FadeBehaviour.FadeIn:
-                FadeIn();
-                break;
-            case FadeBehaviour.FadeOut:
-                FadeOut();
-                break;
-            default:
-                CheckInvisibleBehaviour(alphaHolder.alpha);
-                break;
-        }
+            GetAlphaHolder();
+            //alphaHolder.alpha = 0f; //Alpha 0 when disabled
 
-        if (onEnableOverride != FadeBehaviour.None)
-            onEnableOverride = FadeBehaviour.None;
+            FadeBehaviour check;
+            if (onEnableOverride != FadeBehaviour.None)
+                check = onEnableOverride;
+            else check = onEnableBehaviour;
+
+            switch (check)
+            {
+                case FadeBehaviour.FadeIn:
+                    FadeIn();
+                    break;
+                case FadeBehaviour.FadeOut:
+                    FadeOut();
+                    break;
+                default:
+                    CheckInvisibleBehaviour(alphaHolder.alpha);
+                    break;
+            }
+
+            if (onEnableOverride != FadeBehaviour.None)
+                onEnableOverride = FadeBehaviour.None;
+
+            init = true;
+        }
     }
 
     void OnDisable()
@@ -78,6 +84,7 @@ public class FadeInOut : MonoBehaviour
                 break;
         }
         StopEffect();
+        init = false;
     }
 
     public void FadeIn()
@@ -109,6 +116,22 @@ public class FadeInOut : MonoBehaviour
         }
         else if (alphaHolder.alpha > 0f)
             co = StartCoroutine(FadeTo(false));
+    }
+
+    public void FadeInInstant()
+    {
+        GetAlphaHolder();
+        StopEffect();
+        alphaHolder.alpha = 1f;
+        init = true;
+    }
+
+    public void FadeOutInstant()
+    {
+        GetAlphaHolder();
+        StopEffect();
+        alphaHolder.alpha = 0f;
+        init = true;
     }
 
     void CheckInvisibleBehaviour(float alpha)

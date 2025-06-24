@@ -17,7 +17,7 @@ public class GoToScene_Launcher : BRemoteLauncher
             foreach (GoToScene goTo in goToScenes)
                 if (goTo != null)
                 {
-                    if (scene != null) goTo.SetScene(scene);
+                    if (scene.ScenePath != "") goTo.SetScene(scene);
                     goTo.GoScene();
                 }
         }
@@ -31,7 +31,7 @@ public class GoToScene_Launcher : BRemoteLauncher
             foreach (GoToScene goTo in goToScenes)
                 if (goTo != null)
                 {
-                    if (scene != null) goTo.SetScene(scene);
+                    if (scene.ScenePath != "") goTo.SetScene(scene);
                     goTo.GoScene(seconds);
                 }
         }
@@ -45,7 +45,7 @@ public class GoToScene_Launcher : BRemoteLauncher
             foreach (GoToScene goTo in goToScenes)
                 if (goTo != null)
                 {
-                    if (scene != null) goTo.SetScene(scene);
+                    if (scene.ScenePath != "") goTo.SetScene(scene);
                     goTo.GoSceneInstant();
                 }
         }
@@ -58,7 +58,7 @@ public class GoToScene_Launcher : BRemoteLauncher
             FillArrayUpdate(ref goToScenes);
             foreach (GoToScene goTo in goToScenes)
                 if (goTo != null)
-                    if (scene != null) goTo.SetScene(scene);
+                    if (scene.ScenePath != "") goTo.SetScene(scene);
         }
     }
 
@@ -69,7 +69,7 @@ public class GoToScene_Launcher : BRemoteLauncher
             FillArrayUpdate(ref goToScenes);
             foreach (GoToScene goTo in goToScenes)
                 if (goTo != null)
-                    if (scene != null) goTo.SetScene(scene);
+                    if (scene.ScenePath != "") goTo.SetScene(scene);
         }
     }
 }
