@@ -31,18 +31,27 @@ public class BRemoteLauncher : MonoBehaviour
 
     protected void FillArrayUpdate<T>(ref T[] array) where T : Component
     {
+        array = array.ClearNulls();
         if (searchMode == SearchMode.searchEveryTime ||
-            ((searchMode == SearchMode.searchWhenNull) && ((array == null) || (array.Length <= 0))))
+            ((searchMode == SearchMode.searchWhenNull) && array.IsNullOrEmpty()))
             FillArray(ref array);
     }
 
     protected void FillArray<T>(ref T[] array) where T : Component
     {
         Type t = typeof(T);
-        staticArray = staticArray.CreateAdd(t, new Dictionary<string, List<Component>>());
+
+        if (staticArray.NotNullContainsKey(t))
+        {
+            staticArray[t].ClearNulls();
+            foreach (KeyValuePair<string, List<Component>> pair0 in staticArray[t])
+                pair0.Value.ClearNulls();
+        }
+        else staticArray = staticArray.CreateAdd(t, new Dictionary<string, List<Component>>());
 
         if (staticArray[t].ContainsKey(filterByTag) &&
-            ((searchMode == SearchMode.searchOnce) || ((searchMode == SearchMode.searchWhenNull) && (staticArray[t][filterByTag].Count > 0))))
+            ((searchMode == SearchMode.searchOnce) ||
+            ((searchMode == SearchMode.searchWhenNull) && (staticArray[t][filterByTag].Count > 0))))
             array = ComponentToTypeArray<T>(staticArray[t][filterByTag].ToArray());
         else
         {

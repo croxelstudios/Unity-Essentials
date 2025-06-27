@@ -11,6 +11,8 @@ public class GoToScene : MonoBehaviour
     [SerializeField]
     bool unscaledTime = false;
     [SerializeField]
+    bool canGoToSameScene = true;
+    [SerializeField]
     DXEvent loadNextScene = null;
 
     Coroutine co;
@@ -35,8 +37,11 @@ public class GoToScene : MonoBehaviour
 
     public void GoSceneInstant()
     {
-        loadNextScene?.Invoke();
-        GoSceneInstant_Internal();
+        if (CanLoadScene())
+        {
+            loadNextScene?.Invoke();
+            GoSceneInstant_Internal();
+        }
     }
 
     void GoSceneInstant_Internal()
@@ -46,13 +51,32 @@ public class GoToScene : MonoBehaviour
 
     public void GoScene(float seconds)
     {
-        loadNextScene?.Invoke();
-        if (co != null) StopCoroutine(co);
-        co = StartCoroutine(WaitForSceneTransition(seconds));
+        if (CanLoadScene())
+        {
+            loadNextScene?.Invoke();
+            if (co != null) StopCoroutine(co);
+            co = StartCoroutine(WaitForSceneTransition(seconds));
+        }
     }
 
     public void SetScene(SceneReference scene)
     {
         this.scene = scene;
+    }
+
+    bool CanLoadScene()
+    {
+        return CanLoadScene(scene);
+    }
+
+    bool CanLoadScene(SceneReference scene)
+    {
+        Scene scn = SceneManager.GetSceneByPath(scene);
+        return canGoToSameScene || !scn.isLoaded;
+    }
+
+    public void SetCurrentScene()
+    {
+        scene.ScenePath = gameObject.scene.path;
     }
 }

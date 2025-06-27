@@ -1,6 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Object = UnityEngine.Object;
 
 public static class ListExtension_CreateAdd
 {
@@ -340,11 +340,41 @@ public static class ListExtension_CreateAdd
     #endregion
 
     #region ClearNulls
+    public static T[] ClearNulls<T>(this T[] array) where T : Object
+    {
+        if (array == null)
+            return null;
+
+        List<T> newData = new List<T>(array);
+        for (int i = newData.Count - 1; i >= 0; i--)
+        {
+            T item = newData[i];
+            bool isNull;
+
+            if (item is Object unityObj)
+                isNull = unityObj == null;
+            else isNull = item == null;
+
+            if (isNull)
+                newData.RemoveAt(i);
+        }
+        return newData.ToArray();
+    }
+
     public static void ClearNulls<T>(this List<T> list)
     {
         for (int i = list.Count - 1; i >= 0; i--)
-            if (list[i] == null)
+        {
+            T item = list[i];
+            bool isNull;
+
+            if (item is Object unityObj)
+                isNull = unityObj == null;
+            else isNull = item == null;
+
+            if (isNull)
                 list.RemoveAt(i);
+        }
     }
 
     public static Dictionary<T, Y> ClearNulls<T, Y>(this Dictionary<T, Y> dict)

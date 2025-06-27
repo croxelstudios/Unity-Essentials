@@ -40,7 +40,7 @@ public class BBaseSignalListener<T> : BBaseSignalListener
         Debug.LogError("LaunchActions not implemented for this Listener");
     }
 
-    public virtual void LaunchActions(int index, T gameObject)
+    public virtual void LaunchActions(int index, T value)
     {
         Debug.LogError("LaunchActions not implemented for this Listener");
     }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using System;
+using System.Linq;
 using UnityEngine.SceneManagement;
 
 [DefaultExecutionOrder(-1000)]
@@ -39,27 +39,25 @@ public class DontDestroyUniqueName : MonoBehaviour
     void StartUp(bool firstLoad)
     {
         DontDestroyUniqueName[] objs = FindObjectsByType<DontDestroyUniqueName>(FindObjectsSortMode.None);
+        objs = objs.Where(x => x.gameObject.name == gameObject.name).ToArray();
         if (objs.Length > 1)
         {
             foreach (DontDestroyUniqueName obj in objs)
                 if (obj != this)
                 {
-                    if (obj.gameObject.name == gameObject.name)
-                    {
-                        obj.ChooseThisOne();
-                        break;
-                    }
+                    obj.ChooseThisOne();
+                    break;
                 }
             DestroyImmediate(gameObject);
         }
         else
         {
-            DontDestroy();
             SceneManager.sceneLoaded += SceneLoaded;
             onFirstLoad?.Invoke();
             isFirstLoad = firstLoad;
             duplicateDestroyed = true;
             imChosen = true;
+            DontDestroy();
         }
         initialized = true;
     }
@@ -90,7 +88,7 @@ public class DontDestroyUniqueName : MonoBehaviour
             if (isFirstLoad) isFirstLoad = false;
             duplicateDestroyed = false;
         }
-        if(gameObject.scene.name != "DontDestroyOnLoad")
+        if (gameObject.scene.name != "DontDestroyOnLoad")
             DontDestroy();
     }
 
@@ -112,7 +110,7 @@ public class DontDestroyUniqueName : MonoBehaviour
             }
         }
     }
-    
+
     public void SelfDestruct()
     {
         Destroy(gameObject);

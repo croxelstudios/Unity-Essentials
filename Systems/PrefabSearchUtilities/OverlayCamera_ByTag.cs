@@ -29,10 +29,18 @@ public class OverlayCamera_ByTag : MonoBehaviour
         {
             UniversalAdditionalCameraData overlayData =
                 cam.GetUniversalAdditionalCameraData();
+
             if (overlayData.renderType == CameraRenderType.Overlay)
             {
                 UniversalAdditionalCameraData cameraData =
                     thisCamera.GetUniversalAdditionalCameraData();
+
+                for (int i = cameraData.cameraStack.Count - 1; i >= 0; i--)
+                {
+                    if (cameraData.cameraStack[i] == null)
+                        cameraData.cameraStack.RemoveAt(i);
+                }
+
                 if (!cameraData.cameraStack.Contains(cam))
                     cameraData.cameraStack.Add(cam);
             }

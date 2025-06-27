@@ -167,7 +167,7 @@ public class BaseSignal : ScriptableObject
     }
 }
 
-public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
+public class BaseSignal<T> : BaseSignal
 {
     [SerializeField]
     bool resetValueOnStart = true;
@@ -190,14 +190,14 @@ public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
         {
             SetValue(value);
             beforeCall?.Invoke();
-            if (dynamicSearch) DynamicSearch<L>();
+            if (dynamicSearch) DynamicSearch<BBaseSignalListener<T>>();
             if (listeners != null)
             {
                 T finalValue = Calculate();
                 for (int i = (listeners.Count - 1); i >= 0; i--)
                 {
                     if ((tag == "") || (tag == listeners[i].receiver.tag))
-                        LaunchActions(((L)listeners[i].receiver), listeners[i].index, finalValue);
+                        LaunchActions(((BBaseSignalListener<T>)listeners[i].receiver), listeners[i].index, finalValue);
                 }
             }
             if (dynamicSearch) listeners = null;
@@ -221,7 +221,7 @@ public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
         {
             SetValue(value);
             beforeCall?.Invoke();
-            if (dynamicSearch) DynamicSearch<L>();
+            if (dynamicSearch) DynamicSearch<BBaseSignalListener<T>>();
             if (listeners != null)
             {
                 T finalValue = Calculate();
@@ -238,7 +238,7 @@ public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
                         }
                     }
                     if (isChild)
-                        LaunchActions(((L)listeners[i].receiver), listeners[i].index, finalValue);
+                        LaunchActions(((BBaseSignalListener<T>)listeners[i].receiver), listeners[i].index, finalValue);
                 }
             }
             if (dynamicSearch) listeners = null;
@@ -246,7 +246,7 @@ public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
         }
     }
 
-    void LaunchActions(L listener, int index, T value)
+    void LaunchActions(BBaseSignalListener<T> listener, int index, T value)
     {
         listener.LaunchActions(index, value);
     }
@@ -256,7 +256,7 @@ public class BaseSignal<T, L> : BaseSignal where L : BBaseSignalListener<T>
         CallSignal(value, "");
     }
 
-    public static void Set(BaseSignal<T, L> signal, T value)
+    public static void Set(BaseSignal<T> signal, T value)
     {
         signal.CallSignal(value);
     }
