@@ -2,10 +2,10 @@
 using UnityEngine.Animations;
 
 [ExecuteAlways]
-[RequireComponent(typeof(ParentConstraint))]
+[RequireComponent(typeof(IConstraint))]
 public class ParentConstraint_ByTag : MonoBehaviour
 {
-    ParentConstraint pcons;
+    IConstraint pcons;
 
     [SerializeField]
     [TagSelector]
@@ -22,7 +22,7 @@ public class ParentConstraint_ByTag : MonoBehaviour
 
     void OnEnable()
     {
-        pcons = GetComponent<ParentConstraint>();
+        pcons = GetComponent<IConstraint>();
         ResetSource();
     }
 

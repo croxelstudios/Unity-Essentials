@@ -28,6 +28,7 @@ using UnityEditor;
 /// <summary>
 /// A wrapper that provides the means to safely serialize Scene Asset References.
 /// </summary>
+[DefaultExecutionOrder(-100)]
 [System.Serializable]
 public class SceneReference : ISerializationCallbackReceiver
 {

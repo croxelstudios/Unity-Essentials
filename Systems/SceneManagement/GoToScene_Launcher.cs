@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GoToScene_Launcher : BRemoteLauncher
+public class GoToScene_Launcher : BRemoteLauncher, ISceneHolder
 {
     [SerializeField]
     SceneReference scene = null;
+    public SceneReference Scene { get { return scene; } set { scene = value; } }
 
     GoToScene[] goToScenes;
 

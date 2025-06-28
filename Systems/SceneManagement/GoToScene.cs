@@ -2,10 +2,11 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GoToScene : MonoBehaviour
+public class GoToScene : MonoBehaviour, ISceneHolder
 {
     [SerializeField]
     SceneReference scene = null;
+    public SceneReference Scene { get { return scene; } set { scene = value; } }
     [SerializeField]
     float seconds = 0.5f;
     [SerializeField]
