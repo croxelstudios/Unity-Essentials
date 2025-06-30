@@ -7,16 +7,17 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SmokeParticlesCartoon
+  m_Name: SmokeParticlesOpaque
   m_Shader: {fileID: 4800000, guid: a001d2573a27ba2498401cb5ed49b9e4, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _ZWRITE_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 5000
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -71,7 +72,7 @@ Material:
     - _ColorAlphaMultiply: 0
     - _CompareOp: 4
     - _Cull: 0
-    - _CutOff: 0
+    - _CutOff: 0.1
     - _CutOffIgnoresColor: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -102,8 +103,8 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     - _zRead: 0
-    - _zTest: 6
-    - _zWrite: 0
+    - _zTest: 2
+    - _zWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

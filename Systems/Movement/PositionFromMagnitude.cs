@@ -1,7 +1,10 @@
+using Mono.CSharp;
 using UnityEngine;
 
 public class PositionFromMagnitude : MonoBehaviour
 {
+    [SerializeField]
+    Space space = Space.Self;
     [SerializeField]
     Vector3 direction = Vector3.forward;
     [SerializeField]
@@ -9,6 +12,8 @@ public class PositionFromMagnitude : MonoBehaviour
 
     public void Position(float magnitude)
     {
-        transform.localPosition = magnitude * direction * multiplier;
+        Vector3 movement = magnitude * direction * multiplier;
+        transform.localPosition = (space == Space.World) ?
+            transform.InverseTransformVector(movement) : movement;
     }
 }

@@ -45,4 +45,11 @@ public class ScaleUpAndDown : MonoBehaviour
         currentAngle = Mathf.Repeat(currentAngle + (360f * deltaTime), 360f);
         return Mathf.Sin(currentAngle * Mathf.Deg2Rad);
     }
+
+    public void ResetScale()
+    {
+        transform.localScale -= currentValue * amount;
+        currentAngle = startTime * 360f;
+        currentValue = 0f;
+    }
 }

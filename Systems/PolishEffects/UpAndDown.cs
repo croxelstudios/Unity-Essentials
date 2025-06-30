@@ -64,12 +64,21 @@ public class UpAndDown : MonoBehaviour
     {
         float dif = SineWave(ref currentAngle, deltaTime * speed) - currentValue;
         currentValue += dif;
-        transform.Translate(axis.normalized * dif * amount * amountMult, worldSpace ? Space.World : Space.Self);
+        transform.Translate(axis.normalized * dif * amount * amountMult,
+            worldSpace ? Space.World : Space.Self);
     }
 
     float SineWave(ref float currentAngle, float deltaTime)
     {
         currentAngle = Mathf.Repeat(currentAngle + (360f * deltaTime), 360f);
         return Mathf.Sin(currentAngle * Mathf.Deg2Rad);
+    }
+
+    public void ResetPosition()
+    {
+        transform.Translate(-currentValue * axis.normalized * amount * amountMult,
+            worldSpace ? Space.World : Space.Self);
+        currentAngle = startTime * 360f;
+        currentValue = 0f;
     }
 }
