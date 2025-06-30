@@ -65,6 +65,11 @@ public struct JumpSettings
     [HideInInspector]
     float timeToMinApex;
 
+    [HideIf("@true")]
+    public float heightModifier;
+    [HideIf("@true")]
+    public float speedModifier;
+
     public enum GravityDriver { Project, Manual, ByFallTime}
 
     public JumpSettings(bool variableHeight)
@@ -84,6 +89,9 @@ public struct JumpSettings
         jumpGravity = 0f;
         jumpHeavyGravity = 0f;
         timeToMinApex = 0f;
+
+        heightModifier = 1f;
+        speedModifier = 1f;
 
         ValidateData();
     }
@@ -106,6 +114,9 @@ public struct JumpSettings
         jumpGravity = 0f;
         jumpHeavyGravity = 0f;
         timeToMinApex = 0f;
+
+        heightModifier = 1f;
+        speedModifier = 1f;
 
         ValidateData();
     }
@@ -132,8 +143,11 @@ public struct JumpSettings
         if (sameAsFallTime)
             timeToApex = fallTime;
 
-        jumpGravity = (2f * jumpMaxHeight) / (timeToApex * timeToApex);
-        jumpSpeed = jumpGravity * timeToApex;
+        float njumpMaxHeight = jumpMaxHeight * heightModifier;
+        float njumpMinHeight = jumpMinHeight * heightModifier;
+        float nTimeToApex = timeToApex * Mathf.Sqrt(1f / speedModifier);
+        jumpGravity = (2f * njumpMaxHeight) / (nTimeToApex * nTimeToApex);
+        jumpSpeed = jumpGravity * nTimeToApex;
         jumpHeavyGravity = (jumpSpeed * jumpSpeed) / (2f * jumpMinHeight);
         timeToMinApex = jumpSpeed / jumpHeavyGravity;
     }
@@ -176,13 +190,17 @@ public struct JumpSettings
 
     public float StartSpeed()
     {
+        ProccessGravity();
+        ProccessJumpData();
         return jumpSpeed;
     }
 
     public float Gravity(bool falling, bool jumpButtonPressed)
     {
+        ProccessGravity();
+        ProccessJumpData();
         if (!useGravity) return 0f;
-        else return falling ? gravity : ((jumpButtonPressed || (!variableHeight)) ? jumpGravity : jumpHeavyGravity);
+        else return falling ? (gravity * speedModifier) : ((jumpButtonPressed || (!variableHeight)) ? jumpGravity : jumpHeavyGravity);
     }
 
     public bool UsesGravity()

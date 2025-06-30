@@ -82,6 +82,20 @@ public class NDRigidbody
             else rigid3.angularVelocity = value;
         }
     }
+    public float linearDamping
+    {
+        get
+        {
+            if (is2D) return rigid2.linearDamping;
+            else return rigid3.linearDamping;
+        }
+
+        set
+        {
+            if (is2D) rigid2.linearDamping = value;
+            else rigid3.linearDamping = value;
+        }
+    }
     public float angularDamping
     {
         get
