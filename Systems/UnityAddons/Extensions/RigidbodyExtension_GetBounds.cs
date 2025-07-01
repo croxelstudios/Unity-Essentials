@@ -3,19 +3,21 @@ using UnityEngine;
 
 public static class RigidbodyExtension_GetBounds
 {
+    static List<Collider2D> col2;
+
     public static Bounds GetBounds(this Rigidbody2D rigid2D)
     {
-        List<Collider2D> colliders = new List<Collider2D>();
-        rigid2D.GetAttachedColliders(colliders);
+        rigid2D.GetAttachedColliders(col2);
         Bounds bounds;
-        if (colliders.Count > 0)
+        if (col2.Count > 0)
         {
-            bounds = colliders[0].bounds;
-            if (colliders.Count > 1)
-                for (int i = 1; i < colliders.Count; i++)
-                    bounds.Encapsulate(colliders[i].bounds);
+            bounds = col2[0].bounds;
+            if (col2.Count > 1)
+                for (int i = 1; i < col2.Count; i++)
+                    bounds.Encapsulate(col2[i].bounds);
         }
         else bounds = new Bounds(Vector3.zero, Vector3.zero);
+        col2.Clear();
         return bounds;
     }
 

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class RenderersSetColor : BRenderersSetProperty
 {
     static Dictionary<RendererMaterial, List<RenderersSetColor>> stackDictionary;
-    static bool dicWasCleared;
+    //static bool dicWasCleared;
     public BlendMode blendMode = BlendMode.Multiply;
     [SerializeField]
     Color _color = Color.white;
@@ -37,11 +37,14 @@ public class RenderersSetColor : BRenderersSetProperty
             foreach (Renderer ren in rend)
             {
                 if (ren != null)
-                    for (int i = 0; i < ren.sharedMaterials.Length; i++)
+                {
+                    Material[] shM = ren.sharedMaterials;
+                    for (int i = 0; i < shM.Length; i++)
                     {
                         RendererMaterial renMat = new RendererMaterial(ren, i, propertyName);
                         stackDictionary.SmartRemove(renMat, this);
                     }
+                }
             }
             base.OnDisable();
         }
@@ -55,7 +58,7 @@ public class RenderersSetColor : BRenderersSetProperty
             oldColor = color;
             oldBlendMode = blendMode;
         }
-        dicWasCleared = false;
+        //dicWasCleared = false;
         //StartCoroutine(DictionaryCleanUp());
     }
 
@@ -123,23 +126,23 @@ public class RenderersSetColor : BRenderersSetProperty
         return current;
     }
 
-    IEnumerator DictionaryCleanUp()
-    {
-        yield return new WaitForEndOfFrame();
-        if (!dicWasCleared)
-        {
-            RendererMaterial[] keys = new RendererMaterial[stackDictionary.Keys.Count];
-            stackDictionary.Keys.CopyTo(keys, 0);
-            foreach (RendererMaterial renMat in keys)
-            {
-                if ((renMat.rend == null) ||
-                    (renMat.rend.sharedMaterials.Length <= renMat.mat) ||
-                    renMat.rend.sharedMaterials[renMat.mat] == null)
-                    stackDictionary.Remove(renMat);
-            }
-            dicWasCleared = true;
-        }
-    }
+    //IEnumerator DictionaryCleanUp()
+    //{
+    //    yield return new WaitForEndOfFrame();
+    //    if (!dicWasCleared)
+    //    {
+    //        RendererMaterial[] keys = new RendererMaterial[stackDictionary.Keys.Count];
+    //        stackDictionary.Keys.CopyTo(keys, 0);
+    //        foreach (RendererMaterial renMat in keys)
+    //        {
+    //            Material[] shM = renMat.rend.sharedMaterials;
+    //            if ((renMat.rend == null) ||
+    //                (shM.Length <= renMat.mat) || shM[renMat.mat] == null)
+    //                stackDictionary.Remove(renMat);
+    //        }
+    //        dicWasCleared = true;
+    //    }
+    //}
 
     public virtual void SetColor(Color color)
     {

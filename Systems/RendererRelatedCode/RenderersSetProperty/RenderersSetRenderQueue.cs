@@ -135,20 +135,28 @@ public class RenderersSetRenderQueue : MonoBehaviour
 
             if (IsInitialized())
                 for (int i = 0; i < rend.Length; i++)
+                {
+                    Renderer r = rend[i];
                     if (rend[i] != null)
                     {
+                        Material[] shM = r.sharedMaterials;
                         if (materialIndex < 0)
-                            for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
-                                ApplyRenderQueue(i, j);
-                        else if (materialIndex < rend[i].sharedMaterials.Length)
-                            ApplyRenderQueue(i, materialIndex);
+                            for (int j = 0; j < shM.Length; j++)
+                                ApplyRenderQueue(shM[j]);
+                        else if (materialIndex < shM.Length)
+                            ApplyRenderQueue(shM[materialIndex]);
                     }
+                }
         }
     }
 
-    void ApplyRenderQueue(int rendId, int materialId)
+    //void ApplyRenderQueue(int rendId, int materialId)
+    //{
+    //    ApplyRenderQueue(rend[rendId].sharedMaterials[materialId]);
+    //}
+
+    void ApplyRenderQueue(Material mat)
     {
-        Material mat = rend[rendId].sharedMaterials[materialId];
         if (mat != null)
         {
             bool wasOverriden = false;

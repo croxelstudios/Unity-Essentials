@@ -92,23 +92,30 @@ public class RenderersSetKeyword : MonoBehaviour
         OnUpdatingProperty();
         for (int i = 0; i < rend.Length; i++)
         {
-            if (rend[i] != null)
+            Renderer r = rend[i];
+            if (r != null)
             {
+                Material[] shM = r.sharedMaterials;
                 if (materialIndex < 0)
-                    for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
-                        UpdateMaterial(i, j, reset);
-                else if (materialIndex < rend[i].sharedMaterials.Length)
-                    UpdateMaterial(i, materialIndex, reset);
+                    for (int j = 0; j < shM.Length; j++)
+                        UpdateMaterial(r, shM[j], j, reset);
+                else if (materialIndex < shM.Length)
+                    UpdateMaterial(r, shM[materialIndex], materialIndex, reset);
             }
         }
     }
 
-    void UpdateMaterial(int rendId, int materialId, bool reset = false)
+    //void UpdateMaterial(int rendId, int materialId, bool reset = false)
+    //{
+    //    UpdateMaterial(rend[rendId], rend[rendId].sharedMaterials[materialId], materialId, reset);
+    //}
+
+    void UpdateMaterial(Renderer rend, Material mat, int materialId, bool reset = false)
     {
-        if ((rend[rendId].sharedMaterials[materialId] != null))
+        if (mat != null)
         {
-            if (reset) VResetProperty(rend[rendId], materialId);
-            else VSetProperty(rend[rendId], materialId);
+            if (reset) VResetProperty(rend, materialId);
+            else VSetProperty(rend, materialId);
         }
     }
 

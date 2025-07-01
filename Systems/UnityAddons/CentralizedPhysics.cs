@@ -253,16 +253,26 @@ public class NDRigidbody
     {
         if (rigid == null) return null;
 
-        rigids2 = rigids2.CreateAdd(rigid, new NDRigidbody(rigid));
-        return rigids2[rigid];
+        NDRigidbody nd;
+        if (!rigids2.SmartGetValue(rigid, out nd))
+        {
+            nd = new NDRigidbody(rigid);
+            rigids2 = rigids2.CreateAdd(rigid, nd);
+        }
+        return nd;
     }
 
     public static NDRigidbody ND(Rigidbody rigid)
     {
         if (rigid == null) return null;
 
-        rigids3 = rigids3.CreateAdd(rigid, new NDRigidbody(rigid));
-        return rigids3[rigid];
+        NDRigidbody nd;
+        if (!rigids3.SmartGetValue(rigid, out nd))
+        {
+            nd = new NDRigidbody(rigid);
+            rigids3 = rigids3.CreateAdd(rigid, nd);
+        }
+        return nd;
     }
 
     public static NDRigidbody GetNDRigidbodyFrom(GameObject go, Scope scope = Scope.inThis)
@@ -367,15 +377,21 @@ public class NDRigidbody
         else rigid3.MovePosition(position);
     }
 
+    List<NDRaycastHit> tmpHits;
+
     public NDRaycastHit[] TunnelCastToThis(Vector3 origin, Vector3 direction, float radius, float distance)
     {
         float offset = NDPhysics.DefaultContactOffset(is2D);
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, is2D);
-        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+
+        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
+        else tmpHits.Clear();
+
         for (int i = 0; i < hits.Length; i++)
-            if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
-        return finalHits.ToArray();
+            if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset))
+                tmpHits.Add(hits[i]);
+        return tmpHits.ToArray();
     }
 
     public NDRaycastHit[] TunnelCastExceptThis(Vector3 origin, Vector3 direction, float radius, float distance,
@@ -384,12 +400,15 @@ public class NDRigidbody
         float offset = NDPhysics.DefaultContactOffset(is2D);
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, is2D);
-        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+
+        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
+        else tmpHits.Clear();
+
         for (int i = 0; i < hits.Length; i++)
             if ((hits[i].collider.attachedRigidbody != this) &&
                 (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
-                finalHits.Add(hits[i]);
-        return finalHits.ToArray();
+                tmpHits.Add(hits[i]);
+        return tmpHits.ToArray();
     }
 
     public NDRaycastHit[] TunnelCastToThis(Vector3 origin, Vector3 direction, float radius, float distance,
@@ -398,10 +417,14 @@ public class NDRigidbody
         float offset = NDPhysics.DefaultContactOffset(is2D);
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, mask, is2D);
-        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+
+        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
+        else tmpHits.Clear();
+
         for (int i = 0; i < hits.Length; i++)
-            if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
-        return finalHits.ToArray();
+            if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset))
+                tmpHits.Add(hits[i]);
+        return tmpHits.ToArray();
     }
 
     public NDRaycastHit[] TunnelCastExceptThis(Vector3 origin, Vector3 direction, float radius, float distance,
@@ -410,12 +433,15 @@ public class NDRigidbody
         float offset = NDPhysics.DefaultContactOffset(is2D);
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, mask, is2D);
-        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+
+        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
+        else tmpHits.Clear();
+
         for (int i = 0; i < hits.Length; i++)
             if ((hits[i].collider.attachedRigidbody != this) &&
                 (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
-                finalHits.Add(hits[i]);
-        return finalHits.ToArray();
+                tmpHits.Add(hits[i]);
+        return tmpHits.ToArray();
     }
 
     //TO DO: Full rigidbody casts.

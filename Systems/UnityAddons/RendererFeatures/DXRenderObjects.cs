@@ -461,8 +461,9 @@ public class DXRenderObjects : ScriptableRendererFeature
                 if (texMode == TextureTargetSettings.TextureTarget.GlobalTexture)
                     builder.SetGlobalTextureAfterPass(passData.color, texName);
 
-                builder.SetupRenderingObjects(renderGraph, frameData, renderQueueType, m_ShaderTagIdList, filteringSettings,
-                    renderStateBlock, ref passData.rendererListHdl, materialOverride);
+                builder.SetupRenderingObjects(renderGraph, frameData, renderQueueType,
+                    m_ShaderTagIdList, filteringSettings, renderStateBlock,
+                    ref passData.rendererListHdl, materialOverride);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {

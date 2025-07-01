@@ -41,40 +41,47 @@ public class BRemoteLauncher : MonoBehaviour
     {
         Type t = typeof(T);
 
-        if (staticArray.NotNullContainsKey(t))
+        Dictionary<string, List<Component>> dict;
+        if (staticArray.SmartGetValue(t, out dict))
         {
-            staticArray[t].ClearNulls();
-            foreach (KeyValuePair<string, List<Component>> pair0 in staticArray[t])
+            dict.ClearNulls();
+            foreach (KeyValuePair<string, List<Component>> pair0 in dict)
                 pair0.Value.ClearNulls();
         }
-        else staticArray = staticArray.CreateAdd(t, new Dictionary<string, List<Component>>());
+        else
+        {
+            dict = new Dictionary<string, List<Component>>();
+            staticArray = staticArray.CreateAdd(t, dict);
+        }
 
-        if (staticArray[t].ContainsKey(filterByTag) &&
+        List<Component> list;
+        if (dict.SmartGetValue(filterByTag, out list) &&
             ((searchMode == SearchMode.searchOnce) ||
-            ((searchMode == SearchMode.searchWhenNull) && (staticArray[t][filterByTag].Count > 0))))
-            array = ComponentToTypeArray<T>(staticArray[t][filterByTag].ToArray());
+            ((searchMode == SearchMode.searchWhenNull) && (list.Count > 0))))
+            array = ComponentToTypeArray<T>(list.ToArray());
         else
         {
             if (filterByTag == "")
-                staticArray[t] = staticArray[t].CreateAddRange(filterByTag,
-                    FindObjectsByType<T>(FindObjectsSortMode.None));
-            else staticArray[t] = staticArray[t].CreateAddRange(filterByTag,
-                FilterByTag<T>(filterByTag));
-            array = ComponentToTypeArray<T>(staticArray[t][filterByTag].ToArray());
+                list = list.CreateAddRange(FindObjectsByType<T>(FindObjectsSortMode.None));
+            else list = list.CreateAddRange(FilterByTag<T>(filterByTag));
+            staticArray[t] = dict = dict.CreateAddRange(filterByTag, list);
+            array = ComponentToTypeArray<T>(list.ToArray());
         }
 
         if (extraTags != null)
         {
             for (int i = 0; i < extraTags.Length; i++)
             {
-                if (staticArray[t].ContainsKey(extraTags[i]) &&
-            ((searchMode == SearchMode.searchOnce) || ((searchMode == SearchMode.searchWhenNull) && (staticArray[t][filterByTag].Count > 0))))
-                    array.Concat(ComponentToTypeArray<T>(staticArray[t][extraTags[i]].ToArray())).ToArray();
+                string extraTag = extraTags[i];
+                if (dict.SmartGetValue(extraTag, out list) &&
+                    ((searchMode == SearchMode.searchOnce) ||
+                    ((searchMode == SearchMode.searchWhenNull) && (list.Count > 0))))
+                    array.Concat(ComponentToTypeArray<T>(list.ToArray())).ToArray();
                 else
                 {
-                    staticArray[t] = staticArray[t].CreateAddRange(extraTags[i],
-                        FilterByTag<T>(extraTags[i]));
-                    array.Concat(ComponentToTypeArray<T>(staticArray[t][extraTags[i]].ToArray())).ToArray();
+                    list = list.CreateAddRange(FilterByTag<T>(extraTag));
+                    staticArray[t] = dict = dict.CreateAddRange(extraTag, list);
+                    array.Concat(ComponentToTypeArray<T>(list.ToArray())).ToArray();
                 }
             }
         }

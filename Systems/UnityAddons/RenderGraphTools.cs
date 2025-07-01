@@ -14,7 +14,7 @@ public static class RenderGraphTools
     class TextureCollection : ContextItem
     {
         Dictionary<string, TextureHandleData> textures;
-        Dictionary<TextureHandle, TextureHandle> depthAttachments;
+        Dictionary<int, TextureHandle> depthAttachments;
 
         public override void Reset()
         {
@@ -31,7 +31,7 @@ public static class RenderGraphTools
                 {
                     if (!pair.Value.handle.IsValid())
                     {
-                        depthAttachments.SmartRemove(pair.Value.handle);
+                        depthAttachments.SmartRemove(pair.Value.handle.GetHashCode());
                         remove.Add(pair.Key);
                     }
                 }
@@ -64,14 +64,14 @@ public static class RenderGraphTools
 
         public TextureHandle GetDepth(TextureHandle color)
         {
-            if ((depthAttachments != null) && depthAttachments.ContainsKey(color))
-                return depthAttachments[color];
+            if (depthAttachments.SmartGetValue(color.GetHashCode(), out TextureHandle depth))
+                return depth;
             else return new TextureHandle();
         }
 
         public void RegisterDepth(TextureHandle color, TextureHandle depth)
         {
-            depthAttachments = depthAttachments.CreateAdd(color, depth);
+            depthAttachments = depthAttachments.CreateAdd(color.GetHashCode(), depth);
         }
     }
 

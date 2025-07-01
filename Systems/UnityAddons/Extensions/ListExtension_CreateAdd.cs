@@ -231,8 +231,8 @@ public static class ListExtension_CreateAdd
 
     public static void SmartRemove<T, Y>(this Dictionary<T, List<Y>> dict, T key, Y element)
     {
-        if ((dict != null) && dict.ContainsKey(key))
-            dict[key].Remove(element);
+        if (dict.SmartGetValue(key, out List<Y> list))
+            list.Remove(element);
     }
 
     public static void SmartRemove<T, Y>(this SortedDictionary<T, Y> dict, T key)
@@ -242,63 +242,63 @@ public static class ListExtension_CreateAdd
 
     public static void SmartRemove<T, Y>(this SortedDictionary<T, List<Y>> dict, T key, Y element)
     {
-        if ((dict != null) && dict.ContainsKey(key))
-            dict[key].Remove(element);
+        if (dict.SmartGetValue(key, out List<Y> list))
+            list.Remove(element);
     }
 
     public static void SmartRemove<T, Y, U>(this Dictionary<T, Dictionary<Y, U>> dict, T key, Y key2)
     {
-        if ((dict != null) && dict.ContainsKey(key))
-            dict[key].Remove(key2);
+        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
+            d.SmartRemove(key2);
     }
 
     public static void SmartRemove<T, Y, U>(this Dictionary<T, SortedDictionary<Y, U>> dict,
         T key, Y key2)
     {
-        if ((dict != null) && dict.ContainsKey(key))
-            dict[key].Remove(key2);
+        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
+            d.SmartRemove(key2);
     }
 
     public static void SmartRemove<T, Y, U>(this SortedDictionary<T, Dictionary<Y, U>> dict,
         T key, Y key2)
     {
-        if ((dict != null) && dict.ContainsKey(key))
-            dict[key].Remove(key2);
+        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
+            d.SmartRemove(key2);
     }
 
     public static void SmartRemove<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, U>> dict,
         T key, Y key2)
     {
-        if ((dict != null) && dict.ContainsKey(key))
-            dict[key].Remove(key2);
+        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
+            d.SmartRemove(key2);
     }
 
     public static void SmartRemove<T, Y, U>(this Dictionary<T, Dictionary<Y, List<U>>> dict,
         T key, Y key2, U element)
     {
-        if ((dict != null) && dict.ContainsKey(key) && dict[key].ContainsKey(key2))
-            dict[key][key2].Remove(element);
+        if (dict.SmartGetValue(key, out Dictionary<Y, List<U>> d))
+            d.SmartRemove(key2, element);
     }
 
     public static void SmartRemove<T, Y, U>(this Dictionary<T, SortedDictionary<Y, List<U>>> dict,
         T key, Y key2, U element)
     {
-        if ((dict != null) && dict.ContainsKey(key) && dict[key].ContainsKey(key2))
-            dict[key][key2].Remove(element);
+        if (dict.SmartGetValue(key, out SortedDictionary<Y, List<U>> d))
+            d.SmartRemove(key2, element);
     }
 
     public static void SmartRemove<T, Y, U>(this SortedDictionary<T, Dictionary<Y, List<U>>> dict,
         T key, Y key2, U element)
     {
-        if ((dict != null) && dict.ContainsKey(key) && dict[key].ContainsKey(key2))
-            dict[key][key2].Remove(element);
+        if (dict.SmartGetValue(key, out Dictionary<Y, List<U>> d))
+            d.SmartRemove(key2, element);
     }
 
     public static void SmartRemove<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, List<U>>> dict,
         T key, Y key2, U element)
     {
-        if ((dict != null) && dict.ContainsKey(key) && dict[key].ContainsKey(key2))
-            dict[key][key2].Remove(element);
+        if (dict.SmartGetValue(key, out SortedDictionary<Y, List<U>> d))
+            d.SmartRemove(key2, element);
     }
     #endregion
 
@@ -316,6 +316,163 @@ public static class ListExtension_CreateAdd
     public static void SmartClear<T, Y>(this SortedDictionary<T, Y> dict)
     {
         if (dict != null) dict.Clear();
+    }
+    #endregion
+
+    #region Smart GetValue
+    public static bool SmartGetValue<T>(this List<T> list, int i, out T element)
+    {
+        if ((list != null) && i.IsBetween(0, list.Count))
+        {
+            element = list[i];
+            return true;
+        }
+        else
+        {
+            element = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y>(this Dictionary<T, Y> dict, T key, out Y value)
+    {
+        if (dict != null)
+            return dict.TryGetValue(key, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y>(this Dictionary<T, List<Y>> dict, T key, int i, out Y value)
+    {
+        if (dict.SmartGetValue(key, out List<Y> list))
+            return list.SmartGetValue(i, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y>(this SortedDictionary<T, Y> dict, T key, out Y value)
+    {
+        if (dict != null)
+            return dict.TryGetValue(key, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y>(this SortedDictionary<T, List<Y>> dict,
+        T key, int i, out Y value)
+    {
+        if (dict.SmartGetValue(key, out List<Y> list))
+            return list.SmartGetValue(i, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, Dictionary<Y, U>> dict,
+        T key, Y key2, out U value)
+    {
+        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
+            return d.SmartGetValue(key2, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, SortedDictionary<Y, U>> dict,
+        T key, Y key2, out U value)
+    {
+        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
+            return d.SmartGetValue(key2, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, Dictionary<Y, U>> dict,
+        T key, Y key2, out U value)
+    {
+        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
+            return d.SmartGetValue(key2, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, U>> dict,
+        T key, Y key2, out U value)
+    {
+        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
+            return d.SmartGetValue(key2, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, Dictionary<Y, List<U>>> dict,
+        T key, Y key2, int i, out U value)
+    {
+        if (dict.SmartGetValue(key, key2, out List<U> list))
+            return list.SmartGetValue(i, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, SortedDictionary<Y, List<U>>> dict,
+        T key, Y key2, int i, out U value)
+    {
+        if (dict.SmartGetValue(key, key2, out List<U> list))
+            return list.SmartGetValue(i, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, Dictionary<Y, List<U>>> dict,
+        T key, Y key2, int i, out U value)
+    {
+        if (dict.SmartGetValue(key, key2, out List<U> list))
+            return list.SmartGetValue(i, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, List<U>>> dict,
+        T key, Y key2, int i, out U value)
+    {
+        if (dict.SmartGetValue(key, key2, out List<U> list))
+            return list.SmartGetValue(i, out value);
+        else
+        {
+            value = default;
+            return false;
+        }
     }
     #endregion
 

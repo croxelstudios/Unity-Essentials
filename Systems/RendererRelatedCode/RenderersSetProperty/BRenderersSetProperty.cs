@@ -49,7 +49,7 @@ public class BRenderersSetProperty : MonoBehaviour
 
     protected bool IsInitialized()
     {
-        return (rend != null) && (rend.Length > 0) && (block != null);
+        return (!rend.IsNullOrEmpty()) && (block != null);
     }
 
     protected virtual void UpdateRenderersInternal()
@@ -95,21 +95,27 @@ public class BRenderersSetProperty : MonoBehaviour
         OnUpdatingProperty();
         for (int i = 0; i < rend.Length; i++)
         {
-            if (rend[i] != null)
+            Renderer r = rend[i];
+            if (r != null)
             {
+                Material[] shM = r.sharedMaterials;
                 if (materialIndex < 0)
-                    for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
-                        UpdateMaterial(i, j, reset);
-                else if (materialIndex < rend[i].sharedMaterials.Length)
-                    UpdateMaterial(i, materialIndex, reset);
+                    for (int j = 0; j < shM.Length; j++)
+                        UpdateMaterial(r, shM[j], j, reset);
+                else if (materialIndex < shM.Length)
+                    UpdateMaterial(r, shM[materialIndex], materialIndex, reset);
             }
         }
     }
 
-    void UpdateMaterial(int rendId, int materialId, bool reset = false)
+    //void UpdateMaterial(int rendId, int materialId, bool reset = false)
+    //{
+    //    UpdateMaterial(rend[rendId], rend[rendId].sharedMaterials[materialId], materialId, reset);
+    //}
+
+    void UpdateMaterial(Renderer rend, Material mat, int materialId, bool reset = false)
     {
-        if ((rend[rendId].sharedMaterials[materialId] != null) &&
-            rend[rendId].sharedMaterials[materialId].HasProperty(propertyName))
+        if ((mat != null) && mat.HasProperty(propertyName))
         {
             if (dontUsePropertyBlock)
             {
@@ -117,17 +123,17 @@ public class BRenderersSetProperty : MonoBehaviour
                 if (Application.isPlaying)
 #endif
                 {
-                    if (reset) VResetProperty(rend[rendId], materialId);
-                    else VSetProperty(rend[rendId], materialId);
+                    if (reset) VResetProperty(rend, materialId);
+                    else VSetProperty(rend, materialId);
                 }
             }
             else
             {
-                rend[rendId].GetPropertyBlock(block, materialId);
-                CheckRendererBlocks(rend[rendId]);
-                if (reset) BlResetProperty(block, rend[rendId], materialId);
-                else BlSetProperty(block, rend[rendId], materialId);
-                rend[rendId].SetPropertyBlock(block, materialId);
+                rend.GetPropertyBlock(block, materialId);
+                CheckRendererBlocks(rend);
+                if (reset) BlResetProperty(block, rend, materialId);
+                else BlSetProperty(block, rend, materialId);
+                rend.SetPropertyBlock(block, materialId);
             }
         }
     }
@@ -173,10 +179,11 @@ public class BRenderersSetProperty : MonoBehaviour
     {
         //TO DO: Full material reset must be done when every SetProperty affecting this material has been reseted or not used
 
-        //if (rend.materials[mat] != rend.sharedMaterials[mat])
+        //Material[] shM = rend.sharedMaterials;
+        //if (rend.materials[mat] != shM[mat])
         //{
         //    Destroy(rend.materials[mat]);
-        //    rend.materials[mat] = rend.sharedMaterials[mat];
+        //    rend.materials[mat] = shM[mat];
         //}
     }
 
@@ -186,12 +193,16 @@ public class BRenderersSetProperty : MonoBehaviour
         block.SmartClear();
         if (rend != null)
             for (int i = 0; i < rend.Length; i++)
-                if (rend[i] != null)
+            {
+                Renderer r = rend[i];
+                if (r != null)
                 {
-                    CheckRendererBlocks(rend[i]);
-                    for (int j = 0; j < rend[i].sharedMaterials.Length; j++)
-                        rend[i].SetPropertyBlock(block, j);
+                    CheckRendererBlocks(r);
+                    Material[] shM = r.sharedMaterials;
+                    for (int j = 0; j < shM.Length; j++)
+                        r.SetPropertyBlock(block, j);
                 }
+            }
     }
 
     public void Set(bool affectsChildren, int materialIndex, string propertyName, bool updateRenderers)

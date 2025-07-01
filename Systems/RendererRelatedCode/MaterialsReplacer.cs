@@ -61,16 +61,16 @@ public class MaterialsReplacer : MonoBehaviour
             foreach (Renderer r in rend)
             {
                 List<int> mats = new List<int>();
-                Material[] sm = r.sharedMaterials;
-                for (int i = 0; i < r.sharedMaterials.Length; i++)
+                Material[] shM = r.sharedMaterials;
+                for (int i = 0; i < shM.Length; i++)
                 {
-                    if (replacements.ContainsKey(r.sharedMaterials[i]))
+                    if (replacements.ContainsKey(shM[i]))
                     {
-                        sm[i] = replacements[r.sharedMaterials[i]];
+                        shM[i] = replacements[shM[i]];
                         mats.Add(i);
                     }
                 }
-                r.sharedMaterials = sm;
+                r.sharedMaterials = shM;
 
                 if (mats.Count > 0)
                     changedMaterials.Add(r, mats.ToArray());

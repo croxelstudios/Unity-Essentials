@@ -151,11 +151,14 @@ public class BRendererDuplicator : MonoBehaviour
             if (replaceAllMaterials) rend.sharedMaterials = replaceMaterials;
             else OverrideMaterials(rend, replaceMaterials);
             if (queueAdd != 0)
-                for (int j = 0; j < rend.sharedMaterials.Length; j++)
+            {
+                Material[] shM = rend.sharedMaterials;
+                for (int j = 0; j < shM.Length; j++)
                 {
                     rend.materials[j].renderQueue += queueAdd;
                     //TO DO: Popup with options to select which materials to apply render queue addition to
                 }
+            }
             rend.sortingOrder += sortOrderAdd;
         }
     }
@@ -232,13 +235,14 @@ public class BRendererDuplicator : MonoBehaviour
 
     void OverrideMaterials(Renderer rend, Material[] materials)
     {
-        Material[] newMaterialsArray = new Material[rend.sharedMaterials.Length];
+        Material[] shM = rend.sharedMaterials;
+        Material[] newMaterialsArray = new Material[shM.Length];
         for (int j = 0; j < newMaterialsArray.Length; j++)
         {
             if ((j < materials.Length) && (materials[j] != null))
                 newMaterialsArray[j] = materials[j];
-            else if (j < rend.sharedMaterials.Length)
-                newMaterialsArray[j] = rend.sharedMaterials[j];
+            else if (j < shM.Length)
+                newMaterialsArray[j] = shM[j];
             else newMaterialsArray[j] = null;
         }
         rend.sharedMaterials = newMaterialsArray;

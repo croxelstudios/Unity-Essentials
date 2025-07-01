@@ -1260,21 +1260,19 @@ public class ComputableMesh
             if (filter.isMeshFilter)
             {
                 StopUsing(filter.filter, comp);
-                if (startActions.NotNullContainsKey(comp))
-                    startActions.Remove(comp);
-                if (finishActions.NotNullContainsKey(comp))
-                    finishActions.Remove(comp);
+                startActions.SmartRemove(comp);
+                finishActions.SmartRemove(comp);
             }
             else
             {
-                if (startActions.NotNullContainsKey(comp))
+                if (startActions.SmartGetValue(comp, out UnityAction staction))
                 {
-                    filter.customRenderer.startRendering.RemoveListener(startActions[comp]);
+                    filter.customRenderer.startRendering.RemoveListener(staction);
                     startActions.Remove(comp);
                 }
-                if (finishActions.NotNullContainsKey(comp))
+                if (finishActions.SmartGetValue(comp, out UnityAction fiaction))
                 {
-                    filter.customRenderer.finishedRendering.RemoveListener(finishActions[comp]);
+                    filter.customRenderer.finishedRendering.RemoveListener(fiaction);
                     finishActions.Remove(comp);
                 }
                 filter.customRenderer.StopUseByComponent(comp);
@@ -1356,9 +1354,9 @@ public class ComputableMesh
             Mesh m = filtersProcessor.OriginalMesh(filter.filter);
             if (m != null)
             {
-                if (meshFinishActions.NotNullContainsKey(m))
+                if (meshFinishActions.SmartGetValue(m, out UnityAction action))
                 {
-                    meshFinishActions[m].Invoke();
+                    action.Invoke();
                     meshFinishActions.Remove(m);
                 }
                 meshFinishActions = meshFinishActions.CreateAdd(m, finishActions[comp]);
@@ -1452,10 +1450,9 @@ public class ComputableMesh
 
         public void SmartRemove(MeshFilter filter)
         {
-            if (originals.NotNullContainsKey(filter))
+            if (originals.SmartGetValue(filter, out Mesh original))
             {
-                Mesh original = originals[filter];
-                originals.SmartRemove(filter);
+                originals.Remove(filter);
                 usedBy.SmartRemove(filter);
                 if (!originals.Values.Contains(original))
                     meshes.SmartRemove(original);
@@ -1542,9 +1539,8 @@ public class ComputableMesh
 
         public void StopUsing(MeshFilter filter, Component comp)
         {
-            if (usedBy.NotNullContainsKey(filter))
+            if (usedBy.SmartGetValue(filter, out List<Component> list))
             {
-                List<Component> list = usedBy[filter];
                 list.SmartRemove(comp);
                 if (list.Count <= 0)
                     SmartRemove(filter);
@@ -1642,9 +1638,7 @@ public class ComputableMesh
             ClearNulls();
 
             ComputableFilter filter;
-            if (filters.NotNullContainsKey(gameObject))
-                filter = filters[gameObject];
-            else
+            if (!filters.SmartGetValue(gameObject, out filter))
             {
                 filter = new ComputableFilter(gameObject);
                 filters = filters.CreateAdd(gameObject, filter);
