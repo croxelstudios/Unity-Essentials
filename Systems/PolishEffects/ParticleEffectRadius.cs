@@ -22,7 +22,7 @@ public class ParticleEffectRadius : MonoBehaviour
     ParticleSystem p;
     enum Mode { ScaleLifetime, ScaleSpeed }
 
-    void OnEnable()
+    void Awake()
     {
         p = GetComponent<ParticleSystem>();
     }

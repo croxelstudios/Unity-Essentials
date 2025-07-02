@@ -19,6 +19,7 @@ public class ScaleUpAndDown : MonoBehaviour
 
     void Awake()
     {
+        amount = Vector3.Scale(amount, transform.localScale);
         currentAngle = startTime * 360f;
         currentValue = 0f;
     }
