@@ -102,9 +102,7 @@ public class ComputableMesh
 
     public void Initialize(string name, int vCount, params int[] tCount)
     {
-        if (mesh != null)
-            mesh.Clear();
-        else mesh = new Mesh();
+        mesh = mesh.ClearOrCreate();
 
         mesh.name = name;
         mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
@@ -1426,7 +1424,7 @@ public class ComputableMesh
             filtersProcessor.CleanNullValues();
             foreach (KeyValuePair<Mesh, UnityAction> pair in meshFinishActions)
                 pair.Value.Invoke();
-            meshFinishActions.SmartClear();
+            meshFinishActions.Clear();
         }
     }
 

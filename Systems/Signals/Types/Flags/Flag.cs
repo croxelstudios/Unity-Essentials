@@ -157,6 +157,12 @@ public class Flag : BaseSignal //Change type here
             Launch(true, tag);
     }
 
+    public void LaunchOnTrue(GameObject obj)
+    {
+        if (currentValue)
+            Launch(true, new GameObject[] { obj });
+    }
+
     public void LaunchOnFalse()
     {
         LaunchOnFalse("");
@@ -166,6 +172,12 @@ public class Flag : BaseSignal //Change type here
     {
         if (!currentValue)
             Launch(false, tag);
+    }
+
+    public void LaunchOnFalse(GameObject obj)
+    {
+        if (currentValue)
+            Launch(false, new GameObject[] { obj });
     }
 
     void Launch(bool value, string tag)

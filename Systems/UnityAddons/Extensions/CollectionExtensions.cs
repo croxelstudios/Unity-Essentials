@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Object = UnityEngine.Object;
 
-public static class ListExtension_CreateAdd
+public static class CollectionExtensions
 {
     #region Create If Null
     public static List<T> CreateIfNull<T>(this List<T> list)
@@ -540,6 +540,29 @@ public static class ListExtension_CreateAdd
 
         return (from kv in dict
                 where kv.Key != null select kv).ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+    #endregion
+
+    #region ClearOrCreate
+    public static List<T> ClearOrCreate<T>(this List<T> list)
+    {
+        if (list != null) list.Clear();
+        else list = new List<T>();
+        return list;
+    }
+
+    public static Dictionary<T, Y> ClearOrCreate<T, Y>(this Dictionary<T, Y> dict)
+    {
+        if (dict != null) dict.Clear();
+        else dict = new Dictionary<T, Y>();
+        return dict;
+    }
+
+    public static SortedDictionary<T, Y> ClearOrCreate<T, Y>(this SortedDictionary<T, Y> dict)
+    {
+        if (dict != null) dict.Clear();
+        else dict = new SortedDictionary<T, Y>();
+        return dict;
     }
     #endregion
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
@@ -138,17 +138,29 @@ public class FlagChecker : BBaseSignalListener<bool>
                 LaunchOnTrue(i, tag);
     }
 
+    public void LaunchOnTrue(GameObject obj)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                LaunchOnTrue(i, obj);
+    }
+
     public void LaunchOnTrue(int index)
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
             flags[index].flag.LaunchOnTrue();
     }
 
-    [TagSelector]
     public void LaunchOnTrue(int index, string tag)
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
             flags[index].flag.LaunchOnTrue(tag);
+    }
+
+    public void LaunchOnTrue(int index, GameObject obj)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.LaunchOnTrue(obj);
     }
 
     public void LaunchOnFalse()
@@ -172,11 +184,23 @@ public class FlagChecker : BBaseSignalListener<bool>
             flags[index].flag.LaunchOnFalse();
     }
 
-    [TagSelector]
+    public void LaunchOnFalse(GameObject obj)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < flags.Length; i++)
+                LaunchOnFalse(i, obj);
+    }
+
     public void LaunchOnFalse(int index, string tag)
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)
             flags[index].flag.LaunchOnFalse(tag);
+    }
+
+    public void LaunchOnFalse(int index, GameObject obj)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            flags[index].flag.LaunchOnFalse(obj);
     }
 
     [Serializable]
@@ -191,8 +215,10 @@ public class FlagChecker : BBaseSignalListener<bool>
         [FoldoutGroup("@name")]
         public DXEvent whenFalse; //Change type here
         [FoldoutGroup("@name")]
+        [InfoBox("⚠ Event actions inside", VisibleIf = "@!onlyWhenAlreadyEnabled.IsNull()")]
         public ExtraEvents onlyWhenAlreadyEnabled;
         [FoldoutGroup("@name")]
+        [InfoBox("⚠ Event actions inside", VisibleIf = "@!onlyOnEnable.IsNull()")]
         public ExtraEvents onlyOnEnable;
 
         public FlagAction(Flag signal) //Change type here (2)
@@ -216,6 +242,11 @@ public class FlagChecker : BBaseSignalListener<bool>
         {
             this.whenTrue = whenTrue;
             this.whenFalse = whenFalse;
+        }
+
+        public bool IsNull()
+        {
+            return whenTrue.IsNull() && whenFalse.IsNull();
         }
     }
 }

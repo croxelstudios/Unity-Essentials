@@ -385,8 +385,7 @@ public class NDRigidbody
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, is2D);
 
-        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
-        else tmpHits.Clear();
+        tmpHits = tmpHits.ClearOrCreate();
 
         for (int i = 0; i < hits.Length; i++)
             if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset))
@@ -401,8 +400,7 @@ public class NDRigidbody
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, is2D);
 
-        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
-        else tmpHits.Clear();
+        tmpHits = tmpHits.ClearOrCreate();
 
         for (int i = 0; i < hits.Length; i++)
             if ((hits[i].collider.attachedRigidbody != this) &&
@@ -418,8 +416,7 @@ public class NDRigidbody
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, mask, is2D);
 
-        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
-        else tmpHits.Clear();
+        tmpHits = tmpHits.ClearOrCreate();
 
         for (int i = 0; i < hits.Length; i++)
             if ((hits[i].collider.attachedRigidbody == this) && (hits[i].distance >= offset))
@@ -434,8 +431,7 @@ public class NDRigidbody
         NDRaycastHit[] hits = NDPhysics.RadiusCastAll(origin - (direction.normalized * offset),
             direction, radius, distance + offset, mask, is2D);
 
-        if (tmpHits == null) tmpHits = new List<NDRaycastHit>();
-        else tmpHits.Clear();
+        tmpHits = tmpHits.ClearOrCreate();
 
         for (int i = 0; i < hits.Length; i++)
             if ((hits[i].collider.attachedRigidbody != this) &&

@@ -1371,7 +1371,7 @@
     "m_AllowMaterialOverride": false,
     "m_SurfaceType": 0,
     "m_ZTestMode": 4,
-    "m_ZWriteControl": 0,
+    "m_ZWriteControl": 2,
     "m_AlphaMode": 0,
     "m_RenderFace": 2,
     "m_AlphaClip": false,
@@ -2030,6 +2030,9 @@
             "m_Id": "fd97a624bb9049999de2d347280c80f3"
         },
         {
+            "m_Id": "783e9a75e3274c9aa3e649ace2e0d76f"
+        },
+        {
             "m_Id": "e3480773ae5d4f6a9607d89a74594812"
         }
     ],
@@ -2045,12 +2048,14 @@
     "m_PropertyGuids": [
         "9d19c903-0921-44a7-946e-5959d38d80d8",
         "0c05dfd2-3943-4066-b4af-a53115513bc3",
-        "6ee6f7e6-f01d-4ac7-9df2-026c427296c1"
+        "6ee6f7e6-f01d-4ac7-9df2-026c427296c1",
+        "2e56aba6-a2bc-4677-992b-93e82e428365"
     ],
     "m_PropertyIds": [
         1483154277,
         -1090709456,
-        -1984592092
+        -1984592092,
+        -449748819
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -2122,6 +2127,20 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "VertexDescription.Tangent"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "783e9a75e3274c9aa3e649ace2e0d76f",
+    "m_Id": -449748819,
+    "m_DisplayName": "Periodic",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Periodic",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {
@@ -2460,6 +2479,20 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "97ab947efe544785b74691dbe17c62fe",
+    "m_Id": -449748819,
+    "m_DisplayName": "Periodic",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Periodic",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "97b1d8b005e34fe4bce5e2e881ad028e",
     "m_Id": 1,
@@ -2652,6 +2685,20 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "a44a2f8c27f149bfb8ab38a4a13c38f7",
+    "m_Id": -449748819,
+    "m_DisplayName": "Periodic",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Periodic",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {
@@ -3134,6 +3181,9 @@
             "m_Id": "57aaa69bfa5640aa93b4cb47393b544a"
         },
         {
+            "m_Id": "a44a2f8c27f149bfb8ab38a4a13c38f7"
+        },
+        {
             "m_Id": "329b49c8a0bf48b0ace6679817f7305f"
         }
     ],
@@ -3149,12 +3199,14 @@
     "m_PropertyGuids": [
         "9d19c903-0921-44a7-946e-5959d38d80d8",
         "0c05dfd2-3943-4066-b4af-a53115513bc3",
-        "6ee6f7e6-f01d-4ac7-9df2-026c427296c1"
+        "6ee6f7e6-f01d-4ac7-9df2-026c427296c1",
+        "2e56aba6-a2bc-4677-992b-93e82e428365"
     ],
     "m_PropertyIds": [
         1483154277,
         -1090709456,
-        -1984592092
+        -1984592092,
+        -449748819
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -3182,6 +3234,20 @@
         "z": 0.0,
         "w": 0.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "db16f01593304ce3aacbf6cf638da5b7",
+    "m_Id": -1023673360,
+    "m_DisplayName": "PositionInOtherSpace",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_PositionInOtherSpace",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {
@@ -3523,6 +3589,9 @@
             "m_Id": "dd1e171e127b4e5b96695517cf8768d3"
         },
         {
+            "m_Id": "97ab947efe544785b74691dbe17c62fe"
+        },
+        {
             "m_Id": "2b49ee2a627a450e872779c197b8cf59"
         }
     ],
@@ -3538,12 +3607,14 @@
     "m_PropertyGuids": [
         "9d19c903-0921-44a7-946e-5959d38d80d8",
         "0c05dfd2-3943-4066-b4af-a53115513bc3",
-        "6ee6f7e6-f01d-4ac7-9df2-026c427296c1"
+        "6ee6f7e6-f01d-4ac7-9df2-026c427296c1",
+        "2e56aba6-a2bc-4677-992b-93e82e428365"
     ],
     "m_PropertyIds": [
         1483154277,
         -1090709456,
-        -1984592092
+        -1984592092,
+        -449748819
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -3629,6 +3700,9 @@
             "m_Id": "1fc5fa6e5b1d4a58bcef65e3ef02361e"
         },
         {
+            "m_Id": "db16f01593304ce3aacbf6cf638da5b7"
+        },
+        {
             "m_Id": "a572258e1781454ab4036e6eae46e2f8"
         },
         {
@@ -3660,13 +3734,15 @@
         "6f9b7190-f843-48df-8a48-e0f7b5144d93",
         "464468f3-a7c6-4ecd-896c-0cde2e432d57",
         "9c8229fc-fc73-4921-b13d-dcbde2418389",
-        "3ad4f65d-cc36-432e-a33d-62d84aeba033"
+        "3ad4f65d-cc36-432e-a33d-62d84aeba033",
+        "c5770625-899c-4d53-8b7a-f055c20e2f1f"
     ],
     "m_PropertyIds": [
         1139398124,
         -2119638894,
         -503535140,
-        -1841763198
+        -1841763198,
+        -1023673360
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []

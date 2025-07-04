@@ -84,6 +84,13 @@ public class DXIntEvent
     {
         negativeEvent.RemoveListener(call);
     }
+
+    public bool IsNull()
+    {
+        return ((unityEvent == null) || (unityEvent.GetPersistentEventCount() <= 0)) &&
+            ((absEvent == null) || (absEvent.GetPersistentEventCount() <= 0)) &&
+            ((negativeEvent == null) || (negativeEvent.GetPersistentEventCount() <= 0));
+    }
 }
 
 #if UNITY_EDITOR

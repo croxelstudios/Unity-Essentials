@@ -46,6 +46,10 @@ public class RavioliButton : RavioliButton_Button
 
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
+    ReachLimitEvents reachLimitEvents = new ReachLimitEvents();
+
+    [SerializeField]
+    [SizedFoldoutGroup("Group options")]
     [Header("Selector")]
     bool useSelector = true;
     [SerializeField]
@@ -56,8 +60,10 @@ public class RavioliButton : RavioliButton_Button
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
     [ShowIf("@useSelector")]
-    [InlineProperty]
-    [HideLabel]
+    bool handleSelectorActiveState = true;
+    [SerializeField]
+    [SizedFoldoutGroup("Group options")]
+    [ShowIf("@useSelector")]
     MovementBehaviour selectorBehaviour = new MovementBehaviour(0f, 0.01f);
 
     [SerializeField]
@@ -67,8 +73,6 @@ public class RavioliButton : RavioliButton_Button
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
     [ShowIf("@useButtonsCarousel")]
-    [InlineProperty]
-    [HideLabel]
     MovementBehaviour carouselBehaviour = new MovementBehaviour(0f, 0.01f);
     //TO DO: Add support for non-looping carousels
     //(Limit button selection to a range and use invisible looping buttons for the extra positions.
@@ -89,22 +93,40 @@ public class RavioliButton : RavioliButton_Button
     ProgrammedSelectButtonAction programmedSelection;
     int buttonsInitCount = -1;
     List<RavioliButton_Button> buttons;
+    List<RavioliButton_Button> toReadd;
     Vector3 tmpSpd;
     RavioliButton_Button currentButton;
     RavioliButton_Button prevButton;
     Coroutine sCo;
     Coroutine cCo;
 
+    const float Vector45value = 0.7071f;
+
     #region Main functions
     public override void OnEnable()
     {
         base.OnEnable();
+
+        if (toReadd != null)
+            foreach (RavioliButton_Button button in toReadd)
+                if (button.IsInGroup(this))
+                    AddButton(button);
+
+        StartCoroutine(MBResetAfterOneFrame());
     }
 
     public override void OnDisable()
     {
-        FinalizeMovementBehaviors();
+        if (!buttons.IsNullOrEmpty())
+        {
+            toReadd = toReadd.ClearOrCreate();
+            toReadd.AddRange(buttons);
+            foreach (RavioliButton_Button button in toReadd)
+                RemoveButton(button);
+        }
+
         base.OnDisable();
+
         groupInitialized = false;
     }
 
@@ -180,13 +202,13 @@ public class RavioliButton : RavioliButton_Button
 
     void InitializeMovementBehaviors()
     {
-        if (canUseSelector)
+        if (canUseSelector && handleSelectorActiveState)
             selector.gameObject.SetActive(true);
     }
 
     void FinalizeMovementBehaviors()
     {
-        if (canUseSelector)
+        if (canUseSelector && handleSelectorActiveState)
         {
             StopSelectorAtTarget();
             selector.gameObject.SetActive(false);
@@ -256,8 +278,9 @@ public class RavioliButton : RavioliButton_Button
         if (currentButton != null)
         {
             int id = buttons.IndexOf(currentButton);
-            int next = (int)(loopButtons ? Mathf.Repeat(id + 1f, ButtonsLimit()) :
-                Mathf.Clamp(id + 1, 0f, ButtonsLimit() - 1f));
+            CheckLimits(id, 1);
+            int next = loopButtons ? (int)Mathf.Repeat(id + 1f, ButtonsLimit()) :
+                Mathf.Clamp(id + 1, 0, ButtonsLimit() - 1);
             SelectButton(next, doMovement);
         }
     }
@@ -272,9 +295,31 @@ public class RavioliButton : RavioliButton_Button
         if (currentButton != null)
         {
             int id = buttons.IndexOf(currentButton);
-            int previous = (int)(loopButtons ? Mathf.Repeat(id - 1f, ButtonsLimit()) :
-                Mathf.Clamp(id - 1, 0f, ButtonsLimit() - 1f));
+            CheckLimits(id, -1);
+            int previous = loopButtons ? (int)Mathf.Repeat(id - 1f, ButtonsLimit()) :
+                Mathf.Clamp(id - 1, 0, ButtonsLimit() - 1);
             SelectButton(previous, doMovement);
+        }
+    }
+
+    void CheckLimits(int current, int movement)
+    {
+        int prev = (int)Mathf.Repeat(current - movement, ButtonsLimit());
+        int next = (int)Mathf.Repeat(current + movement, ButtonsLimit());
+        Vector3 prevDir = buttons[current].position - buttons[prev].position;
+        Vector3 nextDir = (buttons[next].position - buttons[current].position).normalized;
+        //TO DO: 3D Directional movement limits
+        float signX = Mathf.Sign(prevDir.x);
+        if ((Mathf.Abs(nextDir.x) > Vector45value) && (Mathf.Sign(nextDir.x) != signX))
+        {
+            if (signX > 0f) reachLimitEvents.reachedRight?.Invoke();
+            else reachLimitEvents.reachedLeft?.Invoke();
+        }
+        float signY = Mathf.Sign(prevDir.y);
+        if ((Mathf.Abs(nextDir.y) > Vector45value) && (Mathf.Sign(nextDir.y) != signY))
+        {
+            if (signY > 0f) reachLimitEvents.reachedTop?.Invoke();
+            else reachLimitEvents.reachedBottom?.Invoke();
         }
     }
 
@@ -298,6 +343,16 @@ public class RavioliButton : RavioliButton_Button
         DirectionSelect(Vector3.down);
     }
 
+    public void DirectionSelect_Forward()
+    {
+        DirectionSelect(Vector3.forward);
+    }
+
+    public void DirectionSelect_Back()
+    {
+        DirectionSelect(Vector3.back);
+    }
+
     public void DirectionSelect(Vector2 direction)
     {
         DirectionSelect((Vector3)direction);
@@ -307,6 +362,8 @@ public class RavioliButton : RavioliButton_Button
     {
         if (this.IsActiveAndEnabled()) DirectionSelect(direction, true);
     }
+
+    List<RavioliButton_Button> oppositeButtons;
 
     void DirectionSelect(Vector3 direction, bool doMovement)
     {
@@ -328,43 +385,55 @@ public class RavioliButton : RavioliButton_Button
                     id = i;
                 }
             }
-            if ((id < 0) && loopButtons)
+            if (id < 0)
             {
-                List<RavioliButton_Button> oppositeButtons = new List<RavioliButton_Button>();
-                oppositeButtons.AddRange(buttons);
-                for (int i = 0; i < buttons.Count; i++)
-                {
-                    if (buttons[i] == currentButton)
-                        oppositeButtons.Remove(buttons[i]);
-                    else
-                        for (int j = 0; j < buttons.Count; j++)
-                        {
-                            if (i == j)
-                                continue;
+                //TO DO: 3D Directional movement limits
+                if (Vector3.Angle(direction, Vector3.right) < directionSelectMaxAngle)
+                    reachLimitEvents.reachedRight?.Invoke();
+                else if (Vector3.Angle(direction, Vector3.left) < directionSelectMaxAngle)
+                    reachLimitEvents.reachedLeft?.Invoke();
+                if (Vector3.Angle(direction, Vector3.up) < directionSelectMaxAngle)
+                    reachLimitEvents.reachedTop?.Invoke();
+                else if (Vector3.Angle(direction, Vector3.down) < directionSelectMaxAngle)
+                    reachLimitEvents.reachedBottom?.Invoke();
 
-                            Vector3 dir = buttons[j].transform.position - buttons[i].transform.position;
-                            if (Vector3.Angle(-direction, dir) < directionSelectMaxAngle)
-                            {
-                                oppositeButtons.Remove(buttons[i]);
-                                break;
-                            }
-                        }
-                }
-
-                float ang = 180f;
-                int opId = -1;
-                for (int i = 0; i < oppositeButtons.Count; i++)
+                if (loopButtons)
                 {
-                    Vector3 dir = oppositeButtons[i].transform.position -
-                        currentButton.transform.position;
-                    float angle = Vector3.Angle(-direction, dir);
-                    if (angle < ang)
+                    oppositeButtons = oppositeButtons.ClearOrCreate();
+                    oppositeButtons.AddRange(buttons);
+                    for (int i = 0; i < buttons.Count; i++)
                     {
-                        ang = angle;
-                        opId = i;
+                        if (buttons[i] == currentButton)
+                            oppositeButtons.Remove(buttons[i]);
+                        else
+                            for (int j = 0; j < buttons.Count; j++)
+                            {
+                                if (i == j)
+                                    continue;
+
+                                Vector3 dir = buttons[j].position - buttons[i].position;
+                                if (Vector3.Angle(-direction, dir) < directionSelectMaxAngle)
+                                {
+                                    oppositeButtons.Remove(buttons[i]);
+                                    break;
+                                }
+                            }
                     }
+
+                    float ang = 180f;
+                    int opId = -1;
+                    for (int i = 0; i < oppositeButtons.Count; i++)
+                    {
+                        Vector3 dir = oppositeButtons[i].position - currentButton.position;
+                        float angle = Vector3.Angle(-direction, dir);
+                        if (angle < ang)
+                        {
+                            ang = angle;
+                            opId = i;
+                        }
+                    }
+                    if (opId >= 0) id = buttons.IndexOf(oppositeButtons[opId]);
                 }
-                if (opId >= 0) id = buttons.IndexOf(oppositeButtons[opId]);
             }
 
             if (id < 0) id = buttons.IndexOf(currentButton);
@@ -543,39 +612,42 @@ public class RavioliButton : RavioliButton_Button
     public void AddButton(RavioliButton_Button button)
     {
         buttons = buttons.CreateIfNull();
-        button.TryDeselect();
-        buttons.Add(button);
-        buttons = buttons.OrderBy(x => x.transform.GetSiblingIndex()).ToList();
+        if (!buttons.Contains(button))
+        {
+            button.TryDeselect();
+            buttons.Add(button);
+            buttons = buttons.OrderBy(x => x.transform.GetSiblingIndex()).ToList();
 
-        if (groupInitialized)
-        {
-            if (currentButton == null)
+            if (groupInitialized)
             {
-                UpdateCurrentButton(button);
-                InitializeMovementBehaviors();
-                UpdateMovementBehaviours(false);
-                currentButton.TrySelect();
-            }
-            else UpdateMovementBehaviours(false);
-        }
-        else
-        //Handles spacific case where the group has just been activated and needs to preserve data from before the previous deactivation
-        {
-            if (buttonsInitCount <= 0)
-            {
-                RavioliButton_Button[] allChildren = buttonsParent.GetComponentsInChildren<RavioliButton_Button>();
-                buttonsInitCount = 0;
-                for (int i = 0; i < allChildren.Length; i++)
+                if (currentButton == null)
                 {
-                    if (allChildren[i].transform.parent == buttonsParent)
-                        buttonsInitCount++;
+                    UpdateCurrentButton(button);
+                    InitializeMovementBehaviors();
+                    UpdateMovementBehaviours(false);
+                    currentButton.TrySelect();
                 }
+                else UpdateMovementBehaviours(false);
             }
-            if (buttons.Count >= buttonsInitCount)
+            else
+            //Handles spacific case where the group has just been activated and needs to preserve data from before the previous deactivation
             {
-                groupInitialized = true;
-                ResetButtons();
-                programmedSelection.Execute();
+                if (buttonsInitCount <= 0)
+                {
+                    RavioliButton_Button[] allChildren = buttonsParent.GetComponentsInChildren<RavioliButton_Button>();
+                    buttonsInitCount = 0;
+                    for (int i = 0; i < allChildren.Length; i++)
+                    {
+                        if (allChildren[i].transform.parent == buttonsParent)
+                            buttonsInitCount++;
+                    }
+                }
+                if (buttons.Count >= buttonsInitCount)
+                {
+                    groupInitialized = true;
+                    ResetButtons();
+                    programmedSelection.Execute();
+                }
             }
         }
     }
@@ -668,6 +740,30 @@ public class RavioliButton : RavioliButton_Button
             this.button = button;
             this.doMovement = doMovement;
             this.group = group;
+        }
+    }
+
+    [Serializable]
+    [InlineProperty]
+    [HideLabel]
+    struct ReachLimitEvents
+    {
+        [FoldoutGroup("ReachLimitEvents")]
+        public DXEvent reachedRight;
+        [FoldoutGroup("ReachLimitEvents")]
+        public DXEvent reachedLeft;
+        [FoldoutGroup("ReachLimitEvents")]
+        public DXEvent reachedTop;
+        [FoldoutGroup("ReachLimitEvents")]
+        public DXEvent reachedBottom;
+
+        public ReachLimitEvents(DXEvent reachedRight, DXEvent reachedLeft,
+            DXEvent reachedTop, DXEvent reachedBottom)
+        {
+            this.reachedRight = reachedRight;
+            this.reachedLeft = reachedLeft;
+            this.reachedTop = reachedTop;
+            this.reachedBottom = reachedBottom;
         }
     }
 }
@@ -836,6 +932,8 @@ public class RavioliButton_Button : MonoBehaviour
     }
 
     [Serializable]
+    [InlineProperty]
+    [HideLabel]
     public struct MovementBehaviour // TO DO: Support for animation curves?
     {
         public float smoothTime;
@@ -852,5 +950,10 @@ public class RavioliButton_Button : MonoBehaviour
             startMoving = null;
             stopMoving = null;
         }
+    }
+
+    public bool IsInGroup(RavioliButton group)
+    {
+        return groups.Contains(group);
     }
 }
