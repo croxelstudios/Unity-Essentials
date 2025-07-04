@@ -17,9 +17,9 @@ public class Flag : BaseSignal //Change type here
     [SerializeField]
     bool checkMultipleConditions = false;
     [SerializeField]
-    [ShowIf("CanShowStartValue")]
+    [ShowIf("MustShowStartValue")]
     bool startValue = false; //Change type here
-    [HideIf("CanShowStartValue")]
+    [HideIf("MustShowStartValue")]
     [OnValueChanged("SetFlagOnCurrentTagAndValue")]
     public bool currentValue = false; //Change type here
 
@@ -119,7 +119,7 @@ public class Flag : BaseSignal //Change type here
     }
 
 #if UNITY_EDITOR
-    public bool CanShowStartValue()
+    public bool MustShowStartValue()
     {
         return resetValueOnStart && !Application.isPlaying;
     }

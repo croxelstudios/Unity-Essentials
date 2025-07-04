@@ -58,7 +58,9 @@ public class FloatToTMP : MonoBehaviour
         currentFloatToTMPs = currentFloatToTMPs.OrderBy(x => x.priority).ToArray();
         string resultingText = "";
         for (int i = 0; i < currentFloatToTMPs.Length; i++)
-            resultingText += currentFloatToTMPs[i].GetResultingText().Replace("\\n", "\n").Replace("\\t", "\t");
+            if (currentFloatToTMPs[i].IsActiveAndEnabled())
+                resultingText += currentFloatToTMPs[i].
+                    GetResultingText().Replace("\\n", "\n").Replace("\\t", "\t");
         text.SetText(resultingText);
     }
 

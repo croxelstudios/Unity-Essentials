@@ -140,19 +140,20 @@ public class BRenderersSetProperty : MonoBehaviour
 
     void CheckRendererBlocks(Renderer rend)
     {
-        if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-        {   //This is a bit ugly, but unity would reset properties here if this is not done
-            //I probably need more of these for other highly specific renderers
-            SpriteRenderer sprRend = (SpriteRenderer)rend;
-            if (sprRend.sprite != null)
-            {
-                block.SetTexture("_MainTex", sprRend.sprite.texture);
-                block.SetTexture("_BaseMap", sprRend.sprite.texture);
-            }
-            block.SetColor("_RendererColor", sprRend.color);
-            block.SetColor("_BaseColor", sprRend.color);
-            block.SetVector("_Flip", new Vector4(sprRend.flipX ? 1f : 0f, sprRend.flipY ? 1f : 0f, 0f, 0f));
-        }
+        //This was a workaroud for build-in that no longer is necessary for SRPs
+        //if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
+        //{   //This is a bit ugly, but unity would reset properties here if this is not done
+        //    //I probably need more of these for other highly specific renderers
+        //    SpriteRenderer sprRend = (SpriteRenderer)rend;
+        //    if (sprRend.sprite != null)
+        //    {
+        //        block.SetTexture("_MainTex", sprRend.sprite.texture);
+        //        block.SetTexture("_BaseMap", sprRend.sprite.texture);
+        //    }
+        //    block.SetColor("_RendererColor", sprRend.color);
+        //    block.SetColor("_BaseColor", sprRend.color);
+        //    block.SetVector("_Flip", new Vector4(sprRend.flipX ? 1f : 0f, sprRend.flipY ? 1f : 0f, 0f, 0f));
+        //}
     }
 
     protected virtual void OnUpdatingProperty()
