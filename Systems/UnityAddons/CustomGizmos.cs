@@ -34,7 +34,8 @@ public static class CustomGizmos
         ViewCone(transform.position, transform.forward, transform.up, radius, angle, color);
     }
 
-    public static void ViewCone(Vector3 position, Vector3 forward, Vector3 up, float radius, float angle, Color color)
+    public static void ViewCone(Vector3 position, Vector3 forward, Vector3 up,
+        float radius, float angle, Color color)
     {
         up = Vector3.ProjectOnPlane(up, forward).normalized;
 
@@ -73,6 +74,44 @@ public static class CustomGizmos
             float rad = stepsDif * k * Mathf.Sin(angle * Mathf.Deg2Rad);
             Circle(position + (forward * dist), forward, up, rad);
         }
+
+        Gizmos.color = Color.white;
+    }
+
+    public static void CameraFrustrum(Vector3 position, Quaternion rotation,
+        float farClip, float nearClip, float fov, float aspect, Color color)
+    {
+        Vector3 forward = rotation * Vector3.forward;
+        Vector3 up = rotation * Vector3.up;
+        Vector3 right = rotation * Vector3.right;
+        float tan = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
+        float farHeight = tan * farClip;
+        float nearHeight = tan * nearClip;
+        float farWidth = farHeight * aspect;
+        float nearWidth = nearHeight * aspect;
+        Vector3 farTopLeft = position + (forward * farClip) + (up * farHeight) - (right * farWidth);
+        Vector3 farTopRight = position + (forward * farClip) + (up * farHeight) + (right * farWidth);
+        Vector3 farBottomLeft = position + (forward * farClip) - (up * farHeight) - (right * farWidth);
+        Vector3 farBottomRight = position + (forward * farClip) - (up * farHeight) + (right * farWidth);
+        Vector3 nearTopLeft = position + (forward * nearClip) + (up * nearHeight) - (right * nearWidth);
+        Vector3 nearTopRight = position + (forward * nearClip) + (up * nearHeight) + (right * nearWidth);
+        Vector3 nearBottomLeft = position + (forward * nearClip) - (up * nearHeight) - (right * nearWidth);
+        Vector3 nearBottomRight = position + (forward * nearClip) - (up * nearHeight) + (right * nearWidth);
+
+        Gizmos.color = color;
+        Gizmos.DrawLine(farTopLeft, farTopRight);
+        Gizmos.DrawLine(farTopRight, farBottomRight);
+        Gizmos.DrawLine(farBottomRight, farBottomLeft);
+        Gizmos.DrawLine(farBottomLeft, farTopLeft);
+        Gizmos.DrawLine(nearTopLeft, nearTopRight);
+        Gizmos.DrawLine(nearTopRight, nearBottomRight);
+        Gizmos.DrawLine(nearBottomRight, nearBottomLeft);
+        Gizmos.DrawLine(nearBottomLeft, nearTopLeft);
+        Gizmos.DrawLine(farTopLeft, nearTopLeft);
+        Gizmos.DrawLine(farTopRight, nearTopRight);
+        Gizmos.DrawLine(farBottomLeft, nearBottomLeft);
+        Gizmos.DrawLine(farBottomRight, nearBottomRight);
+        Gizmos.color = Color.white;
     }
 #endif
 }

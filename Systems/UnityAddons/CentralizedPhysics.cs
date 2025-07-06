@@ -820,6 +820,35 @@ public static class NDPhysics
         return result;
     }
 
+    /// <summary>
+    /// Gets all colliders in a box area. When 'quat' value isn't specified, 2D physics are used.
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="size"></param>
+    /// <param name="layerMask"></param>
+    /// <param name="quat"></param>
+    /// <returns></returns>
+    public static NDCollider[] OverlapBoxAll(Vector3 position, Vector3 size,
+        LayerMask layerMask, Quaternion quat = default)
+    {
+        NDCollider[] result = null;
+        if (quat.w == 0f)
+        {
+            Collider2D[] inRange = Physics2D.OverlapBoxAll(position, size, layerMask);
+            result = new NDCollider[inRange.Length];
+            for (int i = 0; i < inRange.Length; i++)
+                result[i] = new NDCollider(inRange[i]);
+        }
+        else
+        {
+            Collider[] inRange = Physics.OverlapBox(position, size, quat, layerMask);
+            result = new NDCollider[inRange.Length];
+            for (int i = 0; i < inRange.Length; i++)
+                result[i] = new NDCollider(inRange[i]);
+        }
+        return result;
+    }
+
     public static LayerMask GetLayerCollisionMask(int layer, bool is2D)
     {
         LayerMask layerMask = default;

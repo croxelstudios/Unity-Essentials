@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using System.Collections;
+using Sirenix.OdinInspector;
 
 public class FadeInOut : MonoBehaviour
 {
@@ -26,6 +26,12 @@ public class FadeInOut : MonoBehaviour
     DXEvent isIn = null;
     [SerializeField]
     DXEvent isOut = null;
+    [SerializeField]
+    [FoldoutGroup("Begin events")]
+    DXEvent beginIn = null;
+    [SerializeField]
+    [FoldoutGroup("Begin events")]
+    DXEvent beginOut = null;
 
     Coroutine co;
     FadeBehaviour current;
@@ -152,8 +158,15 @@ public class FadeInOut : MonoBehaviour
     IEnumerator FadeTo(bool fadingIn)
     {
         if (fadingIn)
+        {
             current = FadeBehaviour.FadeIn;
-        else current = FadeBehaviour.FadeOut;
+            beginIn?.Invoke();
+        }
+        else
+        {
+            current = FadeBehaviour.FadeOut;
+            beginOut?.Invoke();
+        }
 
         float currentAlpha;
         bool finished = false;
