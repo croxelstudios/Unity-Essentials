@@ -236,6 +236,64 @@ public class DXVectorEvent
     {
         magnitudeZero.RemoveListener(call);
     }
+
+    public bool IsNull()
+    {
+        bool isNull = true;
+        for (int i = 0; i < types.Length; i++)
+        {
+            switch (types[i])
+            {
+                case EventType.Vector3:
+                    if ((unityEvent != null) && (unityEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Vector2:
+                    if ((vector2Event != null) && (vector2Event.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Vector2XZ:
+                    if ((vector2XZEvent != null) && (vector2XZEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Magnitude:
+                    if ((magnitude != null) && (magnitude.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.NormalizedVector3:
+                    if ((unityEventNormal != null) && (unityEventNormal.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.NormalizedVector2:
+                    if ((vector2EventNormal != null) && (vector2EventNormal.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.X:
+                    if ((xEvent != null) && (xEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Y:
+                    if ((yEvent != null) && (yEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Z:
+                    if ((zEvent != null) && (zEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.MagnitudeNonZero:
+                    if ((magnitudeNonZero != null) && (magnitudeNonZero.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.MagnitudeZero:
+                    if ((magnitudeZero != null) && (magnitudeZero.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+            }
+            if (!isNull)
+                break;
+        }
+        return isNull;
+    }
 }
 
 #if UNITY_EDITOR

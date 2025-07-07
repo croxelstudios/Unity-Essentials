@@ -165,6 +165,48 @@ public class DXRotationEvent
     {
         zEvent.RemoveListener(call);
     }
+
+    public bool IsNull()
+    {
+        bool isNull = true;
+        for (int i = 0; i < types.Length; i++)
+        {
+            switch (types[i])
+            {
+                case EventType.EulerAngles:
+                    if ((unityEvent != null) && (unityEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Quaternion:
+                    if ((quaternionEvent != null) && (quaternionEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Angle:
+                    if ((angleEvent != null) && (angleEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Axis:
+                    if ((axisEvent != null) && (axisEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.EulerX:
+                    if ((xEvent != null) && (xEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.EulerY:
+                    if ((yEvent != null) && (yEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.EulerZ:
+                    if ((zEvent != null) && (zEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+            }
+            if (!isNull)
+                break;
+        }
+        return isNull;
+    }
 }
 
 #if UNITY_EDITOR
