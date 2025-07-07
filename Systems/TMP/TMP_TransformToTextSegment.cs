@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [ExecuteAlways]
-public class TMPTransformToTextSegment : MonoBehaviour
+public class TMP_TransformToTextSegment : MonoBehaviour
 {
     [SerializeField]
     string textSegment = "·";

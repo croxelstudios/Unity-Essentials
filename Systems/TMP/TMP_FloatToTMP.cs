@@ -4,7 +4,7 @@ using System.Linq;
 using System;
 
 [RequireComponent(typeof(TMP_Text))]
-public class FloatToTMP : MonoBehaviour
+public class TMP_FloatToTMP : MonoBehaviour
 {
     TMP_Text text;
 
@@ -54,7 +54,7 @@ public class FloatToTMP : MonoBehaviour
     {
         _value = value;
         if (text == null) text = GetComponent<TMP_Text>();
-        FloatToTMP[] currentFloatToTMPs = GetComponents<FloatToTMP>();
+        TMP_FloatToTMP[] currentFloatToTMPs = GetComponents<TMP_FloatToTMP>();
         currentFloatToTMPs = currentFloatToTMPs.OrderBy(x => x.priority).ToArray();
         string resultingText = "";
         for (int i = 0; i < currentFloatToTMPs.Length; i++)
