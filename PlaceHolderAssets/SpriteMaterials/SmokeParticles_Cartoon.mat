@@ -20,9 +20,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SquareParticle_Opaque
-  m_Shader: {fileID: -6465566751694194690, guid: d22393d324ba49541a7a35a67dbd337b, type: 3}
-  m_Parent: {fileID: -876546973899608171, guid: d22393d324ba49541a7a35a67dbd337b, type: 3}
+  m_Name: SmokeParticles_Cartoon
+  m_Shader: {fileID: -6465566751694194690, guid: 27c388e9526b41744a54ab6900d8f7af, type: 3}
+  m_Parent: {fileID: 2100000, guid: 546965ed735629b46838fbe5223fc1e7, type: 2}
   m_ModifiedSerializedProperties: 16
   m_ValidKeywords:
   - _ALPHAMODE_TRANSPARENT
@@ -33,6 +33,7 @@ Material:
   m_InvalidKeywords:
   - _CULL_OFF
   - _SURFACE_TYPE_TRANSPARENT
+  - _ZWRITE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -46,13 +47,13 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 5341f7d94b8743d4f8051d73cb1becc1, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8b35b68ee8c4c6344a7debedf7e796c8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _CUTOUTIGNORESMATERIALCOLOR: 1
-    - _Cutout: 0.01
+    - _ZWRITE: 1
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
