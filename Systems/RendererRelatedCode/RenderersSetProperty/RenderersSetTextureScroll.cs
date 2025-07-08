@@ -19,7 +19,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
     Vector2 direction;
     Vector2 currentOffset;
 
-    static Dictionary<RendererMaterial, Vector4> originals;
+    static Dictionary<RendMatProp, Vector4> originals;
 
     void Reset()
     {
@@ -28,7 +28,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
 
     protected override void Init()
     {
-        originals = new Dictionary<RendererMaterial, Vector4>();
+        originals = new Dictionary<RendMatProp, Vector4>();
         currentOffset = referenceOffset;
         base.Init();
     }
@@ -55,7 +55,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         tilingOffset.z = currentOffset.x;
         tilingOffset.w = currentOffset.y;
 
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if (!originals.ContainsKey(rendMat))
             originals.Add(rendMat, block.GetVector(propertyName));
         block.SetVector(fullPropertyName, tilingOffset);
@@ -63,7 +63,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
 
     protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if (originals.ContainsKey(rendMat)) block.SetVector(propertyName, originals[rendMat]);
     }
 
@@ -75,7 +75,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         tilingOffset.z = currentOffset.x;
         tilingOffset.w = currentOffset.y;
 
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if (!originals.ContainsKey(rendMat))
             originals.Add(rendMat, rend.materials[mat].GetVector(propertyName));
         rend.materials[mat].SetVector(fullPropertyName, tilingOffset);
@@ -83,7 +83,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
 
     protected override void VResetProperty(Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if (originals.ContainsKey(rendMat))
             rend.materials[mat].SetVector(propertyName, originals[rendMat]);
         base.VResetProperty(rend, mat);

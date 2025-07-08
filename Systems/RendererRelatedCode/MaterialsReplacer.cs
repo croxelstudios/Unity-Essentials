@@ -12,20 +12,15 @@ public class MaterialsReplacer : MonoBehaviour
     MaterialPair[] materialReplacements = null;
 
     Renderer[] rend;
-    Dictionary<Renderer, int[]> changedMaterials;
+    Dictionary<RendMat, Material> changedMaterials;
     Dictionary<Material, Material> replacements;
-    Dictionary<Material, Material> replaced;
     bool isChanged;
 
     void UpdateMaterials()
     {
-        replacements = new Dictionary<Material, Material>();
-        replaced = new Dictionary<Material, Material>();
+        replacements = replacements.ClearOrCreate();
         foreach (MaterialPair m in materialReplacements)
-        {
             replacements.Add(m.replaceThis, m.byReplacement);
-            replaced.Add(m.byReplacement, m.replaceThis);
-        }
     }
 
     public void UpdateRenderers()
@@ -60,20 +55,14 @@ public class MaterialsReplacer : MonoBehaviour
             UpdateMaterials();
             foreach (Renderer r in rend)
             {
-                List<int> mats = new List<int>();
                 Material[] shM = r.sharedMaterials;
                 for (int i = 0; i < shM.Length; i++)
-                {
                     if (replacements.ContainsKey(shM[i]))
                     {
+                        changedMaterials.Add(new RendMat(r, i), shM[i]);
                         shM[i] = replacements[shM[i]];
-                        mats.Add(i);
                     }
-                }
                 r.sharedMaterials = shM;
-
-                if (mats.Count > 0)
-                    changedMaterials.Add(r, mats.ToArray());
             }
             isChanged = true;
         }
@@ -88,12 +77,11 @@ public class MaterialsReplacer : MonoBehaviour
     {
         if (isChanged)
         {
-            foreach (KeyValuePair<Renderer, int[]> kv in changedMaterials)
+            foreach (KeyValuePair<RendMat, Material> kv in changedMaterials)
             {
-                Material[] sm = kv.Key.sharedMaterials;
-                for (int i = 0; i < kv.Value.Length; i++)
-                    sm[kv.Value[i]] = replaced[sm[kv.Value[i]]];
-                kv.Key.sharedMaterials = sm;
+                Material[] sm = kv.Key.rend.sharedMaterials;
+                sm[kv.Key.mat] = kv.Value;
+                kv.Key.rend.sharedMaterials = sm;
             }
             changedMaterials.Clear();
             isChanged = false;

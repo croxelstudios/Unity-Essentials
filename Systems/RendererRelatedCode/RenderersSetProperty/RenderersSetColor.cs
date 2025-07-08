@@ -5,7 +5,7 @@ using System.Collections.Generic;
 [ExecuteAlways]
 public class RenderersSetColor : BRenderersSetProperty
 {
-    static Dictionary<RendererMaterial, List<RenderersSetColor>> stackDictionary;
+    static Dictionary<RendMatProp, List<RenderersSetColor>> stackDictionary;
     //static bool dicWasCleared;
     public BlendMode blendMode = BlendMode.Multiply;
     [SerializeField]
@@ -41,7 +41,7 @@ public class RenderersSetColor : BRenderersSetProperty
                     Material[] shM = ren.sharedMaterials;
                     for (int i = 0; i < shM.Length; i++)
                     {
-                        RendererMaterial renMat = new RendererMaterial(ren, i, propertyName);
+                        RendMatProp renMat = new RendMatProp(ren, i, propertyName);
                         stackDictionary.SmartRemove(renMat, this);
                     }
                 }
@@ -64,7 +64,7 @@ public class RenderersSetColor : BRenderersSetProperty
 
     protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
 
         stackDictionary = stackDictionary.CreateAdd(rendMat, this);
 
@@ -73,14 +73,14 @@ public class RenderersSetColor : BRenderersSetProperty
 
     protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
             ApplyFullStackColor(block, rendMat);
     }
 
     protected override void VSetProperty(Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
 
         stackDictionary = stackDictionary.CreateAdd(rendMat, this);
 
@@ -89,23 +89,23 @@ public class RenderersSetColor : BRenderersSetProperty
 
     protected override void VResetProperty(Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat, propertyName);
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
             ApplyFullStackColor(rendMat);
         base.VResetProperty(rend, mat);
     }
 
-    void ApplyFullStackColor(MaterialPropertyBlock block, RendererMaterial rendMat)
+    void ApplyFullStackColor(MaterialPropertyBlock block, RendMatProp rendMat)
     {
         block.SetColor(propertyName, GetFullStackColor(rendMat));
     }
 
-    void ApplyFullStackColor(RendererMaterial rendMat)
+    void ApplyFullStackColor(RendMatProp rendMat)
     {
         rendMat.rend.materials[rendMat.mat].SetColor(propertyName, GetFullStackColor(rendMat));
     }
 
-    Color GetFullStackColor(RendererMaterial rendMat)
+    Color GetFullStackColor(RendMatProp rendMat)
     {
         Color current = Color.white;
         float alpha = 1f;
