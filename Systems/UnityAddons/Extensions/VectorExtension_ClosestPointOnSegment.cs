@@ -6,6 +6,13 @@ public static class VectorExtension_ClosestPointOnSegment
         this Vector3 point, Vector3 segment0, Vector3 segment1, out float distance)
     {
         Vector3 dir = segment1 - segment0;
+        
+        if (dir.sqrMagnitude <= 0f)
+        {
+            distance = 0f;
+            return segment0;
+        }
+
         Vector3 clos = point.ClosestPointOnLine(segment0, segment1, out distance);
         if (distance < 0f)
         {
@@ -23,7 +30,14 @@ public static class VectorExtension_ClosestPointOnSegment
     public static Vector3 ClosestPointOnLine(
         this Vector3 point, Vector3 line0, Vector3 line1, out float distance)
     {
-        Vector3 normal = (line1 - line0).normalized;
+        Vector3 dir = line1 - line0;
+        Vector3 normal = dir.normalized;
+
+        if ((normal.sqrMagnitude < 1f) || (dir.sqrMagnitude <= 0f))
+        {
+            distance = 0f;
+            return line0;
+        }
 
         distance = Vector3.Dot(point - line0, normal) / Vector3.Dot(normal, normal);
         return line0 + (normal * distance);

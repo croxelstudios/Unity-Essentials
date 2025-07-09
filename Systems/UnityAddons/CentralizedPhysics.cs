@@ -889,7 +889,7 @@ public static class NDPhysics
         else
         {
             bool didHit = Physics.Raycast(position, direction, out RaycastHit hit3, distance);
-            hit = new NDRaycastHit(hit3);
+            hit = new NDRaycastHit(hit3, distance);
             return didHit;
         }
     }
@@ -906,7 +906,7 @@ public static class NDPhysics
         else
         {
             bool didHit = Physics.Raycast(position, direction, out RaycastHit hit3, distance, mask);
-            hit = new NDRaycastHit(hit3);
+            hit = new NDRaycastHit(hit3, distance);
             return didHit;
         }
     }
@@ -926,7 +926,7 @@ public static class NDPhysics
             RaycastHit[] hit3 = Physics.RaycastAll(position, direction, distance);
             NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
             for (int i = 0; i < hits.Length; i++)
-                hits[i] = new NDRaycastHit(hit3[i]);
+                hits[i] = new NDRaycastHit(hit3[i], distance);
             return hits;
         }
     }
@@ -947,7 +947,7 @@ public static class NDPhysics
             RaycastHit[] hit3 = Physics.RaycastAll(position, direction, distance, mask);
             NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
             for (int i = 0; i < hits.Length; i++)
-                hits[i] = new NDRaycastHit(hit3[i]);
+                hits[i] = new NDRaycastHit(hit3[i], distance);
             return hits;
         }
     }
@@ -970,7 +970,7 @@ public static class NDPhysics
         else
         {
             bool didHit = Physics.SphereCast(origin, radius, direction, out RaycastHit hit3, distance);
-            hit = new NDRaycastHit(hit3);
+            hit = new NDRaycastHit(hit3, distance);
             return didHit;
         }
     }
@@ -993,7 +993,7 @@ public static class NDPhysics
         else
         {
             bool didHit = Physics.SphereCast(origin, radius, direction, out RaycastHit hit3, distance, mask);
-            hit = new NDRaycastHit(hit3);
+            hit = new NDRaycastHit(hit3, distance);
             return didHit;
         }
     }
@@ -1019,7 +1019,7 @@ public static class NDPhysics
             RaycastHit[] hit3 = Physics.SphereCastAll(origin, radius, direction, distance);
             NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
             for (int i = 0; i < hits.Length; i++)
-                hits[i] = new NDRaycastHit(hit3[i]);
+                hits[i] = new NDRaycastHit(hit3[i], distance);
             return hits;
         }
     }
@@ -1045,7 +1045,7 @@ public static class NDPhysics
             RaycastHit[] hit3 = Physics.SphereCastAll(origin, radius, direction, distance, mask);
             NDRaycastHit[] hits = new NDRaycastHit[hit3.Length];
             for (int i = 0; i < hits.Length; i++)
-                hits[i] = new NDRaycastHit(hit3[i]);
+                hits[i] = new NDRaycastHit(hit3[i], distance);
             return hits;
         }
     }
@@ -1158,6 +1158,7 @@ public struct NDRaycastHit
             else return hit3.distance;
         }
     }
+    public float fraction;
     public Vector3 normal
     {
         get
@@ -1216,14 +1217,16 @@ public struct NDRaycastHit
         hit3 = default;
         _rigidbody = hit2.rigidbody.ND();
         is2D = true;
+        fraction = hit.fraction;
     }
 
-    public NDRaycastHit(RaycastHit hit)
+    public NDRaycastHit(RaycastHit hit, float maxDistance)
     {
         hit2 = default;
         hit3 = hit;
         _rigidbody = hit3.rigidbody.ND();
         is2D = false;
+        fraction = Mathf.InverseLerp(0f, maxDistance, hit.distance);
     }
 }
 

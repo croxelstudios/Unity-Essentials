@@ -6,7 +6,6 @@ public interface ITransformationSequence
 {
     public float GetMagnitude();
     public void ProjectOnPlane(Vector3 normal);
-    public void CalculateMagnitude();
     public float CalculateDistanceTo(int point);
     public void Draw();
     public void Draw(Color color);
@@ -14,63 +13,65 @@ public interface ITransformationSequence
 
 public struct RotationPath : ITransformationSequence
 {
-    public Quaternion origin;
-    public Quaternion target;
-    public Quaternion dif;
-    public Quaternion[] path;
     public RotationMode mode;
-    public float magnitude;
-    public float difAngle;
-    public Vector3 difAxis;
+    public Quaternion[] path;
+    public int count { get; private set; }
+    public int last { get; private set; }
+    public Quaternion origin { get; private set; }
+    public Quaternion target { get; private set; }
+    public Quaternion dif { get; private set; }
+    public float difAngle { get; private set; }
+    public Vector3 difAxis { get; private set; }
+    public float magnitude { get; private set; }
 
     public RotationPath(Quaternion origin, Quaternion target, RotationMode mode = RotationMode.Shortest)
     {
-        this.origin = origin;
-        this.target = target;
         this.mode = mode;
-        dif = target.Subtract(origin);
-        dif.ToAngleAxis(mode, out difAngle, out difAxis);
-        if (difAngle == 360f)
-            difAngle = 0f;
         path = new Quaternion[] { origin, target };
-        magnitude = difAngle;
+
+        count = default;
+        last = default;
+        this.origin = default;
+        this.target = default;
+        dif = default;
+        difAngle = default;
+        difAxis = default;
+        magnitude = default;
+        CalculateData();
     }
 
     public RotationPath(Quaternion[] rotations, RotationMode mode = RotationMode.Shortest)
     {
-        origin = rotations[0];
-        target = rotations[rotations.Length - 1];
         this.mode = mode;
         path = rotations;
+
+        count = default;
+        last = default;
+        origin = default;
+        target = default;
+        dif = default;
+        difAngle = default;
+        difAxis = default;
+        magnitude = default;
+        CalculateData();
+    }
+
+    void CalculateData()
+    {
+        count = path.Length;
+        last = count - 1;
+        origin = path[0];
+        target = path[last];
         dif = target.Subtract(origin);
-        dif.ToAngleAxis(mode, out difAngle, out difAxis);
-        if (difAngle == 360f)
-            difAngle = 0f;
-        magnitude = 0f;
-        CalculateMagnitude();
-        if (magnitude == 360f)
-            magnitude = 0f;
-    }
-    
-    public float GetMagnitude()
-    {
-        return magnitude;
-    }
-
-    public void ProjectOnPlane(Vector3 normal)
-    {
-        for (int i = 0; i < path.Length; i++)
-            path[i] = Quaternion.AngleAxis(path[i].Angle(mode), normal);
-    }
-
-    public void CalculateMagnitude()
-    {
+        dif.ToAngleAxis(mode, out float difAngle, out Vector3 difAxis);
+        this.difAngle = difAngle;
+        this.difAxis = difAxis;
         if (IsComplexPath())
         {
             Quaternion previousCorner = path[0];
             float lengthSoFar = 0f;
             int i = 1;
-            while (i < path.Length)
+            while (i < count)
             {
                 Quaternion currentCorner = path[i];
                 lengthSoFar += currentCorner.AngleDistance(previousCorner);
@@ -80,6 +81,39 @@ public struct RotationPath : ITransformationSequence
             magnitude = lengthSoFar;
         }
         else magnitude = dif.Angle(mode);
+        if (magnitude == 360f)
+            magnitude = 0f;
+    }
+
+    public void AddRotation(Quaternion rotation)
+    {
+        path = path.Resize(count + 1, rotation);
+        CalculateData();
+    }
+
+    public void ReplaceRotation(int id, Quaternion rotation)
+    {
+        path[id] = rotation;
+        CalculateData();
+    }
+
+    public float GetMagnitude()
+    {
+        return magnitude;
+    }
+
+    public void ProjectOnPlane(Vector3 normal)
+    {
+        for (int i = 0; i < count; i++)
+            path[i] = Quaternion.AngleAxis(path[i].Angle(mode), normal);
+        CalculateData();
+    }
+
+    public Quaternion PredictNext(float multiplier = 1f)
+    {
+        if (IsComplexPath())
+            return path.PredictNext(multiplier);
+        else return target.Add(dif);
     }
 
     public float CalculateDistanceTo(int point)
@@ -111,7 +145,7 @@ public struct RotationPath : ITransformationSequence
             Quaternion previousCorner = path[0];
             float wholeDist = 0f;
             int i = 1;
-            while (i < path.Length)
+            while (i < count)
             {
                 Quaternion currentCorner = path[i];
 
@@ -124,7 +158,7 @@ public struct RotationPath : ITransformationSequence
                 i++;
             }
 
-            path[path.Length - 2].Subtract(previousCorner).ToAngleAxis(mode, out tangle, out taxis);
+            path[count - 2].Subtract(previousCorner).ToAngleAxis(mode, out tangle, out taxis);
 
             return previousCorner.Add(Quaternion.AngleAxis(distance - wholeDist, taxis));
         }
@@ -163,7 +197,7 @@ public struct RotationPath : ITransformationSequence
 
         float change = Mathf.Min(maxSpeed * smoothTime, magnitude);
         Quaternion target = origin.Add(Displacement(change, alongPath));
-        RotationPath subPath = alongPath ? new RotationPath(target, origin, mode)/*SubPath(change, 0, true)*/ :
+        RotationPath subPath = alongPath ? SubPath(change, magnitude - change, true) :
             new RotationPath(target, origin, mode);
 
         float tangle = angularVelocity.magnitude;
@@ -206,7 +240,7 @@ public struct RotationPath : ITransformationSequence
         return origin;
     }
 
-    RotationPath SubPath(float distance, float offset, bool invert = false)
+    public RotationPath SubPath(float distance, float offset, bool invert = false)
     {
         if (IsComplexPath())
         {
@@ -216,7 +250,7 @@ public struct RotationPath : ITransformationSequence
             Quaternion currentCorner = previousCorner;
             float wholeDist = 0f;
             int i = 1;
-            while (i < path.Length)
+            while (i < count)
             {
                 currentCorner = path[i];
                 float dist = currentCorner.AngleDistance(previousCorner);
@@ -243,7 +277,7 @@ public struct RotationPath : ITransformationSequence
                 previousCorner = currentCorner;
                 wholeDist = 0f;
                 i++;
-                while (i < path.Length)
+                while (i < count)
                 {
                     currentCorner = path[i];
                     float dist = currentCorner.AngleDistance(previousCorner);
@@ -291,31 +325,31 @@ public struct RotationPath : ITransformationSequence
 
     public void Draw(Color color)
     {
-        for (int i = 0; i < path.Length - 1; i++)
+        for (int i = 0; i < last; i++)
             Debug.DrawLine(path[i] * Vector3.forward, path[i + 1] * Vector3.forward, color);
     }
 
     bool IsComplexPath()
     {
-        return (path != null) && (path.Length > 2);
+        return (path != null) && (count > 2);
     }
 }
 
 public struct MovementPath : ITransformationSequence
 {
-    public Vector3 origin;
-    public Vector3 target;
-    public Vector3 dif;
     public Vector3[] path;
-    public float magnitude;
+    public int count { get; private set; }
+    public int last { get; private set; }
+    public Vector3 origin { get; private set; }
+    public Vector3 target { get; private set; }
+    public Vector3 dif { get; private set; }
+    public float magnitude { get; private set; }
+
+    public enum SmoothMode { AlongPath, NavMesh, Direct }
 
     public MovementPath(Vector3 origin, Vector3 target, bool useNavMesh = false, int navMeshAreaMask = 0, int navMeshAgentType = 0)
     {
-        this.origin = origin;
-        this.target = target;
-        dif = target - origin;
         path = new Vector3[] { origin, target };
-        magnitude = 0f;
 
         if (useNavMesh)
         {
@@ -327,17 +361,67 @@ public struct MovementPath : ITransformationSequence
             path = nav.corners;
         }
 
-        CalculateMagnitude();
+        count = default;
+        last = default;
+        this.origin = default;
+        this.target = default;
+        dif = default;
+        magnitude = default;
+
+        CalculateData();
     }
 
     public MovementPath(Vector3[] points)
     {
-        origin = points[0];
-        target = points[points.Length - 1];
         path = points;
+
+        count = default;
+        last = default;
+        origin = default;
+        target = default;
+        dif = default;
+        magnitude = default;
+
+        CalculateData();
+    }
+
+    void CalculateData()
+    {
+        count = path.Length;
+        last = count - 1;
+        origin = path[0];
+        target = path[last];
         dif = target - origin;
-        magnitude = 0f;
-        CalculateMagnitude();
+        if (IsComplexPath())
+            magnitude = CalculateDistanceTo(last);
+        else magnitude = dif.magnitude;
+    }
+
+    public void AddPoint(Vector3 point)
+    {
+        path = path.Resize(count + 1, point);
+        CalculateData();
+    }
+
+    public void AddPointKillOld(Vector3 point, int maxPoints)
+    {
+        if (count < maxPoints)
+            AddPoint(point);
+        else AddPointKillOld(point);
+    }
+
+    public void AddPointKillOld(Vector3 point)
+    {
+        for (int i = 1; i < count; i++)
+            path[i - 1] = path[i];
+        path[last] = point;
+        CalculateData();
+    }
+
+    public void ReplacePoint(int id, Vector3 point)
+    {
+        path[id] = point;
+        CalculateData();
     }
 
     public float GetMagnitude()
@@ -347,19 +431,16 @@ public struct MovementPath : ITransformationSequence
 
     public void ProjectOnPlane(Vector3 normal)
     {
-        origin = Vector3.ProjectOnPlane(origin, normal);
-        target = Vector3.ProjectOnPlane(target, normal);
-        dif = Vector3.ProjectOnPlane(dif, normal);
-        if (IsComplexPath())
-            for (int i = 0; i < path.Length; i++)
-                path[i] = Vector3.ProjectOnPlane(path[i], normal);
+        for (int i = 0; i < count; i++)
+            path[i] = Vector3.ProjectOnPlane(path[i], normal);
+        CalculateData();
     }
 
-    public void CalculateMagnitude()
+    public Vector3 PredictNext(float multiplier = 1f)
     {
         if (IsComplexPath())
-            magnitude = CalculateDistanceTo(path.Length - 1);
-        else magnitude = dif.magnitude;
+            return path.PredictNext(multiplier);
+        else return target + dif;
     }
 
     public float CalculateDistanceTo(int point)
@@ -388,7 +469,7 @@ public struct MovementPath : ITransformationSequence
             Vector3 previousCorner = path[0];
             float wholeDist = 0f;
             int i = 1;
-            while (i < path.Length)
+            while (i < count)
             {
                 Vector3 currentCorner = path[i];
                 float dist = Vector3.Distance(previousCorner, currentCorner);
@@ -398,7 +479,7 @@ public struct MovementPath : ITransformationSequence
                 previousCorner = currentCorner;
                 i++;
             }
-            return previousCorner + (previousCorner - path[path.Length - 2]).normalized * (distance - wholeDist);
+            return previousCorner + (previousCorner - path[last - 1]).normalized * (distance - wholeDist);
         }
         else return origin + (dif.normalized * distance);
     }
@@ -416,7 +497,7 @@ public struct MovementPath : ITransformationSequence
         else return dif.normalized * multiplier;
     }
 
-    public Vector3 SmoothDamp(ref Vector3 currentVelocity, float smoothTime, float maxSpeed, float deltaTime, bool alongPath = true)
+    public Vector3 SmoothDamp(ref Vector3 currentVelocity, float smoothTime, float maxSpeed, float deltaTime, SmoothMode smoothMode = SmoothMode.AlongPath)
     {
         //Limit smoothTime to avoid division by 0f;
         smoothTime = Mathf.Max(0.0001F, smoothTime);
@@ -427,12 +508,15 @@ public struct MovementPath : ITransformationSequence
         float exp = 1f / (1f + x + 0.48f * x * x + 0.235f * x * x * x);
 
         float change = Mathf.Min(maxSpeed * smoothTime, magnitude);
-        Vector3 target = origin + Displacement(change, alongPath);
-        //TO DO: This doesn't seem to work because it overshoots the path and so the current method calculates a different one?
-        MovementPath subPath = alongPath ? new MovementPath(target, origin, true) /*SubPath(change, 0, true)*/ : new MovementPath(target, origin, false);
+        Vector3 target = origin + Displacement(change, smoothMode != SmoothMode.Direct);
+        MovementPath subPath = (smoothMode != SmoothMode.Direct) ?
+            ((smoothMode == SmoothMode.NavMesh) ? new MovementPath(target, origin, true) :
+            SubPath(change, magnitude - change, true)) :
+            new MovementPath(target, origin, false);
 
         Vector3 temp = (currentVelocity * deltaTime * exp) +
-            subPath.Displacement((subPath.magnitude + (omega * subPath.magnitude) * deltaTime) * exp, alongPath);
+            subPath.Displacement((subPath.magnitude + (omega * subPath.magnitude) * deltaTime) * exp,
+            smoothMode != SmoothMode.Direct);
 
         Vector3 output = target + temp;
 
@@ -468,7 +552,7 @@ public struct MovementPath : ITransformationSequence
             float dispAdd = 0f;
             int n = 0;
             Vector3 clos = path[0];
-            for (int i = 0; i < path.Length - 1; i++)
+            for (int i = 0; i < last; i++)
             {
                 Vector3 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd_c);
                 float d = Vector3.Distance(point, c);
@@ -490,7 +574,7 @@ public struct MovementPath : ITransformationSequence
         else return point.ClosestPointOnSegment(origin, target, out disp);
     }
 
-    MovementPath SubPath(float distance, float offset, bool invert = false)
+    public MovementPath SubPath(float distance, float offset, bool invert = false)
     {
         if (IsComplexPath())
         {
@@ -500,7 +584,7 @@ public struct MovementPath : ITransformationSequence
             Vector3 currentCorner = previousCorner;
             float wholeDist = 0f;
             int i = 1;
-            while (i < path.Length)
+            while (i < count)
             {
                 currentCorner = path[i];
                 float dist = Vector3.Distance(previousCorner, currentCorner);
@@ -524,7 +608,7 @@ public struct MovementPath : ITransformationSequence
                 previousCorner = currentCorner;
                 wholeDist = 0f;
                 i++;
-                while (i < path.Length)
+                while (i < count)
                 {
                     currentCorner = path[i];
                     float dist = Vector3.Distance(previousCorner, currentCorner);
@@ -567,12 +651,12 @@ public struct MovementPath : ITransformationSequence
 
     public void Draw(Color color)
     {
-        for (int i = 0; i < path.Length - 1; i++)
+        for (int i = 0; i < last; i++)
             Debug.DrawLine(path[i], path[i + 1], color);
     }
 
     bool IsComplexPath()
     {
-        return (path != null) && (path.Length > 2);
+        return (path != null) && (count > 2);
     }
 }

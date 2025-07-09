@@ -149,7 +149,9 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
     protected override Vector3 SmoothDamp(MovementPath path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
         //TO DO: Doesn't work with keepinpath feature
-        return path.SmoothDamp(ref dynamicInfo.speed, speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime)
+        return path.SmoothDamp(ref dynamicInfo.speed,
+            speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime,
+            useNavMesh ? MovementPath.SmoothMode.NavMesh : MovementPath.SmoothMode.AlongPath)
             - path.origin;
     }
 
