@@ -14,8 +14,6 @@ public class RenderersSetColor_FromDistance : RenderersSetColor
     Color farColor = Color.white;
     [SerializeField]
     bool updateTransforms = false;
-    [SerializeField]
-    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     Transform target;
     protected override void Init()
