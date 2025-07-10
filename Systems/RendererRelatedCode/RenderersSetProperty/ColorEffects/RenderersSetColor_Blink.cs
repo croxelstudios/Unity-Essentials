@@ -12,13 +12,14 @@ public class RenderersSetColor_Blink : RenderersSetColor
     Color defaultColor = Color.clear;
     [SerializeField]
     Color targetColor = Color.white;
+    [SerializeField]
+    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     Coroutine co;
 
     protected override void Init()
     {
         color = defaultColor;
-        timeMode = RenderingTimeModeOrOnEnable.OnEnable;
         base.Init();
     }
 

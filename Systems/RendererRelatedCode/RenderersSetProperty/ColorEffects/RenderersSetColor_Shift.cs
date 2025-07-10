@@ -42,8 +42,15 @@ public class RenderersSetColor_Shift : RenderersSetColor
     [SerializeField]
     float _speed = 1f;
     public float speed { get { return _speed; } set { _speed = value; } }
+    [SerializeField]
+    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     float currentTime = 0;
+
+    void LateUpdate()
+    {
+        UpdateBehaviour();
+    }
 
     protected override void OnEnable()
     {

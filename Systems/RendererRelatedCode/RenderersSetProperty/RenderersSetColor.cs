@@ -1,14 +1,16 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using Sirenix.OdinInspector;
 using System.Collections.Generic;
+using UnityEngine;
 
 [ExecuteAlways]
 public class RenderersSetColor : BRenderersSetProperty
 {
     static Dictionary<RendMatProp, List<RenderersSetColor>> stackDictionary;
     //static bool dicWasCleared;
+    [OnValueChanged("UpdateBehaviour")]
     public BlendMode blendMode = BlendMode.Multiply;
     [SerializeField]
+    [OnValueChanged("UpdateBehaviour")]
     Color _color = Color.white;
     public Color color { get { return _color; } protected set { _color = value; } }
     Color oldColor;

@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 [ExecuteAlways]
 public class RenderersSetTextureScroll : BRenderersSetProperty
@@ -15,6 +14,8 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         set { _moveSpeed = value; }
     }
     public Vector2 referenceOffset = Vector2.zero;
+    [SerializeField]
+    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     Vector2 direction;
     Vector2 currentOffset;
@@ -24,6 +25,11 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
     void Reset()
     {
         propertyName = "_MainTex";
+    }
+
+    void LateUpdate()
+    {
+        UpdateBehaviour();
     }
 
     protected override void Init()

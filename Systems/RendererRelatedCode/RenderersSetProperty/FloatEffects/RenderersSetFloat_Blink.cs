@@ -13,6 +13,8 @@ public class RenderersSetFloat_Blink : RenderersSetFloat
     float defaultValue = 0f;
     [SerializeField]
     float targetValue = 1f;
+    [SerializeField]
+    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     Coroutine co;
 

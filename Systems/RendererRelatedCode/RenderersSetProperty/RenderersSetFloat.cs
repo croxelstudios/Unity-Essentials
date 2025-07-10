@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Sirenix.OdinInspector;
+using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
 public class RenderersSetFloat : BRenderersSetProperty
 {
+    [OnValueChanged("UpdateBehaviour")]
     public float value = 0.5f;
 
     float oldValue;
@@ -64,5 +66,6 @@ public class RenderersSetFloat : BRenderersSetProperty
     public virtual void SetFloat(float n)
     {
         value = n;
+        UpdateBehaviour();
     }
 }

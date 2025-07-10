@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Sirenix.OdinInspector;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 [ExecuteAlways]
 public class RenderersSetFloat4 : BRenderersSetProperty
 {
-	public Vector4 value = new Vector4(1f, 1f, 0f, 0f);
+    [OnValueChanged("UpdateBehaviour")]
+    public Vector4 value = new Vector4(1f, 1f, 0f, 0f);
 
 	Vector4 oldValue;
 	static Dictionary<RendMatProp, Vector4> originals;
@@ -64,36 +65,42 @@ public class RenderersSetFloat4 : BRenderersSetProperty
 
     public void SetX(float n)
     {
-        value = new Vector4(n, value.y, value.z, value.w);
+        Set(new Vector4(n, value.y, value.z, value.w));
     }
 
     public void SetY(float n)
     {
-        value = new Vector4(value.x, n, value.z, value.w);
+        Set(new Vector4(value.x, n, value.z, value.w));
     }
 
     public void SetZ(float n)
     {
-        value = new Vector4(value.x, value.y, n, value.w);
+        Set(new Vector4(value.x, value.y, n, value.w));
     }
 
     public void SetW(float n)
     {
-        value = new Vector4(value.x, value.y, value.z, n);
+        Set(new Vector4(value.x, value.y, value.z, n));
     }
 
     public void Set(Vector2 value)
     {
-        this.value = new Vector4(value.x, value.y, this.value.z, this.value.w);
+        Set(new Vector4(value.x, value.y, this.value.z, this.value.w));
+    }
+
+    public void SetZW(Vector2 value)
+    {
+        Set(new Vector4(this.value.x, this.value.y, value.x, value.y));
     }
 
     public void Set(Vector3 value)
     {
-        this.value = new Vector4(value.x, value.y, value.z, this.value.w);
+        Set(new Vector4(value.x, value.y, value.z, this.value.w));
     }
 
     public void Set(Vector4 value)
     {
         this.value = value;
+        UpdateBehaviour();
     }
 }

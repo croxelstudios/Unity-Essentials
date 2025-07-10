@@ -8,6 +8,8 @@ public class RenderersSetTexture_FromMaterial : RenderersSetTexture
     [InlineProperty]
     [HideLabel]
     ProceduralTexture proceduralTexture = new ProceduralTexture(null);
+    [SerializeField]
+    RenderingTimeModeOrOnEnable timeMode = RenderingTimeModeOrOnEnable.Update;
 
     protected override void OnEnable()
     {
@@ -20,6 +22,12 @@ public class RenderersSetTexture_FromMaterial : RenderersSetTexture
     {
         base.OnDisable();
         proceduralTexture.Release();
+    }
+
+    void LateUpdate()
+    {
+        if (timeMode.IsSmooth())
+            UpdateBehaviour();
     }
 
     protected override void UpdateBehaviour()

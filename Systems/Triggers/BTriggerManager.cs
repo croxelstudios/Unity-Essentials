@@ -32,7 +32,7 @@ public class BTriggerManager : MonoBehaviour
             {
                 colliders.RemoveAt(i);
                 if (colliders.Count == 0) OnTrigExit();
-                OnTrigExit(new NDCollider());
+                OnTrigExit(null);
             }
         }
     }
@@ -46,7 +46,7 @@ public class BTriggerManager : MonoBehaviour
     {
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
-            NDCollider enterCol = new NDCollider(other);
+            NDCollider enterCol = other.ND();
             int prevCount = colliders.Count;
             colliders.Add(enterCol);
             if (prevCount == 0) OnTrigEnter();
@@ -58,7 +58,7 @@ public class BTriggerManager : MonoBehaviour
     {
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
-            NDCollider enterCol = new NDCollider(other);
+            NDCollider enterCol = other.ND();
             int prevCount = colliders.Count;
             colliders.Add(enterCol);
             if (prevCount == 0) OnTrigEnter();
@@ -70,7 +70,7 @@ public class BTriggerManager : MonoBehaviour
     {
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
-            NDCollider exitCol = new NDCollider(other);
+            NDCollider exitCol = other.ND();
             for (int i = colliders.Count - 1; i >= 0; i--)
                 if (colliders[i] == exitCol)
                 {
@@ -86,7 +86,7 @@ public class BTriggerManager : MonoBehaviour
     {
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
-            NDCollider exitCol = new NDCollider(other);
+            NDCollider exitCol = other.ND();
             for (int i = colliders.Count - 1; i >= 0; i--)
                 if (colliders[i] == exitCol)
                 {

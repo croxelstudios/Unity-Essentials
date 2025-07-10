@@ -45,6 +45,8 @@ public class RenderersSetTexture_AnimationFromArray : RenderersSetTexture
     public EventOnFrame[] frameEvents = null;
     [SerializeField]
     Renderer[] renderers = null;
+    [SerializeField]
+    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     float currentTime = 0;
     int currentFrame = -1;
@@ -61,6 +63,11 @@ public class RenderersSetTexture_AnimationFromArray : RenderersSetTexture
                     startFrame = Random.Range(0, animationFrames.Length);
                 SetFrame(startFrame);
             }
+    }
+
+    void LateUpdate()
+    {
+        UpdateBehaviour();
     }
 
     bool AnimationIsValid()

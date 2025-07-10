@@ -1,29 +1,31 @@
+using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class RenderersSetKeyword : MonoBehaviour
 {
     protected Renderer[] rend;
 
     [SerializeField]
+    [OnValueChanged("UpdateRenderers")]
     protected bool affectsChildren = true;
     [SerializeField]
+    [OnValueChanged("UpdateBehaviour")]
     [Tooltip("It will be applied to all materials if set to a negative number")]
     protected int materialIndex = -1;
     [SerializeField]
+    [OnValueChanged("UpdateBehaviour")]
     protected string propertyName = "_EMISSION";
     [SerializeField]
     protected bool updateRenderers = false;
+    [OnValueChanged("UpdateBehaviour")]
     public bool enable = true;
     [SerializeField]
     bool waitOneFrameForInit = false;
-    [SerializeField]
-    protected RenderingTimeModeOrOnEnable timeMode = RenderingTimeModeOrOnEnable.Update;
 
     bool oldValue;
-    static Dictionary<RendererMaterial, bool> originals;
+    static Dictionary<RendMat, bool> originals;
 
     protected virtual void OnEnable()
     {
@@ -41,7 +43,7 @@ public class RenderersSetKeyword : MonoBehaviour
     protected virtual void Init()
     {
         oldValue = enable;
-        originals = new Dictionary<RendererMaterial, bool>();
+        originals = new Dictionary<RendMat, bool>();
         UpdateRenderers();
         if (IsInitialized()) SetBlocksProperty();
     }
@@ -69,12 +71,6 @@ public class RenderersSetKeyword : MonoBehaviour
     {
         if (IsInitialized())
             SetBlocksProperty(true);
-    }
-
-    void LateUpdate()
-    {
-        if (timeMode.IsSmooth())
-            UpdateBehaviour();
     }
 
     protected virtual void UpdateBehaviour()
@@ -126,7 +122,7 @@ public class RenderersSetKeyword : MonoBehaviour
 
     protected virtual void VSetProperty(Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat);
+        RendMat rendMat = new RendMat(rend, mat);
         Material m = rend.materials[mat];
         if (!originals.ContainsKey(rendMat))
             originals.Add(rendMat, m.IsKeywordEnabled(propertyName));
@@ -135,7 +131,7 @@ public class RenderersSetKeyword : MonoBehaviour
 
     protected virtual void VResetProperty(Renderer rend, int mat)
     {
-        RendererMaterial rendMat = new RendererMaterial(rend, mat);
+        RendMat rendMat = new RendMat(rend, mat);
         Material m = rend.materials[mat];
         if (originals.ContainsKey(rendMat))
             SetKeyword(m, propertyName, originals[rendMat]);
@@ -162,15 +158,19 @@ public class RenderersSetKeyword : MonoBehaviour
         else mat.DisableKeyword(keyword);
     }
 
-    protected struct RendererMaterial
+    public void SetKeyword(bool value)
     {
-        public Renderer rend;
-        public int mat;
+        enable = value;
+        UpdateBehaviour();
+    }
 
-        public RendererMaterial(Renderer rend, int mat)
-        {
-            this.rend = rend;
-            this.mat = mat;
-        }
+    public void Enable()
+    {
+        SetKeyword(true);
+    }
+
+    public void Disable()
+    {
+        SetKeyword(false);
     }
 }

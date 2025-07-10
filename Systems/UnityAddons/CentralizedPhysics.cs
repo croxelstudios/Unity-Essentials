@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System;
 
@@ -11,30 +12,38 @@ public class NDRigidbody
     public Rigidbody rigid3;
     public bool is2D { get { return rigid2 != null; } }
     public bool is3D { get { return rigid3 != null; } }
+    GameObject _gameObject;
     public GameObject gameObject
     {
         get
         {
-            if (is2D)
+            if (_gameObject == null)
             {
-                if (rigid2.gameObject != null)
-                    return rigid2.gameObject;
-                else return null;
+                if (is2D)
+                {
+                    if (rigid2.gameObject != null)
+                        _gameObject = rigid2.gameObject;
+                }
+                else
+                {
+                    if (rigid3.gameObject != null)
+                        _gameObject = rigid3.gameObject;
+                }
             }
-            else
-            {
-                if (rigid3.gameObject != null)
-                    return rigid3.gameObject;
-                else return null;
-            }
+            return _gameObject;
         }
     }
+    Transform _transform;
     public Transform transform
     {
         get
         {
-            if (is2D) return rigid2.transform;
-            else return rigid3.transform;
+            if (_transform == null)
+            {
+                if (is2D) _transform = rigid2.transform;
+                else _transform = rigid3.transform;
+            }
+            return _transform;
         }
     }
     public string tag
@@ -253,11 +262,17 @@ public class NDRigidbody
     {
         if (rigid == null) return null;
 
+        if (rigids2 == null)
+        {
+            rigids2 = new Dictionary<Rigidbody2D, NDRigidbody>();
+            SceneManager.sceneUnloaded += ResetDictionary2;
+        }
+
         NDRigidbody nd;
-        if (!rigids2.SmartGetValue(rigid, out nd))
+        if (!rigids2.TryGetValue(rigid, out nd))
         {
             nd = new NDRigidbody(rigid);
-            rigids2 = rigids2.CreateAdd(rigid, nd);
+            rigids2.Add(rigid, nd);
         }
         return nd;
     }
@@ -266,13 +281,29 @@ public class NDRigidbody
     {
         if (rigid == null) return null;
 
+        if (rigids3 == null)
+        {
+            rigids3 = new Dictionary<Rigidbody, NDRigidbody>();
+            SceneManager.sceneUnloaded += ResetDictionary3;
+        }
+
         NDRigidbody nd;
-        if (!rigids3.SmartGetValue(rigid, out nd))
+        if (!rigids3.TryGetValue(rigid, out nd))
         {
             nd = new NDRigidbody(rigid);
-            rigids3 = rigids3.CreateAdd(rigid, nd);
+            rigids3.Add(rigid, nd);
         }
         return nd;
+    }
+
+    static void ResetDictionary2(Scene scene)
+    {
+        rigids2.SmartClear();
+    }
+
+    static void ResetDictionary3(Scene scene)
+    {
+        rigids3.SmartClear();
     }
 
     public static NDRigidbody GetNDRigidbodyFrom(GameObject go, Scope scope = Scope.inThis)
@@ -443,9 +474,12 @@ public class NDRigidbody
     //TO DO: Full rigidbody casts.
 }
 
-[System.Serializable]
-public struct NDCollider : IEquatable<NDCollider>
+[Serializable]
+public class NDCollider
 {
+    static Dictionary<Collider2D, NDCollider> cols2;
+    static Dictionary<Collider, NDCollider> cols3;
+
     public Collider2D col2;
     public Collider col3;
     public bool is2D { get { return col2 != null; } }
@@ -497,33 +531,42 @@ public struct NDCollider : IEquatable<NDCollider>
             else return null;
         }
     }
+    
+    GameObject _gameObject;
     public GameObject gameObject
     {
         get
         {
-            if (IsNull()) return null;
-            if (is2D)
+            if (_gameObject == null)
             {
-                if (col2.gameObject != null)
-                    return col2.gameObject;
-                else return null;
+                if (IsNull()) _gameObject = null;
+                if (is2D)
+                {
+                    if (col2.gameObject != null)
+                        _gameObject = col2.gameObject;
+                }
+                else
+                {
+                    if (col3.gameObject != null)
+                        _gameObject = col3.gameObject;
+                }
             }
-            else
-            {
-                if (col3.gameObject != null)
-                    return col3.gameObject;
-                else return null;
-            }
+            return _gameObject;
         }
     }
 
+    Transform _transform;
     public Transform transform
     {
         get
         {
-            if (IsNull()) return null;
-            if (is2D) return col2.transform;
-            else return col3.transform;
+            if (_transform == null)
+            {
+                if (IsNull()) _transform = null;
+                if (is2D) _transform = col2.transform;
+                else _transform = col3.transform;
+            }
+            return _transform;
         }
     }
 
@@ -562,9 +605,57 @@ public struct NDCollider : IEquatable<NDCollider>
         _attachedRigidbody = col3.attachedRigidbody.ND();
     }
 
+    public static NDCollider ND(Collider2D collider)
+    {
+        if (collider == null) return null;
+
+        if (cols2 == null)
+        {
+            cols2 = new Dictionary<Collider2D, NDCollider>();
+            SceneManager.sceneUnloaded += ResetDictionary2;
+        }
+
+        NDCollider nd;
+        if (!cols2.TryGetValue(collider, out nd))
+        {
+            nd = new NDCollider(collider);
+            cols2.Add(collider, nd);
+        }
+        return nd;
+    }
+
+    public static NDCollider ND(Collider collider)
+    {
+        if (collider == null) return null;
+
+        if (cols3 == null)
+        {
+            cols3 = new Dictionary<Collider, NDCollider>();
+            SceneManager.sceneUnloaded += ResetDictionary3;
+        }
+
+        NDCollider nd;
+        if (!cols3.TryGetValue(collider, out nd))
+        {
+            nd = new NDCollider(collider);
+            cols3.Add(collider, nd);
+        }
+        return nd;
+    }
+
+    static void ResetDictionary2(Scene scene)
+    {
+        cols2.Clear();
+    }
+
+    static void ResetDictionary3(Scene scene)
+    {
+        cols3.Clear();
+    }
+
     public static NDCollider GetNDColliderFrom(GameObject go, Scope scope = Scope.inThis)
     {
-        NDCollider result = new NDCollider();
+        NDCollider result = null;
         Collider col3;
         switch (scope)
         {
@@ -578,7 +669,7 @@ public struct NDCollider : IEquatable<NDCollider>
                 col3 = go.GetComponent<Collider>();
                 break;
         }
-        if (col3 != null) result = new NDCollider(col3);
+        if (col3 != null) result = col3.ND();
         else
         {
             Collider2D col2;
@@ -594,8 +685,8 @@ public struct NDCollider : IEquatable<NDCollider>
                     col2 = go.GetComponent<Collider2D>();
                     break;
             }
-            if (col2 != null) result = new NDCollider(col2);
-            else result = new NDCollider();
+            if (col2 != null) result = col2.ND();
+            else result = null;
         }
         return result;
     }
@@ -621,7 +712,7 @@ public struct NDCollider : IEquatable<NDCollider>
                 col3s = go.GetComponents<Collider>();
                 break;
         }
-        foreach (Collider col in col3s) result.Add(new NDCollider(col));
+        foreach (Collider col in col3s) result.Add(col.ND());
 
         Collider2D[] col2s;
         switch (scope)
@@ -636,7 +727,7 @@ public struct NDCollider : IEquatable<NDCollider>
                 col2s = go.GetComponents<Collider2D>();
                 break;
         }
-        foreach (Collider2D col in col2s) result.Add(new NDCollider(col));
+        foreach (Collider2D col in col2s) result.Add(col.ND());
 
         return result.ToArray();
     }
@@ -644,54 +735,6 @@ public struct NDCollider : IEquatable<NDCollider>
     public static NDCollider[] GetNDCollidersFrom(Transform tr, Scope scope = Scope.inThis)
     {
         return GetNDCollidersFrom(tr.gameObject, scope);
-    }
-
-    public static NDCollider Find<T>(Dictionary<NDCollider, T> dictionary, NDCollider collider)
-    {
-        NDCollider found = new NDCollider();
-        foreach (KeyValuePair<NDCollider, T> entry in dictionary)
-        {
-            if (entry.Key == collider)
-            {
-                found = entry.Key;
-                break;
-            }
-        }
-        return found;
-    }
-
-    public static NDCollider Find(List<NDCollider> list, NDCollider collider)
-    {
-        NDCollider found = new NDCollider();
-        foreach (NDCollider entry in list)
-        {
-            if (entry == collider)
-            {
-                found = entry;
-                break;
-            }
-        }
-        return found;
-    }
-
-    public static bool Contains<T>(Dictionary<NDCollider, T> dictionary, NDCollider collider)
-    {
-        return !Find(dictionary, collider).IsNull();
-    }
-
-    public static bool Contains(List<NDCollider> list, NDCollider collider)
-    {
-        return !Find(list, collider).IsNull();
-    }
-
-    public static bool RemoveFrom<T>(Dictionary<NDCollider, T> dictionary, NDCollider collider)
-    {
-        return dictionary.Remove(Find(dictionary, collider));
-    }
-
-    public static bool RemoveFrom(List<NDCollider> list, NDCollider collider)
-    {
-        return list.Remove(Find(list, collider));
     }
 
     public LayerMask GetLayerCollisionMask()
@@ -706,7 +749,7 @@ public struct NDCollider : IEquatable<NDCollider>
         }
     }
 
-    public bool IsNull()
+    bool IsNull()
     {
         return (col2 == null) && (col3 == null);
     }
@@ -769,32 +812,6 @@ public struct NDCollider : IEquatable<NDCollider>
         return finalHits.ToArray();
     }
 
-    public override bool Equals(object other)
-    {
-        if (!(other is NDCollider)) return false;
-        return Equals((NDCollider)other);
-    }
-
-    public bool Equals(NDCollider other)
-    {
-        return (other.col2 == col2) && (other.col3 == col3);
-    }
-
-    public override int GetHashCode()
-    {
-        return is2D ? col2.GetHashCode() : col3.GetHashCode();
-    }
-
-    public static bool operator ==(NDCollider o1, NDCollider o2)
-    {
-        return o1.Equals(o2);
-    }
-
-    public static bool operator !=(NDCollider o1, NDCollider o2)
-    {
-        return !o1.Equals(o2);
-    }
-
     public enum Scope { inThis, inParents, inChildren }
 }
 
@@ -808,14 +825,14 @@ public static class NDPhysics
             Collider2D[] inRange = Physics2D.OverlapCircleAll(position, radius, layerMask);
             result = new NDCollider[inRange.Length];
             for (int i = 0; i < inRange.Length; i++)
-                result[i] = new NDCollider(inRange[i]);
+                result[i] = inRange[i].ND();
         }
         else
         {
             Collider[] inRange = Physics.OverlapSphere(position, radius, layerMask);
             result = new NDCollider[inRange.Length];
             for (int i = 0; i < inRange.Length; i++)
-                result[i] = new NDCollider(inRange[i]);
+                result[i] = inRange[i].ND();
         }
         return result;
     }
@@ -837,14 +854,14 @@ public static class NDPhysics
             Collider2D[] inRange = Physics2D.OverlapBoxAll(position, size, layerMask);
             result = new NDCollider[inRange.Length];
             for (int i = 0; i < inRange.Length; i++)
-                result[i] = new NDCollider(inRange[i]);
+                result[i] = inRange[i].ND();
         }
         else
         {
             Collider[] inRange = Physics.OverlapBox(position, size, quat, layerMask);
             result = new NDCollider[inRange.Length];
             for (int i = 0; i < inRange.Length; i++)
-                result[i] = new NDCollider(inRange[i]);
+                result[i] = inRange[i].ND();
         }
         return result;
     }
@@ -1070,6 +1087,21 @@ public static class NDPhysics
         return NDCollision.ND(collision);
     }
 
+    public static NDCollider ND(this Collider2D collider)
+    {
+        return NDCollider.ND(collider);
+    }
+
+    public static NDCollider ND(this Collider collider)
+    {
+        return NDCollider.ND(collider);
+    }
+
+    public static bool IsNull(this NDCollider collider)
+    {
+        return (collider == null) || ((collider.col2 == null) && (collider.col3 == null));
+    }
+
     public static float DefaultContactOffset(bool is2D)
     {
         if (is2D) return Physics2D.defaultContactOffset;
@@ -1146,8 +1178,8 @@ public struct NDRaycastHit
     {
         get
         {
-            if (is2D) return new NDCollider(hit2.collider);
-            else return new NDCollider(hit3.collider);
+            if (is2D) return hit2.collider.ND();
+            else return hit3.collider.ND();
         }
     }
     public float distance
@@ -1240,20 +1272,32 @@ public class NDCollision
     public bool wasOnStay;
     public bool is2D { get { return collision2 != null; } }
     public bool is3D { get { return collision3 != null; } }
+
+    NDCollider _collider;
     public NDCollider collider
     {
         get
         {
-            if (is2D) return new NDCollider(collision2.collider);
-            else return new NDCollider(collision3.collider);
+            if (_collider == null)
+            {
+                if (is2D) _collider = collision2.collider.ND();
+                else _collider = collision3.collider.ND();
+            }
+            return _collider;
         }
     }
+
+    GameObject _gameObject;
     public GameObject gameObject
     {
         get
         {
-            if (is2D) return collision2.gameObject;
-            else return collision3.gameObject;
+            if (_gameObject == null)
+            {
+                if (is2D) _gameObject = collision2.gameObject;
+                else _gameObject = collision3.gameObject;
+            }
+            return _gameObject;
         }
     }
     public int contactCount
@@ -1288,12 +1332,18 @@ public class NDCollision
             }
         }
     }
+
+    Transform _transform;
     public Transform transform
     {
         get
         {
-            if (is2D) return collision2.transform;
-            else return collision3.transform;
+            if (_transform == null)
+            {
+                if (is2D) _transform = collision2.transform;
+                else _transform = collision3.transform;
+            }
+            return transform;
         }
     }
     public Vector3 relativeVelocity
@@ -1323,7 +1373,18 @@ public class NDCollision
     {
         if (collision == null) return null;
 
-        cols2 = cols2.CreateAdd(collision, new NDCollision(collision));
+        if (cols2 == null)
+        {
+            cols2 = new Dictionary<Collision2D, NDCollision>();
+            SceneManager.sceneUnloaded += ResetDictionary2;
+        }
+
+        NDCollision nd;
+        if (!cols2.TryGetValue(collision, out nd))
+        {
+            nd = new NDCollision(collision);
+            cols2.Add(collision, nd);
+        }
         return cols2[collision];
     }
 
@@ -1331,8 +1392,29 @@ public class NDCollision
     {
         if (collision == null) return null;
 
-        cols3 = cols3.CreateAdd(collision, new NDCollision(collision));
+        if (cols3 == null)
+        {
+            cols3 = new Dictionary<Collision, NDCollision>();
+            SceneManager.sceneUnloaded += ResetDictionary3;
+        }
+
+        NDCollision nd;
+        if (!cols3.TryGetValue(collision, out nd))
+        {
+            nd = new NDCollision(collision);
+            cols3.Add(collision, nd);
+        }
         return cols3[collision];
+    }
+
+    static void ResetDictionary2(Scene scene)
+    {
+        cols2.Clear();
+    }
+
+    static void ResetDictionary3(Scene scene)
+    {
+        cols3.Clear();
     }
 }
 
@@ -1346,8 +1428,8 @@ public struct NDContactPoint
     {
         get
         {
-            if (is2D) return new NDCollider(con2.collider);
-            else return new NDCollider(con3.thisCollider);
+            if (is2D) return con2.collider.ND();
+            else return con3.thisCollider.ND();
         }
     }
     public Vector3 normal
@@ -1362,8 +1444,8 @@ public struct NDContactPoint
     {
         get
         {
-            if (is2D) return new NDCollider(con2.otherCollider);
-            else return new NDCollider(con3.otherCollider);
+            if (is2D) return con2.otherCollider.ND();
+            else return con3.otherCollider.ND();
         }
     }
     public Vector3 point

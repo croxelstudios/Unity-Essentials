@@ -26,22 +26,22 @@ public class SpecificTriggerManager : MonoBehaviour
 
     public void OnTriggerEnter(Collider collision)
     {
-        OnEnter(new NDCollider(collision));
+        OnEnter(collision.ND());
     }
 
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        OnEnter(new NDCollider(collision));
+        OnEnter(collision.ND());
     }
 
     public void OnTriggerExit(Collider collision)
     {
-        OnExit(new NDCollider(collision));
+        OnExit(collision.ND());
     }
 
     public void OnTriggerExit2D(Collider2D collision)
     {
-        OnExit(new NDCollider(collision));
+        OnExit(collision.ND());
     }
 
     void OnEnter(NDCollider ndCol)

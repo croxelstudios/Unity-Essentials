@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+﻿using Sirenix.OdinInspector;
 using System.Collections;
+using UnityEngine;
 
 [ExecuteAlways]
 public class BRenderersSetProperty : MonoBehaviour
@@ -7,18 +8,19 @@ public class BRenderersSetProperty : MonoBehaviour
     protected Renderer[] rend;
 
     [SerializeField]
+    [OnValueChanged("UpdateRenderers")]
     protected bool affectsChildren = true;
     [SerializeField]
+    [OnValueChanged("UpdateBehaviour")]
     [Tooltip("It will be applied to all materials if set to a negative number")]
     protected int materialIndex = -1;
     [SerializeField]
+    [OnValueChanged("UpdateBehaviour")]
     protected string propertyName = "";
     [SerializeField]
     protected bool updateRenderers = false;
     [SerializeField]
     protected bool dontUsePropertyBlock = false;
-    [SerializeField]
-    protected RenderingTimeModeOrOnEnable timeMode = RenderingTimeModeOrOnEnable.Update;
     [SerializeField]
     bool waitOneFrameForInit = false;
 
@@ -73,12 +75,6 @@ public class BRenderersSetProperty : MonoBehaviour
     {
         if (IsInitialized())
             SetBlocksProperty(true);
-    }
-
-    void LateUpdate()
-    {
-        if (timeMode.IsSmooth())
-            UpdateBehaviour();
     }
 
     protected virtual void UpdateBehaviour()

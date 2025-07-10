@@ -17,6 +17,7 @@ public class CustomTag : MonoBehaviour
 
     #region Statics
     public static Dictionary<StringList, Dictionary<int, List<CustomTag>>> activeTagged { get; private set; }
+    public GameObject[] includedGameObjects { get; private set; }
 
     public static void AddActiveTaggedObj(CustomTagItem item, CustomTag customTag)
     {
@@ -63,8 +64,6 @@ public class CustomTag : MonoBehaviour
     {
         return AmIActiveTagged(item);
     }
-
-    public GameObject[] includedGameObjects { get; private set; }
 
     void OnEnable()
     {
@@ -228,7 +227,7 @@ public struct CustomTagItem : IEquatable<CustomTagItem>
         else return false;
     }
 
-    public bool CheckDirty(GameObject other, bool includeInactive = false)
+    public bool DirtyCheck(GameObject other, bool includeInactive = false)
     {
         if (tagList == null) return true;
 
@@ -306,7 +305,7 @@ public struct CustomTagItems
         return hasTag;
     }
 
-    public bool Check_Dirty(GameObject other)
+    public bool DirtyCheck(GameObject other)
     {
         if (tagList == null) return true;
 

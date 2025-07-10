@@ -172,12 +172,13 @@ public class FadeInOut : MonoBehaviour
         bool finished = false;
         do
         {
+            float fadeTime = fadingIn ? timeFadeIn : timeFadeOut;
             float deltaTime = unscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
-            if (deltaTime > 0.1f) deltaTime = 0f; //Don't progress if lag spike
+            if (deltaTime > fadeTime) deltaTime = 0f; //Don't progress if lag spike
             currentAlpha = alphaHolder.alpha;
 
-            if (fadingIn) currentAlpha = Mathf.Min(1f, currentAlpha + (deltaTime / timeFadeIn));
-            else currentAlpha = Mathf.Max(0f, currentAlpha - (deltaTime / timeFadeOut));
+            if (fadingIn) currentAlpha = Mathf.Min(1f, currentAlpha + (deltaTime / fadeTime));
+            else currentAlpha = Mathf.Max(0f, currentAlpha - (deltaTime / fadeTime));
 
             if ((currentAlpha >= 1f) && (alphaHolder.alpha < 1f))
             {

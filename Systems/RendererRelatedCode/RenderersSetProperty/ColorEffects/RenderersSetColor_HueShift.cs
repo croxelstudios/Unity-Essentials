@@ -11,8 +11,16 @@ public class RenderersSetColor_HueShift : RenderersSetColor
     float value = 1f;
     [SerializeField]
     float hueSpeed = 1f;
+    [SerializeField]
+    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     float originH;
+
+    void LateUpdate()
+    {
+        UpdateBehaviour();
+    }
+
     protected override void Init()
     {
         Color.RGBToHSV(color, out originH, out float originS, out float originV);

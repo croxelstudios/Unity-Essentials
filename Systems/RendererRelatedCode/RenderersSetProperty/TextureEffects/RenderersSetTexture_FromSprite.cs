@@ -5,6 +5,14 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
 {
     [SerializeField]
     string[] otherProperties = null;
+    [SerializeField]
+    RenderingTimeModeOrOnEnable timeMode = RenderingTimeModeOrOnEnable.Update;
+
+    void LateUpdate()
+    {
+        if (timeMode.IsSmooth())
+            UpdateBehaviour();
+    }
 
     Texture[] oldTexs;
     protected override void Init()
