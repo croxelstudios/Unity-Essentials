@@ -21,7 +21,8 @@ public class BComputeDisplacement : MonoBehaviour
     {
         if (meshes != null)
             for (int i = 0; i < meshes.Length; i++)
-                ResetData(i);
+                if (meshes[i] != null)
+                    ResetData(i);
         ComputableMesh.StopUsing(this);
     }
 
