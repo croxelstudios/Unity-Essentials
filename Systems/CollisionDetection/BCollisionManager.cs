@@ -155,7 +155,7 @@ public class BCollisionManager : MonoBehaviour
 
     protected virtual bool CheckCollision(GameObject other)
     {
-        if ((detectionTags == null || detectionTags.Contains(other.tag) || detectionTags.Length == 0)
+        if ((detectionTags.IsNullOrEmpty() || detectionTags.Contains(other.tag))
             && layerMask.ContainsLayer(other.layer))
             return true;
         else if (checkRigidbodyTag)

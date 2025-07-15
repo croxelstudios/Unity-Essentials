@@ -1280,7 +1280,7 @@ public class NDCollision
         {
             if (_collider == null)
             {
-                if (is2D) _collider = collision2.collider.ND();
+                if (is2D) _collider = collision2.otherCollider.ND();
                 else _collider = collision3.collider.ND();
             }
             return _collider;
@@ -1294,7 +1294,7 @@ public class NDCollision
         {
             if (_gameObject == null)
             {
-                if (is2D) _gameObject = collision2.gameObject;
+                if (is2D) _gameObject = collision2.otherCollider.gameObject;
                 else _gameObject = collision3.gameObject;
             }
             return _gameObject;
@@ -1340,7 +1340,7 @@ public class NDCollision
         {
             if (_transform == null)
             {
-                if (is2D) _transform = collision2.transform;
+                if (is2D) _transform = collision2.otherCollider.transform;
                 else _transform = collision3.transform;
             }
             return transform;
@@ -1404,6 +1404,8 @@ public class NDCollision
             nd = new NDCollision(collision);
             cols3.Add(collision, nd);
         }
+        else cols3[collision].Reset();
+
         return cols3[collision];
     }
 
@@ -1415,6 +1417,13 @@ public class NDCollision
     static void ResetDictionary3(Scene scene)
     {
         cols3.Clear();
+    }
+
+    public void Reset()
+    {
+        _collider = null;
+        _gameObject = null;
+        _transform = null;
     }
 }
 
