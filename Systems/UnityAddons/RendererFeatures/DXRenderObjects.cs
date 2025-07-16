@@ -270,7 +270,7 @@ public class DXRenderObjects : ScriptableRendererFeature
             public float clDepth;
             public ShaderKeyword[] overrideKeywords;
 
-            public RTHandle toRelease;
+            public List<RTHandle> toRelease;
 
             public void SetKeywords(RasterCommandBuffer cmd)
             {
@@ -409,13 +409,34 @@ public class DXRenderObjects : ScriptableRendererFeature
                         break;
 
                     case TextureTargetSettings.TextureTarget.RenderTexture:
-                        rt = RTHandles.Alloc(textureSettings.targetTexture);
+                        RenderTexture tex = textureSettings.targetTexture;
+                        RenderTargetIdentifier rti = new RenderTargetIdentifier(tex.colorBuffer);
+                        rt = RTHandles.Alloc(rti, "RenderTexture_Color");
 
-                        texName = textureSettings.targetTexture.name;
-                        TextureHandle intermediate = renderGraph.ImportTexture(rt);
+                        RenderTargetInfo info = new RenderTargetInfo();
+                        info.volumeDepth = tex.volumeDepth;
+                        info.height = tex.height;
+                        info.width = tex.width;
+                        info.bindMS = tex.bindTextureMS;
+                        info.msaaSamples = tex.antiAliasing;
+                        info.format = tex.graphicsFormat;
+
+                        texName = tex.name;
+                        TextureHandle intermediate = renderGraph.ImportTexture(rt, info);
 
                         passData.color = intermediate;
-                        passData.toRelease = rt;
+
+                        if (tex.depthStencilFormat != GraphicsFormat.None)
+                        {
+                            rti = new RenderTargetIdentifier(tex.depthBuffer);
+                            rt = RTHandles.Alloc(rti, "RenderTexture_Depth");
+                            info.format = tex.depthStencilFormat;
+                            intermediate = renderGraph.ImportTexture(rt, info);
+
+                            passData.depth = intermediate;
+                        }
+
+                        passData.toRelease = passData.toRelease.CreateAdd(rt);
                         break;
 
                     case TextureTargetSettings.TextureTarget.DepthTexture:
@@ -478,8 +499,12 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                     data.SetKeywords(rgContext.cmd);
 
-                    if (data.toRelease != null)
-                        RTHandles.Release(data.toRelease);
+                    if (!data.toRelease.IsNullOrEmpty())
+                    {
+                        foreach (RTHandle toRelease in data.toRelease)
+                            RTHandles.Release(toRelease);
+                        data.toRelease.Clear();
+                    }
                 });
             }
         }
