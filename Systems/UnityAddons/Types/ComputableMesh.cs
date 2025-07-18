@@ -435,6 +435,12 @@ public class ComputableMesh : IDisposable
         vertexBuf = null;
     }
 
+    public void ResetIndexBuffer()
+    {
+        indexBuf?.Dispose();
+        indexBuf = null;
+    }
+
     public void ResetVertexColors()
     {
         SetVertexColors(0, vertexCount, Color.white);
@@ -1691,12 +1697,13 @@ public class ComputableMesh : IDisposable
     public void Dispose()
     {
         vertexData.Dispose();
-        for (int i = 0; i < triangleData.Length; i++)
-            triangleData[i].Dispose();
+        if (!triangleData.IsNullOrEmpty())
+            for (int i = 0; i < triangleData.Length; i++)
+                triangleData[i].Dispose();
         triangleData = null;
-        vertexBuf.Dispose();
-        indexBuf.Dispose();
-        Object.Destroy(mesh);
+        ResetVertexBuffer();
+        ResetIndexBuffer();
+        Object.DestroyImmediate(mesh);
         GC.SuppressFinalize(this);
     }
 
@@ -1708,7 +1715,7 @@ public class ComputableMesh : IDisposable
 
     ~ComputableMesh()
     {
-        Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
+        //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
         Dispose();
     }
 }
