@@ -5,8 +5,9 @@ using UnityEngine.Rendering;
 using System.Linq;
 using System;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
-public class ComputableMesh
+public class ComputableMesh : IDisposable
 {
     public Mesh original { get; private set; }
     public Mesh mesh { get; private set; }
@@ -1686,4 +1687,28 @@ public class ComputableMesh
         }
     }
     #endregion
+
+    public void Dispose()
+    {
+        vertexData.Dispose();
+        for (int i = 0; i < triangleData.Length; i++)
+            triangleData[i].Dispose();
+        triangleData = null;
+        vertexBuf.Dispose();
+        indexBuf.Dispose();
+        Object.Destroy(mesh);
+        GC.SuppressFinalize(this);
+    }
+
+    public ComputableMesh Destroy()
+    {
+        Dispose();
+        return null;
+    }
+
+    ~ComputableMesh()
+    {
+        Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
+        Dispose();
+    }
 }

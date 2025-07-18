@@ -274,7 +274,7 @@ public class DXRenderObjects : ScriptableRendererFeature
 
             public void SetKeywords(RasterCommandBuffer cmd)
             {
-                if ((overrideKeywords != null) && (overrideKeywords.Length > 0))
+                if (!overrideKeywords.IsNullOrEmpty())
                     for (int i = 0; i < overrideKeywords.Length; i++)
                     {
                         ShaderKeyword kw = overrideKeywords[i];
@@ -290,7 +290,7 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         public void InitKeywords()
         {
-            if ((overrideKeywords != null) && (overrideKeywords.Length > 0))
+            if (!overrideKeywords.IsNullOrEmpty())
                 for (int i = 0; i < overrideKeywords.Length; i++)
                     GlobalKeyword.Create(overrideKeywords[i].keyword);
         }

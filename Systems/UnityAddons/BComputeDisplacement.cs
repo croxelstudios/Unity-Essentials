@@ -1,6 +1,5 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 [ExecuteAlways]
 public class BComputeDisplacement : MonoBehaviour
@@ -19,10 +18,7 @@ public class BComputeDisplacement : MonoBehaviour
 
     void OnDisable()
     {
-        if (meshes != null)
-            for (int i = 0; i < meshes.Length; i++)
-                if (meshes[i] != null)
-                    ResetData(i);
+        ResetMeshesData();
         ComputableMesh.StopUsing(this);
     }
 
@@ -61,9 +57,20 @@ public class BComputeDisplacement : MonoBehaviour
 
     void FinishRendering()
     {
-        if ((meshes != null) && (mask != null))
+        if (mask != null)
+            ResetMeshesData();
+    }
+
+    void ResetMeshesData()
+    {
+        if (meshes != null)
             for (int i = 0; i < meshes.Length; i++)
-                ResetData(i);
+            {
+                if (meshes[i].mesh == null)
+                    meshes[i] = meshes[i].Destroy();
+                if (meshes[i] != null)
+                    ResetData(i);
+            }
     }
 
     protected void NullMask()

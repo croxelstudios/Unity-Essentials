@@ -2042,10 +2042,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "01bb9e979d344c838a02e85a88f7cb48",
     "m_Id": -1335692014,
-    "m_DisplayName": "ScreenPosition",
+    "m_DisplayName": "Position",
     "m_SlotType": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "_ScreenPosition",
+    "m_ShaderOutputName": "_Position",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -3030,7 +3030,7 @@
     "m_Group": {
         "m_Id": "8a0417dfb6a34371a60eff29d835a2c4"
     },
-    "m_Name": "DitherStep",
+    "m_Name": "DitherStep_Screen",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -3063,11 +3063,13 @@
     "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"6102df6c9c4bfeb45b148259cd7e40b2\",\n        \"type\": 3\n    }\n}",
     "m_PropertyGuids": [
         "1d522497-e3d2-4640-9da0-93324d22ae06",
-        "40f96029-04cf-4aa6-954f-678e61de5a34"
+        "40f96029-04cf-4aa6-954f-678e61de5a34",
+        "bcebb598-b38a-40b0-9e45-93ab05059233"
     ],
     "m_PropertyIds": [
         1865368981,
-        -1335692014
+        -1335692014,
+        1683637897
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -6464,8 +6466,8 @@
     "m_ObjectId": "748e411129c44071ac9296d3d7c845cd",
     "m_Title": "RecoverSign",
     "m_Position": {
-        "x": 880.000244140625,
-        "y": 1040.0001220703125
+        "x": 880.0,
+        "y": 1040.0
     }
 }
 
@@ -7221,8 +7223,8 @@
     "m_ObjectId": "8a0417dfb6a34371a60eff29d835a2c4",
     "m_Title": "Correct Dither",
     "m_Position": {
-        "x": -697.9998779296875,
-        "y": -222.00001525878907
+        "x": -698.0,
+        "y": -222.0
     }
 }
 
@@ -9932,15 +9934,15 @@
     "m_Group": {
         "m_Id": "8a0417dfb6a34371a60eff29d835a2c4"
     },
-    "m_Name": "DitherStep",
+    "m_Name": "DitherStep_Screen",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -484.0000305175781,
-            "y": 744.0000610351563,
-            "width": 208.00006103515626,
-            "height": 302.99993896484377
+            "x": -484.0,
+            "y": 744.0,
+            "width": 208.0,
+            "height": 303.0
         }
     },
     "m_Slots": [
@@ -9965,11 +9967,13 @@
     "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"6102df6c9c4bfeb45b148259cd7e40b2\",\n        \"type\": 3\n    }\n}",
     "m_PropertyGuids": [
         "1d522497-e3d2-4640-9da0-93324d22ae06",
-        "40f96029-04cf-4aa6-954f-678e61de5a34"
+        "40f96029-04cf-4aa6-954f-678e61de5a34",
+        "bcebb598-b38a-40b0-9e45-93ab05059233"
     ],
     "m_PropertyIds": [
         1865368981,
-        -1335692014
+        -1335692014,
+        1683637897
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -10077,7 +10081,7 @@
     "m_Title": "WeightedAverage",
     "m_Position": {
         "x": -789.0,
-        "y": -957.0000610351563
+        "y": -957.0
     }
 }
 
@@ -10554,10 +10558,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "ddb229ed405841bca92696dfcc7d97e3",
     "m_Id": -1335692014,
-    "m_DisplayName": "ScreenPosition",
+    "m_DisplayName": "Position",
     "m_SlotType": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "_ScreenPosition",
+    "m_ShaderOutputName": "_Position",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -11804,8 +11808,8 @@
     "m_ObjectId": "fc68d71e7eb9448288ad575c65783a35",
     "m_Title": "WeightedAverage",
     "m_Position": {
-        "x": 736.9998779296875,
-        "y": -66.00001525878906
+        "x": 737.0,
+        "y": -66.0
     }
 }
 
