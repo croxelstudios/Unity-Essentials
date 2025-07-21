@@ -3,14 +3,14 @@ using UnityEngine;
 public static class QuaternionExtension_SmoothDamp
 {
 	public static Quaternion SmoothDamp(this Quaternion rot, Quaternion target,
-        ref Quaternion tmpSpeed, float smoothTime, float maxSpeed, float deltaTime,
-        bool dontCorrectLongPaths = false)
+        ref Vector3 angularVelocity, float smoothTime, float maxSpeed, float deltaTime,
+        RotationMode mode = RotationMode.Shortest)
     {
         Quaternion dif = target.Subtract(rot);
-        dif.ToAngleAxis(out float difAngle, out Vector3 difAxis);
+        dif.ToAngleAxis(mode, out float difAngle, out Vector3 difAxis);
 
         //Limit smoothTime to avoid division by 0f;
-        smoothTime = Mathf.Max(0.0001F, smoothTime);
+        smoothTime = Mathf.Max(0.0001f, smoothTime);
 
         //Calculate omega and exponent
         float omega = 2f / smoothTime;
@@ -20,9 +20,10 @@ public static class QuaternionExtension_SmoothDamp
         float change = Mathf.Min(maxSpeed * smoothTime, difAngle);
         Quaternion targ = rot.Add(Quaternion.AngleAxis(change, difAxis));
         Quaternion subRot = rot.Subtract(targ);
-        subRot.ToAngleAxis(out float subRotAngle, out Vector3 subRotAxis);
+        subRot.ToAngleAxis(mode, out float subRotAngle, out Vector3 subRotAxis);
 
-        tmpSpeed.ToAngleAxis(out float tangle, out Vector3 taxis);
+        float tangle = angularVelocity.magnitude;
+        Vector3 taxis = angularVelocity / tangle;
 
         Quaternion temp = Quaternion.AngleAxis(tangle * deltaTime * exp, taxis).Add(
             Quaternion.AngleAxis((subRotAngle + (omega * subRotAngle) * deltaTime) * exp, subRotAxis));
@@ -31,14 +32,14 @@ public static class QuaternionExtension_SmoothDamp
 
         //Avoid overshoot
         Quaternion outputDif = output.Subtract(rot);
-        if (outputDif.Angle() > difAngle)
+        if (outputDif.Angle(mode) > difAngle)
         {
             output = target;
             outputDif = target.Subtract(rot);
         }
 
-        outputDif.ToAngleAxis(out tangle, out taxis);
-        tmpSpeed = Quaternion.AngleAxis(tangle / deltaTime, taxis);
+        outputDif.ToAngleAxis(RotationMode.Shortest, out tangle, out taxis);
+        angularVelocity = taxis * ((deltaTime > 0f) ? tangle / deltaTime : tangle);
 
         return output;
     }

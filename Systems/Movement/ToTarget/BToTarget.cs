@@ -1,6 +1,7 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 using static SpeedBehaviour;
+using System.Collections;
 
 public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, new()
 {
@@ -23,7 +24,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     [SerializeField]
     [ShowIf("projectOnPlane")]
     [Tooltip("Wether or not the projection plane should be calculated in origin's local space")]
-    protected bool projectionLocal = false;
+    protected bool projectLocally = false;
     [SerializeField]
     [ShowIf("projectOnPlane")]
     [Tooltip("Projection plane normal")]
@@ -55,12 +56,17 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     [SerializeField]
     [Tooltip("When is this code executed")]
     protected TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
+    //[SerializeField] //TO DO: Doesn't work. This is only here to override animator-controlled values.
+    //[Indent]
+    //[Tooltip("When is this code executed")]
+    protected bool late = false;
     [SerializeField]
     protected bool sendFrameMovement = false;
 
     public enum TargetMode { ToExactPoint, NeverStop, StopAtMargin }
 
     DynamicInfo dynamicInfo;
+    protected T prev;
 
     void Reset()
     {
@@ -69,12 +75,29 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     void Update()
     {
-        if (timeMode.IsSmooth()) OnUpdate();
+        if (timeMode.IsSmooth() && (!late)) OnUpdate();
     }
 
     void FixedUpdate()
     {
-        if (timeMode.IsFixed()) OnUpdate();
+        if (timeMode.IsFixed())
+        {
+            if (late)
+                StartCoroutine(LateFixed());
+            else
+                OnUpdate();
+        }
+    }
+
+    void LateUpdate()
+    {
+        if (timeMode.IsSmooth() && late) OnUpdate();
+    }
+
+    IEnumerator LateFixed()
+    {
+        yield return new WaitForFixedUpdate();
+        OnUpdate();
     }
 
     /// <summary>
@@ -121,11 +144,13 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
             }
 
         Execute(spd, deltaTime);
+
+        SetLatePrev();
     }
 
     void UpdatePrev(ref T prev)
     {
-        prev = Current();
+        prev = Current(late);
     }
 
     protected void ResetSpeed()
@@ -211,7 +236,28 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     {
     }
 
+    public T Current(bool late)
+    {
+        if (late) return GetLatePrev(local);
+        else return Current();
+    }
+
     public virtual T Current()
+    {
+        return Default<T>.Value;
+    }
+
+    protected virtual void SetLatePrev()
+    {
+        prev = Default<T>.Value;
+    }
+
+    T GetLatePrev(bool local)
+    {
+        return local ? prev : GetWorldLatePrev();
+    }
+
+    protected virtual T GetWorldLatePrev()
     {
         return Default<T>.Value;
     }

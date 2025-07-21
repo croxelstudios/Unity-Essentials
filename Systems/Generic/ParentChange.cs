@@ -6,7 +6,7 @@ public class ParentChange : MonoBehaviour
     [SerializeField]
     ObjectRef<Transform> targetParent = new ObjectRef<Transform>("Target Parent", "");
     [SerializeField]
-    OnEnableBehaviour onEnableBehaviour = OnEnableBehaviour.None;
+    OnEnableBehaviour onEnableBehaviour = OnEnableBehaviour.SetNullParent;
     [SerializeField]
     DestroyBehaviour destroyBehaviour = DestroyBehaviour.None;
     [SerializeField]

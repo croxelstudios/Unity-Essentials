@@ -188,7 +188,7 @@ public struct RotationPath : ITransformationSequence
     public Quaternion SmoothDamp(ref Vector3 angularVelocity, float smoothTime, float maxSpeed, float deltaTime, bool alongPath = true)
     {
         //Limit smoothTime to avoid division by 0f;
-        smoothTime = Mathf.Max(0.0001F, smoothTime);
+        smoothTime = Mathf.Max(0.0001f, smoothTime);
 
         //Calculate omega and exponent
         float omega = 2f / smoothTime;
@@ -213,7 +213,7 @@ public struct RotationPath : ITransformationSequence
         if (disp > magnitude) output = this.target;
 
         output.Subtract(origin).ToAngleAxis(RotationMode.Shortest, out tangle, out taxis);
-        angularVelocity = taxis * (tangle / deltaTime);
+        angularVelocity = taxis * ((deltaTime > 0f) ? tangle / deltaTime : tangle);
 
         return output;
     }
