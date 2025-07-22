@@ -62,4 +62,13 @@ public class ConstantRotation : MonoBehaviour
         accumulatedRotation = Quaternion.Euler(finalRotation) * accumulatedRotation;
         transform.Rotate(finalRotation);
     }
+
+    public void Restart()
+    {
+        if (this.IsActiveAndEnabled())
+        {
+            OnDisable();
+            OnEnable();
+        }
+    }
 }

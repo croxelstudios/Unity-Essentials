@@ -81,7 +81,7 @@ public class GoToScene_Launcher : BRemoteLauncher, ISceneHolder
             FillArrayUpdate(ref goToScenes);
             foreach (GoToScene goTo in goToScenes)
                 if (goTo != null)
-                    if (scene.ScenePath != "") goTo.SetCurrentScene();
+                    goTo.SetScene(gameObject.scene);
         }
     }
 }

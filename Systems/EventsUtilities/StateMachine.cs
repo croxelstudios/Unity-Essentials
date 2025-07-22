@@ -68,8 +68,8 @@ public class StateMachine : MonoBehaviour
     [Button]
     public void UpdateStatesFromConnectedMachine()
     {
-        states = new State[connectedStateMachine.states.Length];
-        stateNames = new string[states.Length];
+        states.Resize(connectedStateMachine.states.Length);
+        stateNames.Resize(states.Length);
         for (int i = 0; i < states.Length; i++)
         {
             states[i].name = connectedStateMachine.states[i].name;

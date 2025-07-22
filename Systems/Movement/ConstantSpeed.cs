@@ -134,4 +134,10 @@ public class ConstantSpeed : MonoBehaviour
             if (dir >= (int)directions[i]) dir++;
         return dir;
     }
+
+    public void Restart()
+    {
+        if (this.IsActiveAndEnabled())
+            OnEnable();
+    }
 }
