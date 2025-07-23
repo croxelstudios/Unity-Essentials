@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/Vector2IntSignal")] //Change type here
-public class Vector2IntSignal : BaseSignal<Vector2Int> //Change type here
+public class Vector2IntSignal : ValueSignal<Vector2Int> //Change type here
 {
     [Command("set-vector2int")]
     public static void SetVector2Int(Vector2IntSignal signal, Vector2Int value) //Change type here

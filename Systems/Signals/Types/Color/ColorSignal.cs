@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/ColorSignal")] //Change type here
-public class ColorSignal : BaseSignal<Color> //Change type here
+public class ColorSignal : ValueSignal<Color> //Change type here
 {
     [Command("set-color")]
     public static void SetColor(ColorSignal signal, Color value) //Change type here

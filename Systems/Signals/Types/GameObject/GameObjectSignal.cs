@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/GameObjectSignal")] //Change type here
-public class GameObjectSignal : BaseSignal<GameObject> //Change type here
+public class GameObjectSignal : ValueSignal<GameObject> //Change type here
 {
     [Command("set-gameobject")]
     public static void SetGameObject(GameObjectSignal signal, GameObject value) //Change type here

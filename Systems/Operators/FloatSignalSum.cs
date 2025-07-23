@@ -13,7 +13,7 @@ public class FloatSignalSum : MonoBehaviour
     void OnEnable()
     {
         foreach (FloatSignal signal in signals)
-            signal.called.AddListener(UpdateValue);
+            signal.AddListener(UpdateValue);
         UpdateValue();
     }
 

@@ -27,6 +27,7 @@ public static class VectorExtension_DrawArrow
 
     public static void DrawViewCone(this Vector3 position, Vector3 forward, Vector3 up, float radius, float angle, Color color)
     {
+        forward = forward.normalized;
         up = Vector3.ProjectOnPlane(up, forward).normalized;
 
         float angdif = 360f / RADIAL_RAY_DIV;
@@ -66,6 +67,7 @@ public static class VectorExtension_DrawArrow
 
     public static void DrawArrowHead(this Vector3 point, Vector3 forward, Vector3 up, float size, float angle, Color color)
     {
+        forward = forward.normalized;
         up = Vector3.ProjectOnPlane(up, forward).normalized;
 
         float angdif = 360f / RADIAL_RAY_DIV;

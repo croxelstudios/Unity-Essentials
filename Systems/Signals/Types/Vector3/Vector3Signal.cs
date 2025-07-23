@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/Vector3Signal")] //Change type here
-public class Vector3Signal : BaseSignal<Vector3> //Change type here
+public class Vector3Signal : ValueSignal<Vector3> //Change type here
 {
     [SerializeField]
     bool callWithSameValue = false;

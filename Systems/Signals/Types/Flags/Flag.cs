@@ -6,19 +6,12 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif
 
+//TO DO: Fix redundant methods when inheriting from PrimitiveSignal
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/Flag")] //Change type here
-public class Flag : BaseSignal //Change type here
+public class Flag : ValueSignal<bool> //Change type here
 {
     [SerializeField]
-    bool resetValueOnStart = true;
-    [SerializeField]
     bool checkMultipleConditions = false;
-    [SerializeField]
-    [ShowIf("MustShowStartValue")]
-    bool startValue = false; //Change type here
-    [HideIf("MustShowStartValue")]
-    [OnValueChanged("SetFlagOnCurrentTagAndValue")]
-    public bool currentValue = false; //Change type here
 
     [FoldoutGroup("Before Calls")]
     // TO DO: Display name should not be this one (should not show the "_").
@@ -33,6 +26,11 @@ public class Flag : BaseSignal //Change type here
     public DXEvent whenFalse = null;
 
     int currentConditionCount = 0;
+
+    protected override void SetValue(bool value)
+    {
+        SetFlag(value);
+    }
 
     public void SetFlag(bool value, IEnumerable<GameObject> objects) //Change type here
     {
@@ -110,37 +108,9 @@ public class Flag : BaseSignal //Change type here
         SetFlag(!currentValue);
     }
 
-    bool Calculate() //Change type here
+    protected override void ResetValue()
     {
-        return currentValue;
-    }
-
-#if UNITY_EDITOR
-    public bool MustShowStartValue()
-    {
-        return resetValueOnStart && !Application.isPlaying;
-    }
-
-    public void SetFlagOnCurrentTagAndValue()
-    {
-        if (Application.isPlaying)
-            SetFlag(currentValue, currentTag);
-    }
-#endif
-
-    protected override void OnLoad()
-    {
-        base.OnLoad();
-        Reset();
-    }
-
-    public override void Reset()
-    {
-        if (resetValueOnStart)
-        {
-            currentValue = startValue;
-            currentConditionCount = 0;
-        }
+        currentConditionCount = 0;
     }
 
     public void LaunchOnTrue()

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
-
+using UnityEngine.Events;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Linq;
@@ -19,9 +19,9 @@ public class BaseSignal : ScriptableObject
     [SerializeField]
     protected string currentTag = "";
     [FoldoutGroup("Standard Calls")]
-    public DXEvent beforeCall = null;
+    protected DXEvent beforeCall = null;
     [FoldoutGroup("Standard Calls")]
-    public DXEvent called = null;
+    protected DXEvent called = null;
 
     bool enabled;
     public static Dictionary<Type, List<BaseSignal>> activeSignals;
@@ -165,22 +165,59 @@ public class BaseSignal : ScriptableObject
     {
 
     }
+
+    public void AddListener(UnityAction action, bool beforeCall = false)
+    {
+        if (beforeCall) this.beforeCall.AddListener(action);
+        else called.AddListener(action);
+    }
 }
 
-public class BaseSignal<T> : BaseSignal
+public interface IValueSignal
+{
+    //Base
+    public string name { get; }
+    public string popupName { get; }
+    public bool dynamicSearch { get; }
+    public void OnEnable();
+    public void OnDisable();
+    public void ActivateDynamicSearch();
+    public void DeactivateDynamicSearch();
+    public void AddAction(BBaseSignalListener listener, int index);
+    public void RemoveAction(BBaseSignalListener receiver, int index);
+    public void Reset();
+    public void AddListener(UnityAction action, bool beforeCall = false);
+    //
+
+    public void SetValueParse(string value);
+
+    public string GetStringValue();
+}
+
+public class ValueSignal<T> : BaseSignal, IValueSignal
 {
     [SerializeField]
     bool resetValueOnStart = true;
     [SerializeField]
-    [ShowIf("CanShowStartValue")]
-    T startValue = default;
-    [HideIf("CanShowStartValue")]
+    [ShowIf("MustShowStartValue")]
+    protected T startValue = default;
+    [HideIf("MustShowStartValue")]
     [OnValueChanged("CallSignalOnCurrentTagAndValues")]
     public T currentValue = default;
 
     protected virtual void SetValue(T value)
     {
         currentValue = value;
+    }
+
+    public void SetValueParse(string value)
+    {
+        SetValue(value.Parse<T>());
+    }
+
+    public virtual string GetStringValue()
+    {
+        return currentValue.ToString();
     }
 
     [TagSelector]
@@ -256,7 +293,7 @@ public class BaseSignal<T> : BaseSignal
         CallSignal(value, "");
     }
 
-    public static void Set(BaseSignal<T> signal, T value)
+    public static void Set(ValueSignal<T> signal, T value)
     {
         signal.CallSignal(value);
     }
@@ -272,7 +309,7 @@ public class BaseSignal<T> : BaseSignal
     }
 
 #if UNITY_EDITOR
-    public bool CanShowStartValue()
+    public bool MustShowStartValue()
     {
         return resetValueOnStart && !Application.isPlaying;
     }
@@ -287,13 +324,19 @@ public class BaseSignal<T> : BaseSignal
     protected override void OnLoad()
     {
         base.OnLoad();
-        Reset();
+        if (resetValueOnStart)
+            Reset();
     }
 
     public override void Reset()
     {
-        if (resetValueOnStart)
-            currentValue = startValue;
+        currentValue = startValue;
+        ResetValue();
+    }
+
+    protected virtual void ResetValue()
+    {
+
     }
 }
 

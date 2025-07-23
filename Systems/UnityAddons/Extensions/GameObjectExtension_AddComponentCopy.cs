@@ -67,7 +67,7 @@ public static class GameObjectExtension_AddComponentCopy
     
     public static bool IsOrInheritsFrom(this Type type, Type baseType)
     {
-        return type == baseType || type.IsSubclassOf(baseType);
+        return baseType.IsAssignableFrom(type);
     }
 
     static bool CreatesInstance(Type type, PropertyInfo info)

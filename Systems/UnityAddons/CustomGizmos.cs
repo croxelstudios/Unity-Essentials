@@ -29,22 +29,24 @@ public static class CustomGizmos
         }
     }
 
-    public static void ViewCone(Transform transform, float radius, float angle, Color color)
+    public static void ViewCone(Transform transform,
+        float radius, float angle, Color color, int radialDiv = RADIAL_RAY_DIV)
     {
-        ViewCone(transform.position, transform.forward, transform.up, radius, angle, color);
+        ViewCone(transform.position, transform.forward, transform.up, radius, angle, color, radialDiv);
     }
 
     public static void ViewCone(Vector3 position, Vector3 forward, Vector3 up,
-        float radius, float angle, Color color)
+        float radius, float angle, Color color, int radialDiv = RADIAL_RAY_DIV)
     {
+        forward = forward.normalized;
         up = Vector3.ProjectOnPlane(up, forward).normalized;
 
-        float angdif = 360f / RADIAL_RAY_DIV;
+        float angdif = 360f / radialDiv;
         float innerAngdif = angle / INNER_DIV;
         float stepsDif = radius / STEPS_DIV;
         Gizmos.color = color;
         Vector3 prevDir = forward;
-        for (int i = 1; i <= RADIAL_RAY_DIV; i++)
+        for (int i = 1; i <= radialDiv; i++)
         {
             float ang = angdif * i;
             prevDir = forward;

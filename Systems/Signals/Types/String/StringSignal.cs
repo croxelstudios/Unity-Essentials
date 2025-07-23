@@ -9,7 +9,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/StringSignal")] //Change type here
-public class StringSignal : BaseSignal<string> //Change type here
+public class StringSignal : ValueSignal<string> //Change type here
 {
     [Command("set-string")]
     public static void SetString(StringSignal signal, string value) //Change type here

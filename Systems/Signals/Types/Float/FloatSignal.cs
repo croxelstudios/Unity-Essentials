@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/FloatSignal")] //Change type here
-public class FloatSignal : BaseSignal<float> //Change type here
+public class FloatSignal : ValueSignal<float> //Change type here
 {
     [SerializeField]
     bool callWithSameValue = false;

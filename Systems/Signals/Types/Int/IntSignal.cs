@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/IntSignal")] //Change type here
-public class IntSignal : BaseSignal<int> //Change type here
+public class IntSignal : ValueSignal<int> //Change type here
 {
     protected override void SetValue(int value) //Change type here
     {

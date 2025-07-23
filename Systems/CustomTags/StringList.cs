@@ -1,5 +1,6 @@
 using Sirenix.OdinInspector;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -20,6 +21,7 @@ public class StringList : ScriptableObject
     protected string[] runtimeValues = null;
     public DXStringEvent valueAdded = null;
     public DXStringEvent valueRemoved = null;
+    public static List<StringList> allLists;
     public int Count
     {
         get
@@ -42,12 +44,18 @@ public class StringList : ScriptableObject
                 tags = tags.Concat(new[] { value }).ToArray();
             else
 #endif
-            runtimeValues = runtimeValues.Concat(new[] { value }).ToArray();
+                runtimeValues = runtimeValues.Concat(new[] { value }).ToArray();
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
 #endif
             valueAdded?.Invoke(value);
         }
+    }
+
+    public virtual void AddValues(IEnumerable<string> values)
+    {
+        if (values != null)
+            foreach (string value in values) AddValue(value);
     }
 
     public void RemoveValue(string value)
@@ -79,17 +87,21 @@ public class StringList : ScriptableObject
 
     void OnEnable()
     {
-        Reset();
+        allLists = allLists.CreateAdd(this);
+        if (resetValueOnStart)
+            Reset();
+    }
+
+    void OnDisable()
+    {
+        allLists.SmartRemove(this);
     }
 
     public void Reset()
     {
-        if (resetValueOnStart)
-        {
-            runtimeValues = new string[tags.Length];
-            for (int i = 0; i < tags.Length; i++)
-                runtimeValues[i] = tags[i];
-        }
+        runtimeValues = new string[tags.Length];
+        for (int i = 0; i < tags.Length; i++)
+            runtimeValues[i] = tags[i];
     }
 
     public string GetValue(int index)
@@ -102,6 +114,16 @@ public class StringList : ScriptableObject
         if (index.IsBetween(0, values.Length))
             return values[index];
         else return null;
+    }
+
+    public string[] GetValues()
+    {
+        string[] values =
+#if UNITY_EDITOR
+            (!Application.isPlaying) ? tags :
+#endif
+            runtimeValues;
+        return values;
     }
 
 #if UNITY_EDITOR
