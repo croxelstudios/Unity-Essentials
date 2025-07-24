@@ -1,5 +1,7 @@
 using UnityEngine;
 using QFSW.QC;
+using Sirenix.OdinInspector;
+
 #if UNITY_EDITOR
 using System;
 using System.Reflection;
@@ -11,6 +13,31 @@ using UnityEditor;
 [CreateAssetMenu(menuName = "Croxel Scriptables/SignalTypes/StringSignal")] //Change type here
 public class StringSignal : ValueSignal<string> //Change type here
 {
+    [SerializeField]
+    bool isScenePath = false;
+    [SerializeField]
+    [ShowIf("isScenePath")]
+    SceneReference scene;
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        if (isScenePath && !Application.isPlaying)
+            startValue = scene.ScenePath;
+    }
+#endif
+
+    protected override void SetValue(string value)
+    {
+        base.SetValue(value);
+        if (isScenePath)
+        {
+            if (scene == null)
+                scene = new SceneReference();
+            scene.ScenePath = value;
+        }
+    }
+
     [Command("set-string")]
     public static void SetString(StringSignal signal, string value) //Change type here
     {
@@ -29,7 +56,10 @@ public class BaseSignalAttributeProcessor : OdinAttributeProcessor<StringSignal>
     public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
     {
         if ((member.Name == "startValue") || (member.Name == "currentValue"))
+        {
             attributes.Add(new TextAreaAttribute());
+            attributes.Add(new DisableIfAttribute("isScenePath"));
+        }
     }
 }
 
