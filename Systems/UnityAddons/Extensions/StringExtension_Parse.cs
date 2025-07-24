@@ -20,7 +20,7 @@ public static class StringExtension_Parse
         Scene, Rect, Hash128
     }
 
-    public static T Parse<T>(this string input)
+    public static T Parse<T>(this string input, string[] separators = null)
     {
         if (input.ToLower() == "default")
             return default;
@@ -59,7 +59,7 @@ public static class StringExtension_Parse
                 { typeof(ushort), ParsableType.UShort },
                 { typeof(Scene), ParsableType.Scene },
                 { typeof(Rect), ParsableType.Rect },
-                { typeof(Hash128), ParsableType.Hash128 },
+                { typeof(Hash128), ParsableType.Hash128 }
             };
         }
 
@@ -74,21 +74,21 @@ public static class StringExtension_Parse
             case ParsableType.Boolean:
                 return (T)(object)UnityParser.ParseBoolean(input);
             case ParsableType.Quaternion:
-                return (T)(object)UnityParser.ParseQuaternion(input);
+                return (T)(object)UnityParser.ParseQuaternion(input, separators);
             case ParsableType.Vector2:
-                return (T)(object)UnityParser.ParseVector2(input);
+                return (T)(object)UnityParser.ParseVector2(input, separators);
             case ParsableType.Vector3:
-                return (T)(object)UnityParser.ParseVector3(input);
+                return (T)(object)UnityParser.ParseVector3(input, separators);
             case ParsableType.Vector4:
-                return (T)(object)UnityParser.ParseVector4(input);
+                return (T)(object)UnityParser.ParseVector4(input, separators);
             case ParsableType.Color:
-                return (T)(object)UnityParser.ParseColor(input);
+                return (T)(object)UnityParser.ParseColor(input, separators);
             case ParsableType.Vector2Int:
-                return (T)(object)UnityParser.ParseVector2Int(input);
+                return (T)(object)UnityParser.ParseVector2Int(input, separators);
             case ParsableType.Vector3Int:
-                return (T)(object)UnityParser.ParseVector3Int(input);
-            case ParsableType.Matrix4x4:
-                return (T)(object)UnityParser.ParseMatrix4x4(input);
+                return (T)(object)UnityParser.ParseVector3Int(input, separators);
+            //case ParsableType.Matrix4x4:
+            //    return (T)(object)UnityParser.ParseMatrix4x4(input, separators);
             case ParsableType.GameObject:
                 return (T)(object)UnityParser.ParseGameObject(input);
             case ParsableType.Component:
@@ -112,7 +112,7 @@ public static class StringExtension_Parse
             case ParsableType.Short:
                 return (T)(object)UnityParser.ParseShort(input);
             case ParsableType.Color32:
-                return (T)(object)UnityParser.ParseColor32(input);
+                return (T)(object)UnityParser.ParseColor32(input, separators);
             case ParsableType.SByte:
                 return (T)(object)UnityParser.ParseSignedByte(input);
             case ParsableType.UInt:
@@ -124,7 +124,7 @@ public static class StringExtension_Parse
             case ParsableType.Scene:
                 return (T)(object)UnityParser.ParseScene(input);
             case ParsableType.Rect:
-                return (T)(object)UnityParser.ParseRect(input);
+                return (T)(object)UnityParser.ParseRect(input, separators);
             case ParsableType.Hash128:
                 return (T)(object)UnityParser.ParseHash128(input);
             default:
@@ -133,7 +133,7 @@ public static class StringExtension_Parse
         }
     }
 
-    public static bool TryParse<T>(this string input, out T result)
+    public static bool TryParse<T>(this string input, out T result, string[] separators = null)
     {
         if (input.ToLower() == "default")
         {
@@ -175,7 +175,7 @@ public static class StringExtension_Parse
                 { typeof(ushort), ParsableType.UShort },
                 { typeof(Scene), ParsableType.Scene },
                 { typeof(Rect), ParsableType.Rect },
-                { typeof(Hash128), ParsableType.Hash128 },
+                { typeof(Hash128), ParsableType.Hash128 }
             };
         }
 
@@ -196,31 +196,31 @@ public static class StringExtension_Parse
                 result = (T)(object)n0;
                 return success;
             case ParsableType.Quaternion:
-                result = (T)(object)UnityParser.ParseQuaternion(input);
+                result = (T)(object)UnityParser.ParseQuaternion(input, separators);
                 return true;
             case ParsableType.Vector2:
-                success = UnityParser.TryParseVector2(input, out Vector2 n1);
+                success = UnityParser.TryParseVector2(input, out Vector2 n1, separators);
                 result = (T)(object)n1;
                 return success;
             case ParsableType.Vector3:
-                success = UnityParser.TryParseVector3(input, out Vector3 n2);
+                success = UnityParser.TryParseVector3(input, out Vector3 n2, separators);
                 result = (T)(object)n2;
                 return success;
             case ParsableType.Vector4:
-                result = (T)(object)UnityParser.ParseVector4(input);
+                result = (T)(object)UnityParser.ParseVector4(input, separators);
                 return true;
             case ParsableType.Color:
-                result = (T)(object)UnityParser.ParseColor(input);
+                result = (T)(object)UnityParser.ParseColor(input, separators);
                 return true;
             case ParsableType.Vector2Int:
-                result = (T)(object)UnityParser.ParseVector2Int(input);
+                result = (T)(object)UnityParser.ParseVector2Int(input, separators);
                 return true;
             case ParsableType.Vector3Int:
-                result = (T)(object)UnityParser.ParseVector3Int(input);
+                result = (T)(object)UnityParser.ParseVector3Int(input, separators);
                 return true;
-            case ParsableType.Matrix4x4:
-                result = (T)(object)UnityParser.ParseMatrix4x4(input);
-                return true;
+            //case ParsableType.Matrix4x4:
+            //    result = (T)(object)UnityParser.ParseMatrix4x4(input, separators);
+            //    return true;
             case ParsableType.GameObject:
                 result = (T)(object)UnityParser.ParseGameObject(input);
                 return true;
@@ -255,7 +255,7 @@ public static class StringExtension_Parse
                 result = (T)(object)UnityParser.ParseShort(input);
                 return true;
             case ParsableType.Color32:
-                result = (T)(object)UnityParser.ParseColor32(input);
+                result = (T)(object)UnityParser.ParseColor32(input, separators);
                 return true;
             case ParsableType.SByte:
                 result = (T)(object)UnityParser.ParseSignedByte(input);
@@ -273,7 +273,7 @@ public static class StringExtension_Parse
                 result = (T)(object)UnityParser.ParseScene(input);
                 return true;
             case ParsableType.Rect:
-                result = (T)(object)UnityParser.ParseRect(input);
+                result = (T)(object)UnityParser.ParseRect(input, separators);
                 return true;
             case ParsableType.Hash128:
                 result = (T)(object)UnityParser.ParseHash128(input);

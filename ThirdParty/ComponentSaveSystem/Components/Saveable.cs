@@ -19,7 +19,10 @@ namespace Lowscope.Saving.Components
 
         [SerializeField, Tooltip("Save and Load will not be called by the Save System." +
                                  "this is useful for displaying data from a different save file")]
-        private bool manualSaveLoad;
+        private bool manualSaveLoad = false;
+
+        [SerializeField, Tooltip("Sets the save ID automatically by the scene and object name")]
+        private bool automaticID = true;
 
         [SerializeField, Tooltip("It will scan other objects for ISaveable components")]
         private List<GameObject> externalListeners = new List<GameObject>();
@@ -72,7 +75,7 @@ namespace Lowscope.Saving.Components
         private static Dictionary<string, Saveable> saveIdentificationCache = new Dictionary<string, Saveable>();
 
         // Used to prevent duplicating GUIDS when you copy a scene.
-        [HideInInspector] [SerializeField] private string sceneName;
+        [HideInInspector][SerializeField] private string sceneName;
 
         private void SetIdentifcation(int index, string identifier)
         {
@@ -93,79 +96,83 @@ namespace Lowscope.Saving.Components
 #endif
 
             // Set a new save identification if it is not a prefab at the moment.
-            if (!isPrefab)
+            if (automaticID)
             {
-                Lowscope.Tools.ValidateHierarchy.Add(this);
-
-                bool isDuplicate = false;
-                Saveable saveable = null;
-
-                if (sceneName != gameObject.scene.name)
+                if (!isPrefab)
                 {
-                    UnityEditor.Undo.RecordObject(this, "Updated Object Scene ID");
+                    Lowscope.Tools.ValidateHierarchy.Add(this);
 
-                    if (SaveSettings.Get().resetSaveableIdOnNewScene)
+                    bool isDuplicate = false;
+                    Saveable saveable = null;
+
+                    if (sceneName != gameObject.scene.name)
                     {
-                        saveIdentification = "";
+                        UnityEditor.Undo.RecordObject(this, "Updated Object Scene ID");
+
+                        if (SaveSettings.Get().resetSaveableIdOnNewScene)
+                        {
+                            saveIdentification = "";
+                        }
+
+                        sceneName = gameObject.scene.name;
                     }
 
-                    sceneName = gameObject.scene.name;
-                }
-
-                if (SaveSettings.Get().resetSaveableIdOnDuplicate)
-                {
-                    // Does the object have a valid save id? If not, we give a new one.
-                    if (!string.IsNullOrEmpty(saveIdentification))
+                    if (SaveSettings.Get().resetSaveableIdOnDuplicate)
                     {
-                        isDuplicate = saveIdentificationCache.TryGetValue(saveIdentification, out saveable);
+                        // Does the object have a valid save id? If not, we give a new one.
+                        if (!string.IsNullOrEmpty(saveIdentification))
+                        {
+                            isDuplicate = saveIdentificationCache.TryGetValue(saveIdentification, out saveable);
 
-                        if (!isDuplicate)
-                        {
-                            if (saveIdentification != "")
+                            if (!isDuplicate)
                             {
-                                saveIdentificationCache.Add(saveIdentification, this);
-                            }
-                        }
-                        else
-                        {
-                            if (saveable == null)
-                            {
-                                saveIdentificationCache.Remove(saveIdentification);
-                                saveIdentificationCache.Add(saveIdentification, this);
+                                if (saveIdentification != "")
+                                {
+                                    saveIdentificationCache.Add(saveIdentification, this);
+                                }
                             }
                             else
                             {
-                                if (saveable.gameObject != this.gameObject)
+                                if (saveable == null)
                                 {
-                                    UnityEditor.Undo.RecordObject(this, "Updated Object Scene ID");
-                                    saveIdentification = "";
+                                    saveIdentificationCache.Remove(saveIdentification);
+                                    saveIdentificationCache.Add(saveIdentification, this);
+                                }
+                                else
+                                {
+                                    if (saveable.gameObject != this.gameObject)
+                                    {
+                                        UnityEditor.Undo.RecordObject(this, "Updated Object Scene ID");
+                                        saveIdentification = "";
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if (string.IsNullOrEmpty(saveIdentification))
-                {
-                    UnityEditor.Undo.RecordObject(this, "ClearedSaveIdentification");
+                    if (string.IsNullOrEmpty(saveIdentification))
+                    {
+                        UnityEditor.Undo.RecordObject(this, "ClearedSaveIdentification");
 
-                    int guidLength = SaveSettings.Get().gameObjectGuidLength;
+                        int guidLength = SaveSettings.Get().gameObjectGuidLength;
 
 #if NET_4_6
                     saveIdentification = $"{gameObject.scene.name}-{gameObject.name}-{System.Guid.NewGuid().ToString().Substring(0, 5)}";
 #else
-                    saveIdentification = string.Format("{0}-{1}-{2}", gameObject.scene.name, gameObject.name, System.Guid.NewGuid().ToString().Substring(0, guidLength));
+                        saveIdentification = string.Format("{0}-{1}-{2}", gameObject.scene.name, gameObject.name, System.Guid.NewGuid().ToString().Substring(0, guidLength));
 #endif
-                    saveIdentificationCache.Add(saveIdentification, this);
+                        saveIdentificationCache.Add(saveIdentification, this);
 
-                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(this.gameObject.scene);
+                        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(this.gameObject.scene);
+                    }
+                }
+                else
+                {
+                    saveIdentification = string.Empty;
+                    sceneName = string.Empty;
                 }
             }
-            else
-            {
-                saveIdentification = string.Empty;
-                sceneName = string.Empty;
-            }
+
 
             List<ISaveable> obtainSaveables = new List<ISaveable>();
 

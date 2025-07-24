@@ -70,6 +70,11 @@ public class GoToScene : MonoBehaviour, ISceneHolder
         this.scene.ScenePath = scene.path;
     }
 
+    public void SetScene(string path)
+    {
+        this.scene.ScenePath = path;
+    }
+
     bool CanLoadScene()
     {
         return CanLoadScene(scene);

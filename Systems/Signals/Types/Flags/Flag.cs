@@ -29,7 +29,7 @@ public class Flag : ValueSignal<bool> //Change type here
 
     protected override void SetValue(bool value)
     {
-        SetFlag(value);
+        base.SetValue(value);
     }
 
     public void SetFlag(bool value, IEnumerable<GameObject> objects) //Change type here
@@ -43,6 +43,12 @@ public class Flag : ValueSignal<bool> //Change type here
     }
 
     [TagSelector]
+    public override void CallSignal(bool value, string tag = "")
+    {
+        SetFlag(value, tag);
+    }
+
+    [TagSelector]
     public void SetFlag(bool value, string tag) //Change type here
     {
         SetFlag<Transform>(value, tag, null);
@@ -53,8 +59,14 @@ public class Flag : ValueSignal<bool> //Change type here
         SetFlag(value, "");
     }
 
+    protected override void CallSignal<O>(bool value, IEnumerable<O> objects)
+    {
+        SetFlag(value, "", objects);
+    }
+
     void SetFlag<O>(bool value, string tag, IEnumerable<O> objects = null) where O : Object //Change type here
     {
+        OnEnable();
         bool canExecute = false;
         if (!checkMultipleConditions)
             canExecute = true;
@@ -84,7 +96,7 @@ public class Flag : ValueSignal<bool> //Change type here
             if (value) whenTrue_?.Invoke();
             else whenFalse_?.Invoke();
 
-            currentValue = value;
+            SetValue(value);
             if (objects == null)
                 Launch(Calculate(), tag);
             else
@@ -108,7 +120,7 @@ public class Flag : ValueSignal<bool> //Change type here
         SetFlag(!currentValue);
     }
 
-    protected override void ResetValue()
+    protected override void AfterReset()
     {
         currentConditionCount = 0;
     }

@@ -10,4 +10,10 @@ public class StringSignalCaller : BBaseSignalCaller
         if (this.IsActiveAndEnabled() || !checkActiveState)
             signal.CallSignal(value, _tag); //Change type here
     }
+
+    public void SetCurrentScenePath(StringSignal signal) //Change type here
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            signal.CallSignal(gameObject.scene.path, _tag); //Change type here
+    }
 }

@@ -212,7 +212,7 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
 
     public void SetValueParse(string value)
     {
-        SetValue(value.Parse<T>());
+        CallSignal(value.Parse<T>());
     }
 
     public virtual string GetStringValue()
@@ -221,8 +221,9 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
     }
 
     [TagSelector]
-    public void CallSignal(T value, string tag = "")
+    public virtual void CallSignal(T value, string tag = "")
     {
+        OnEnable();
         if (IsDifferentFromCurrent(value))
         {
             SetValue(value);
@@ -252,8 +253,9 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
         CallSignal<Transform>(value, transforms);
     }
 
-    void CallSignal<O>(T value, IEnumerable<O> objects) where O : Object
+    protected virtual void CallSignal<O>(T value, IEnumerable<O> objects) where O : Object
     {
+        OnEnable();
         if (IsDifferentFromCurrent(value))
         {
             SetValue(value);
@@ -323,18 +325,18 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
 
     protected override void OnLoad()
     {
-        base.OnLoad();
         if (resetValueOnStart)
             Reset();
+        base.OnLoad();
     }
 
     public override void Reset()
     {
-        currentValue = startValue;
-        ResetValue();
+        SetValue(startValue);
+        AfterReset();
     }
 
-    protected virtual void ResetValue()
+    protected virtual void AfterReset()
     {
 
     }

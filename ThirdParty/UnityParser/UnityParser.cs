@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Text;
 using UnityEngine.SceneManagement;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace uParser
 {
@@ -22,7 +21,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0ul;
+            return ulong.Parse(input);
         }
 
         public static uint ParseUnsignedInteger(string input)
@@ -33,7 +32,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0u;
+            return uint.Parse(input);
         }
 
         public static ushort ParseUnsignedShort(string input)
@@ -44,7 +43,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0;
+            return ushort.Parse(input);
         }
 
         public static short ParseShort(string input)
@@ -55,7 +54,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0;
+            return short.Parse(input);
         }
 
         public static int ParseInteger(string input)
@@ -66,7 +65,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0;
+            return int.Parse(input);
         }
 
         public static long ParseLong(string input)
@@ -77,7 +76,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0L;
+            return long.Parse(input);
         }
 
         public static float ParseFloat(string input)
@@ -88,7 +87,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0f;
+            return float.Parse(input);
         }
 
         public static double ParseDouble(string input)
@@ -99,7 +98,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0d;
+            return double.Parse(input);
         }
 
         public static decimal ParseDecimal(string input)
@@ -110,7 +109,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0m;
+            return decimal.Parse(input);
         }
 
         public static sbyte ParseSignedByte(string input)
@@ -121,7 +120,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0;
+            return sbyte.Parse(input);
         }
 
         public static bool ParseBoolean(string input)
@@ -160,7 +159,7 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return 0;
+            return byte.Parse(input);
         }
 
         public static char ParseChar(string input)
@@ -171,10 +170,11 @@ namespace uParser
             input = input
                 .Trim(k_TrimChars);
 
-            return char.MinValue;
+            return char.Parse(input);
         }
 
-        public static Matrix4x4 ParseMatrix4x4(string input)
+        //WARNING: NOT IMPLEMENTED
+        public static Matrix4x4 ParseMatrix4x4(string input, string[] separators = null)
         {
             if (input == null)
                 return Matrix4x4.identity;
@@ -186,7 +186,7 @@ namespace uParser
             return Matrix4x4.identity;
         }
 
-        public static Quaternion ParseQuaternion(string input)
+        public static Quaternion ParseQuaternion(string input, string[] separators = null)
         {
             if (input == null)
                 return Quaternion.identity;
@@ -195,11 +195,11 @@ namespace uParser
                 .ToLower()
                 .Trim(k_TrimChars);
 
-            float[] values = GenericParser<float, Quaternion>(input, 4, 4);
+            float[] values = GenericParser<float, Quaternion>(input, 4, 4, separators);
             return new Quaternion(values[0], values[1], values[2], values[3]);
         }
 
-        public static Vector4 ParseVector4(string input)
+        public static Vector4 ParseVector4(string input, string[] separators = null)
         {
             if (input == null)
                 return Vector4.zero;
@@ -208,15 +208,21 @@ namespace uParser
                 .ToLower()
                 .Trim(k_TrimChars);
 
-            float[] values = GenericParser<float, Vector4>(input, 2, 4);
-            return new Vector4(values[0], values[1], (values.Length > 2) ? values[2] : 0f, (values.Length > 3) ? values[3] : 0f);
+            float[] values = GenericParser<float, Vector4>(input, 2, 4, separators);
+            return new Vector4(values[0],
+                (values.Length > 1) ? values[1] : 0f,
+                (values.Length > 2) ? values[2] : 0f,
+                (values.Length > 3) ? values[3] : 0f);
         }
 
         /// @brief Parse Vector3
         /// @param[in] input String input
         /// @return Result in [Vector2]
-        public static Vector3 ParseVector3(string input)
+        public static Vector3 ParseVector3(string input, string[] separators = null)
         {
+            if (separators == null)
+                separators = k_SeparateStrings;
+
             if (input == null)
                 return Vector3.zero;
 
@@ -224,24 +230,24 @@ namespace uParser
                 .ToLower()
                 .Trim(k_TrimChars);
 
-            var subStrings = input.Split(k_SeperateChar, StringSplitOptions.RemoveEmptyEntries);
-
-            if (subStrings.Length < 3)
-                throw new ParserInputException(message: "Parsing into <Vector3> requires 3 float values");
+            string[] subStrings = input.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
             return new Vector3
             {
                 x = float.Parse(subStrings[0]),
-                y = float.Parse(subStrings[1]),
-                z = float.Parse(subStrings[2]),
+                y = (subStrings.Length > 1) ? float.Parse(subStrings[1]) : 0f,
+                z = (subStrings.Length > 2) ? float.Parse(subStrings[2]) : 0f
             };
         }
 
         /// @brief Parse Vector2
         /// @param[in] input String input
         /// @return Result in [Vector2]
-        public static Vector2 ParseVector2(string input)
+        public static Vector2 ParseVector2(string input, string[] separators = null)
         {
+            if (separators == null)
+                separators = k_SeparateStrings;
+
             if (input == null)
                 return Vector2.zero;
 
@@ -249,15 +255,12 @@ namespace uParser
                 .ToLower()
                 .Trim(k_TrimChars);
 
-            var subStrings = input.Split(k_SeperateChar);
-
-            if (subStrings.Length < 2)
-                throw new ParserInputException(message: "Parsing into <Vector3> requires 2 float values");
+            string[] subStrings = input.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
             return new Vector2
             {
                 x = float.Parse(subStrings[0]),
-                y = float.Parse(subStrings[1]),
+                y = (subStrings.Length > 1) ? float.Parse(subStrings[1]) : 0f
             };
         }
 
@@ -273,7 +276,7 @@ namespace uParser
         //    return new Vector2(values[0], values[1]);
         //}
 
-        public static Vector3Int ParseVector3Int(string input)
+        public static Vector3Int ParseVector3Int(string input, string[] separators = null)
         {
             if (input == null)
                 return Vector3Int.zero;
@@ -282,11 +285,11 @@ namespace uParser
                 .ToLower()
                 .Trim(k_TrimChars);
 
-            int[] values = GenericParser<int, Vector3Int>(input, 2, 3);
-            return new Vector3Int(values[0], values[1], (values.Length > 2) ? values[2] : 0);
+            int[] values = GenericParser<int, Vector3Int>(input, 2, 3, separators);
+            return new Vector3Int(values[0], (values.Length > 1) ? values[1] : 0, (values.Length > 2) ? values[2] : 0);
         }
 
-        public static Vector2Int ParseVector2Int(string input)
+        public static Vector2Int ParseVector2Int(string input, string[] separators = null)
         {
             if (input == null)
                 return Vector2Int.zero;
@@ -295,11 +298,11 @@ namespace uParser
                 .ToLower()
                 .Trim(k_TrimChars);
 
-            int[] values = GenericParser<int, Vector2Int>(input, 2, 2);
-            return new Vector2Int(values[0], values[1]);
+            int[] values = GenericParser<int, Vector2Int>(input, 2, 2, separators);
+            return new Vector2Int(values[0], (values.Length > 1) ? values[1] : 0);
         }
 
-        public static Color32 ParseColor32(string input)
+        public static Color32 ParseColor32(string input, string[] separators = null)
         {
             if (input == null)
                 return default;
@@ -314,7 +317,7 @@ namespace uParser
                 ColorUtility.TryParseHtmlString(input, out var color))
                 return color;
 
-            byte[] values = GenericParser<byte, Color32>(input, 3, 4);
+            byte[] values = GenericParser<byte, Color32>(input, 3, 4, separators);
 
             return new Color32(values[0],
                                values[1],
@@ -322,7 +325,7 @@ namespace uParser
                                (values.Length > 3) ? values[3] : byte.MaxValue);
         }
 
-        public static Color ParseColor(string input)
+        public static Color ParseColor(string input, string[] separators = null)
         {
             if (input == null)
                 return default;
@@ -337,7 +340,7 @@ namespace uParser
                 ColorUtility.TryParseHtmlString(input, out var color))
                 return color;
 
-            float[] values = GenericParser<float, Color>(input, 3, 4);
+            float[] values = GenericParser<float, Color>(input, 3, 4, separators);
 
             return new Color(values[0],
                              values[1],
@@ -345,7 +348,7 @@ namespace uParser
                              (values.Length > 3) ? values[3] : 1f);
         }
 
-        public static Rect ParseRect(string input)
+        public static Rect ParseRect(string input, string[] separators = null)
         {
             if (input == null)
                 return Rect.zero;
@@ -354,7 +357,7 @@ namespace uParser
                 .ToLower()
                 .Trim(k_TrimChars);
 
-            float[] values = GenericParser<float, Rect>(input, 4, 4);
+            float[] values = GenericParser<float, Rect>(input, 4, 4, separators);
             return new Rect(values[0], values[1], values[2], values[3]);
         }
 

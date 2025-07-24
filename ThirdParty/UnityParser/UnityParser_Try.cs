@@ -16,8 +16,11 @@ namespace uParser
         /// @param[in] input String input
         /// @param[out] result Convert string into Vector3
         /// @return Boolean whether it succeeded or not
-        public static bool TryParseVector3(string input, out Vector3 result)
+        public static bool TryParseVector3(string input, out Vector3 result, string[] separators = null)
         {
+            if (separators == null)
+                separators = k_SeparateStrings;
+
             result = Vector3.zero;
 
             if (input == null)
@@ -25,11 +28,11 @@ namespace uParser
 
             input = input.Trim(k_TrimChars);
 
-            var subStrings = input.Split(k_SeperateChar, StringSplitOptions.RemoveEmptyEntries);
+            var subStrings = input.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
             if (float.TryParse(subStrings[0], out var x) &&
-                float.TryParse(subStrings[1], out var y) &&
-                float.TryParse(subStrings[2], out var z))
+                float.TryParse((subStrings.Length > 1) ? subStrings[1] : "0", out var y) &&
+                float.TryParse((subStrings.Length > 2) ? subStrings[2] : "0", out var z))
                 result.Set(x, y, z);
 
             return false;
@@ -39,8 +42,11 @@ namespace uParser
         /// @param[in] input String input
         /// @param[out] result Convert string into Vector3
         /// @return Boolean whether it succeeded or not
-        public static bool TryParseVector2(string input, out Vector2 result)
+        public static bool TryParseVector2(string input, out Vector2 result, string[] separators = null)
         {
+            if (separators == null)
+                separators = k_SeparateStrings;
+
             result = Vector3.zero;
 
             if (input == null)
@@ -48,10 +54,10 @@ namespace uParser
 
             input = input.Trim(k_TrimChars);
 
-            var subStrings = input.Split(k_SeperateChar);
+            var subStrings = input.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
             if (float.TryParse(subStrings[0], out var x) &&
-                float.TryParse(subStrings[1], out var y))
+                float.TryParse((subStrings.Length > 1) ? subStrings[1] : "0", out var y))
                 result.Set(x, y);
 
             return false;
