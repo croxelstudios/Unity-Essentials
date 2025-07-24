@@ -15,14 +15,20 @@ public class URPPipelineManager : MonoBehaviour
 
     public void ActivateFeature(ScriptableRendererFeature feature)
     {
-        RecordFeatureState(feature);
-        feature.SetActive(true);
+        if (this.IsActiveAndEnabled())
+        {
+            RecordFeatureState(feature);
+            feature.SetActive(true);
+        }
     }
 
     public void DeactivateFeature(ScriptableRendererFeature feature)
     {
-        RecordFeatureState(feature);
-        feature.SetActive(false);
+        if (this.IsActiveAndEnabled())
+        {
+            RecordFeatureState(feature);
+            feature.SetActive(false);
+        }
     }
 
     void RecordFeatureState(ScriptableRendererFeature feature)

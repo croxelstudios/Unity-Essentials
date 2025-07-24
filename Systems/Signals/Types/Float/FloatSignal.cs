@@ -18,6 +18,36 @@ public class FloatSignal : ValueSignal<float> //Change type here
         Set(signal, value);
     }
 
+    public void Add(float amount, string tag = "")
+    {
+        CallSignal(currentValue + amount, tag);
+    }
+
+    public void Subtract(float amount, string tag = "")
+    {
+        Add(-amount, tag);
+    }
+
+    public void Add(float amount)
+    {
+        Add(amount, "");
+    }
+
+    public void Subtract(float amount)
+    {
+        Subtract(amount, "");
+    }
+
+    public void Add()
+    {
+        Add(1f, "");
+    }
+
+    public void Subtract()
+    {
+        Subtract(1f, "");
+    }
+
     protected override float Calculate() //Change type here
     {
         return currentValue;

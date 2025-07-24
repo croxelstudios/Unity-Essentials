@@ -74,7 +74,7 @@ public class FadeInOut : MonoBehaviour
             if (onEnableOverride != FadeBehaviour.None)
                 onEnableOverride = FadeBehaviour.None;
 
-            init = true;
+            if (gameObject.activeInHierarchy) init = true;
         }
     }
 

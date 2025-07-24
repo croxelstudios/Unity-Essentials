@@ -146,8 +146,8 @@ public class TransformShake : MonoBehaviour
                 tc = targetChangeTime;
             }
 
-            Vector3 newCurrent = Vector3.SmoothDamp(current, target, ref currentSpd, GetSmoothness(smooth, amount),
-                Mathf.Infinity, timeMode.DeltaTime());
+            Vector3 newCurrent = Vector3.SmoothDamp(current, target, ref currentSpd,
+                GetSmoothness(smooth, amount), Mathf.Infinity, timeMode.DeltaTime());
             newCurrent = Vector3.Lerp(Vector3.zero, newCurrent, intensity);
             transformOverride.Translate(newCurrent - current, space);
             current = newCurrent;
@@ -177,7 +177,8 @@ public class TransformShake : MonoBehaviour
         {
             yield return timeMode.WaitFor();
 
-            Vector3 newCurrent = Vector3.SmoothDamp(current, Vector3.zero, ref currentSpd, GetSmoothness(smooth, amount));
+            Vector3 newCurrent = Vector3.SmoothDamp(current, Vector3.zero, ref currentSpd,
+                GetSmoothness(smooth, amount), Mathf.Infinity, timeMode.DeltaTime());
             transformOverride.Translate(newCurrent - current, space);
             current = newCurrent;
         }
