@@ -28,7 +28,10 @@ public class ParentConstraint_ByTag : MonoBehaviour
 
     void Update()
     {
-        if ((updateMode == ByTagUpdateMode.UpdateWhenNull) && (target == null))
+        if ((updateMode != ByTagUpdateMode.DontUpdate) &&
+            ((target == null) ||
+            ((updateMode == ByTagUpdateMode.UpdateWhenNullOrInactive) &&
+            !target.gameObject.activeInHierarchy)))
             ResetSource();
     }
 

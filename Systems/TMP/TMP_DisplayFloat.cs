@@ -58,7 +58,7 @@ public class TMP_DisplayFloat : MonoBehaviour
         currentFloatToTMPs = currentFloatToTMPs.OrderBy(x => x.priority).ToArray();
         string resultingText = "";
         for (int i = 0; i < currentFloatToTMPs.Length; i++)
-            if (currentFloatToTMPs[i].IsActiveAndEnabled())
+            if (currentFloatToTMPs[i].enabled)
                 resultingText += currentFloatToTMPs[i].
                     GetResultingText().Replace("\\n", "\n").Replace("\\t", "\t");
         text.SetText(resultingText);
