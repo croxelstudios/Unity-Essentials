@@ -99,11 +99,9 @@ public class IntSignalListener : BBaseSignalListener<int>
         public IntSignal signal; //Change type here
         [FoldoutGroup("@name")]
         public DXIntEvent actions; //Change type here
-        [FoldoutGroup("@name")]
-        [InfoBox("⚠ Event actions inside", VisibleIf = "@!onlyWhenAlreadyEnabled.IsNull()")]
+        [FoldoutGroup("@name/$AlreadyEnabledFoldout")]
         public ExtraEvent onlyWhenAlreadyEnabled;
-        [FoldoutGroup("@name")]
-        [InfoBox("⚠ Event actions inside", VisibleIf = "@!onlyOnEnable.IsNull()")]
+        [FoldoutGroup("@name/$OnEnableFoldout")]
         public ExtraEvent onlyOnEnable;
 
         public SignalAction(IntSignal signal, DXIntEvent actions) //Change type here (2)
@@ -114,8 +112,22 @@ public class IntSignalListener : BBaseSignalListener<int>
             onlyWhenAlreadyEnabled = new ExtraEvent(null);
             onlyOnEnable = new ExtraEvent(null);
         }
+
+#if UNITY_EDITOR
+        string AlreadyEnabledFoldout()
+        {
+            return "Only When Already Enabled" + (onlyWhenAlreadyEnabled.IsNull() ? "" : " ⚠");
+        }
+
+        string OnEnableFoldout()
+        {
+            return "Only On Enable" + (onlyOnEnable.IsNull() ? "" : " ⚠");
+        }
+#endif
     }
 
+    [HideLabel]
+    [InlineProperty]
     [Serializable]
     public struct ExtraEvent
     {
