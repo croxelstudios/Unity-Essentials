@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 using System.Linq;
+using UnityEngine.Events;
 #endif
 
 #if UNITY_EDITOR
@@ -85,7 +86,8 @@ public class GenericNamedEvents_Inspector : Editor
             propertyHeight = EditorGUI.GetPropertyHeight(eventNames.GetArrayElementAtIndex(index));
             SerializedProperty element = list.serializedProperty.GetArrayElementAtIndex(index);
 
-            if (element.FindPropertyRelative("m_PersistentCalls") != null) //TO DO: Very crappy
+            if ((element.type == typeof(UnityEvent).Name) ||
+                (element.type == typeof(DXEvent).Name)) //TO DO: Very crappy
                 propertyHeight += EditorGUI.GetPropertyHeight(element, true);
             else
             {
@@ -136,7 +138,8 @@ public class GenericNamedEvents_Inspector : Editor
 
             //Draw event
             float y = rect.y + EditorGUI.GetPropertyHeight(elementName) + 2;
-            if (element.FindPropertyRelative("m_PersistentCalls") != null) //TO DO: Very crappy
+            if ((element.type == typeof(UnityEvent).Name) ||
+                (element.type == typeof(DXEvent).Name)) //TO DO: Very crappy
                 element.PropertyField(elementTitle, y, rect, widthSum, widthMult);
             else
             {

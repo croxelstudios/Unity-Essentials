@@ -47,6 +47,10 @@ public class EventsManager : BBaseSignalListener
                 else if (!string.IsNullOrEmpty(eventNames[i]) && eventNames[i].Contains("(S) ")) eventNames[i] = eventNames[i].Replace("(S) ", "S? ");
         }
     }
+
+    public void SyncNames(bool priorizeLocal = false)
+    {
+    }
 #endif
 
     [StringPopup("eventNames")]
@@ -88,10 +92,6 @@ public class EventsManager : BBaseSignalListener
             this.signal = signal;
             this.actions = actions;
         }
-    }
-
-    public void SyncNames(bool priorizeLocal = false)
-    {
     }
 }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using Object = UnityEngine.Object;
 
 public static class CollectionExtensions
@@ -149,6 +150,10 @@ public static class CollectionExtensions
         IEnumerable<T> elements, bool testContains = false)
     {
         list = list.CreateIfNull();
+
+        if (elements.IsNullOrEmpty())
+            return list;
+
         if (testContains)
         {
             foreach (T element in elements)
@@ -564,5 +569,48 @@ public static class CollectionExtensions
         else dict = new SortedDictionary<T, Y>();
         return dict;
     }
+    #endregion
+
+    #region Array IndexOf
+    public static int IndexOf<T>(this IEnumerable<T> collection, Func<T, int, bool> match)
+    {
+        var offset = 0;
+        foreach (var item in collection)
+        {
+            if (match(item, offset))
+                return offset;
+
+            offset++;
+        }
+
+        return -1;
+    }
+
+    public static int IndexOf<T>(this IEnumerable<T> collection, Func<T, bool> match) =>
+        collection.IndexOf((item, offset) => match(item));
+
+    public static int IndexOf<T>(this IEnumerable<T> collection, T value) =>
+        collection.IndexOf((item, offset) => item.Is(value));
+
+    public static IEnumerable<int> IndicesOf<T>(this IEnumerable<T> collection, Func<T, int, bool> match)
+    {
+        var offset = 0;
+        foreach (var item in collection)
+        {
+            if (match(item, offset))
+                yield return offset;
+
+            offset++;
+        }
+    }
+
+    public static IEnumerable<int> IndicesOf<T>(this IEnumerable<T> collection, Func<T, bool> match) =>
+        collection.IndicesOf((item, offset) => match(item));
+
+    public static IEnumerable<int> IndicesOf<T>(this IEnumerable<T> collection, T value) =>
+        collection.IndicesOf((item, offset) => item.Is(value));
+
+    public static bool Equals<T>(T a, T b) => EqualityComparer<T>.Default.Equals(a, b);
+    public static bool Is<T>(this T o, T x) => Equals(o, x);
     #endregion
 }
