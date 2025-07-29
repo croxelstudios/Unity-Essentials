@@ -171,6 +171,12 @@ public class BaseSignal : ScriptableObject
         if (beforeCall) this.beforeCall.AddListener(action);
         else called.AddListener(action);
     }
+
+    public void RemoveListener(UnityAction action)
+    {
+        beforeCall.RemoveListener(action);
+        called.RemoveListener(action);
+    }
 }
 
 public interface IValueSignal
