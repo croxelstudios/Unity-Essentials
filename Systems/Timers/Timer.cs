@@ -51,6 +51,7 @@ public class Timer : MonoBehaviour
             actions?.Invoke();
     }
 
+    //TO DO: Remove
     public void SetSeconds(float newDuration)
     {
         seconds = newDuration;

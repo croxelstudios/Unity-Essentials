@@ -164,16 +164,16 @@ public static class FindWithTag
         return (T)result;
     }
 
-    public static T Anys<T>(string tag, params string[] extraTags) where T : Object
+    public static T[] Anys<T>(string tag, params string[] extraTags) where T : Object
     {
         const string name = "Components";
         const string parameter = "string, string[]";
 
         if (typeof(T) == typeof(GameObject))
-            return GameObjects(tag, extraTags) as T;
+            return GameObjects(tag, extraTags) as T[];
 
         if (typeof(T) == typeof(Transform))
-            return Transforms(tag, extraTags) as T;
+            return Transforms(tag, extraTags) as T[];
 
         //Invoke Component method by reflection
         MethodInfo baseMethod = typeof(FindWithTag)
@@ -186,13 +186,13 @@ public static class FindWithTag
                 );
         if (baseMethod == null)
             throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
-        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
+        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T[]));
 
         object result = genericMethod.Invoke(
                 null,
                 new object[] { tag, extraTags }
             );
-        return (T)result;
+        return (T[])result;
     }
     #endregion
 
