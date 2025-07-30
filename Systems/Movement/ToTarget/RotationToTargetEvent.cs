@@ -14,14 +14,6 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
     [SerializeField]
     [Tooltip("Resulting rotation amount")]
     DXFloatEvent angleSpeedPercent = null;
-    [SerializeField]
-    [FoldoutGroup("$StartStopFoldout")]
-    [Tooltip("Resulting rotation was zero and is not zero now")]
-    DXEvent startedRotating = null;
-    [SerializeField]
-    [FoldoutGroup("$StartStopFoldout")]
-    [Tooltip("Resulting rotation was not zero and is zero now")]
-    DXEvent stoppedRotating = null;
     #endregion
 
     protected override void OnEnable()

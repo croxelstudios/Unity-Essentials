@@ -30,14 +30,6 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
     [SerializeField]
     [Tooltip("Resulting speed percentage between zero and max speed")]
     DXFloatEvent magnitudePercent = null;
-    [SerializeField]
-    [FoldoutGroup("$StartStopFoldout")]
-    [Tooltip("Resulting vector was zero and is not zero now")]
-    DXEvent startedMoving = null;
-    [SerializeField]
-    [FoldoutGroup("$StartStopFoldout")]
-    [Tooltip("Resulting vector was not zero and is zero now")]
-    DXEvent stoppedMoving = null;
     #endregion
 
     //Agent type
