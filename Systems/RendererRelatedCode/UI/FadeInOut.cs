@@ -359,27 +359,42 @@ public class FadeInOut : MonoBehaviour
 
         public static AlphaHolder GetFromObject(GameObject obj, bool useBlack = false, bool onlyEnabled = true)
         {
-            CanvasGroup canvasGroup = obj.GetComponent<CanvasGroup>();
+            AlphaHolder holder = GetEnabledFromObject(obj, false, useBlack, onlyEnabled);
+            if (!holder.isNotNull)
+                holder = GetEnabledFromObject(obj, true, useBlack, onlyEnabled);
+
+            return holder;
+        }
+
+        static AlphaHolder GetEnabledFromObject(GameObject obj, bool inChildren = false,
+            bool useBlack = false, bool onlyEnabled = true)
+        {
+            CanvasGroup canvasGroup = inChildren ? obj.GetComponentInChildren<CanvasGroup>() :
+                obj.GetComponent<CanvasGroup>();
             if ((canvasGroup != null) && (canvasGroup.enabled || !onlyEnabled))
                 return new AlphaHolder(canvasGroup);
             else
             {
-                Graphic gr = obj.GetComponentInChildren<Graphic>();
+                Graphic gr = inChildren ? obj.GetComponentInChildren<Graphic>() : obj.GetComponent<Graphic>();
                 if ((gr != null) && (gr.enabled || !onlyEnabled))
                     return new AlphaHolder(gr);
                 else
                 {
-                    RenderersSetColor rsc = obj.GetComponentInChildren<RenderersSetColor>();
+                    RenderersSetColor rsc = inChildren ? obj.GetComponentInChildren<RenderersSetColor>() :
+                        obj.GetComponent<RenderersSetColor>();
                     if ((rsc != null) && (rsc.enabled || !onlyEnabled))
                         return new AlphaHolder(rsc, useBlack);
                     else
                     {
-                        Light light = obj.GetComponentInChildren<Light>();
+                        Light light = inChildren ? obj.GetComponentInChildren<Light>() :
+                            obj.GetComponent<Light>();
                         if ((light != null) && (light.enabled || !onlyEnabled))
                             return new AlphaHolder(light);
                         else
                         {
-                            MaterialPropertyTweaker mpt = obj.GetComponentInChildren<MaterialPropertyTweaker>();
+                            MaterialPropertyTweaker mpt = inChildren ?
+                                obj.GetComponentInChildren<MaterialPropertyTweaker>() :
+                                obj.GetComponent<MaterialPropertyTweaker>();
                             if ((mpt != null) && (mpt.enabled || !onlyEnabled))
                                 return new AlphaHolder(mpt, useBlack);
                         }
