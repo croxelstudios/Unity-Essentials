@@ -13,6 +13,10 @@ public class SpawnedEntity : MonoBehaviour
     public PrefabInstancer instancer = null;
     [HideInInspector]
     public PrefabInstancer_Launcher instancerLauncher = null;
+    [SerializeField]
+    DXVectorEvent originalMomentum = null;
+    [SerializeField]
+    DXVectorEvent originalMomentum_Local = null;
 
     void OnDestroy()
     {
@@ -37,4 +41,10 @@ public class SpawnedEntity : MonoBehaviour
         else CallSignalOnInstancer(signal);
     }
     #endregion
+
+    public void LaunchMomentum(Vector3 momentum)
+    {
+        originalMomentum?.Invoke(momentum);
+        originalMomentum_Local?.Invoke(transform.InverseTransformVector(momentum));
+    }
 }

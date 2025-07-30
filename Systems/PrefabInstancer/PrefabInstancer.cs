@@ -1,14 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using Random = UnityEngine.Random;
 using Sirenix.OdinInspector;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
-[ExecuteAlways]
 public class PrefabInstancer : MonoBehaviour
 {
     [SerializeField]
@@ -31,22 +27,65 @@ public class PrefabInstancer : MonoBehaviour
     Transform customReference = null;
     [SerializeField]
     bool trackEntities = false;
-    //TO DO: Support for keeping momentum of original object (DXVectorEvent originalMomentum on instance)
+    [Indent]
+    [ShowIf("trackEntities")]
+    [SerializeField]
+    int maxEntityCount = 5;
+    [Indent]
+    [ShowIf("trackEntities")]
+    [SerializeField]
+    TimeMode momentumTimeMode = TimeMode.FixedUpdate;
 
     WeightedPrefab[] wPrefabs;
     public List<SpawnedEntity> entities;
 
     bool wPrefabsFilled = false;
+    Vector3 prevPos;
+    Vector3 momentum;
 
-    void Awake()
+    protected virtual void OnEnable()
     {
-#if UNITY_EDITOR
-        if (Application.isPlaying)
-#endif
-        {
-            if (!wPrefabsFilled)
-                FillWeightedPrefabs();
-        }
+        prevPos = transform.position;
+    }
+
+    protected virtual void OnDisable()
+    {
+        StopAllCoroutines();
+    }
+
+    void Update()
+    {
+        if (momentumTimeMode.IsSmooth())
+            OnUpdate(momentumTimeMode.DeltaTime());
+    }
+
+    void FixedUpdate()
+    {
+        if (momentumTimeMode.IsFixed())
+            OnUpdate(momentumTimeMode.DeltaTime());
+    }
+
+    void LateUpdate()
+    {
+        if (momentumTimeMode.IsSmooth())
+            OnLateUpdate(momentumTimeMode.DeltaTime());
+        else StartCoroutine(LateFixedUpdate());
+    }
+
+    IEnumerator LateFixedUpdate()
+    {
+        yield return new WaitForFixedUpdate();
+        OnLateUpdate(momentumTimeMode.DeltaTime());
+    }
+
+    protected virtual void OnUpdate(float deltaTime)
+    {
+    }
+
+    protected virtual void OnLateUpdate(float deltaTime)
+    {
+        momentum = (transform.position - prevPos) / deltaTime;
+        prevPos = transform.position;
     }
 
     void OnDestroy()
@@ -58,68 +97,65 @@ public class PrefabInstancer : MonoBehaviour
                     entity.EntityDestroyed -= EntityRemoved;
     }
 
+    void FillWeightedPrefabs()
+    {
+        wPrefabs = new WeightedPrefab[weightedPrefabs.Length + prefabs.Length];
+        for (int i = 0; i < wPrefabs.Length; i++)
+        {
+            if (i < prefabs.Length) wPrefabs[i] = new WeightedPrefab(prefabs[i], 1f);
+            else wPrefabs[i] = weightedPrefabs[i - prefabs.Length];
+        }
+    }
+
     #region Public functions
     public void InstantiatePrefab(GameObject prefab)
     {
         if (this.IsActiveAndEnabled())
-        {
-            if (!wPrefabsFilled)
-            {
-                FillWeightedPrefabs();
-                int amount = Random.Range(amountRange.x, amountRange.y);
-                for (int i = 0; i < amount; i++)
-                    Instantiate(prefab);
-            }
-        }
+            InstantiatePrefabDisabled(prefab);
+    }
+
+    public void InstantiatePrefabDisabled(GameObject prefab)
+    {
+        int amount = Random.Range(amountRange.x, amountRange.y);
+        for (int i = 0; i < amount; i++)
+            Instantiate(prefab);
     }
 
     public void InstantiatePrefab(int n)
     {
         if (this.IsActiveAndEnabled())
-        {
-            if (!wPrefabsFilled)
-            {
-                FillWeightedPrefabs();
-                int amount = Random.Range(amountRange.x, amountRange.y);
-                for (int i = 0; i < amount; i++)
-                    Instantiate(n);
-            }
-        }
+            InstantiatePrefabDisabled(n);
+    }
+
+    public void InstantiatePrefabDisabled(int n)
+    {
+        int amount = Random.Range(amountRange.x, amountRange.y);
+        for (int i = 0; i < amount; i++)
+            Instantiate(n);
     }
 
     public void InstantiateRandomPrefab()
     {
-        if (this.IsActiveAndEnabled() && (wPrefabs != null))
-        {
-            if (!wPrefabsFilled)
-            {
-                FillWeightedPrefabs();
-                int amount = Random.Range(amountRange.x, amountRange.y);
-                for (int i = 0; i < amount; i++)
-                    InstantiateRandom();
-            }
-        }
+        if (this.IsActiveAndEnabled())
+            InstantiateRandomPrefabDisabled();
+    }
+
+    public void InstantiateRandomPrefabDisabled()
+    {
+        int amount = Random.Range(amountRange.x, amountRange.y);
+        for (int i = 0; i < amount; i++)
+            InstantiateRandom();
     }
 
     public void InstantiatePrefabs()
     {
         if (this.IsActiveAndEnabled())
-        {
-            if (!wPrefabsFilled)
-            {
-                FillWeightedPrefabs();
-                InstantiateAll();
-            }
-        }
+            InstantiatePrefabsDisabled();
     }
 
     public void InstantiatePrefabsDisabled()
     {
-        if (!wPrefabsFilled)
-        {
-            FillWeightedPrefabs();
-            InstantiateAll();
-        }
+        InstantiateAll();
     }
 
     public void SetActiveAllEntities(bool state)
@@ -161,19 +197,9 @@ public class PrefabInstancer : MonoBehaviour
     #endregion
 
     #region Tracked Entities Functions
-
-    void FillWeightedPrefabs()
+    public virtual SpawnedEntity Instantiate(GameObject prefab, bool ignoreMax = false, bool forceTracking = false)
     {
-        wPrefabs = new WeightedPrefab[weightedPrefabs.Length + prefabs.Length];
-        for (int i = 0; i < wPrefabs.Length; i++)
-        {
-            if (i < prefabs.Length) wPrefabs[i] = new WeightedPrefab(prefabs[i], 1f);
-            else wPrefabs[i] = weightedPrefabs[i - prefabs.Length];
-        }
-    }
-    public virtual SpawnedEntity Instantiate(GameObject prefab, bool forceTracking = false)
-    {
-        if (prefab != null)
+        if ((prefab != null) && CanSpawn((!ignoreMax) && (forceTracking || trackEntities)))
         {
             GameObject instance = InstantiateWithMode(prefab, spawnMode);
             if (forceTracking || trackEntities)
@@ -186,6 +212,7 @@ public class PrefabInstancer : MonoBehaviour
                     entity.EntityDestroyed += EntityRemoved;
                     entity.instancer = this;
                 }
+                entity.LaunchMomentum(momentum);
                 return entity;
             }
         }
@@ -193,31 +220,54 @@ public class PrefabInstancer : MonoBehaviour
         return null;
     }
 
-    public virtual SpawnedEntity Instantiate(int n, bool forceTracking = false, GameObject[] prefabOverrides = null)
+    bool CanSpawn(bool trackEntities)
     {
-        GameObject prefab = GetPrefabFromArray(n, prefabOverrides);
-        return Instantiate(prefab, forceTracking);
+        if (trackEntities)
+        {
+            entities = entities.CreateIfNull();
+            return entities.Count < maxEntityCount;
+        }
+        else return true;
     }
 
-    public SpawnedEntity InstantiateRandom(bool forceTracking = false, GameObject[] prefabOverrides = null)
+    public virtual SpawnedEntity Instantiate(int n, bool ignoreMax = false, bool forceTracking = false, GameObject[] prefabOverrides = null)
     {
-        return Instantiate(ChooseWeightedPrefab(wPrefabs), forceTracking, prefabOverrides);
+        GameObject prefab = GetPrefabFromArray(n, prefabOverrides);
+        return Instantiate(prefab, ignoreMax, forceTracking);
+    }
+
+    public SpawnedEntity InstantiateRandom(bool ignoreMax = false, bool forceTracking = false, GameObject[] prefabOverrides = null)
+    {
+        if (!TryFillUpArray()) return null;
+
+        return Instantiate(ChooseWeightedPrefab(wPrefabs), ignoreMax, forceTracking, prefabOverrides);
     }
 
     public SpawnedEntity[] InstantiateAll(bool forceTracking = false, GameObject[] prefabOverrides = null)
     {
+        if (!TryFillUpArray()) return null;
+
         SpawnedEntity[] array = new SpawnedEntity[wPrefabs.Length];
         for (int i = 0; i < wPrefabs.Length; i++)
-            array[i] = Instantiate(i, forceTracking, prefabOverrides);
+            array[i] = Instantiate(i, true, forceTracking, prefabOverrides);
         return array;
     }
     #endregion
 
     GameObject GetPrefabFromArray(int n, GameObject[] prefabOverrides = null)
     {
-        GameObject prefab = ((prefabOverrides != null) && (n < prefabOverrides.Length)) ?
+        if (!TryFillUpArray()) return null;
+
+        GameObject prefab = ((!prefabOverrides.IsNullOrEmpty()) && (n < prefabOverrides.Length)) ?
             prefabOverrides[n] : wPrefabs[n].prefab;
         return prefab;
+    }
+
+    bool TryFillUpArray()
+    {
+        if (!wPrefabsFilled) FillWeightedPrefabs();
+        if (wPrefabs.IsNullOrEmpty()) return false;
+        else return true;
     }
 
     GameObject InstantiateWithMode(GameObject prefab, SpawnMode spawnMode)

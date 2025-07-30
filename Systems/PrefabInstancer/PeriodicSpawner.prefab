@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5314665873015776043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6185364283268422109}
+  - component: {fileID: 899223105503830649}
+  - component: {fileID: 1329923989807313392}
+  m_Layer: 0
+  m_Name: PeriodicSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6185364283268422109
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314665873015776043}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &899223105503830649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314665873015776043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8045c0fc9d5810545b9ce012153ff5e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabs: []
+  weightedPrefabs: []
+  inheritRotation: 1
+  amountRange: {x: 1, y: 1}
+  rotationVariation: {x: 0, y: 0, z: 0}
+  randomSpread: {x: 0, y: 0, z: 0}
+  spawnMode: 0
+  customReference: {fileID: 0}
+  trackEntities: 0
+  maxEntityCount: 5
+  momentumTimeMode: 1
+  entities: []
+--- !u!114 &1329923989807313392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5314665873015776043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4df87935e2b64934b89a3da8aa10445f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  secs:
+    name: Seconds
+    min: 0.02
+    value: 0.02
+    max: 0.02
+    randomize: 0
+  randomizeOnlyOnEnable: 0
+  _speed: 1
+  actions:
+    unityEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 899223105503830649}
+          m_TargetAssemblyTypeName: PrefabInstancer, Assembly-CSharp
+          m_MethodName: InstantiateRandomPrefab
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    overrideEvents: []
+  unscaledTime: 0
+  waitFirstCycle: 0

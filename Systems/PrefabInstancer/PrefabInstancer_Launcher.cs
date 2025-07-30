@@ -38,12 +38,15 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
                 {
                     if (trackEntitiesLocally)
                     {
-                        SpawnedEntity entity = instancer.Instantiate(prefab, true);
-                        entities.Add(entity);
-                        entity.EntityDestroyed += EntityRemoved;
-                        entity.instancerLauncher = this;
+                        SpawnedEntity entity = instancer.Instantiate(prefab, false, true);
+                        if (entity != null)
+                        {
+                            entities.Add(entity);
+                            entity.EntityDestroyed += EntityRemoved;
+                            entity.instancerLauncher = this;
+                        }
                     }
-                    else instancer.Instantiate(prefab, false);
+                    else instancer.Instantiate(prefab, false, false);
                 }
         }
     }
@@ -58,12 +61,15 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
                 {
                     if (trackEntitiesLocally)
                     {
-                        SpawnedEntity entity = instancer.Instantiate(n, true, prefabOverrides);
-                        entities.Add(entity);
-                        entity.EntityDestroyed += EntityRemoved;
-                        entity.instancerLauncher = this;
+                        SpawnedEntity entity = instancer.Instantiate(n, false, true, prefabOverrides);
+                        if (entity != null)
+                        {
+                            entities.Add(entity);
+                            entity.EntityDestroyed += EntityRemoved;
+                            entity.instancerLauncher = this;
+                        }
                     }
-                    else instancer.Instantiate(n, false, prefabOverrides);
+                    else instancer.Instantiate(n, false, false, prefabOverrides);
                 }
         }
     }
@@ -78,12 +84,15 @@ public class PrefabInstancer_Launcher : BRemoteLauncher
                 {
                     if (trackEntitiesLocally)
                     {
-                        SpawnedEntity entity = instancer.InstantiateRandom(true, prefabOverrides);
-                        entities.Add(entity);
-                        entity.EntityDestroyed += EntityRemoved;
-                        entity.instancerLauncher = this;
+                        SpawnedEntity entity = instancer.InstantiateRandom(false, true, prefabOverrides);
+                        if (entity != null)
+                        {
+                            entities.Add(entity);
+                            entity.EntityDestroyed += EntityRemoved;
+                            entity.instancerLauncher = this;
+                        }
                     }
-                    else instancer.InstantiateRandom(false, prefabOverrides);
+                    else instancer.InstantiateRandom(false, false, prefabOverrides);
                 }
         }
     }
