@@ -1,4 +1,4 @@
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using UnityEngine;
 using static SpeedBehaviour;
 
@@ -15,20 +15,17 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
     [Tooltip("Resulting rotation amount")]
     DXFloatEvent angleSpeedPercent = null;
     [SerializeField]
-    [FoldoutGroup("START and STOP rotation")]
+    [FoldoutGroup("$StartStopFoldout")]
     [Tooltip("Resulting rotation was zero and is not zero now")]
     DXEvent startedRotating = null;
     [SerializeField]
-    [FoldoutGroup("START and STOP rotation")]
+    [FoldoutGroup("$StartStopFoldout")]
     [Tooltip("Resulting rotation was not zero and is zero now")]
     DXEvent stoppedRotating = null;
     #endregion
 
-    float prevSpd;
-
     protected override void OnEnable()
     {
-        prevSpd = 0f;
         base.OnEnable();
     }
 
@@ -177,12 +174,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
 
         float degreesPerSecondSpeed = angle * deltaTime.Reciprocal();
 
-        if (prevSpd <= Mathf.Epsilon)
-        {
-            if (degreesPerSecondSpeed > Mathf.Epsilon) startedRotating?.Invoke();
-        }
-        else if (degreesPerSecondSpeed <= Mathf.Epsilon) stoppedRotating?.Invoke();
-        prevSpd = degreesPerSecondSpeed;
+        CheckStartStop(degreesPerSecondSpeed);
 
         if ((degreesPerSecondSpeed > 0f) || sendWhenZeroToo)
         {

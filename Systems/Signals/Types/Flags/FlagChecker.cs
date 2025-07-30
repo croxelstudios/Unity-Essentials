@@ -230,12 +230,12 @@ public class FlagChecker : BBaseSignalListener<bool>
         }
 
 #if UNITY_EDITOR
-        string AlreadyEnabledFoldout()
+        public string AlreadyEnabledFoldout()
         {
             return "Only When Already Enabled" + (onlyWhenAlreadyEnabled.IsNull() ? "" : " ⚠");
         }
 
-        string OnEnableFoldout()
+        public string OnEnableFoldout()
         {
             return "Only On Enable" + (onlyOnEnable.IsNull() ? "" : " ⚠");
         }

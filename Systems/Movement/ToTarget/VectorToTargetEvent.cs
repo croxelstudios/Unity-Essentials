@@ -31,16 +31,14 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
     [Tooltip("Resulting speed percentage between zero and max speed")]
     DXFloatEvent magnitudePercent = null;
     [SerializeField]
-    [FoldoutGroup("START and STOP movement")]
+    [FoldoutGroup("$StartStopFoldout")]
     [Tooltip("Resulting vector was zero and is not zero now")]
     DXEvent startedMoving = null;
     [SerializeField]
-    [FoldoutGroup("START and STOP movement")]
+    [FoldoutGroup("$StartStopFoldout")]
     [Tooltip("Resulting vector was not zero and is zero now")]
     DXEvent stoppedMoving = null;
     #endregion
-
-    float prevSpd;
 
     //Agent type
     public void OverrideNavMeshAgentType(int navMeshAgentType, out int prevAgentType)
@@ -52,7 +50,6 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
 
     protected override void OnEnable()
     {
-        prevSpd = 0f;
         base.OnEnable();
     }
 
@@ -186,12 +183,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
     {
         float unitsPerSecondSpeed = speedPerThisFrame.magnitude * deltaTime.Reciprocal();
 
-        if (prevSpd <= Mathf.Epsilon)
-        {
-            if (unitsPerSecondSpeed > Mathf.Epsilon) startedMoving?.Invoke();
-        }
-        else if (unitsPerSecondSpeed <= Mathf.Epsilon) stoppedMoving?.Invoke();
-        prevSpd = unitsPerSecondSpeed;
+        CheckStartStop(unitsPerSecondSpeed);
 
         if ((unitsPerSecondSpeed > 0f) || sendWhenZeroToo)
         {

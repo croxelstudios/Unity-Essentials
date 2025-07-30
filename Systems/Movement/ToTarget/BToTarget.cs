@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Sirenix.OdinInspector;
 using static SpeedBehaviour;
 using System.Collections;
@@ -62,6 +62,28 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     protected bool late = false;
     [SerializeField]
     protected bool sendFrameMovement = false;
+    #region Events
+    [SerializeField]
+    [PropertyOrder(10)]
+    [FoldoutGroup("$StartStopFoldout")]
+    [Tooltip("Resulting transformation was zero and is not zero now")]
+    DXEvent started = null;
+    [SerializeField]
+    [PropertyOrder(10)]
+    [FoldoutGroup("$StartStopFoldout")]
+    [Tooltip("Resulting transformation was not zero and is zero now")]
+    DXEvent stopped = null;
+
+#if UNITY_EDITOR
+    public string StartStopFoldout()
+    {
+        return "START and STOP" +
+            ((started.IsNull() && stopped.IsNull()) ? "" : " ⚠");
+    }
+#endif
+
+    float prevSpd;
+    #endregion
 
     public enum TargetMode { ToExactPoint, NeverStop, StopAtMargin }
 
@@ -165,6 +187,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     protected virtual void OnEnable()
     {
+        prevSpd = 0f;
         ResetSpeed();
         if (timeMode.OnEnable()) CheckEvents(timeMode.DeltaTime());
     }
@@ -227,6 +250,16 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     protected virtual void Execute(T spd, float deltaTime)
     {
+    }
+
+    protected void CheckStartStop(float perSecondSpeed)
+    {
+        if (prevSpd <= Mathf.Epsilon)
+        {
+            if (perSecondSpeed > Mathf.Epsilon) started?.Invoke();
+        }
+        else if (perSecondSpeed <= Mathf.Epsilon) stopped?.Invoke();
+        prevSpd = perSecondSpeed;
     }
 
     /// <summary>
