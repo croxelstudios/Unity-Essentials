@@ -1,6 +1,8 @@
 ﻿using Sirenix.OdinInspector;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 [ExecuteAlways]
 public class BRenderersSetProperty : MonoBehaviour
@@ -77,6 +79,17 @@ public class BRenderersSetProperty : MonoBehaviour
             SetBlocksProperty(true);
     }
 
+    protected virtual bool ShouldUpdate()
+    {
+        return false;
+    }
+
+    protected void TryUpdate()
+    {
+        if (ShouldUpdate())
+            UpdateBehaviour();
+    }
+
     protected virtual void UpdateBehaviour()
     {
         if (updateRenderers) UpdateRenderersInternal();
@@ -133,7 +146,7 @@ public class BRenderersSetProperty : MonoBehaviour
 
     void CheckRendererBlocks(Renderer rend)
     {
-        //This was a workaroud for build-in that no longer is necessary for SRPs
+        //This was a workaroud for built-in that is no longer necessary for SRPs
         //if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
         //{   //This is a bit ugly, but unity would reset properties here if this is not done
         //    //I probably need more of these for other highly specific renderers
@@ -220,5 +233,226 @@ public class BRenderersSetProperty : MonoBehaviour
         if (matInd < 0) matInd = 0;
         rend[0].GetPropertyBlock(block, matInd);
         return block;
+    }
+}
+
+[ExecuteAlways]
+public class BRenderersSetProperty<T> : BRenderersSetProperty where T : IEquatable<T>
+{
+    T oldTValue;
+    protected virtual T tValue { get { return default; } set { } }
+
+    protected override void Init()
+    {
+        oldTValue = tValue;
+        base.Init();
+    }
+
+    protected override bool ShouldUpdate()
+    {
+        return (!tValue.Equals(oldTValue)) || base.ShouldUpdate();
+    }
+
+    protected override void UpdateBehaviour()
+    {
+        base.UpdateBehaviour();
+        oldTValue = tValue;
+    }
+}
+
+[ExecuteAlways]
+public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T : IEquatable<T>
+{
+    static Dictionary<RendMatProp, List<BRenderersSetBlendedProperty<T>>> stackDictionary;
+    //static bool dicWasCleared;
+    [OnValueChanged("UpdateBehaviour")]
+    public BlendMode blendMode = BlendMode.Multiply;
+    BlendMode oldBlendMode;
+
+    public enum BlendMode { Multiply, Average, Add, Subtract }
+
+    protected override void Init()
+    {
+        stackDictionary = stackDictionary.CreateIfNull();
+        oldBlendMode = blendMode;
+        base.Init();
+    }
+
+    protected override void OnDisable()
+    {
+        StopAllCoroutines(); //TO DO??
+        if (rend != null)
+        {
+            foreach (Renderer ren in rend)
+                if (ren != null)
+                {
+                    Material[] shM = ren.sharedMaterials;
+                    for (int i = 0; i < shM.Length; i++)
+                    {
+                        RendMatProp renMat = new RendMatProp(ren, i, propertyName);
+                        stackDictionary.SmartRemove(renMat, this);
+                    }
+                }
+            base.OnDisable();
+        }
+    }
+
+    protected override bool ShouldUpdate()
+    {
+        return (blendMode != oldBlendMode) || base.ShouldUpdate();
+    }
+
+    protected override void UpdateBehaviour()
+    {
+        base.UpdateBehaviour();
+        oldBlendMode = blendMode;
+        //dicWasCleared = false;
+        //StartCoroutine(DictionaryCleanUp());
+    }
+
+    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    {
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
+
+        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
+
+        ApplyFullStack(block, rendMat);
+    }
+
+    protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    {
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
+        if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
+            ApplyFullStack(block, rendMat);
+    }
+
+    protected override void VSetProperty(Renderer rend, int mat)
+    {
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
+
+        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
+
+        ApplyFullStack(rendMat);
+    }
+
+    protected override void VResetProperty(Renderer rend, int mat)
+    {
+        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
+        if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
+            ApplyFullStack(rendMat);
+        base.VResetProperty(rend, mat);
+    }
+
+    protected virtual void BlockSet(MaterialPropertyBlock block, T value)
+    {
+
+    }
+
+    protected virtual void MaterialSet(Material mat, T value)
+    {
+
+    }
+
+    void ApplyFullStack(MaterialPropertyBlock block, RendMatProp rendMat)
+    {
+        BlockSet(block, GetFullStackColor(rendMat));
+    }
+
+    void ApplyFullStack(RendMatProp rendMat)
+    {
+        MaterialSet(rendMat.rend.materials[rendMat.mat], GetFullStackColor(rendMat));
+    }
+
+    T GetFullStackColor(RendMatProp rendMat)
+    {
+        T current = NeutralAdd();
+        int count = stackDictionary[rendMat].Count;
+        bool first = true;
+        foreach (BRenderersSetBlendedProperty<T> setter in stackDictionary[rendMat])
+        {
+            if (first)
+            {
+                switch (setter.blendMode)
+                {
+                    case BlendMode.Average:
+                        current = NeutralAdd();
+                        break;
+                    case BlendMode.Add:
+                        current = NeutralAdd();
+                        break;
+                    case BlendMode.Subtract:
+                        current = NeutralMult();
+                        break;
+                    default:
+                        current = NeutralMult();
+                        break;
+                }
+                first = false;
+            }
+            switch (setter.blendMode)
+            {
+                case BlendMode.Average:
+                    current = Combine_Average(current, setter.tValue, count);
+                    break;
+                case BlendMode.Add:
+                    current = Combine_Add(current, setter.tValue);
+                    break;
+                case BlendMode.Subtract:
+                    current = Combine_Subtract(current, setter.tValue);
+                    break;
+                default:
+                    current = Combine_Multiply(current, setter.tValue);
+                    break;
+            }
+        }
+        return current;
+    }
+
+    //IEnumerator DictionaryCleanUp()
+    //{
+    //    yield return new WaitForEndOfFrame();
+    //    if (!dicWasCleared)
+    //    {
+    //        RendererMaterial[] keys = new RendererMaterial[stackDictionary.Keys.Count];
+    //        stackDictionary.Keys.CopyTo(keys, 0);
+    //        foreach (RendererMaterial renMat in keys)
+    //        {
+    //            Material[] shM = renMat.rend.sharedMaterials;
+    //            if ((renMat.rend == null) ||
+    //                (shM.Length <= renMat.mat) || shM[renMat.mat] == null)
+    //                stackDictionary.Remove(renMat);
+    //        }
+    //        dicWasCleared = true;
+    //    }
+    //}
+
+    protected virtual T NeutralAdd()
+    {
+        return default;
+    }
+
+    protected virtual T NeutralMult()
+    {
+        return default;
+    }
+
+    protected virtual T Combine_Average(T current, T next, int count)
+    {
+        return current;
+    }
+
+    protected virtual T Combine_Multiply(T current, T next)
+    {
+        return current;
+    }
+
+    protected virtual T Combine_Add(T current, T next)
+    {
+        return current;
+    }
+
+    protected virtual T Combine_Subtract(T current, T next)
+    {
+        return current;
     }
 }

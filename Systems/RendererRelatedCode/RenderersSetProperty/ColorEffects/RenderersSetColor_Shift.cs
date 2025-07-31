@@ -15,7 +15,7 @@ public class RenderersSetColor_Shift : RenderersSetColor
     bool useGlobalTime = false;
     [SerializeField]
     ShiftMode shiftMode;
-    [ShowIf("shiftMode", ShiftMode.gradient)]
+    [ShowIf("shiftMode", ShiftMode.Gradient)]
     [SerializeField] //TO DO: Prevent color and update properties from showing
     public Gradient gradient = new Gradient()
     {
@@ -30,11 +30,11 @@ public class RenderersSetColor_Shift : RenderersSetColor
             new GradientAlphaKey(1, 1)
         }
     };
-    [ShowIf("shiftMode", ShiftMode.multipleGradient)]
+    [ShowIf("shiftMode", ShiftMode.MultipleGradient)]
     [SerializeField]
     GradientArrayWrapper gradientsWrapper =
         new GradientArrayWrapper(new GradientArray[] { new GradientArray(new Gradient(), 1f) });
-    [ShowIf("shiftMode", ShiftMode.colorBand)]
+    [ShowIf("shiftMode", ShiftMode.ColorBand)]
     [SerializeField]
     ColorBand colorBand;
     [SerializeField]
@@ -49,17 +49,6 @@ public class RenderersSetColor_Shift : RenderersSetColor
 
     void LateUpdate()
     {
-        UpdateBehaviour();
-    }
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        ResetTime();
-    }
-
-    protected override void UpdateBehaviour()
-    {
 #if UNITY_EDITOR
         if (executeInEditMode || Application.isPlaying)
 #endif
@@ -68,10 +57,10 @@ public class RenderersSetColor_Shift : RenderersSetColor
             else currentTime = (currentTime + (timeMode.DeltaTime() * speed / duration)) % 1f;
             switch (shiftMode)
             {
-                case ShiftMode.gradient:
+                case ShiftMode.Gradient:
                     color = gradient.Evaluate(currentTime);
                     break;
-                case ShiftMode.multipleGradient:
+                case ShiftMode.MultipleGradient:
                     int g = -1;
                     float count = 0f;
                     float div = 0;
@@ -86,12 +75,18 @@ public class RenderersSetColor_Shift : RenderersSetColor
                     float t = (currentTime - count) * gradientsWrapper.fullDuration;
                     color = gradientsWrapper.gradients[g].gradient.Evaluate(t);
                     break;
-                case ShiftMode.colorBand:
+                case ShiftMode.ColorBand:
                     color = colorBand.Evaluate(currentTime);
                     break;
             }
+            TryUpdate();
         }
-        base.UpdateBehaviour();
+    }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        ResetTime();
     }
 
     public void ResetTime()
@@ -101,9 +96,9 @@ public class RenderersSetColor_Shift : RenderersSetColor
 
     enum ShiftMode
     {
-        gradient,
-        multipleGradient,
-        colorBand
+        Gradient,
+        MultipleGradient,
+        ColorBand
     }
 
     [Serializable]

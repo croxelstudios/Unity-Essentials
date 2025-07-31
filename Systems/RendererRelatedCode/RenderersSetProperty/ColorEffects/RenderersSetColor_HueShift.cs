@@ -18,22 +18,17 @@ public class RenderersSetColor_HueShift : RenderersSetColor
 
     void LateUpdate()
     {
-        UpdateBehaviour();
+        float currentTime = timeMode.Time() * 0.05f;
+
+        Color newColor = Color.HSVToRGB((originH + (currentTime * hueSpeed)) % 1f, saturation, value);
+
+        color = newColor;
+        TryUpdate();
     }
 
     protected override void Init()
     {
         Color.RGBToHSV(color, out originH, out float originS, out float originV);
         base.Init();
-    }
-
-    protected override void UpdateBehaviour()
-    {
-        float currentTime = timeMode.Time() * 0.05f;
-
-        Color newColor = Color.HSVToRGB((originH + (currentTime * hueSpeed)) % 1f, saturation, value);
-
-        color = newColor;
-        base.UpdateBehaviour();
     }
 }

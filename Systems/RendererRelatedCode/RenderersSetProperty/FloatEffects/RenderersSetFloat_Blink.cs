@@ -56,7 +56,7 @@ public class RenderersSetFloat_Blink : RenderersSetFloat
             nValue = Mathf.SmoothDamp(value, targetValue, ref tempSpd.x, smoothTime,
                 Mathf.Infinity, timeMode.DeltaTime());
             value = nValue;
-            UpdateBehaviour();
+            TryUpdate();
 
             time -= timeMode.DeltaTime();
         }
@@ -73,7 +73,7 @@ public class RenderersSetFloat_Blink : RenderersSetFloat
             nValue = Mathf.SmoothDamp(value, defaultValue, ref tempSpd.x, smoothTime,
                 Mathf.Infinity, timeMode.DeltaTime());
             value = nValue;
-            UpdateBehaviour();
+            TryUpdate();
         }
     }
 

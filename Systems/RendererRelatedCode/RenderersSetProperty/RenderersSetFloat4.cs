@@ -3,64 +3,57 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
-public class RenderersSetFloat4 : BRenderersSetProperty
+public class RenderersSetFloat4 : BRenderersSetBlendedProperty<Vector4>
 {
     [OnValueChanged("UpdateBehaviour")]
     public Vector4 value = new Vector4(1f, 1f, 0f, 0f);
-
-	Vector4 oldValue;
-	static Dictionary<RendMatProp, Vector4> originals;
+    public Vector4 Value { get { return value; } protected set { Set(value); } }
+    protected override Vector4 tValue { get { return Value; } set { Value = value; } }
 
     void Reset()
     {
         propertyName = "_MainTex_ST";
+        blendMode = BlendMode.Average;
     }
 
-    protected override void Init()
+    protected override void BlockSet(MaterialPropertyBlock block, Vector4 value)
     {
-        oldValue = value;
-        //TO DO: Should work on a stack like the colors maybe
-	    originals = new Dictionary<RendMatProp, Vector4>();
-        base.Init();
+        block.SetVector(propertyName, value);
     }
 
-    protected override void UpdateBehaviour()
+    protected override void MaterialSet(Material mat, Vector4 value)
     {
-        if (value != oldValue)
-        {
-            base.UpdateBehaviour();
-            oldValue = value;
-        }
+        mat.SetVector(propertyName, value);
     }
 
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override Vector4 NeutralAdd()
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (!originals.ContainsKey(rendMat))
-	        originals.Add(rendMat, block.GetVector(propertyName));
-	    block.SetVector(propertyName, value);
+        return Vector4.zero;
     }
 
-    protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override Vector4 NeutralMult()
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (originals.ContainsKey(rendMat)) block.SetVector(propertyName, originals[rendMat]);
+        return Vector4.one;
     }
 
-    protected override void VSetProperty(Renderer rend, int mat)
+    protected override Vector4 Combine_Average(Vector4 current, Vector4 next, int count)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (!originals.ContainsKey(rendMat))
-	        originals.Add(rendMat, rend.materials[mat].GetVector(propertyName));
-        rend.materials[mat].SetVector(propertyName, value);
+        return current + (next / count);
     }
 
-    protected override void VResetProperty(Renderer rend, int mat)
+    protected override Vector4 Combine_Multiply(Vector4 current, Vector4 next)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (originals.ContainsKey(rendMat))
-            rend.materials[mat].SetVector(propertyName, originals[rendMat]);
-        base.VResetProperty(rend, mat);
+        return Vector4.Scale(current, next);
+    }
+
+    protected override Vector4 Combine_Add(Vector4 current, Vector4 next)
+    {
+        return current + next;
+    }
+
+    protected override Vector4 Combine_Subtract(Vector4 current, Vector4 next)
+    {
+        return current - next;
     }
 
     public void SetX(float n)

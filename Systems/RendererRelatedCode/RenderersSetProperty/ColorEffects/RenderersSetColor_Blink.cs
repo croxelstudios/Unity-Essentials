@@ -63,7 +63,7 @@ public class RenderersSetColor_Blink : RenderersSetColor
         {
             yield return null;
             color = color.SmoothDamp(targetColor, ref tempSpd, smoothTime, timeMode.DeltaTime());
-            UpdateBehaviour();
+            TryUpdate();
 
             time -= timeMode.DeltaTime();
         }
@@ -77,7 +77,7 @@ public class RenderersSetColor_Blink : RenderersSetColor
         {
             yield return null;
             color = color.SmoothDamp(defaultColor, ref tempSpd, smoothTime, timeMode.DeltaTime());
-            UpdateBehaviour();
+            TryUpdate();
         }
     }
 

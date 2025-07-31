@@ -3,152 +3,71 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
-public class RenderersSetColor : BRenderersSetProperty
+public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
 {
-    static Dictionary<RendMatProp, List<RenderersSetColor>> stackDictionary;
-    //static bool dicWasCleared;
-    [OnValueChanged("UpdateBehaviour")]
-    public BlendMode blendMode = BlendMode.Multiply;
     [SerializeField]
     [OnValueChanged("UpdateBehaviour")]
     Color _color = Color.white;
-    public Color color { get { return _color; } protected set { _color = value; } }
-    Color oldColor;
-    BlendMode oldBlendMode;
-
-    public enum BlendMode { Multiply, Average }
+    public Color color { get { return _color; } protected set { SetColor(value);  } }
+    protected override Color tValue { get { return _color; } set { _color = value; } }
 
     void Reset()
     {
         propertyName = "_BaseColor";
     }
 
-    protected override void Init()
+    protected override void BlockSet(MaterialPropertyBlock block, Color value)
     {
-        stackDictionary = stackDictionary.CreateIfNull();
-        oldColor = color;
-        oldBlendMode = blendMode;
-        base.Init();
+        block.SetColor(propertyName, value);
     }
 
-    protected override void OnDisable()
+    protected override void MaterialSet(Material mat, Color value)
     {
-        StopAllCoroutines();
-        if (rend != null)
-        {
-            foreach (Renderer ren in rend)
-            {
-                if (ren != null)
-                {
-                    Material[] shM = ren.sharedMaterials;
-                    for (int i = 0; i < shM.Length; i++)
-                    {
-                        RendMatProp renMat = new RendMatProp(ren, i, propertyName);
-                        stackDictionary.SmartRemove(renMat, this);
-                    }
-                }
-            }
-            base.OnDisable();
-        }
+        mat.SetColor(propertyName, value);
     }
 
-    protected override void UpdateBehaviour()
+    protected override Color NeutralAdd()
     {
-        if ((color != oldColor) || (blendMode != oldBlendMode))
-        {
-            base.UpdateBehaviour();
-            oldColor = color;
-            oldBlendMode = blendMode;
-        }
-        //dicWasCleared = false;
-        //StartCoroutine(DictionaryCleanUp());
+        return Color.black;
     }
 
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override Color NeutralMult()
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-
-        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
-
-        ApplyFullStackColor(block, rendMat);
+        return Color.white;
     }
 
-    protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override Color Combine_Average(Color current, Color next, int count)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
-            ApplyFullStackColor(block, rendMat);
-    }
-
-    protected override void VSetProperty(Renderer rend, int mat)
-    {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-
-        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
-
-        ApplyFullStackColor(rendMat);
-    }
-
-    protected override void VResetProperty(Renderer rend, int mat)
-    {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
-            ApplyFullStackColor(rendMat);
-        base.VResetProperty(rend, mat);
-    }
-
-    void ApplyFullStackColor(MaterialPropertyBlock block, RendMatProp rendMat)
-    {
-        block.SetColor(propertyName, GetFullStackColor(rendMat));
-    }
-
-    void ApplyFullStackColor(RendMatProp rendMat)
-    {
-        rendMat.rend.materials[rendMat.mat].SetColor(propertyName, GetFullStackColor(rendMat));
-    }
-
-    Color GetFullStackColor(RendMatProp rendMat)
-    {
-        Color current = Color.white;
-        float alpha = 1f;
-        foreach (RenderersSetColor setter in stackDictionary[rendMat])
-        {
-            switch (setter.blendMode)
-            {
-                case BlendMode.Average:
-                    current += setter.color / stackDictionary[rendMat].Count;
-                    break;
-                default:
-                    current *= setter.color;
-                    break;
-            }
-            alpha *= setter.color.a;
-        }
-        current.a = alpha;
+        float alpha = current.a;
+        current += (next / count);
+        current.a = alpha * next.a;
         return current;
     }
 
-    //IEnumerator DictionaryCleanUp()
-    //{
-    //    yield return new WaitForEndOfFrame();
-    //    if (!dicWasCleared)
-    //    {
-    //        RendererMaterial[] keys = new RendererMaterial[stackDictionary.Keys.Count];
-    //        stackDictionary.Keys.CopyTo(keys, 0);
-    //        foreach (RendererMaterial renMat in keys)
-    //        {
-    //            Material[] shM = renMat.rend.sharedMaterials;
-    //            if ((renMat.rend == null) ||
-    //                (shM.Length <= renMat.mat) || shM[renMat.mat] == null)
-    //                stackDictionary.Remove(renMat);
-    //        }
-    //        dicWasCleared = true;
-    //    }
-    //}
+    protected override Color Combine_Multiply(Color current, Color next)
+    {
+        return current * next;
+    }
+
+    protected override Color Combine_Add(Color current, Color next)
+    {
+        float alpha = current.a;
+        current += next;
+        current.a = alpha * next.a;
+        return current;
+    }
+
+    protected override Color Combine_Subtract(Color current, Color next)
+    {
+        float alpha = current.a;
+        current -= next;
+        current.a = alpha * next.a;
+        return current;
+    }
 
     public virtual void SetColor(Color color)
     {
-        this.color = color;
+        _color = color;
         UpdateBehaviour();
     }
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class RenderersSetColor_FromDistance : RenderersSetColor
 {
     [SerializeField]
@@ -30,11 +30,6 @@ public class RenderersSetColor_FromDistance : RenderersSetColor
 
     void LateUpdate()
     {
-        UpdateBehaviour();
-    }
-
-    protected override void UpdateBehaviour()
-    {
 #if UNITY_EDITOR
         if (Application.isPlaying)
 #endif
@@ -43,7 +38,7 @@ public class RenderersSetColor_FromDistance : RenderersSetColor
             if (updateTransforms) target = GetClosest(targetTag, ref distance);
             else distance = Vector3.Distance(transform.position, target.position);
             color = Color.Lerp(nearColor, farColor, Mathf.InverseLerp(range.x, range.y, distance));
-            base.UpdateBehaviour();
+            TryUpdate();
         }
     }
 

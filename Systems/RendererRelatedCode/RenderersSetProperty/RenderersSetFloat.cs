@@ -3,64 +3,58 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
-public class RenderersSetFloat : BRenderersSetProperty
+public class RenderersSetFloat : BRenderersSetBlendedProperty<float>
 {
+    [SerializeField]
     [OnValueChanged("UpdateBehaviour")]
-    public float value = 0.5f;
-
-    float oldValue;
-    static Dictionary<RendMatProp, float> originals;
+    protected float value = 0.5f;
+    public float Value { get { return value; } protected set { SetFloat(value); } }
+    protected override float tValue { get { return value; } set { this.value = value; } }
 
     void Reset()
     {
         propertyName = "_Cutout";
+        blendMode = BlendMode.Average;
     }
 
-    protected override void Init()
+    protected override void BlockSet(MaterialPropertyBlock block, float value)
     {
-        oldValue = value;
-        //TO DO: Should work on a stack like the colors maybe
-        originals = new Dictionary<RendMatProp, float>();
-        base.Init();
-    }
-
-    protected override void UpdateBehaviour()
-    {
-        if (value != oldValue)
-        {
-            base.UpdateBehaviour();
-            oldValue = value;
-        }
-    }
-
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
-    {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (!originals.ContainsKey(rendMat))
-            originals.Add(rendMat, block.GetFloat(propertyName));
         block.SetFloat(propertyName, value);
     }
 
-    protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void MaterialSet(Material mat, float value)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (originals.ContainsKey(rendMat)) block.SetFloat(propertyName, originals[rendMat]);
+        mat.SetFloat(propertyName, value);
     }
 
-    protected override void VSetProperty(Renderer rend, int mat)
+    protected override float NeutralAdd()
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (!originals.ContainsKey(rendMat))
-            originals.Add(rendMat, rend.materials[mat].GetFloat(propertyName));
-        rend.materials[mat].SetFloat(propertyName, value);
+        return 0f;
     }
 
-    protected override void VResetProperty(Renderer rend, int mat)
+    protected override float NeutralMult()
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (originals.ContainsKey(rendMat))
-            rend.materials[mat].SetFloat(propertyName, originals[rendMat]);
-        base.VResetProperty(rend, mat);
+        return 1f;
+    }
+
+    protected override float Combine_Average(float current, float next, int count)
+    {
+        return current + (next / count);
+    }
+
+    protected override float Combine_Multiply(float current, float next)
+    {
+        return current * next;
+    }
+
+    protected override float Combine_Add(float current, float next)
+    {
+        return current + next;
+    }
+
+    protected override float Combine_Subtract(float current, float next)
+    {
+        return current - next;
     }
 
     public virtual void SetFloat(float n)

@@ -12,11 +12,8 @@ public class RenderersSetTexture : BRenderersSetProperty
 
     static Dictionary<RendMatProp, Texture> originals;
 
-    //Texture oldTexture;
-
     protected override void Init()
     {
-        //oldTexture = texture;
         originals = new Dictionary<RendMatProp, Texture>();
         base.Init();
     }
@@ -24,15 +21,6 @@ public class RenderersSetTexture : BRenderersSetProperty
     void Reset()
     {
         propertyName = "_MainTex";
-    }
-
-    protected override void UpdateBehaviour()
-    {
-        //if (texture != oldTexture) //TO DO: This causes issues when restarting the editor
-        {
-            base.UpdateBehaviour();
-            //oldTexture = texture;
-        }
     }
 
     protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
