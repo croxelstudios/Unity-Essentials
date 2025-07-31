@@ -56,10 +56,11 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     [SerializeField]
     [Tooltip("When is this code executed")]
     protected TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
-    //[SerializeField] //TO DO: Doesn't work. This is only here to override animator-controlled values.
-    //[Indent]
-    //[Tooltip("When is this code executed")]
-    protected bool late = false;
+    [Indent]
+    [HideIf("@(timeMode == TimeModeOrOnEnable.FixedUpdate) ||" +
+        "(timeMode == TimeModeOrOnEnable.OnEnable)")]
+    [SerializeField]
+    bool afterAnimations = false;
     [SerializeField]
     protected bool sendFrameMovement = false;
     #region Events
@@ -97,29 +98,20 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     void Update()
     {
-        if (timeMode.IsSmooth() && (!late)) OnUpdate();
+        if ((!afterAnimations) && timeMode.IsSmooth())
+            OnUpdate();
     }
 
     void FixedUpdate()
     {
-        if (timeMode.IsFixed())
-        {
-            if (late)
-                StartCoroutine(LateFixed());
-            else
-                OnUpdate();
-        }
+        if ((!afterAnimations) && timeMode.IsFixed())
+            OnUpdate();
     }
 
     void LateUpdate()
     {
-        if (timeMode.IsSmooth() && late) OnUpdate();
-    }
-
-    IEnumerator LateFixed()
-    {
-        yield return new WaitForFixedUpdate();
-        OnUpdate();
+        if (afterAnimations && timeMode.IsSmooth())
+            OnUpdate();
     }
 
     /// <summary>
@@ -166,13 +158,11 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
             }
 
         Execute(spd, deltaTime);
-
-        SetLatePrev();
     }
 
     void UpdatePrev(ref T prev)
     {
-        prev = Current(late);
+        prev = Current();
     }
 
     protected void ResetSpeed()
@@ -269,28 +259,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     {
     }
 
-    public T Current(bool late)
-    {
-        if (late) return GetLatePrev(local);
-        else return Current();
-    }
-
     public virtual T Current()
-    {
-        return Default<T>.Value;
-    }
-
-    protected virtual void SetLatePrev()
-    {
-        prev = Default<T>.Value;
-    }
-
-    T GetLatePrev(bool local)
-    {
-        return local ? prev : GetWorldLatePrev();
-    }
-
-    protected virtual T GetWorldLatePrev()
     {
         return Default<T>.Value;
     }

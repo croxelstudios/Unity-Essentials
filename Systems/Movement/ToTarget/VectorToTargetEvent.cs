@@ -47,7 +47,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
 
     protected override MovementPath GetPath()
     {
-        Vector3 oPos = Current(late);
+        Vector3 oPos = Current();
         Vector3 tPos = target.position;
         if (local && (origin.parent != null))
             tPos = origin.parent.InverseTransformPoint(tPos);
@@ -213,19 +213,9 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
         return origin.Position(local);
     }
 
-    protected override void SetLatePrev()
-    {
-        prev = transform.localPosition;
-    }
-
-    protected override Vector3 GetWorldLatePrev()
-    {
-        return (transform.parent == null) ? prev : transform.parent.InverseTransformPoint(prev);
-    }
-
     public override void UpdateSpeed(ref Vector3 speed,
         Vector3 accelHalf, Vector3 prev, float deltaTime)
     {
-        speed = ((Current(late) - prev) / deltaTime) + accelHalf;
+        speed = ((Current() - prev) / deltaTime) + accelHalf;
     }
 }

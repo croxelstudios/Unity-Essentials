@@ -23,7 +23,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
 
     protected override RotationPath GetPath()
     {
-        Quaternion oRot = Current(late);
+        Quaternion oRot = Current();
         Quaternion tRot = target.rotation;
         if (local && (origin.parent != null))
             tRot = Quaternion.Inverse(origin.parent.rotation) * tRot;
@@ -200,23 +200,13 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
         return origin.Rotation(local);
     }
 
-    protected override void SetLatePrev()
-    {
-        prev = transform.localRotation;
-    }
-
-    protected override Quaternion GetWorldLatePrev()
-    {
-        return (transform.parent == null) ? prev : prev.Add(transform.parent.rotation);
-    }
-
     public override void UpdateSpeed(ref Vector3 speed,
         Vector3 accelHalf, Quaternion prev, float deltaTime)
     {
         //WARNING: This assumes shortest rotation, but it is technically possible for the object
         //to be rotated externally by a speed greater than 180 degrees per frame,
         //and this will fail in that case. Can't really see a way to fix this.
-        Current(late).Subtract(prev).ToAngleAxis(RotationMode.Shortest, out float angle, out Vector3 axis);
+        Current().Subtract(prev).ToAngleAxis(RotationMode.Shortest, out float angle, out Vector3 axis);
         speed = accelHalf + (axis * (angle / deltaTime));
     }
 }
