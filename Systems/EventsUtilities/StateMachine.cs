@@ -214,9 +214,9 @@ public class StateMachine : MonoBehaviour
     {
         public string name;
         public GameObject[] linkedObjects; //TO DO: Add ReverseLinkedObjects property. This should be another struct with the object and the bool inside.
-        [FoldoutGroup("Events")]
+        [FoldoutGroup("$EventsFoldout")]
         public DXEvent enter;
-        [FoldoutGroup("Events")]
+        [FoldoutGroup("$EventsFoldout")]
         public DXEvent exit;
 
         public State(string name)
@@ -226,6 +226,13 @@ public class StateMachine : MonoBehaviour
             enter = null;
             exit = null;
         }
+
+#if UNITY_EDITOR
+        public string EventsFoldout()
+        {
+            return "Events" + ((enter.IsNull() && exit.IsNull()) ? "" : " ⚠");
+        }
+#endif
     }
 }
 
