@@ -157,6 +157,7 @@ public class FadeInOut : MonoBehaviour
 
     IEnumerator FadeTo(bool fadingIn)
     {
+        yield return null;
         if (fadingIn)
         {
             current = FadeBehaviour.FadeIn;
