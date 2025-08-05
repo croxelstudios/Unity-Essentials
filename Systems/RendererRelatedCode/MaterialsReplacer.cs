@@ -33,21 +33,44 @@ public class MaterialsReplacer : MonoBehaviour
 
     void OnEnable()
     {
-        RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-        RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         UpdateRenderers();
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+        }
+        else
+# endif
+            ReplaceMaterials();
 
         isChanged = false;
     }
 
     void OnDisable()
     {
-        RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-        RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+        }
+#endif
         ResetMaterials();
     }
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+    {
+        ReplaceMaterials();
+    }
+
+    void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
+    {
+        ResetMaterials();
+    }
+
+    void ReplaceMaterials()
     {
         changedMaterials = changedMaterials.CreateIfNull();
         if (!isChanged)
@@ -67,11 +90,6 @@ public class MaterialsReplacer : MonoBehaviour
                 }
             isChanged = true;
         }
-    }
-
-    void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
-    {
-        ResetMaterials();
     }
 
     void ResetMaterials()
