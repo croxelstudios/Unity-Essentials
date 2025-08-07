@@ -7,7 +7,7 @@ public class RenderersSetTexture : BRenderersSetProperty
 {
     [SerializeField]
     [OnValueChanged("UpdateBehaviour")]
-    Texture _texture = null;
+    protected Texture _texture = null;
     public Texture texture { get { return _texture; } set { _texture = value; UpdateBehaviour(); } }
 
     static Dictionary<RendMatProp, Texture> originals;

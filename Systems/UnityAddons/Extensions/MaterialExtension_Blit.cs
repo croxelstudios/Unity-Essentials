@@ -7,10 +7,20 @@ public static class MaterialExtension_Blit
         RenderTextureFormat format = RenderTextureFormat.ARGB32)
     {
         if (rt == null)
-        {
             rt = new RenderTexture(textureResolution.x, textureResolution.y, depth, format);
-            rt.Create();
+        else if (((rt.width != textureResolution.x) || (rt.height != textureResolution.y) ||
+            (rt.depth != depth) || (rt.format != format)))
+        {
+            rt.Release();
+            rt.width = textureResolution.x;
+            rt.height = textureResolution.y;
+            rt.depth = depth;
+            rt.format = format;
         }
+
+        if (!rt.IsCreated())
+            rt.Create();
+
         rt.name = name;
         Graphics.Blit(null, rt, material, 0);
     }

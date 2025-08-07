@@ -21,6 +21,7 @@ public class BCollisionManager : MonoBehaviour
     CollisionManager_Detector detector;
     List<NDCollision> collisions;
     NDCollider[] selfColliders;
+    bool detectorEnabled;
 
     protected virtual void Awake()
     {
@@ -53,6 +54,7 @@ public class BCollisionManager : MonoBehaviour
     {
         if (!HasEnabledColliderOrRigidbody())
             OnDisable();
+        else EnableDetector();
 
         for (int i = collisions.Count - 1; i > -1; i--)
         {
@@ -216,21 +218,23 @@ public class BCollisionManager : MonoBehaviour
 
     void EnableDetector()
     {
-        if (detector != null)
+        if ((detector != null) && (!detectorEnabled))
         {
             detector.enter += CollisionEnter;
             detector.stay += CollisionStay;
             detector.exit += CollisionExit;
+            detectorEnabled = true;
         }
     }
 
     void DisableDetector()
     {
-        if (detector != null)
+        if ((detector != null) && detectorEnabled)
         {
             detector.enter -= CollisionEnter;
             detector.stay -= CollisionStay;
             detector.exit -= CollisionExit;
+            detectorEnabled = false;
         }
     }
 }
