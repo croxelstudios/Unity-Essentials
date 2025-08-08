@@ -2,6 +2,11 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
+using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
+# endif
 
 [ExecuteAlways]
 public class MaterialsReplacer : MonoBehaviour
@@ -10,17 +15,31 @@ public class MaterialsReplacer : MonoBehaviour
     int parentSearch = 0;
     [SerializeField]
     MaterialPair[] materialReplacements = null;
+    [SerializeField]
+    bool reverseReplacement = false;
+#if UNITY_EDITOR
+    [SerializeField]
+    [OnValueChanged("Restart")]
+    EditorMode editorMode = EditorMode.OnRendering;
+# endif
+
+    enum EditorMode { OnRendering, OnEnable, DontReplace}
 
     Renderer[] rend;
     Dictionary<RendMat, Material> changedMaterials;
     Dictionary<Material, Material> replacements;
+    Dictionary<Material, Material> inverseReplacements;
     bool isChanged;
 
     void UpdateMaterials()
     {
         replacements = replacements.ClearOrCreate();
+        inverseReplacements = inverseReplacements.ClearOrCreate();
         foreach (MaterialPair m in materialReplacements)
+        {
             replacements.Add(m.replaceThis, m.byReplacement);
+            inverseReplacements.Add(m.byReplacement, m.replaceThis);
+        }
     }
 
     public void UpdateRenderers()
@@ -38,14 +57,24 @@ public class MaterialsReplacer : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
-            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+            switch (editorMode)
+            {
+                case EditorMode.OnRendering:
+                    RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+                    RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+                    break;
+                case EditorMode.OnEnable:
+                    EditorSceneManager.sceneSaving += OnSceneBeingSaved;
+                    EditorSceneManager.sceneSaved += OnSceneFinishedSaving;
+                    ReplaceMaterials();
+                    break;
+                default:
+                    return;
+            }
         }
         else
 # endif
             ReplaceMaterials();
-
-        isChanged = false;
     }
 
     void OnDisable()
@@ -55,11 +84,20 @@ public class MaterialsReplacer : MonoBehaviour
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+            EditorSceneManager.sceneSaving -= OnSceneBeingSaved;
+            EditorSceneManager.sceneSaved -= OnSceneFinishedSaving;
         }
 #endif
         ResetMaterials();
     }
 
+    public void Restart()
+    {
+        OnDisable();
+        OnEnable();
+    }
+
+#if UNITY_EDITOR
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
         ReplaceMaterials();
@@ -69,6 +107,17 @@ public class MaterialsReplacer : MonoBehaviour
     {
         ResetMaterials();
     }
+
+    void OnSceneBeingSaved(Scene scene, string path)
+    {
+        ResetMaterials();
+    }
+
+    void OnSceneFinishedSaving(Scene scene)
+    {
+        ReplaceMaterials();
+    }
+#endif
 
     void ReplaceMaterials()
     {
@@ -96,7 +145,20 @@ public class MaterialsReplacer : MonoBehaviour
     {
         if (isChanged)
         {
-            foreach (KeyValuePair<RendMat, Material> kv in changedMaterials)
+            if (reverseReplacement)
+            {
+                UpdateMaterials();
+                foreach (Renderer r in rend)
+                    if (r != null)
+                    {
+                        Material[] shM = r.sharedMaterials;
+                        for (int i = 0; i < shM.Length; i++)
+                            if (inverseReplacements.ContainsKey(shM[i]))
+                                shM[i] = inverseReplacements[shM[i]];
+                        r.sharedMaterials = shM;
+                    }
+            }
+            else foreach (KeyValuePair<RendMat, Material> kv in changedMaterials)
             {
                 Material[] sm = kv.Key.rend.sharedMaterials;
                 sm[kv.Key.mat] = kv.Value;
