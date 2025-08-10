@@ -129,6 +129,7 @@ public class FadeInOut : MonoBehaviour
         GetAlphaHolder();
         StopEffect();
         alphaHolder.alpha = 1f;
+        isIn?.Invoke();
         init = true;
     }
 
@@ -137,6 +138,7 @@ public class FadeInOut : MonoBehaviour
         GetAlphaHolder();
         StopEffect();
         alphaHolder.alpha = 0f;
+        isOut?.Invoke();
         init = true;
     }
 

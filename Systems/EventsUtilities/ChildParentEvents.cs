@@ -26,6 +26,8 @@ public class ChildParentEvents : MonoBehaviour
     public List<ChildParentEvents> childrenEventsISubscribedAsParent;
     int currentChild = 0;
 
+    List<ChildParentEvents> tmpEvents;
+
     bool init;
 
     void OnEnable()
@@ -53,13 +55,15 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            if (!childEvents.IsNullOrEmpty())
-                for (int i = childEvents.Count - 1; i >= 0; i--)
-                    if ((i < childEvents.Count) && IsChildEventAvailable(childEvents[i], name))
+            tmpEvents = tmpEvents.ClearOrCreate();
+            tmpEvents.TryAddRange(childEvents);
+            if (!tmpEvents.IsNullOrEmpty())
+                for (int i = tmpEvents.Count - 1; i >= 0; i--)
+                    if ((i < tmpEvents.Count) && IsChildEventAvailable(tmpEvents[i], name))
                     {
-                        IEnumerable<int> indices = childEvents[i].eventNames.IndicesOf(name);
+                        IEnumerable<int> indices = tmpEvents[i].eventNames.IndicesOf(name);
                         foreach (int index in indices)
-                            childEvents[i].events[index]?.Invoke();
+                            tmpEvents[i].events[index]?.Invoke();
                     }
         }
     }
@@ -75,10 +79,12 @@ public class ChildParentEvents : MonoBehaviour
             }
 
             OnEnable();
-            if (!childEvents.IsNullOrEmpty())
-                for (int i = childEvents.Count - 1; i >= 0; i--)
-                    if ((i < childEvents.Count) && IsChildEventAvailable(childEvents[i], index))
-                        childEvents[i].events[index]?.Invoke();
+            tmpEvents = tmpEvents.ClearOrCreate();
+            tmpEvents.TryAddRange(childEvents);
+            if (!tmpEvents.IsNullOrEmpty())
+                for (int i = tmpEvents.Count - 1; i >= 0; i--)
+                    if ((i < tmpEvents.Count) && IsChildEventAvailable(tmpEvents[i], index))
+                        tmpEvents[i].events[index]?.Invoke();
         }
     }
 
@@ -87,10 +93,12 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            if (!childEvents.IsNullOrEmpty())
-                for (int i = childEvents.Count - 1; i >= 0; i--)
-                    if ((i < childEvents.Count) && AreChildEventsAvailable(childEvents[i]))
-                        foreach (DXEvent e in childEvents[i].events)
+            tmpEvents = tmpEvents.ClearOrCreate();
+            tmpEvents.TryAddRange(childEvents);
+            if (!tmpEvents.IsNullOrEmpty())
+                for (int i = tmpEvents.Count - 1; i >= 0; i--)
+                    if ((i < tmpEvents.Count) && AreChildEventsAvailable(tmpEvents[i]))
+                        foreach (DXEvent e in tmpEvents[i].events)
                             e?.Invoke();
         }
     }
@@ -142,13 +150,15 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            if (!parentEvents.IsNullOrEmpty())
-                for (int i = parentEvents.Count - 1; i >= 0; i--)
-                    if ((i < parentEvents.Count) && IsParentEventAvailable(parentEvents[i], name))
+            tmpEvents = tmpEvents.ClearOrCreate();
+            tmpEvents.TryAddRange(parentEvents);
+            if (!tmpEvents.IsNullOrEmpty())
+                for (int i = tmpEvents.Count - 1; i >= 0; i--)
+                    if ((i < tmpEvents.Count) && IsParentEventAvailable(tmpEvents[i], name))
                     {
-                        IEnumerable<int> indices = parentEvents[i].eventNames.IndicesOf(name);
+                        IEnumerable<int> indices = tmpEvents[i].eventNames.IndicesOf(name);
                         foreach (int index in indices)
-                            parentEvents[i].events[index]?.Invoke();
+                            tmpEvents[i].events[index]?.Invoke();
                     }
         }
     }
@@ -164,10 +174,12 @@ public class ChildParentEvents : MonoBehaviour
             }
 
             OnEnable();
-            if (!parentEvents.IsNullOrEmpty())
-                for (int i = parentEvents.Count - 1; i >= 0; i--)
-                    if ((i < parentEvents.Count) && IsParentEventAvailable(parentEvents[i], index))
-                        parentEvents[i].events[index]?.Invoke();
+            tmpEvents = tmpEvents.ClearOrCreate();
+            tmpEvents.TryAddRange(parentEvents);
+            if (!tmpEvents.IsNullOrEmpty())
+                for (int i = tmpEvents.Count - 1; i >= 0; i--)
+                    if ((i < tmpEvents.Count) && IsParentEventAvailable(tmpEvents[i], index))
+                        tmpEvents[i].events[index]?.Invoke();
         }
     }
 
@@ -176,10 +188,12 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            if (!parentEvents.IsNullOrEmpty())
-                for (int i = parentEvents.Count - 1; i >= 0; i--)
-                    if ((i < parentEvents.Count) && AreParentEventsAvailable(parentEvents[i]))
-                        foreach (DXEvent e in parentEvents[i].events)
+            tmpEvents = tmpEvents.ClearOrCreate();
+            tmpEvents.TryAddRange(parentEvents);
+            if (!tmpEvents.IsNullOrEmpty())
+                for (int i = tmpEvents.Count - 1; i >= 0; i--)
+                    if ((i < tmpEvents.Count) && AreParentEventsAvailable(tmpEvents[i]))
+                        foreach (DXEvent e in tmpEvents[i].events)
                             e?.Invoke();
         }
     }

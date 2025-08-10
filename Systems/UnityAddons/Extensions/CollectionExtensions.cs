@@ -544,7 +544,8 @@ public static class CollectionExtensions
         if (dict == null) return null;
 
         return (from kv in dict
-                where kv.Key != null select kv).ToDictionary(kv => kv.Key, kv => kv.Value);
+                where kv.Key != null
+                select kv).ToDictionary(kv => kv.Key, kv => kv.Value);
     }
     #endregion
 
@@ -612,5 +613,26 @@ public static class CollectionExtensions
 
     public static bool Equals<T>(T a, T b) => EqualityComparer<T>.Default.Equals(a, b);
     public static bool Is<T>(this T o, T x) => Equals(o, x);
+    #endregion
+
+    #region TryAdd
+    public static List<T> TryAdd<T>(this List<T> list, T element, bool testContains = true)
+    {
+        if ((element != null) && ((!testContains) || (!list.Contains(element))))
+            list.Add(element);
+        return list;
+    }
+
+    public static List<T> TryAddRange<T>(this List<T> list,
+        IEnumerable<T> elements, bool testContains = false)
+    {
+        if (elements.IsNullOrEmpty())
+            return list;
+
+        foreach (T element in elements)
+            list.TryAdd(element, testContains);
+
+        return list;
+    }
     #endregion
 }
