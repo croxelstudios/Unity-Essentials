@@ -37,7 +37,11 @@ public class MaterialsReplacer : MonoBehaviour
         inverseReplacements = inverseReplacements.ClearOrCreate();
         foreach (MaterialPair m in materialReplacements)
         {
+            if (replacements.ContainsKey(m.replaceThis))
+                replacements.Remove(m.replaceThis);
             replacements.Add(m.replaceThis, m.byReplacement);
+            if (inverseReplacements.ContainsKey(m.byReplacement))
+                inverseReplacements.Remove(m.byReplacement);
             inverseReplacements.Add(m.byReplacement, m.replaceThis);
         }
     }

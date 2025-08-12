@@ -8,11 +8,11 @@ public class UpAndDown : MonoBehaviour
     bool worldSpace = false;
     [SerializeField]
     float amount = 1f;
-    public float _amount { get { return amount; } set { amount = value; } }
+    public float Amount { get { return amount; } set { amount = value; } }
     [SerializeField]
     [Tooltip("Cycles per second")]
     float speed = 1f;
-    public float _speed { get { return speed; } set { speed = value; } }
+    public float Speed { get { return speed; } set { speed = value; } }
     [SerializeField]
     [Range(0f, 1f)]
     float startTime = 0f;

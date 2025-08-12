@@ -37,7 +37,7 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
                     //TO DO: This has a problem if you change any sprite to the last renderer's sprite, it won't update
                 {
                     oldTexs[j] = tex;
-                    texture = tex;
+                    _texture = tex;
                     break;
                 }
                 j++;
@@ -49,7 +49,7 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
     protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
     {
         if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-            texture = ((SpriteRenderer)rend).sprite.texture;
+            _texture = ((SpriteRenderer)rend).sprite.texture;
 
         base.BlSetProperty(block, rend, mat);
 
@@ -60,7 +60,7 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
     protected override void VSetProperty(Renderer rend, int mat)
     {
         if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-            texture = ((SpriteRenderer)rend).sprite.texture;
+            _texture = ((SpriteRenderer)rend).sprite.texture;
 
         base.VSetProperty(rend, mat);
 

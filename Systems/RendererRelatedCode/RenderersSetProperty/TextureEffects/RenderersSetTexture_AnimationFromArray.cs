@@ -117,7 +117,7 @@ public class RenderersSetTexture_AnimationFromArray : RenderersSetTexture
     void UpdateGraphic(int frame)
     {
         if (animationFrames != null)
-            texture = animationFrames[frame];
+            _texture = animationFrames[frame];
         base.UpdateBehaviour();
     }
 
