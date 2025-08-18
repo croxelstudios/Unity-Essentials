@@ -12,7 +12,7 @@ public class Constraint_ByTag : BByTag<Transform>
 
     void Reset()
     {
-        targetTag = "Player";
+        targetTag = "MainCamera";
         extraTags = null;
         updateMode = ByTagUpdateMode.DontUpdate;
     }

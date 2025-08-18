@@ -6,7 +6,7 @@ public class BByTag<T> : MonoBehaviour where T : Component
     [SerializeField]
     [TagSelector]
     [OnValueChanged("EditorUpdate")]
-    protected string targetTag = "Player";
+    protected string targetTag = "MainCamera";
     [SerializeField]
     [TagSelector]
     [OnValueChanged("EditorUpdate", true)]
