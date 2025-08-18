@@ -3,39 +3,29 @@ using Sirenix.OdinInspector;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Canvas))]
-public class CanvasCamera_ByTag : MonoBehaviour
+public class CanvasCamera_ByTag : BByTag<Camera>
 {
     [SerializeField]
     [TagSelector]
-    [OnValueChanged("SetCamera")]
     string cameraTag = "MainCamera";
-    //TO DO: Extra tags?
 
     Canvas canv;
 
-    void OnEnable()
+    void Reset()
     {
-        SetCamera();
+        targetTag = "MainCamera";
+        extraTags = null;
+        updateMode = ByTagUpdateMode.DontUpdate;
     }
 
-    void SetCamera()
+    protected override void InitIfNull()
     {
         if (canv == null)
             canv = GetComponent<Canvas>();
-
-        Camera cam = FindWithTag.OnlyEnabled<Camera>(cameraTag);
-
-        if (cam != null)
-        {
-            //canv.renderMode = RenderMode.ScreenSpaceCamera;
-            canv.worldCamera = cam;
-        }
-        //else canv.renderMode = RenderMode.ScreenSpaceOverlay;
     }
 
-    public void UpdateTag(string tag)
+    protected override void SetSource(Camera target)
     {
-        cameraTag = tag;
-        SetCamera();
+        canv.worldCamera = target;
     }
 }

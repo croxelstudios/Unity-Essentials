@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public static class MonoBehaviourExtension_IsActiveAndEnabled
+public static class BehaviourExtension_IsActiveAndEnabled
 {
-    public static bool IsActiveAndEnabled(this MonoBehaviour behaviour, bool deactivationDelay = true)
+    public static bool IsActiveAndEnabled(this Behaviour behaviour, bool deactivationDelay = true)
     {
         bool current = behaviour.enabled && behaviour.gameObject.activeInHierarchy;
         if (deactivationDelay) return behaviour.isActiveAndEnabled || current;

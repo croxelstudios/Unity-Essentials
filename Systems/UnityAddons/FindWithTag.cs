@@ -467,7 +467,7 @@ public static class FindWithTag
     #endregion
 
     #region OnlyEnabled
-    public static T OnlyEnabled<T>(params string[] tags) where T : Behaviour
+    public static T OnlyEnabled<T>(params string[] tags) where T : Component
     {
         T[] objs = Components<T>(tags);
 
@@ -477,7 +477,7 @@ public static class FindWithTag
         T component = null;
         foreach (T obj in objs)
         {
-            if ((obj != null) && obj.enabled)
+            if (obj.IsEnabled())
             {
                 component = obj;
                 break;
@@ -486,7 +486,7 @@ public static class FindWithTag
         return component;
     }
 
-    public static T[] OnlyEnableds<T>(params string[] tags) where T : Behaviour
+    public static T[] OnlyEnableds<T>(params string[] tags) where T : Component
     {
         T[] objs = Components<T>(tags);
 
@@ -495,12 +495,12 @@ public static class FindWithTag
 
         List<T> components = new List<T>();
         foreach (T obj in objs)
-            if ((obj != null) && obj.enabled)
+            if (obj.IsEnabled())
                 components.Add(obj);
         return components.ToArray();
     }
 
-    public static T OnlyEnabled<T>(params string[][] tags) where T : Behaviour
+    public static T OnlyEnabled<T>(params string[][] tags) where T : Component
     {
         T result = null;
         if (tags != null)
@@ -512,7 +512,7 @@ public static class FindWithTag
         return result;
     }
 
-    public static T[] OnlyEnableds<T>(params string[][] tags) where T : Behaviour
+    public static T[] OnlyEnableds<T>(params string[][] tags) where T : Component
     {
         if (tags.IsNullOrEmpty())
             return null;
@@ -523,14 +523,14 @@ public static class FindWithTag
         return list.ToArray();
     }
 
-    public static T OnlyEnabled<T>(string tag, params string[] extraTags) where T : Behaviour
+    public static T OnlyEnabled<T>(string tag, params string[] extraTags) where T : Component
     {
         T result = OnlyEnabled<T>(new string[] { tag });
         if (result == null) result = OnlyEnabled<T>(extraTags);
         return result;
     }
 
-    public static T[] OnlyEnableds<T>(string tag, params string[] extraTags) where T : Behaviour
+    public static T[] OnlyEnableds<T>(string tag, params string[] extraTags) where T : Component
     {
         List<T> list = new List<T>();
         list.AddRange(OnlyEnableds<T>(new string[] { tag }));

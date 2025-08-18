@@ -4,46 +4,43 @@ using UnityEngine.Rendering.Universal;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Camera))]
-public class OverlayCamera_ByTag : MonoBehaviour
+public class OverlayCamera_ByTag : BByTag<Camera>
 {
     [SerializeField]
     [TagSelector]
-    [OnValueChanged("SetOverlay")]
     string overlayTag = "MainCamera";
-    //TO DO: Extra tags?
 
     Camera thisCamera;
 
-    void OnEnable()
+    void Reset()
+    {
+        targetTag = "MainCamera";
+        extraTags = null;
+        updateMode = ByTagUpdateMode.DontUpdate;
+    }
+
+    protected override void InitIfNull()
     {
         if (thisCamera == null)
             thisCamera = GetComponent<Camera>();
-        SetOverlay();
     }
 
-    void SetOverlay()
+    protected override void SetSource(Camera target)
     {
-        Camera cam = FindWithTag.OnlyEnabled<Camera>(overlayTag);
+        UniversalAdditionalCameraData overlayData = target.GetUniversalAdditionalCameraData();
 
-        if (cam != null)
+        if (overlayData.renderType == CameraRenderType.Overlay)
         {
-            UniversalAdditionalCameraData overlayData =
-                cam.GetUniversalAdditionalCameraData();
+            UniversalAdditionalCameraData cameraData = thisCamera.GetUniversalAdditionalCameraData();
 
-            if (overlayData.renderType == CameraRenderType.Overlay)
+            for (int i = cameraData.cameraStack.Count - 1; i >= 0; i--)
             {
-                UniversalAdditionalCameraData cameraData =
-                    thisCamera.GetUniversalAdditionalCameraData();
-
-                for (int i = cameraData.cameraStack.Count - 1; i >= 0; i--)
-                {
-                    if (cameraData.cameraStack[i] == null)
-                        cameraData.cameraStack.RemoveAt(i);
-                }
-
-                if (!cameraData.cameraStack.Contains(cam))
-                    cameraData.cameraStack.Add(cam);
+                if (cameraData.cameraStack[i] == null)
+                    cameraData.cameraStack.RemoveAt(i);
             }
+
+            if (!cameraData.cameraStack.Contains(target))
+                cameraData.cameraStack.Add(target);
         }
     }
 }

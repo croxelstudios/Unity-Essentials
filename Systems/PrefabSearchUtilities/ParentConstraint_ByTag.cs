@@ -38,7 +38,7 @@ public class ParentConstraint_ByTag : MonoBehaviour
     public void ResetSource()
     {
         target = FindWithTag.Transform(targetTag, extraTags);
-        SetSource(target);
+        if (target != null) SetSource(target);
     }
 
     void SetSource(Transform target)
