@@ -5,10 +5,6 @@ using Sirenix.OdinInspector;
 [RequireComponent(typeof(Canvas))]
 public class CanvasCamera_ByTag : BByTag<Camera>
 {
-    [SerializeField]
-    [TagSelector]
-    string cameraTag = "MainCamera";
-
     Canvas canv;
 
     void Reset()

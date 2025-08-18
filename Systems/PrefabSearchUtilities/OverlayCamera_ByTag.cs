@@ -6,10 +6,6 @@ using UnityEngine.Rendering.Universal;
 [RequireComponent(typeof(Camera))]
 public class OverlayCamera_ByTag : BByTag<Camera>
 {
-    [SerializeField]
-    [TagSelector]
-    string overlayTag = "MainCamera";
-
     Camera thisCamera;
 
     void Reset()
