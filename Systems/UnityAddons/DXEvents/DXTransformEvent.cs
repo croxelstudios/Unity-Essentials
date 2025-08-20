@@ -6,28 +6,8 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXTransformEvent
-{
-    [SerializeField]
-    TransformEvent unityEvent = null;
-    [Serializable]
-    public class TransformEvent : UnityEvent<Transform> { }
-
-    public void Invoke(Transform arg0)
-    {
-        unityEvent?.Invoke(arg0);
-    }
-
-    public void AddListener(UnityAction<Transform> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<Transform> call)
-    {
-        unityEvent.RemoveListener(call);
-    }
-}
+public class DXTransformEvent : DXTypedEvent<Transform>
+{ }
 
 #if UNITY_EDITOR
 

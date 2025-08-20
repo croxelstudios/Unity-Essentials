@@ -7,28 +7,8 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXSceneEvent
-{
-    [SerializeField]
-    SceneEvent unityEvent = null;
-    [Serializable]
-    public class SceneEvent : UnityEvent<Scene> { }
-
-    public void Invoke(Scene arg0)
-    {
-        unityEvent?.Invoke(arg0);
-    }
-
-    public void AddListener(UnityAction<Scene> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<Scene> call)
-    {
-        unityEvent.RemoveListener(call);
-    }
-}
+public class DXSceneEvent : DXTypedEvent<Scene>
+{ }
 
 #if UNITY_EDITOR
 

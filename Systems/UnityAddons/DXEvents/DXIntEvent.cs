@@ -6,28 +6,23 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXIntEvent
+public class DXIntEvent : DXTypedEvent<int>
 {
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.Int };
     [SerializeField]
-    IntEvent unityEvent = null;
+    UnityEvent<int> absEvent = null;
     [SerializeField]
-    IntEvent absEvent = null;
-    [SerializeField]
-    IntEvent negativeEvent = null;
+    UnityEvent<int> negativeEvent = null;
 
     public DXIntEvent() { types = new EventType[] { EventType.Int }; }
-
-    [Serializable]
-    public class IntEvent : UnityEvent<int> { }
 
     public enum EventType
     {
         Int, Abs, Negative
     }
 
-    public void Invoke(int arg0)
+    public override void Invoke(int arg0)
     {
         bool hasFloat = false;
         bool hasAbs = false;
@@ -55,16 +50,6 @@ public class DXIntEvent
             negativeEvent?.Invoke(-arg0);
     }
 
-    public void AddListener(UnityAction<int> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<int> call)
-    {
-        unityEvent.RemoveListener(call);
-    }
-
     public void AddListener_Abs(UnityAction<int> call)
     {
         absEvent.AddListener(call);
@@ -85,11 +70,30 @@ public class DXIntEvent
         negativeEvent.RemoveListener(call);
     }
 
-    public bool IsNull()
+    public override bool IsNull()
     {
-        return ((unityEvent == null) || (unityEvent.GetPersistentEventCount() <= 0)) &&
-            ((absEvent == null) || (absEvent.GetPersistentEventCount() <= 0)) &&
-            ((negativeEvent == null) || (negativeEvent.GetPersistentEventCount() <= 0));
+        bool isNull = true;
+        for (int i = 0; i < types.Length; i++)
+        {
+            switch (types[i])
+            {
+                case EventType.Int:
+                    if ((unityEvent != null) && (unityEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Abs:
+                    if ((absEvent != null) || (absEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+                case EventType.Negative:
+                    if ((negativeEvent != null) || (negativeEvent.GetPersistentEventCount() > 0))
+                        isNull = false;
+                    break;
+            }
+            if (!isNull)
+                break;
+        }
+        return isNull;
     }
 }
 

@@ -690,7 +690,7 @@ public class RavioliButton : RavioliButton_Button
 
     IEnumerator MBResetAfterOneFrame()
     {
-        yield return WaitFor.Frames(1);
+        yield return WaitFor.Frames(2);
         UpdateMovementBehaviours(false);
     }
 

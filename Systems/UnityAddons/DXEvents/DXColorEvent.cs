@@ -6,28 +6,8 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXColorEvent
-{
-    [SerializeField]
-    ColorEvent unityEvent = null;
-    [Serializable]
-    public class ColorEvent : UnityEvent<Color> { }
-
-    public void Invoke(Color arg0)
-    {
-        unityEvent?.Invoke(arg0);
-    }
-
-    public void AddListener(UnityAction<Color> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<Color> call)
-    {
-        unityEvent.RemoveListener(call);
-    }
-}
+public class DXColorEvent : DXTypedEvent<Color>
+{ }
 
 #if UNITY_EDITOR
 

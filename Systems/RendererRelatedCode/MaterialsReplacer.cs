@@ -173,6 +173,13 @@ public class MaterialsReplacer : MonoBehaviour
         }
     }
 
+    [ContextMenu("Replace Permanently")]
+    public void ReplacePermanently()
+    {
+        ReplaceMaterials();
+        changedMaterials.Clear();
+    }
+
     [Serializable]
     struct MaterialPair
     {

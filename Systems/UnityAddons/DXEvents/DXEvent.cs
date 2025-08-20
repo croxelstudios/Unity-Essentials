@@ -6,10 +6,8 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXEvent
+public class DXEvent : BDXEvent<UnityEvent>
 {
-    [SerializeField]
-    UnityEvent unityEvent = null;
 #if PLAYMAKER
     [SerializeField]
     string playmaker = "";
@@ -45,11 +43,6 @@ public class DXEvent
     public void RemoveListener(UnityAction call)
     {
         unityEvent.RemoveListener(call);
-    }
-
-    public bool IsNull()
-    {
-        return unityEvent == null || unityEvent.GetPersistentEventCount() <= 0;
     }
 }
 

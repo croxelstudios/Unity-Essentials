@@ -6,28 +6,8 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXColliderEvent
-{
-    [SerializeField]
-    NDColliderEvent unityEvent = null;
-    [Serializable]
-    public class NDColliderEvent : UnityEvent<NDCollider> { }
-
-    public void Invoke(NDCollider arg0)
-    {
-        unityEvent?.Invoke(arg0);
-    }
-
-    public void AddListener(UnityAction<NDCollider> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<NDCollider> call)
-    {
-        unityEvent.RemoveListener(call);
-    }
-}
+public class DXColliderEvent : DXTypedEvent<NDCollider>
+{ }
 
 #if UNITY_EDITOR
 

@@ -281,7 +281,7 @@ public static class FindWithTag
     public static Transform Transform(bool onlyParents, params string[] tags)
     {
         Transform[] result = Transforms(onlyParents, tags);
-        return result.NullOrEmpty() ? null : result[0];
+        return result.IsNullOrEmpty() ? null : result[0];
     }
 
     public static Transform[] Transforms(bool onlyParents, params string[] tags)
@@ -297,13 +297,13 @@ public static class FindWithTag
                 list.Add(objs[i].transform);
         }
         Transform[] transforms = list.ToArray();
-        return onlyParents ? transforms.RemoveChildren() : transforms;
+        return onlyParents ? transforms.CleanChildren() : transforms;
     }
 
     public static Transform Transform(bool onlyParents, params string[][] tags)
     {
         Transform[] result = Transforms(onlyParents, tags);
-        return result.NullOrEmpty() ? null : result[0];
+        return result.IsNullOrEmpty() ? null : result[0];
     }
 
     public static Transform[] Transforms(bool onlyParents, params string[][] tags)
@@ -315,13 +315,13 @@ public static class FindWithTag
         for (int i = 0; i < tags.Length; i++)
             list.AddRange(Transforms(false, tags[i]));
         Transform[] transforms = list.ToArray();
-        return onlyParents ? transforms.RemoveChildren() : transforms;
+        return onlyParents ? transforms.CleanChildren() : transforms;
     }
 
     public static Transform Transform(string tag, bool onlyParents, params string[] extraTags)
     {
         Transform[] result = Transforms(tag, onlyParents, extraTags);
-        return result.NullOrEmpty() ? null : result[0];
+        return result.IsNullOrEmpty() ? null : result[0];
     }
 
     public static Transform[] Transforms(string tag, bool onlyParents, params string[] extraTags)
@@ -330,7 +330,7 @@ public static class FindWithTag
         list.AddRange(Transforms(false, new string[] { tag }));
         if (!extraTags.IsNullOrEmpty()) list.AddRange(Transforms(false, extraTags));
         Transform[] transforms = list.ToArray();
-        return onlyParents ? transforms.RemoveChildren() : transforms;
+        return onlyParents ? transforms.CleanChildren() : transforms;
     }
 
     public static Transform Transform(params string[] tags)

@@ -6,28 +6,8 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXGameObjectEvent
-{
-    [SerializeField]
-    GameObjectEvent unityEvent = null;
-    [Serializable]
-    public class GameObjectEvent : UnityEvent<GameObject> { }
-
-    public void Invoke(GameObject arg0)
-    {
-        unityEvent?.Invoke(arg0);
-    }
-
-    public void AddListener(UnityAction<GameObject> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<GameObject> call)
-    {
-        unityEvent.RemoveListener(call);
-    }
-}
+public class DXGameObjectEvent : DXTypedEvent<GameObject>
+{ }
 
 #if UNITY_EDITOR
 

@@ -6,33 +6,24 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXRotationEvent
+public class DXRotationEvent : DXTypedEvent<Vector3>
 {
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.EulerAngles };
     [SerializeField]
-    Vector3Event unityEvent = null;
+    UnityEvent<Quaternion> quaternionEvent = null;
     [SerializeField]
-    QuaternionEvent quaternionEvent = null;
+    UnityEvent<float> angleEvent = null;
     [SerializeField]
-    FloatEvent angleEvent = null;
+    UnityEvent<Vector3> axisEvent = null;
     [SerializeField]
-    Vector3Event axisEvent = null;
+    UnityEvent<float> xEvent = null;
     [SerializeField]
-    FloatEvent xEvent = null;
+    UnityEvent<float> yEvent = null;
     [SerializeField]
-    FloatEvent yEvent = null;
-    [SerializeField]
-    FloatEvent zEvent = null;
+    UnityEvent<float> zEvent = null;
 
     public DXRotationEvent() { types = new EventType[] { EventType.EulerAngles }; }
-
-    [Serializable]
-    public class QuaternionEvent : UnityEvent<Quaternion> { }
-    [Serializable]
-    public class Vector3Event : UnityEvent<Vector3> { }
-    [Serializable]
-    public class FloatEvent : UnityEvent<float> { }
 
     public enum EventType
     { EulerAngles, Quaternion, Angle, Axis, EulerX, EulerY, EulerZ }
@@ -91,7 +82,7 @@ public class DXRotationEvent
             zEvent?.Invoke(arg0.eulerAngles.z);
     }
 
-    public void Invoke(Vector3 arg0)
+    public override void Invoke(Vector3 arg0)
     {
         Invoke(Quaternion.Euler(arg0));
     }
@@ -104,16 +95,6 @@ public class DXRotationEvent
     public void RemoveListener(UnityAction<Quaternion> call)
     {
         quaternionEvent.RemoveListener(call);
-    }
-
-    public void AddListener(UnityAction<Vector3> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<Vector3> call)
-    {
-        unityEvent.RemoveListener(call);
     }
 
     public void AddListener_Angle(UnityAction<float> call)
@@ -166,7 +147,7 @@ public class DXRotationEvent
         zEvent.RemoveListener(call);
     }
 
-    public bool IsNull()
+    public override bool IsNull()
     {
         bool isNull = true;
         for (int i = 0; i < types.Length; i++)

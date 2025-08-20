@@ -6,41 +6,32 @@ using UnityEditor;
 #endif
 
 [Serializable]
-public class DXVectorEvent
+public class DXVectorEvent : DXTypedEvent<Vector3>
 {
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.Vector3 };
     [SerializeField]
-    Vector3Event unityEvent = null;
+    UnityEvent<Vector2> vector2Event = null;
     [SerializeField]
-    Vector2Event vector2Event = null;
+    UnityEvent<Vector2> vector2XZEvent = null;
     [SerializeField]
-    Vector2Event vector2XZEvent = null;
+    UnityEvent<float> magnitude = null;
     [SerializeField]
-    FloatEvent magnitude = null;
+    UnityEvent<Vector3> unityEventNormal = null;
     [SerializeField]
-    Vector3Event unityEventNormal = null;
+    UnityEvent<Vector2>  vector2EventNormal = null;
     [SerializeField]
-    Vector2Event vector2EventNormal = null;
+    UnityEvent<float> xEvent = null;
     [SerializeField]
-    FloatEvent xEvent = null;
+    UnityEvent<float> yEvent = null;
     [SerializeField]
-    FloatEvent yEvent = null;
+    UnityEvent<float> zEvent = null;
     [SerializeField]
-    FloatEvent zEvent = null;
-    [SerializeField]
-    FloatEvent magnitudeNonZero = null;
+    UnityEvent<float> magnitudeNonZero = null;
     [SerializeField]
     UnityEvent magnitudeZero = null;
 
     public DXVectorEvent() { types = new EventType[] { EventType.Vector3 }; }
-
-    [Serializable]
-    public class Vector3Event : UnityEvent<Vector3> { }
-    [Serializable]
-    public class Vector2Event : UnityEvent<Vector2> { }
-    [Serializable]
-    public class FloatEvent : UnityEvent<float> { }
 
     public enum EventType
     {
@@ -49,7 +40,7 @@ public class DXVectorEvent
         MagnitudeNonZero, MagnitudeZero
     }
 
-    public void Invoke(Vector3 arg0)
+    public override void Invoke(Vector3 arg0)
     {
         bool hasVector3 = false;
         bool hasVector2 = false;
@@ -130,21 +121,6 @@ public class DXVectorEvent
             if (arg0.sqrMagnitude <= Mathf.Epsilon)
                 magnitudeZero?.Invoke();
         }
-    }
-
-    public void Invoke(Vector2 arg0)
-    {
-        Invoke((Vector3)arg0);
-    }
-
-    public void AddListener(UnityAction<Vector3> call)
-    {
-        unityEvent.AddListener(call);
-    }
-
-    public void RemoveListener(UnityAction<Vector3> call)
-    {
-        unityEvent.RemoveListener(call);
     }
 
     public void AddListener(UnityAction<Vector2> call)
@@ -237,7 +213,7 @@ public class DXVectorEvent
         magnitudeZero.RemoveListener(call);
     }
 
-    public bool IsNull()
+    public override bool IsNull()
     {
         bool isNull = true;
         for (int i = 0; i < types.Length; i++)
