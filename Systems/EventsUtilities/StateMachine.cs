@@ -35,7 +35,6 @@ public class StateMachine : MonoBehaviour
     public int currentState
     {
         get { return _currentState; }
-#if UNITY_EDITOR
         set
         {
             if (_currentState != value)
@@ -43,12 +42,13 @@ public class StateMachine : MonoBehaviour
                 if ((value < states.Length) && (value >= 0))
                 {
                     SwitchState(value);
+#if UNITY_EDITOR
                     if (!Application.isPlaying)
                         RecordGameObjectModificationsFromPrefab();
+#endif
                 }
             }
         }
-#endif
     }
 
     [OnValueChanged("SyncNames", true)]
@@ -57,11 +57,11 @@ public class StateMachine : MonoBehaviour
 
     [HideInInspector]
     public string[] stateNames;
+    int prevState = 0;
 
 #if UNITY_EDITOR
     StateMachine prevConnectedSM;
     bool wasprevStateUpdated = false;
-    int prevState = 0;
 
     [ShowIf("@connectedStateMachine != null")]
     [PropertyOrder(-1)]

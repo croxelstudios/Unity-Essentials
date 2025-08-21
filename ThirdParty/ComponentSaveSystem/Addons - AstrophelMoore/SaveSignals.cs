@@ -13,8 +13,10 @@ public class SaveSignals : MonoBehaviour, ISaveable
 {
     [SerializeField]
     string substring = "";
+#if UNITY_EDITOR
     [SerializeField]
     bool autoSave = false;
+#endif
     [SerializeField]
     BaseSignal[] signals = null;
 

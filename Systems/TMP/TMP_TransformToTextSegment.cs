@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -17,6 +16,7 @@ public class TMP_TransformToTextSegment : MonoBehaviour
 
     TMP_Text text;
 
+    const int verticesPerChar = 4;
     const string alphaIntro = "<alpha=#00>";
     const string alphaOutro = "<alpha=#FF>";
 
@@ -24,22 +24,11 @@ public class TMP_TransformToTextSegment : MonoBehaviour
     {
         text = GetComponent<TMP_Text>();
         Canvas.willRenderCanvases += UpdatePosition;
-        RenderPipelineManager.beginContextRendering += UpdatePosition;
-        Canvas canvas = GetComponentInParent<Canvas>();
-        if ((canvas != null)
-#if UNITY_EDITOR
-            || !Application.isPlaying
-#endif
-            )
-            RenderPipelineManager.endContextRendering += EliminateAlphaWords;
-        else StartCoroutine(WaitTillEndFrame());
     }
 
     void OnDisable()
     {
         Canvas.willRenderCanvases -= UpdatePosition;
-        RenderPipelineManager.beginContextRendering -= UpdatePosition;
-        RenderPipelineManager.endContextRendering -= EliminateAlphaWords;
         StopAllCoroutines();
     }
 
@@ -50,61 +39,39 @@ public class TMP_TransformToTextSegment : MonoBehaviour
 
     public void UpdatePosition(ScriptableRenderContext con, List<Camera> cams)
     {
+        string t = text.text;
         TMP_TextInfo textInfo = text.textInfo;
-        string t = textInfo.textComponent.text;
         if (t.Contains(textSegment))
         {
-            EliminateAlphaWords();
-            t = textInfo.textComponent.text;
+            t = text.text;
             int i = t.IndexOf(textSegment);
 
-            TMP_CharacterInfo c = textInfo.characterInfo[i];
-            float l = 0f;
+            Vector3 min = Vector3.one * Mathf.Infinity;
+            Vector3 max = -min;
             for (int j = 0; j < textSegment.Length; j++)
             {
                 TMP_CharacterInfo ch = textInfo.characterInfo[i + j];
-                l += Vector3.Distance(ch.topRight, ch.topLeft);
-            }
-            Vector3 pos = transform.TransformPoint(Vector3.Lerp(c.bottomLeft, c.topLeft, 0.5f) + (Vector3.right * l * 0.5f));
-            transformToMove.position = pos;
-
-            if (turnSegmentTransparent)
-            {
-                t = t.Insert(i, alphaIntro);
-                t = t.Insert(i + alphaIntro.Length + textSegment.Length, alphaOutro);
-                textInfo.textComponent.text = t;
-            }
-        }
-    }
-
-    void EliminateAlphaWords()
-    {
-        EliminateAlphaWords(new ScriptableRenderContext(), null);
-    }
-
-    void EliminateAlphaWords(ScriptableRenderContext con, List<Camera> cams)
-    {
-        TMP_TextInfo textInfo = text.textInfo;
-        string t = textInfo.textComponent.text;
-        if (t.Contains(textSegment))
-        {
-            if (turnSegmentTransparent)
-            {
-                if (t.Contains(alphaIntro + textSegment))
+                Color32[] colors = textInfo.meshInfo[ch.materialReferenceIndex].colors32;
+                for (byte k = 0; k < verticesPerChar; k++)
                 {
-                    t = t.Remove(t.IndexOf(alphaIntro + textSegment), alphaIntro.Length);
-                    int i = t.IndexOf(textSegment);
-                    t = t.Remove(i + textSegment.Length, alphaOutro.Length);
-                    textInfo.textComponent.text = t;
+                    Vector3 vertex =
+                        text.mesh.vertices[ch.vertexIndex + k];
+                    min = new Vector3(Mathf.Min(min.x, vertex.x),
+                        Mathf.Min(min.y, vertex.y), Mathf.Min(min.z, vertex.z));
+                    max = new Vector3(Mathf.Max(max.x, vertex.x), 
+                        Mathf.Max(max.y, vertex.y),Mathf.Max(max.z, vertex.z));
+
+                    colors[ch.vertexIndex + k].a = 0;
+                }
+
+                if (turnSegmentTransparent)
+                {
+                    textInfo.meshInfo[ch.materialReferenceIndex].colors32 = colors;
+                    text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
                 }
             }
+            Vector3 pos = transform.TransformPoint(Vector3.Lerp(min, max, 0.5f));
+            transformToMove.position = pos;
         }
-    }
-
-    IEnumerator WaitTillEndFrame()
-    {
-        yield return new WaitForEndOfFrame();
-        EliminateAlphaWords();
-        StartCoroutine(WaitTillEndFrame());
     }
 }

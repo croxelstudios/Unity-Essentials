@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Sirenix.OdinInspector;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Canvas))]
@@ -22,6 +21,7 @@ public class CanvasCamera_ByTag : BByTag<Camera>
 
     protected override void SetSource(Camera target)
     {
+        base.SetSource(target);
         canv.worldCamera = target;
     }
 }

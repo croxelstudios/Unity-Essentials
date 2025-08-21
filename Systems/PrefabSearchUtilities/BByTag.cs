@@ -44,6 +44,7 @@ public class BByTag<T> : MonoBehaviour where T : Component
 
     protected virtual void SetSource(T target)
     {
+        InitIfNull();
     }
 
     protected virtual void EditorUpdate()

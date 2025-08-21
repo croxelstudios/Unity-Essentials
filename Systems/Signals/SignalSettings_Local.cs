@@ -6,6 +6,7 @@ using Sirenix.OdinInspector;
 
 public class SignalSettings_Local : MonoBehaviour
 {
+#if UNITY_EDITOR
     //TO DO: This should somehow launch the signals only in this object and then reset them.
     //Is that even possible?
     [SerializeField]
@@ -15,6 +16,7 @@ public class SignalSettings_Local : MonoBehaviour
     [DefaultDrawer]
     [SerializeField]
     BaseSignal[] signals = null;
+#endif
 
     public SignalSettings.Holder holder = new SignalSettings.Holder();
 

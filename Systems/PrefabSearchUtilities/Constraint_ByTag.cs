@@ -25,6 +25,7 @@ public class Constraint_ByTag : BByTag<Transform>
 
     protected override void SetSource(Transform target)
     {
+        base.SetSource(target);
         ConstraintSource source = pcons.GetSource(sourceIndex);
         source.sourceTransform = target;
         pcons.SetSource(sourceIndex, source);

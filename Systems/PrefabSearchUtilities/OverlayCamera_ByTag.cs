@@ -23,6 +23,7 @@ public class OverlayCamera_ByTag : BByTag<Camera>
 
     protected override void SetSource(Camera target)
     {
+        base.SetSource(target);
         UniversalAdditionalCameraData overlayData = target.GetUniversalAdditionalCameraData();
 
         if (overlayData.renderType == CameraRenderType.Overlay)

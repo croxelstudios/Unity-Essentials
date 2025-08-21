@@ -207,9 +207,10 @@ public class DXRenderObjects : ScriptableRendererFeature
                 settings.stencilSettings.stencilCompareFunction, settings.stencilSettings.passOperation,
                 settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
 
-        if (settings.textureTargetSettings.textureTarget == TextureTargetSettings.TextureTarget.DepthTexture)
-            depthPass = new DepthBlitPass(settings.Event, new Material(Shader.Find("Hidden/RToDepth")), true);
-        else depthPass = null;
+        //if (settings.textureTargetSettings.textureTarget == TextureTargetSettings.TextureTarget.DepthTexture)
+        //    depthPass = new DepthBlitPass(settings.Event, new Material(Shader.Find("Hidden/RToDepth")), true);
+        //else
+            depthPass = null;
     }
 
     /// <inheritdoc/>

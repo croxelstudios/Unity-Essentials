@@ -94,6 +94,7 @@ public struct Randomizable
     public static implicit operator float(Randomizable obj) => obj.GetValue();
 }
 
+#if UNITY_EDITOR
 public class MiClaseAttributeProcessor : OdinAttributeProcessor<Randomizable>
 {
     public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
@@ -113,3 +114,4 @@ public class MiClaseAttributeProcessor : OdinAttributeProcessor<Randomizable>
         return labelStyle.CalcSize(new GUIContent(text)).x;
     }
 }
+#endif

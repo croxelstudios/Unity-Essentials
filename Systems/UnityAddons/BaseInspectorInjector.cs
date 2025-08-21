@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.UIElements;
@@ -87,51 +88,52 @@ public static class BaseInspectorInjector
     }
 }
 
-    /*
+/*
 private static void OnClick()
 {
-    Debug.Log("Click.");
+Debug.Log("Click.");
 }
 
 private static void AddCustomButton(EditorWindow editorWindow)
 {
-    var addComponentButton = GetAddComponentButton(editorWindow.rootVisualElement);
-    if (addComponentButton == null || addComponentButton.childCount < 1) return;
+var addComponentButton = GetAddComponentButton(editorWindow.rootVisualElement);
+if (addComponentButton == null || addComponentButton.childCount < 1) return;
 
-    var customButton = GetCustomButton(addComponentButton);
-    if (customButton != null) return;
+var customButton = GetCustomButton(addComponentButton);
+if (customButton != null) return;
 
-    var button = new Button(OnClick)
-    {
-        text = CustomButtonText
-    };
-    button.AddToClassList(CustomButtonClassName);
-    var styleSheet = Resources.Load<StyleSheet>(CustomButtonStyleSheet);
-    if (styleSheet)
-    {
-        button.styleSheets.Add(styleSheet);
-    }
+var button = new Button(OnClick)
+{
+    text = CustomButtonText
+};
+button.AddToClassList(CustomButtonClassName);
+var styleSheet = Resources.Load<StyleSheet>(CustomButtonStyleSheet);
+if (styleSheet)
+{
+    button.styleSheets.Add(styleSheet);
+}
 
-    addComponentButton.Add(button);
+addComponentButton.Add(button);
 }
 
 private static EditorWindow[] TryGetInspectorWindows()
-    {
-        return Resources
-            .FindObjectsOfTypeAll<EditorWindow>()
-            .Where(window => window.rootVisualElement.Q(className: UnityInspectorClassName) != null)
-            .ToArray();
-    }
+{
+    return Resources
+        .FindObjectsOfTypeAll<EditorWindow>()
+        .Where(window => window.rootVisualElement.Q(className: UnityInspectorClassName) != null)
+        .ToArray();
+}
 
-    private static VisualElement GetAddComponentButton(VisualElement rootVisualElement)
-    {
-        return rootVisualElement
-            .Q(className: AddComponentButtonClassName);
-    }
+private static VisualElement GetAddComponentButton(VisualElement rootVisualElement)
+{
+    return rootVisualElement
+        .Q(className: AddComponentButtonClassName);
+}
 
-    private static VisualElement GetCustomButton(VisualElement rootVisualElement)
-    {
-        return rootVisualElement
-            .Q(className: CustomButtonClassName);
-    }
-    */
+private static VisualElement GetCustomButton(VisualElement rootVisualElement)
+{
+    return rootVisualElement
+        .Q(className: CustomButtonClassName);
+}
+*/
+#endif

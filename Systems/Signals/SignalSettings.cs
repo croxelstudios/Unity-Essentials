@@ -8,6 +8,7 @@ using System.Linq;
 [CreateAssetMenu(fileName = "SignalSettings", menuName = "Croxel Scriptables/SignalSettings")]
 public class SignalSettings : ScriptableObject
 {
+#if UNITY_EDITOR
     [SerializeField]
     [PropertyOrder(-1)]
     string substring = "";
@@ -15,6 +16,7 @@ public class SignalSettings : ScriptableObject
     [DefaultDrawer]
     [SerializeField]
     BaseSignal[] signals = null;
+#endif
 
     public Holder holder = new Holder();
 

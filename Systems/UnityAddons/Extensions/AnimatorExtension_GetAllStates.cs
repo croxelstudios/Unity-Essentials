@@ -1,10 +1,11 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor.Animations;
 using System.Collections.Generic;
 
 public static class AnimatorExtension_GetAllStates
 {
-    public static AnimatorState[] GetAllStates(this Animator anim)
+    public static AnimatorState[] Editor_GetAllStates(this Animator anim)
     {
         AnimatorController ac = anim.runtimeAnimatorController as AnimatorController;
         AnimatorControllerLayer[] acLayers = ac.layers;
@@ -18,3 +19,4 @@ public static class AnimatorExtension_GetAllStates
         return allStates.ToArray();
     }
 }
+#endif

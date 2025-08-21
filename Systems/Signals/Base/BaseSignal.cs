@@ -1,13 +1,13 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
-using System.Linq;
 using System.IO;
-using Object = UnityEngine.Object;
 #endif
 
 public class BaseSignal : ScriptableObject

@@ -1,12 +1,11 @@
 using UnityEngine;
 using System;
 using System.Reflection;
-using UnityEditor.AI;
-
 using UnityEngine.AI;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.AI;
 #endif
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]

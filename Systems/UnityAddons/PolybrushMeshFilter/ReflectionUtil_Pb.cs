@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using System;
@@ -432,3 +433,4 @@ static class ReflectionUtil_Pb
         ProBuilderToMeshNoArgsMethodInfo.Invoke(pb, null);
     }
 }
+#endif

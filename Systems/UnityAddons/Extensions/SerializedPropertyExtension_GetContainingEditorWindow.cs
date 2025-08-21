@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using System.Reflection;
@@ -37,3 +38,4 @@ public static class SerializedPropertyExtension_GetContainingEditorWindow
         return null;
     }
 }
+#endif

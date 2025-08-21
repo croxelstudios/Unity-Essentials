@@ -4,6 +4,8 @@ public enum TimeMode { Update, FixedUpdate, Unscaled }
 
 public enum ScaledTimeMode { Update, FixedUpdate }
 
+public enum ScaledTimeModeOrOnEnable { Update, FixedUpdate, OnEnable }
+
 public enum TimeModeOrOnEnable { Update, FixedUpdate, Unscaled, OnEnable }
 
 public enum RenderingTimeMode { Update, Unscaled }
@@ -67,6 +69,17 @@ public static class TimeModeFunctions
         return Time((TimeMode)timeMode);
     }
 
+    public static float Time(this ScaledTimeModeOrOnEnable timeMode)
+    {
+        switch (timeMode)
+        {
+            case ScaledTimeModeOrOnEnable.FixedUpdate:
+                return UnityEngine.Time.fixedTime;
+            default:
+                return UnityEngine.Time.time;
+        }
+    }
+
     public static float Time(this TimeModeOrOnEnable timeMode)
     {
         return Time((TimeMode)timeMode);
@@ -95,6 +108,11 @@ public static class TimeModeFunctions
         return ((TimeMode)timeMode).IsFixed();
     }
 
+    public static bool IsFixed(this ScaledTimeModeOrOnEnable timeMode)
+    {
+        return ((TimeMode)timeMode).IsFixed();
+    }
+
     public static bool IsFixed(this TimeModeOrOnEnable timeMode)
     {
         return ((TimeMode)timeMode).IsFixed();
@@ -109,6 +127,11 @@ public static class TimeModeFunctions
     public static bool IsSmooth(this ScaledTimeMode timeMode)
     {
         return ((TimeMode)timeMode).IsSmooth();
+    }
+
+    public static bool IsSmooth(this ScaledTimeModeOrOnEnable timeMode)
+    {
+        return ((TimeMode)timeMode).IsSmooth() && (timeMode != ScaledTimeModeOrOnEnable.OnEnable);
     }
 
     public static bool IsSmooth(this TimeModeOrOnEnable timeMode)
@@ -129,6 +152,11 @@ public static class TimeModeFunctions
     }
 
     public static YieldInstruction WaitFor(this ScaledTimeMode timeMode)
+    {
+        return ((TimeMode)timeMode).WaitFor();
+    }
+
+    public static YieldInstruction WaitFor(this ScaledTimeModeOrOnEnable timeMode)
     {
         return ((TimeMode)timeMode).WaitFor();
     }
@@ -157,5 +185,10 @@ public static class TimeModeFunctions
     public static bool OnEnable(this RenderingTimeModeOrOnEnable timeMode)
     {
         return timeMode == RenderingTimeModeOrOnEnable.OnEnable;
+    }
+
+    public static bool OnEnable(this ScaledTimeModeOrOnEnable timeMode)
+    {
+        return timeMode == ScaledTimeModeOrOnEnable.OnEnable;
     }
 }
