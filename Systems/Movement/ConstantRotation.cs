@@ -9,6 +9,8 @@ public class ConstantRotation : MonoBehaviour
     [SerializeField]
     protected Vector3 axis = Vector3.back;
     [SerializeField]
+    bool worldSpace = false;
+    [SerializeField]
     bool randomize = false;
     [SerializeField]
     [ShowIf("@randomize")]
@@ -60,7 +62,7 @@ public class ConstantRotation : MonoBehaviour
     {
         Vector3 finalRotation = axis * speed * deltaTime;
         accumulatedRotation = Quaternion.Euler(finalRotation) * accumulatedRotation;
-        transform.Rotate(finalRotation);
+        transform.Rotate(finalRotation, worldSpace ? Space.World : Space.Self);
     }
 
     public void Restart()
