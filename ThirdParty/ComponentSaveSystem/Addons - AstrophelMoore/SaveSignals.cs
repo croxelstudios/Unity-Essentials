@@ -46,7 +46,7 @@ public class SaveSignals : MonoBehaviour, ISaveable
             List<BaseSignal> signalsTemp = new List<BaseSignal>();
             foreach (KeyValuePair<Type, List<BaseSignal>> pair in BaseSignal.activeSignals)
                 foreach (BaseSignal s in pair.Value)
-                    if (s.name.Contains(substring))
+                    if ((s != null) && s.name.Contains(substring))
                         signalsTemp.Add(s);
             signals = signalsTemp.ToArray();
         }

@@ -17,8 +17,6 @@ public class TMP_TransformToTextSegment : MonoBehaviour
     TMP_Text text;
 
     const int verticesPerChar = 4;
-    const string alphaIntro = "<alpha=#00>";
-    const string alphaOutro = "<alpha=#FF>";
 
     void OnEnable()
     {

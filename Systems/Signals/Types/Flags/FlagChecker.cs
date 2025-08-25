@@ -25,16 +25,6 @@ public class FlagChecker : BBaseSignalListener<bool>
             signals[i] = flags[i].flag;
     }
 
-#if UNITY_EDITOR
-    void OnValidate()
-    {
-        if (flags != null)
-            for (int i = 0; i < flags.Length; i++)
-                if ((flags[i].name == "") && (flags[i].flag != null))
-                    flags[i].name = flags[i].flag.name;
-    }
-#endif
-
     public void CheckFlags()
     {
         CheckFlags(false);
@@ -206,8 +196,7 @@ public class FlagChecker : BBaseSignalListener<bool>
     [Serializable]
     public struct FlagAction
     {
-        [FoldoutGroup("@name")]
-        public string name;
+        public string name { get { return flag.name; } }
         [FoldoutGroup("@name")]
         public Flag flag; //Change type here
         [FoldoutGroup("@name")]
@@ -224,7 +213,6 @@ public class FlagChecker : BBaseSignalListener<bool>
             this.flag = signal;
             whenTrue = null;
             whenFalse = null;
-            name = signal.name;
             onlyWhenAlreadyEnabled = new ExtraEvents(null, null);
             onlyOnEnable = new ExtraEvents(null, null);
         }
