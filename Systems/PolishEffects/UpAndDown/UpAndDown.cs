@@ -10,12 +10,6 @@ public class UpAndDown : BSinoidalTransform
     [SerializeField]
     float amount = 1f;
     public float Amount { get { return amount; } set { amount = value; } }
-    [SerializeField]
-    [Tooltip("Cycles per second")]
-    float speed = 1f;
-    public float Speed { get { return speed; } set { speed = value; } }
-    [SerializeField]
-    bool resetOnEnable = false;
 
     protected override void Transformation(float value)
     {
