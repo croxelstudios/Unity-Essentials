@@ -1,13 +1,12 @@
 ﻿using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering.Universal.Internal;
+using Random = UnityEngine.Random;
 
 public class DXRenderObjects : ScriptableRendererFeature
 {
@@ -95,7 +94,6 @@ public class DXRenderObjects : ScriptableRendererFeature
     public class TextureTargetSettings
     {
         public TextureTarget textureTarget = TextureTarget.Active;
-        public enum TextureTarget { Active, GlobalTexture, RenderTexture, DepthTexture, NormalsTexture, OpaqueTexture }
 
         [ShowIf("@textureTarget == TextureTarget.GlobalTexture")]
         public string textureName = "_CameraDepthTexture";
@@ -119,7 +117,19 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         [ShowIf("@(textureTarget != TextureTarget.Active) && clearDepth")]
         public float depth = 1.0f;
+
+        public Material blitMaterial = null;
+
+        [ShowIf("@(blitMaterial != null)")]
+        public bool fetchColorTexture = true;
+
+        public bool FetchColor()
+        {
+            return (blitMaterial != null) && fetchColorTexture;
+        }
     }
+
+    public enum TextureTarget { Active, GlobalTexture, RenderTexture, DepthTexture, NormalsTexture, OpaqueTexture }
 
     /// <summary>
     /// The filter settings used.
@@ -210,7 +220,7 @@ public class DXRenderObjects : ScriptableRendererFeature
         //if (settings.textureTargetSettings.textureTarget == TextureTargetSettings.TextureTarget.DepthTexture)
         //    depthPass = new DepthBlitPass(settings.Event, new Material(Shader.Find("Hidden/RToDepth")), true);
         //else
-            depthPass = null;
+        depthPass = null;
     }
 
     /// <inheritdoc/>
@@ -222,13 +232,13 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         switch (settings.textureTargetSettings.textureTarget)
         {
-            case TextureTargetSettings.TextureTarget.DepthTexture:
+            case TextureTarget.DepthTexture:
                 pass.ConfigureInput(ScriptableRenderPassInput.Depth);
                 break;
-            case TextureTargetSettings.TextureTarget.NormalsTexture:
+            case TextureTarget.NormalsTexture:
                 pass.ConfigureInput(ScriptableRenderPassInput.Normal);
                 break;
-            case TextureTargetSettings.TextureTarget.OpaqueTexture:
+            case TextureTarget.OpaqueTexture:
                 pass.ConfigureInput(ScriptableRenderPassInput.Depth);
                 break;
         }
@@ -287,6 +297,19 @@ public class DXRenderObjects : ScriptableRendererFeature
                         overrideKeywords[i] = kw;
                     }
             }
+        }
+
+        class CopyPassData
+        {
+            public RTHandle src;
+            public TextureHandle dst;
+        }
+
+        class ExtraPassData
+        {
+            public TextureHandle srcTex;
+            public TextureHandle color;
+            public Material blitMaterial;
         }
 
         public void InitKeywords()
@@ -382,105 +405,32 @@ public class DXRenderObjects : ScriptableRendererFeature
         /// <inheritdoc />
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
-            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            // Data for all passes
+            UniversalData universalData = new UniversalData(frameData);
+            AccessFlags colorAccess = AccessFlags.Write;
+            AccessFlags depthAccess = AccessFlags.Write;
+            string texName = textureSettings.textureName;
+            TextureTarget texMode = textureSettings.textureTarget;
+            BuilderResources resources = GetResources(renderGraph, universalData, texMode, ref texName);
 
             using (IRasterRenderGraphBuilder builder =
                 renderGraph.AddRasterRenderPass(passName, out PassData passData, profilingSampler))
             {
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
-                InitPassData(cameraData, ref passData);
-
-                AccessFlags colorAccess = AccessFlags.Write;
-                AccessFlags depthAccess = AccessFlags.Write;
-                string texName = textureSettings.textureName;
-                TextureTargetSettings.TextureTarget texMode = textureSettings.textureTarget;
-                passData.clearColor = textureSettings.clearColor;
+                // Initialize pass data
+                InitPassData(universalData.cameraData, ref passData);
+                passData.clearColor = (texMode == TextureTarget.Active) ? false : textureSettings.clearColor;
                 passData.clColor = textureSettings.color;
-                passData.clearDepth = textureSettings.clearDepth;
+                passData.clearDepth = (texMode == TextureTarget.Active) ? false : textureSettings.clearDepth;
                 passData.clDepth = textureSettings.depth;
-                switch (texMode)
-                {
-                    case TextureTargetSettings.TextureTarget.GlobalTexture:
-                        passData.color = renderGraph.GetTexture(frameData,
-                            texName, cameraData.cameraTargetDescriptor,
-                            textureSettings.settings);
-                        break;
-
-                    case TextureTargetSettings.TextureTarget.RenderTexture:
-                        RenderTexture tex = textureSettings.targetTexture;
-                        RenderTargetIdentifier rti = new RenderTargetIdentifier(tex.colorBuffer);
-                        rt = RTHandles.Alloc(rti, "RenderTexture_Color");
-
-                        RenderTargetInfo info = new RenderTargetInfo();
-                        info.volumeDepth = tex.volumeDepth;
-                        info.height = tex.height;
-                        info.width = tex.width;
-                        info.bindMS = tex.bindTextureMS;
-                        info.msaaSamples = tex.antiAliasing;
-                        info.format = tex.graphicsFormat;
-
-                        texName = tex.name;
-                        TextureHandle intermediate = renderGraph.ImportTexture(rt, info);
-
-                        passData.color = intermediate;
-
-                        if (tex.depthStencilFormat != GraphicsFormat.None)
-                        {
-                            rti = new RenderTargetIdentifier(tex.depthBuffer);
-                            rt = RTHandles.Alloc(rti, "RenderTexture_Depth");
-                            info.format = tex.depthStencilFormat;
-                            intermediate = renderGraph.ImportTexture(rt, info);
-
-                            passData.depth = intermediate;
-                        }
-
-                        passData.toRelease = passData.toRelease.CreateAdd(rt);
-                        break;
-
-                    case TextureTargetSettings.TextureTarget.DepthTexture:
-                        texName = "tempDepth";
-                        colorDepth = renderGraph.CreateCameraDepthTexture(cameraData, texName);
-
-                        passData.color = colorDepth;
-                        break;
-
-                    case TextureTargetSettings.TextureTarget.NormalsTexture:
-                        texName = "_CameraNormalsTexture";
-
-                        //WARNING: This is a failed attempt at creating the texture here to avoid redraw and not require the input.
-                        //  cameraNormalsTexture seems to always be valid even when it hasn't been created.
-                        //  Redraw seems to be unavoidable for now. Same issue occurs in the opaque Texture.
-                        //if (!resourceData.cameraNormalsTexture.IsValid()) 
-                        //{
-                        //    passData.color = renderGraph.CreateCameraNormalsTexture(cameraData, texName);
-                        //    texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
-                        //}
-                        //else
-                        passData.color = resourceData.cameraNormalsTexture;
-                        break;
-
-                    case TextureTargetSettings.TextureTarget.OpaqueTexture:
-                        texName = "_CameraOpaqueTexture";
-
-                        passData.color = renderGraph.CreateCameraTexture(cameraData, texName);
-                        texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
-                        break;
-
-                    default: //Active
-                        texName = "_CameraTargetAttachmentA";
-                        passData.color = resourceData.activeColorTexture;
-                        passData.depth = resourceData.activeDepthTexture;
-                        passData.clearColor = false;
-                        passData.clearDepth = false;
-                        break;
-                }
+                //   -   Add resources
+                passData.color = resources.color;
+                passData.depth = resources.depth;
+                passData.toRelease = passData.toRelease.CreateAddRange(resources.toRelease);
+                //
 
                 builder.SetAttachments(frameData, passData.color, passData.depth, colorAccess, depthAccess);
 
-                if (texMode == TextureTargetSettings.TextureTarget.GlobalTexture)
+                if (texMode == TextureTarget.GlobalTexture)
                     builder.SetGlobalTextureAfterPass(passData.color, texName);
 
                 builder.SetupRenderingObjects(renderGraph, frameData, renderQueueType,
@@ -495,8 +445,8 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                     data.SetKeywords(rgContext.cmd);
 
-                    rgContext.cmd.ExecuteRenderObjects(cameraData, data.rendererListHdl,
-                        cameraData.IsYFlipped(data.color), data.cameraSettings);
+                    rgContext.cmd.ExecuteRenderObjects(universalData.cameraData, data.rendererListHdl,
+                        universalData.cameraData.IsYFlipped(data.color), data.cameraSettings);
 
                     data.SetKeywords(rgContext.cmd);
 
@@ -508,6 +458,179 @@ public class DXRenderObjects : ScriptableRendererFeature
                     }
                 });
             }
+
+            //if (textureSettings.blitMaterial != null)
+            //{
+            //    // Fetch color mechanism
+            //    bool fetchColor = textureSettings.FetchColor();
+            //    TextureHandle copiedTexture;
+
+            //    if (fetchColor)
+            //    {
+            //        TextureDesc targetDesc = resources.GetTextureDesc(renderGraph);
+            //        targetDesc.name = "_DXRenderObjects_CopiedTexture";
+            //        targetDesc.clearBuffer = false;
+
+            //        copiedTexture = renderGraph.CreateTexture(targetDesc);
+
+            //        RTHandle srcHandle = resources.GetColorRT();
+            //        TextureHandle dstHandle = copiedTexture;
+
+            //        using (var builder = renderGraph.AddRasterRenderPass(
+            //            "DXRenderObjects Copy Pass", out CopyPassData passData, profilingSampler))
+            //        {
+            //            passData.src = srcHandle;
+            //            //builder.UseTexture(passData.src, AccessFlags.Read);
+
+            //            builder.SetRenderAttachment(dstHandle, 0, AccessFlags.Write);
+
+            //            builder.SetRenderFunc((CopyPassData data, RasterGraphContext rgContext) =>
+            //            {
+            //                Blitter.BlitTexture(rgContext.cmd, data.src, new Vector4(1, 1, 0, 0), 0.0f, false);
+            //            });
+            //        }
+            //    }
+            //    else copiedTexture = TextureHandle.nullHandle;
+
+            //    using (IRasterRenderGraphBuilder builder =
+            //            renderGraph.AddRasterRenderPass("DXRenderObjects Blit Pass",
+            //            out ExtraPassData passData, profilingSampler))
+            //    {
+            //        passData.srcTex = copiedTexture;
+            //        if (passData.srcTex.IsValid())
+            //            builder.UseTexture(passData.srcTex, AccessFlags.Read);
+            //        passData.color = resources.color;
+            //        passData.blitMaterial = textureSettings.blitMaterial;
+            //        builder.SetRenderAttachment(passData.color, 0, colorAccess);
+            //        builder.SetRenderFunc((ExtraPassData data, RasterGraphContext rgContext) =>
+            //        {
+            //            RasterCommandBuffer cmd = rgContext.cmd;
+            //            RTHandle tex = copiedTexture;
+            //            Material material = data.blitMaterial;
+
+            //            if (cmd == null || tex == null || material == null)
+            //                return;
+
+            //            sharedPropertyBlock.Clear();
+            //            Texture srcTexture = tex.rt;
+            //            if (material.HasProperty(ShaderPropertyId.MainTex))
+            //                sharedPropertyBlock.SetTexture(ShaderPropertyId.MainTex, srcTexture);
+            //            else sharedPropertyBlock.SetTexture(ShaderPropertyId.BlitTexture, srcTexture);
+
+            //            sharedPropertyBlock.SetVector(ShaderPropertyId.BlitScaleBias, new Vector4(1f, 1f, 0f, 0f));
+
+            //            cmd.DrawProcedural(Matrix4x4.identity, material, 0,
+            //                MeshTopology.Triangles, 3, 1, sharedPropertyBlock);
+            //        });
+            //    }
+            //}
+        }
+
+        static MaterialPropertyBlock sharedPropertyBlock = new MaterialPropertyBlock();
+
+        struct BuilderResources
+        {
+            public TextureHandle color;
+            public RenderTexture colorRT;
+            public TextureHandle depth;
+            public List<RTHandle> toRelease;
+
+            public RTHandle GetColorRT()
+            {
+                if (colorRT != null)
+                    return RTHandles.Alloc(colorRT);
+                else return color;
+            }
+
+            public TextureDesc GetTextureDesc(RenderGraph renderGraph)
+            {
+                if (colorRT != null)
+                    return new TextureDesc(colorRT);
+                else return renderGraph.GetTextureDesc(color);
+            }
+        }
+
+        BuilderResources GetResources(RenderGraph renderGraph, UniversalData data,
+            TextureTarget texMode, ref string texName)
+        {
+            BuilderResources resources = new BuilderResources();
+            resources.colorRT = TextureHandle.nullHandle;
+            switch (texMode)
+            {
+                case TextureTarget.GlobalTexture:
+                    resources.color = renderGraph.GetTexture(data.frameData,
+                        texName, data.cameraData.cameraTargetDescriptor,
+                        textureSettings.settings);
+                    break;
+
+                case TextureTarget.RenderTexture:
+                    RenderTexture tex = textureSettings.targetTexture;
+                    RenderTargetIdentifier rti = new RenderTargetIdentifier(tex.colorBuffer);
+                    rt = RTHandles.Alloc(rti, "RenderTexture_Color");
+
+                    RenderTargetInfo info = new RenderTargetInfo();
+                    info.volumeDepth = tex.volumeDepth;
+                    info.height = tex.height;
+                    info.width = tex.width;
+                    info.bindMS = tex.bindTextureMS;
+                    info.msaaSamples = tex.antiAliasing;
+                    info.format = tex.graphicsFormat;
+
+                    texName = tex.name;
+                    TextureHandle intermediate = renderGraph.ImportTexture(rt, info);
+
+                    resources.color = intermediate;
+
+                    if (tex.depthStencilFormat != GraphicsFormat.None)
+                    {
+                        rti = new RenderTargetIdentifier(tex.depthBuffer);
+                        rt = RTHandles.Alloc(rti, "RenderTexture_Depth");
+                        info.format = tex.depthStencilFormat;
+                        intermediate = renderGraph.ImportTexture(rt, info);
+
+                        resources.depth = intermediate;
+                    }
+
+                    resources.toRelease = resources.toRelease.CreateAdd(rt);
+                    resources.colorRT = tex;
+                    break;
+
+                case TextureTarget.DepthTexture:
+                    texName = "tempDepth";
+                    colorDepth = renderGraph.CreateCameraDepthTexture(data.cameraData, texName);
+
+                    resources.color = colorDepth;
+                    break;
+
+                case TextureTarget.NormalsTexture:
+                    texName = "_CameraNormalsTexture";
+
+                    //WARNING: This is a failed attempt at creating the texture here to avoid redraw and not require the input.
+                    //  cameraNormalsTexture seems to always be valid even when it hasn't been created.
+                    //  Redraw seems to be unavoidable for now. Same issue occurs in the opaque Texture.
+                    //if (!resourceData.cameraNormalsTexture.IsValid()) 
+                    //{
+                    //    passData.color = renderGraph.CreateCameraNormalsTexture(cameraData, texName);
+                    //    texMode = TextureTargetSettings.TextureTarget.GlobalTexture;
+                    //}
+                    //else
+                    resources.color = data.resourceData.cameraNormalsTexture;
+                    break;
+
+                case TextureTarget.OpaqueTexture:
+                    texName = "_CameraOpaqueTexture";
+
+                    resources.color = renderGraph.CreateCameraTexture(data.cameraData, texName);
+                    texMode = TextureTarget.GlobalTexture;
+                    break;
+
+                default: //Active
+                    texName = "_CameraTargetAttachmentA";
+                    resources.color = data.resourceData.activeColorTexture;
+                    resources.depth = data.resourceData.activeDepthTexture;
+                    break;
+            }
+            return resources;
         }
     }
 

@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
-using System.Collections;
+﻿using System.Collections;
+using UnityEngine;
 
 public class BounceAnimation : MonoBehaviour
 {

@@ -39,6 +39,8 @@ public class TransformShake : MonoBehaviour
     [SerializeField]
     Space space = Space.World;
     [SerializeField]
+    float returnSmoothTime = 0.1f;
+    [SerializeField]
     bool shakeWhileEnabled = false;
     [SerializeField]
     bool hasCinemachineBrain = false;
@@ -178,7 +180,7 @@ public class TransformShake : MonoBehaviour
             yield return timeMode.WaitFor();
 
             Vector3 newCurrent = Vector3.SmoothDamp(current, Vector3.zero, ref currentSpd,
-                GetSmoothness(smooth, amount), Mathf.Infinity, timeMode.DeltaTime());
+                GetSmoothness(returnSmoothTime, amount), Mathf.Infinity, timeMode.DeltaTime());
             transformOverride.Translate(newCurrent - current, space);
             current = newCurrent;
         }

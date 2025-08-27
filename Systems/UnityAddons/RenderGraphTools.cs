@@ -481,6 +481,31 @@ public struct TextureSettings : IEquatable<TextureSettings>
     }
 }
 
+static class ShaderPropertyId
+{
+    public static readonly int BlitTexture = Shader.PropertyToID("_BlitTexture");
+    public static readonly int MainTex = Shader.PropertyToID("_MainTex");
+    public static readonly int BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
+}
+
+struct UniversalData
+{
+    public ContextContainer frameData;
+    public UniversalCameraData cameraData;
+    public UniversalRenderingData renderingData;
+    public UniversalLightData lightData;
+    public UniversalResourceData resourceData;
+
+    public UniversalData(ContextContainer frameData)
+    {
+        this.frameData = frameData;
+        cameraData = frameData.Get<UniversalCameraData>();
+        renderingData = frameData.Get<UniversalRenderingData>();
+        lightData = frameData.Get<UniversalLightData>();
+        resourceData = frameData.Get<UniversalResourceData>();
+    }
+}
+
 [Serializable]
 public struct MaterialOverrideBehaviour
 {
