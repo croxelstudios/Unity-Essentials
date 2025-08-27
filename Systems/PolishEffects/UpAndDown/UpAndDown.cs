@@ -17,8 +17,6 @@ public class UpAndDown : BSinoidalTransform
     [SerializeField]
     bool resetOnEnable = false;
 
-    float amountMult;
-
     protected override void Transformation(float value)
     {
         transform.Translate(axis.normalized * value * amount,

@@ -6,7 +6,7 @@ public class BSinoidalTransform : BOffsetBasedTransform
     [SerializeField]
     [PropertyOrder(2)]
     [Tooltip("Cycles per second")]
-    float _speed = 1f;
+    protected float _speed = 1f;
     //public float speed { get { return _speed; } set { _speed = value; } }
     [SerializeField]
     [PropertyOrder(2)]

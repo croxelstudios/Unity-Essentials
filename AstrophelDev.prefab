@@ -74,9 +74,8 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: e70e41e61bc21084aa3f6e5f51be39a9, type: 2}
-  m_sharedMaterial: {fileID: -6382824161618352715, guid: e70e41e61bc21084aa3f6e5f51be39a9,
-    type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -177,12 +176,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdd74c1ee6c212d4d805c29a9ced0117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeMode: 0
+  resetMode: 0
+  returnSmoothTime: 0.1
+  _speed: 0.3
+  startTime: 0
   axis: {x: 0, y: 1, z: 0}
   worldSpace: 0
   amount: 0.05
   speed: 0.3
-  startTime: 0
-  timeMode: 0
   resetOnEnable: 0
 --- !u!114 &6444597531094320534
 MonoBehaviour:
@@ -222,12 +224,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdd74c1ee6c212d4d805c29a9ced0117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeMode: 0
+  resetMode: 0
+  returnSmoothTime: 0.1
+  _speed: 0.2
+  startTime: 0
   axis: {x: 0, y: 1, z: 0}
   worldSpace: 0
   amount: 0.15
   speed: 0.2
-  startTime: 0
-  timeMode: 0
   resetOnEnable: 0
 --- !u!1 &979471547220680724
 GameObject:
@@ -376,9 +381,8 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: e70e41e61bc21084aa3f6e5f51be39a9, type: 2}
-  m_sharedMaterial: {fileID: -6382824161618352715, guid: e70e41e61bc21084aa3f6e5f51be39a9,
-    type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -479,12 +483,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdd74c1ee6c212d4d805c29a9ced0117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeMode: 0
+  resetMode: 0
+  returnSmoothTime: 0.1
+  _speed: 0.3
+  startTime: 0
   axis: {x: 0, y: 1, z: 0}
   worldSpace: 0
   amount: 0.05
   speed: 0.3
-  startTime: 0
-  timeMode: 0
   resetOnEnable: 0
 --- !u!114 &3182060121451918403
 MonoBehaviour:
@@ -584,9 +591,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Astrophel
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: a066052cd44674a4f955c452860dc917, type: 2}
-  m_sharedMaterial: {fileID: 2517168408006791814, guid: a066052cd44674a4f955c452860dc917,
-    type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -687,12 +693,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdd74c1ee6c212d4d805c29a9ced0117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeMode: 0
+  resetMode: 0
+  returnSmoothTime: 0.1
+  _speed: 0.3
+  startTime: 0
   axis: {x: 0, y: 1, z: 0}
   worldSpace: 0
   amount: 0.05
   speed: 0.3
-  startTime: 0
-  timeMode: 0
   resetOnEnable: 0
 --- !u!114 &220557881173900651
 MonoBehaviour:
@@ -1058,12 +1067,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdd74c1ee6c212d4d805c29a9ced0117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeMode: 0
+  resetMode: 0
+  returnSmoothTime: 0.1
+  _speed: 0.2
+  startTime: 0
   axis: {x: 0, y: 1, z: 0}
   worldSpace: 0
   amount: 0.1
   speed: 0.2
-  startTime: 0
-  timeMode: 0
   resetOnEnable: 0
 --- !u!1 &6371143605901554511
 GameObject:
