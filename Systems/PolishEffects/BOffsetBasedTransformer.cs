@@ -79,6 +79,7 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
     void ResetMetaCurrent()
     {
         Transformation(Generics.Negate(metaCurrent));
+        metaCurrent = Default<T>.Value;
     }
 
     protected void ApplyTransform(T value)

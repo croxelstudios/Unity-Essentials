@@ -2,14 +2,14 @@
 using System.Collections;
 
 public class SlightTilting2D : MonoBehaviour
+    // TO DO: Add present extra functionality to BSinoidalTransform and implement base class here
 {
     [SerializeField]
     Transform transformOverride = null;
     public float amount = 1f;
     [Tooltip("Cycles per second")]
-    public float speed = 1f;
-    [Tooltip("Cycles per second")]
     public float _speed = 1f;
+    public float speed { get { return _speed; } set { _speed = value; } }
     [Range(0f, 1f)]
     public float startTime = 0f;
     [SerializeField]

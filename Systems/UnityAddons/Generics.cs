@@ -373,7 +373,7 @@ public static class Generics
     #region HasMagnitude
     public static bool HasMagnitude_Float(float value, float epsilon)
     {
-        return value > epsilon;
+        return Mathf.Abs(value) > epsilon;
     }
 
     public static bool HasMagnitude_Vector2(Vector2 value, float epsilon)
