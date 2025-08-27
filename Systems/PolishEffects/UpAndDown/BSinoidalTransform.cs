@@ -1,7 +1,7 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 
-public class BSinoidalTransform : BOffsetBasedTransform
+public class BSinoidalTransform : BOffsetBasedTransformer<float>
 {
     [SerializeField]
     [PropertyOrder(2)]

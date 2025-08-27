@@ -8,6 +8,8 @@ public class SlightTilting2D : MonoBehaviour
     public float amount = 1f;
     [Tooltip("Cycles per second")]
     public float speed = 1f;
+    [Tooltip("Cycles per second")]
+    public float _speed = 1f;
     [Range(0f, 1f)]
     public float startTime = 0f;
     [SerializeField]

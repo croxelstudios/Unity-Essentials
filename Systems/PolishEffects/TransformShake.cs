@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 using UnityEditor;
 #endif
 
-public class TransformShake : MonoBehaviour
+public class TransformShake : BOffsetBasedTransformer<Vector3>
 {
     [SerializeField]
     Transform transformOverride = null;
@@ -35,11 +35,7 @@ public class TransformShake : MonoBehaviour
     [SerializeField]
     AxisBooleans axes = new AxisBooleans(true, true, true);
     [SerializeField]
-    TimeMode timeMode = TimeMode.Update;
-    [SerializeField]
     Space space = Space.World;
-    [SerializeField]
-    float returnSmoothTime = 0.1f;
     [SerializeField]
     bool shakeWhileEnabled = false;
     [SerializeField]
@@ -47,35 +43,30 @@ public class TransformShake : MonoBehaviour
     [SerializeField]
     bool applyToParent = false;
 
-    Vector3 current;
     Vector3 currentSpd;
-    Coroutine co;
+    Coroutine shakeCo;
 
-    void Awake()
+    protected override void Awake()
     {
         if (transformOverride == null) transformOverride = transform;
         if (applyToParent) transformOverride = transformOverride.parent;
+        base.Awake();
     }
 
-    void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
         if (hasCinemachineBrain)
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
         if (shakeWhileEnabled)
             Shake(Mathf.Infinity);
     }
 
-    void OnDisable()
+    protected override void OnDisable()
     {
         RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-        if (co != null) StopCoroutine(co);
-        if (gameObject.activeInHierarchy)
-            co = StartCoroutine(BackToDefault());
-        else
-        {
-            transformOverride.Translate(-current, space);
-            current = Vector3.zero;
-        }
+        if (shakeCo != null) StopCoroutine(shakeCo);
+        base.OnDisable();
     }
 
     public void Shake(float time)
@@ -88,8 +79,8 @@ public class TransformShake : MonoBehaviour
     {
         if (this.IsActiveAndEnabled())
         {
-            if (co != null) StopCoroutine(co);
-            co = StartCoroutine(ShakeTime(time));
+            if (shakeCo != null) StopCoroutine(shakeCo);
+            shakeCo = StartCoroutine(ShakeTime(time));
         }
     }
 
@@ -98,8 +89,8 @@ public class TransformShake : MonoBehaviour
     {
         if (this.IsActiveAndEnabled())
         {
-            if (co != null) StopCoroutine(co);
-            co = StartCoroutine(ShakeTime(time, targetChangeFrecuency, amount, smooth));
+            if (shakeCo != null) StopCoroutine(shakeCo);
+            shakeCo = StartCoroutine(ShakeTime(time, targetChangeFrecuency, amount, smooth));
         }
     }
 
@@ -111,23 +102,9 @@ public class TransformShake : MonoBehaviour
         while (t > 0f)
         {
             yield return timeMode.WaitFor();
-            float delta = timeMode.DeltaTime();
-            t -= delta;
-            tc -= delta * intensity;
-
-            if (tc < 0f)
-            {
-                target = SetNewRandomTarget(amount);
-                tc = targetChangeFrecuency;
-            }
-
-            Vector3 newCurrent = Vector3.SmoothDamp(current, target, ref currentSpd, GetSmoothness(smooth, amount),
-                Mathf.Infinity, timeMode.DeltaTime());
-            newCurrent = Vector3.Lerp(Vector3.zero, newCurrent, intensity);
-            transformOverride.Translate(newCurrent - current, space);
-            current = newCurrent;
+            ShakeOp(ref target, ref t, ref tc, targetChangeFrecuency, amount, smooth);
         }
-        co = StartCoroutine(BackToDefault());
+        GoBackToDefault();
     }
 
     IEnumerator ShakeTime(float time, float targetChangeTime, float amount, float smooth)
@@ -138,23 +115,28 @@ public class TransformShake : MonoBehaviour
         while (t > 0f)
         {
             yield return timeMode.WaitFor();
-            float delta = timeMode.DeltaTime();
-            t -= delta;
-            tc -= delta * intensity;
-
-            if (tc < 0f)
-            {
-                target = SetNewRandomTarget(amount);
-                tc = targetChangeTime;
-            }
-
-            Vector3 newCurrent = Vector3.SmoothDamp(current, target, ref currentSpd,
-                GetSmoothness(smooth, amount), Mathf.Infinity, timeMode.DeltaTime());
-            newCurrent = Vector3.Lerp(Vector3.zero, newCurrent, intensity);
-            transformOverride.Translate(newCurrent - current, space);
-            current = newCurrent;
+            ShakeOp(ref target, ref t, ref tc, targetChangeTime, amount, smooth);
         }
-        co = StartCoroutine(BackToDefault());
+        GoBackToDefault();
+    }
+
+    void ShakeOp(ref Vector3 target, ref float t, ref float tc, float targetChangeTime,
+        float amount, float smooth)
+    {
+        float delta = timeMode.DeltaTime();
+        t -= delta;
+        tc -= delta * intensity;
+
+        if (tc < 0f)
+        {
+            target = SetNewRandomTarget(amount);
+            tc = targetChangeTime;
+        }
+
+        Vector3 newCurrent = Vector3.SmoothDamp(Current(), target, ref currentSpd,
+            GetSmoothness(smooth, amount), Mathf.Infinity, timeMode.DeltaTime());
+        newCurrent = Vector3.Lerp(Vector3.zero, newCurrent, intensity);
+        ApplyTransform(newCurrent - Current());
     }
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -163,7 +145,7 @@ public class TransformShake : MonoBehaviour
         if (!EditorApplication.isPaused)
 #endif
             if (camera.transform.IsChildOf(transformOverride))
-                transformOverride.Translate(current, space);
+                Transformation(Current());
     }
 
     Vector3 SetNewRandomTarget(float amount)
@@ -173,24 +155,14 @@ public class TransformShake : MonoBehaviour
             axes.z ? (Random.value * doubleAmount) - amount : 0f);
     }
 
-    IEnumerator BackToDefault()
-    {
-        while (current.sqrMagnitude > 0f)
-        {
-            yield return timeMode.WaitFor();
-
-            Vector3 newCurrent = Vector3.SmoothDamp(current, Vector3.zero, ref currentSpd,
-                GetSmoothness(returnSmoothTime, amount), Mathf.Infinity, timeMode.DeltaTime());
-            transformOverride.Translate(newCurrent - current, space);
-            current = newCurrent;
-        }
-        transformOverride.Translate(-current, space);
-        current = Vector3.zero;
-    }
-
     float GetSmoothness(float smooth, float amount)
     {
         //return smooth / amount; //Relative
         return smooth; //Absolute
+    }
+
+    protected override void Transformation(Vector3 value)
+    {
+        transformOverride.Translate(value, space);
     }
 }

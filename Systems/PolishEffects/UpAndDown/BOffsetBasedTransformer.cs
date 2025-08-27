@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using Sirenix.OdinInspector;
 
-public class BOffsetBasedTransform : MonoBehaviour
+public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unmanaged
 {
     [SerializeField]
     [PropertyOrder(5)]
@@ -12,15 +12,13 @@ public class BOffsetBasedTransform : MonoBehaviour
     protected ResetMode resetMode = ResetMode.OnDisable;
     [SerializeField]
     [PropertyOrder(5)]
-    [ShowIf("@resetMode != ResetMode.Never")]
+    [ShowIf("@resetMode != BOffsetBasedTransformer.ResetMode.Never")]
     [Indent]
     protected float returnSmoothTime = 0.1f;
 
-    protected enum ResetMode { OnDisable, OnEnable, Never }
-
-    float currentSpd;
-    float current;
-    float metaCurrent;
+    T current;
+    T metaCurrent;
+    T metaCurrentSpd;
     float amountMult;
     Coroutine co;
 
@@ -29,7 +27,7 @@ public class BOffsetBasedTransform : MonoBehaviour
         amountMult = value;
     }
 
-    protected float Current()
+    protected T Current()
     {
         return current;
     }
@@ -57,22 +55,22 @@ public class BOffsetBasedTransform : MonoBehaviour
         }
     }
 
-    void GoBackToDefault()
+    public void GoBackToDefault()
     {
-        metaCurrent = current;
-        current = 0f;
+        metaCurrent = Generics.Add(metaCurrent, current);
+        current = Default<T>.Value;
         co = StartCoroutine(BackToDefault());
     }
 
     IEnumerator BackToDefault()
     {
-        while (metaCurrent > 0f)
+        while (Generics.HasMagnitude(metaCurrent))
         {
             yield return timeMode.WaitFor();
 
-            float newCurrent = Mathf.SmoothDamp(metaCurrent, current, ref currentSpd,
+            T newCurrent = Generics.SmoothDamp(metaCurrent, current, ref metaCurrentSpd,
                 returnSmoothTime, Mathf.Infinity, timeMode.DeltaTime());
-            Transformation(newCurrent - metaCurrent);
+            Transformation(Generics.Subtract(newCurrent, metaCurrent));
             metaCurrent = newCurrent;
         }
         ResetMetaCurrent();
@@ -80,21 +78,26 @@ public class BOffsetBasedTransform : MonoBehaviour
 
     void ResetMetaCurrent()
     {
-        Transformation(-metaCurrent);
+        Transformation(Generics.Negate(metaCurrent));
     }
 
-    protected void ApplyTransform(float value)
+    protected void ApplyTransform(T value)
     {
-        current += value;
-        Transformation(value * amountMult);
+        current = Generics.Add(current, value);
+        Transformation(Generics.Scale(value, amountMult));
     }
 
     protected virtual void ResetTransform()
     {
-        ApplyTransform(-current * amountMult);
+        ApplyTransform(Generics.Scale(Generics.Negate(current), amountMult));
     }
 
-    protected virtual void Transformation(float value)
+    protected virtual void Transformation(T value)
     {
     }
+}
+
+public class BOffsetBasedTransformer : MonoBehaviour
+{
+    public enum ResetMode { OnDisable, OnEnable, Never }
 }
