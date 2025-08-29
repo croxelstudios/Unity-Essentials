@@ -15,6 +15,13 @@ public class CustomTag_Colored : CustomTag
     [SerializeField]
     DXColorEvent launchColor = null;
 
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        if (launchOnEnable)
+            LaunchEvents();
+    }
+
     public void UpdateTagList()
     {
         item.tagList = coloredTagList;
@@ -41,6 +48,7 @@ public class CustomTag_Colored_Inspector : OdinEditor
 {
     InspectorProperty coloredTagList;
     SerializedProperty customTag;
+    InspectorProperty launchOnEnable;
     InspectorProperty launchTagID;
     InspectorProperty launchColor;
 
@@ -48,6 +56,7 @@ public class CustomTag_Colored_Inspector : OdinEditor
     {
         coloredTagList = Tree.GetPropertyAtPath("coloredTagList");
         customTag = serializedObject.FindProperty("item").FindPropertyRelative("customTag");
+        launchOnEnable = Tree.GetPropertyAtPath("launchOnEnable");
         launchTagID = Tree.GetPropertyAtPath("launchTagID");
         launchColor = Tree.GetPropertyAtPath("launchColor");
     }
@@ -60,6 +69,7 @@ public class CustomTag_Colored_Inspector : OdinEditor
         EditorGUI.BeginChangeCheck();
         coloredTagList.Draw();
         EditorGUILayout.PropertyField(customTag);
+        launchOnEnable.Draw();
         launchTagID.Draw();
         launchColor.Draw();
         if (EditorGUI.EndChangeCheck()) shouldLaunchEvents = true;

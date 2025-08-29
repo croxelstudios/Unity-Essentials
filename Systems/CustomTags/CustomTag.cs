@@ -13,6 +13,8 @@ public class CustomTag : MonoBehaviour
     //public new bool enabled { get { return _enabled; } set { _enabled = value; } }
     [OnValueChanged("TagUpdateAction")]
     public CustomTagItem item;
+    [SerializeField]
+    protected bool launchOnEnable = true;
     public DXIntEvent tagWasChanged = null;
 
     #region Statics
@@ -65,10 +67,12 @@ public class CustomTag : MonoBehaviour
         return AmIActiveTagged(item);
     }
 
-    void OnEnable()
+    protected virtual void OnEnable()
     {
         AddActiveTaggedObj(this);
         includedGameObjects = GetChildren(transform).ToArray();
+        if (launchOnEnable)
+            TagUpdateAction();
     }
 
     void OnDisable()
