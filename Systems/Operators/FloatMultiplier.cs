@@ -36,7 +36,7 @@ public class FloatMultiplier : MonoBehaviour
         if (!isMultiplied)
         {
             ReflectionTools.SetValue(component, propertyName,
-            ReflectionTools.GetValue<float>(component, propertyName) * multiplier);
+            ReflectionTools.GetValue<float>(component, propertyName, false) * multiplier, false);
             isMultiplied = true;
         }
     }
@@ -46,7 +46,7 @@ public class FloatMultiplier : MonoBehaviour
         if (isMultiplied)
         {
             ReflectionTools.SetValue(component, propertyName,
-            ReflectionTools.GetValue<float>(component, propertyName) / multiplier);
+            ReflectionTools.GetValue<float>(component, propertyName, false) / multiplier, false);
             isMultiplied = false;
         }
     }

@@ -268,7 +268,7 @@ public static class RenderGraphTools
         TextureCollection textures = GetSavedTextures(context);
 
         builder.SetRenderAttachment(color, 0, colorAccess);
-        
+
         if (!depth.IsValid())
             depth = textures.GetDepth(color);
 
@@ -358,6 +358,97 @@ public static class RenderGraphTools
             default:
                 return 0;
         }
+    }
+
+    static readonly int ID_Time = Shader.PropertyToID("_Time");
+    static readonly int ID_SinTime = Shader.PropertyToID("_SinTime");
+    static readonly int ID_CosTime = Shader.PropertyToID("_CosTime");
+    static readonly int ID_TimeParameters = Shader.PropertyToID("_TimeParameters");
+    static readonly int ID_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
+
+    static void GetShaderTimeValues(float time, out Vector4 timeVec, out Vector4 sinTime, out Vector4 cosTime)
+    {
+        timeVec = new Vector4(time / 20f, time, time * 2f, time * 3f);
+        sinTime = new Vector4(
+            Mathf.Sin(time / 8f),
+            Mathf.Sin(time / 4f),
+            Mathf.Sin(time / 2f),
+            Mathf.Sin(time)
+        );
+        cosTime = new Vector4(
+            Mathf.Cos(time / 8f),
+            Mathf.Cos(time / 4f),
+            Mathf.Cos(time / 2f),
+            Mathf.Cos(time)
+        );
+    }
+
+    public static void SetShaderTime(this RasterCommandBuffer cmd, float time)
+    {
+        GetShaderTimeValues(time, out Vector4 timeVec, out Vector4 sinTime, out Vector4 cosTime);
+
+        cmd.SetGlobalVector(ID_Time, timeVec);
+        cmd.SetGlobalVector(ID_SinTime, sinTime);
+        cmd.SetGlobalVector(ID_CosTime, cosTime);
+        cmd.SetGlobalVector(ID_TimeParameters, new Vector3(time, sinTime.w, cosTime.w));
+    }
+
+    public static void SetShaderTime(this UnsafeCommandBuffer cmd, float time)
+    {
+        GetShaderTimeValues(time, out Vector4 timeVec, out Vector4 sinTime, out Vector4 cosTime);
+
+        cmd.SetGlobalVector(ID_Time, timeVec);
+        cmd.SetGlobalVector(ID_SinTime, sinTime);
+        cmd.SetGlobalVector(ID_CosTime, cosTime);
+        cmd.SetGlobalVector(ID_TimeParameters, new Vector3(time, sinTime.w, cosTime.w));
+    }
+
+    static Vector4 GetDeltaTimeVector(float deltaTime)
+    {
+        return new Vector4(
+            deltaTime,
+            deltaTime > 0f ? 1f / deltaTime : 0f,
+            Time.smoothDeltaTime,
+            Time.smoothDeltaTime > 0f ? 1f / Time.smoothDeltaTime : 0f
+        );
+    }
+
+    public static void SetShaderDeltaTime(this RasterCommandBuffer cmd, float deltaTime)
+    {
+        Vector4 deltaTimeVec = GetDeltaTimeVector(deltaTime);
+
+        cmd.SetGlobalVector(ID_DeltaTime, deltaTimeVec);
+    }
+
+    public static void SetShaderDeltaTime(this UnsafeCommandBuffer cmd, float deltaTime)
+    {
+        Vector4 deltaTimeVec = GetDeltaTimeVector(deltaTime);
+
+        cmd.SetGlobalVector(ID_DeltaTime, deltaTimeVec);
+    }
+
+    public static void ShaderTime_Unscaled(this RasterCommandBuffer cmd, float scale = 1f)
+    {
+        cmd.SetShaderTime(Time.unscaledTime * scale);
+        cmd.SetShaderDeltaTime(Time.unscaledDeltaTime * scale);
+    }
+
+    public static void ShaderTime_Unscaled(this UnsafeCommandBuffer cmd, float scale = 1f)
+    {
+        cmd.SetShaderTime(Time.unscaledTime * scale);
+        cmd.SetShaderDeltaTime(Time.unscaledDeltaTime * scale);
+    }
+
+    public static void ShaderTime_Scaled(this RasterCommandBuffer cmd, float scale = 1f)
+    {
+        cmd.SetShaderTime(Time.time * scale);
+        cmd.SetShaderDeltaTime(Time.deltaTime * scale);
+    }
+
+    public static void ShaderTime_Scaled(this UnsafeCommandBuffer cmd, float scale = 1f)
+    {
+        cmd.SetShaderTime(Time.time * scale);
+        cmd.SetShaderDeltaTime(Time.deltaTime * scale);
     }
 
     /// <summary>
@@ -595,6 +686,6 @@ public struct MaterialOverrideBehaviour
                 dSettings.overrideShader = overrideShader;
                 dSettings.overrideShaderPassIndex = overrideShaderPassIndex;
                 break;
-        }    
+        }
     }
 }

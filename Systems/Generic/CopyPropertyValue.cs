@@ -39,6 +39,8 @@ public class CopyPropertyValue : MonoBehaviour
     void Copy()
     {
         ReflectionTools.SetFieldValue(targetComponent, targetPropertyName,
-            ReflectionTools.GetFieldValue(sourceComponent, sourcePropertyName));
+            ReflectionTools.GetFieldValue(sourceComponent, sourcePropertyName,
+            timeMode != TimeModeOrOnEnable.OnEnable),
+            timeMode != TimeModeOrOnEnable.OnEnable);
     }
 }

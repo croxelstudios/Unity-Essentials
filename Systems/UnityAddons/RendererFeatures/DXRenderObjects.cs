@@ -6,7 +6,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
-using Random = UnityEngine.Random;
 
 public class DXRenderObjects : ScriptableRendererFeature
 {
@@ -46,6 +45,12 @@ public class DXRenderObjects : ScriptableRendererFeature
         [FoldoutGroup("Overrides", true)]
         [Tooltip("Global shader keywords that will be activated or deactivated during rendering of this feature")]
         public ShaderKeyword[] shaderKeywords = null;
+
+        [FoldoutGroup("Overrides", true)]
+        public float shaderTimeScale = 1f;
+        [Indent]
+        [FoldoutGroup("Overrides", true)]
+        public bool useUnscaledTime = false;
 
         /// <summary>
         /// Sets whether it should override depth or not.
@@ -205,7 +210,8 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         pass = new RenderPass(name, settings.Event, filter.PassNames,
             filter.RenderQueueType, filter.LayerMask, settings.textureTargetSettings,
-            settings.cameraSettings, settings.materialOverride, settings.shaderKeywords);
+            settings.cameraSettings, settings.materialOverride, settings.shaderKeywords,
+            settings.shaderTimeScale, settings.useUnscaledTime);
 
         pass.InitKeywords();
 
@@ -260,6 +266,8 @@ public class DXRenderObjects : ScriptableRendererFeature
         FilteringSettings filteringSettings;
         RenderStateBlock renderStateBlock;
         ShaderKeyword[] overrideKeywords;
+        float timeScale;
+        bool useUnscaledTime;
 
         RTHandle rt;
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
@@ -282,6 +290,9 @@ public class DXRenderObjects : ScriptableRendererFeature
             public ShaderKeyword[] overrideKeywords;
 
             public List<RTHandle> toRelease;
+
+            public float timeScale;
+            public bool useUnscaledTime;
 
             public void SetKeywords(RasterCommandBuffer cmd)
             {
@@ -365,7 +376,7 @@ public class DXRenderObjects : ScriptableRendererFeature
         public RenderPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags,
             RenderQueueType renderQueueType, int layerMask, TextureTargetSettings textureSettings,
             RenderGraphTools.CameraSettings cameraSettings, MaterialOverrideBehaviour materialOverride,
-            ShaderKeyword[] overrideKeywords)
+            ShaderKeyword[] overrideKeywords, float timeScale, bool useUnscaledTime)
         {
             profilingSampler = new ProfilingSampler(profilerTag);
             this.textureSettings = textureSettings;
@@ -392,6 +403,8 @@ public class DXRenderObjects : ScriptableRendererFeature
             renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             this.cameraSettings = cameraSettings;
             this.materialOverride = materialOverride;
+            this.timeScale = timeScale;
+            this.useUnscaledTime = useUnscaledTime;
         }
 
         void InitPassData(UniversalCameraData cameraData, ref PassData passData)
@@ -422,6 +435,8 @@ public class DXRenderObjects : ScriptableRendererFeature
                 passData.clColor = textureSettings.color;
                 passData.clearDepth = (texMode == TextureTarget.Active) ? false : textureSettings.clearDepth;
                 passData.clDepth = textureSettings.depth;
+                passData.timeScale = timeScale;
+                passData.useUnscaledTime = useUnscaledTime;
                 //   -   Add resources
                 passData.color = resources.color;
                 passData.depth = resources.depth;
@@ -439,16 +454,26 @@ public class DXRenderObjects : ScriptableRendererFeature
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
+                    RasterCommandBuffer cmd = rgContext.cmd;
                     if (data.clearColor || data.clearDepth)
-                        rgContext.cmd.ClearRenderTarget(
+                        cmd.ClearRenderTarget(
                             data.clearDepth, data.clearColor, data.clColor, data.clDepth);
+                    // Pre
+                    if (data.useUnscaledTime)
+                        cmd.ShaderTime_Unscaled(data.timeScale);
+                    else cmd.ShaderTime_Scaled(data.timeScale);
+                    data.SetKeywords(cmd);
+                    //
 
-                    data.SetKeywords(rgContext.cmd);
-
-                    rgContext.cmd.ExecuteRenderObjects(universalData.cameraData, data.rendererListHdl,
+                    // Main
+                    cmd.ExecuteRenderObjects(universalData.cameraData, data.rendererListHdl,
                         universalData.cameraData.IsYFlipped(data.color), data.cameraSettings);
+                    //
 
-                    data.SetKeywords(rgContext.cmd);
+                    // Post
+                    data.SetKeywords(cmd);
+                    cmd.ShaderTime_Scaled();
+                    //
 
                     if (!data.toRelease.IsNullOrEmpty())
                     {
@@ -525,8 +550,6 @@ public class DXRenderObjects : ScriptableRendererFeature
             //    }
             //}
         }
-
-        static MaterialPropertyBlock sharedPropertyBlock = new MaterialPropertyBlock();
 
         struct BuilderResources
         {

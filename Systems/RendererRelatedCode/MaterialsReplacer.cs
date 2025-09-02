@@ -26,6 +26,7 @@ public class MaterialsReplacer : MonoBehaviour
     enum EditorMode { OnRendering, OnEnable, DontReplace}
 
     Renderer[] rend;
+    Material[] tmpMaterials;
     Dictionary<RendMat, Material> changedMaterials;
     Dictionary<Material, Material> replacements;
     Dictionary<Material, Material> inverseReplacements;
@@ -68,8 +69,6 @@ public class MaterialsReplacer : MonoBehaviour
                     RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
                     break;
                 case EditorMode.OnEnable:
-                    EditorSceneManager.sceneSaving += OnSceneBeingSaved;
-                    EditorSceneManager.sceneSaved += OnSceneFinishedSaving;
                     ReplaceMaterials();
                     break;
                 default:
@@ -88,8 +87,6 @@ public class MaterialsReplacer : MonoBehaviour
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
-            EditorSceneManager.sceneSaving -= OnSceneBeingSaved;
-            EditorSceneManager.sceneSaved -= OnSceneFinishedSaving;
         }
 #endif
         ResetMaterials();
@@ -111,16 +108,6 @@ public class MaterialsReplacer : MonoBehaviour
     {
         ResetMaterials();
     }
-
-    void OnSceneBeingSaved(Scene scene, string path)
-    {
-        ResetMaterials();
-    }
-
-    void OnSceneFinishedSaving(Scene scene)
-    {
-        ReplaceMaterials();
-    }
 #endif
 
     void ReplaceMaterials()
@@ -132,14 +119,14 @@ public class MaterialsReplacer : MonoBehaviour
             foreach (Renderer r in rend)
                 if (r != null)
                 {
-                    Material[] shM = r.sharedMaterials;
-                    for (int i = 0; i < shM.Length; i++)
-                        if (replacements.ContainsKey(shM[i]))
+                    tmpMaterials = r.sharedMaterials;
+                    for (int i = 0; i < tmpMaterials.Length; i++)
+                        if (replacements.ContainsKey(tmpMaterials[i]))
                         {
-                            changedMaterials.Add(new RendMat(r, i), shM[i]);
-                            shM[i] = replacements[shM[i]];
+                            changedMaterials.Add(new RendMat(r, i), tmpMaterials[i]);
+                            tmpMaterials[i] = replacements[tmpMaterials[i]];
                         }
-                    r.sharedMaterials = shM;
+                    r.sharedMaterials = tmpMaterials;
                 }
             isChanged = true;
         }
@@ -155,17 +142,17 @@ public class MaterialsReplacer : MonoBehaviour
                 foreach (Renderer r in rend)
                     if (r != null)
                     {
-                        Material[] shM = r.sharedMaterials;
-                        for (int i = 0; i < shM.Length; i++)
-                            if (inverseReplacements.ContainsKey(shM[i]))
-                                shM[i] = inverseReplacements[shM[i]];
-                        r.sharedMaterials = shM;
+                        tmpMaterials = r.sharedMaterials;
+                        for (int i = 0; i < tmpMaterials.Length; i++)
+                            if (inverseReplacements.ContainsKey(tmpMaterials[i]))
+                                tmpMaterials[i] = inverseReplacements[tmpMaterials[i]];
+                        r.sharedMaterials = tmpMaterials;
                     }
             }
             else foreach (KeyValuePair<RendMat, Material> kv in changedMaterials)
             {
                 Material[] sm = kv.Key.rend.sharedMaterials;
-                sm[kv.Key.mat] = kv.Value;
+                    sm[kv.Key.mat] = kv.Value;
                 kv.Key.rend.sharedMaterials = sm;
             }
             changedMaterials.Clear();
