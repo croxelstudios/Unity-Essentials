@@ -6,6 +6,8 @@ public class SlightTilting2D : MonoBehaviour
 {
     [SerializeField]
     Transform transformOverride = null;
+    [SerializeField]
+    Vector3 axis = Vector3.forward;
     public float amount = 1f;
     [Tooltip("Cycles per second")]
     public float _speed = 1f;
@@ -67,7 +69,7 @@ public class SlightTilting2D : MonoBehaviour
             float dif = useGlobalTime ? (SineWave((time + startTime) * speed) * currentAmount) - currentValue :
                 (SineWave(ref currentAngle, deltaTime * speed) * currentAmount) - currentValue;
             currentValue += dif;
-            transformOverride.localEulerAngles += Vector3.forward * dif;
+            transformOverride.localEulerAngles += axis * dif;
         }
     }
 
