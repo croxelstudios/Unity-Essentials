@@ -27,16 +27,6 @@ public class StringSignalListener : BBaseSignalListener<string>
             signals[i] = signalActions[i].signal;
     }
 
-#if UNITY_EDITOR
-    void OnValidate()
-    {
-        if (signalActions != null)
-            for (int i = 0; i < signalActions.Length; i++)
-                if ((signalActions[i].name == "") && (signalActions[i].signal != null))
-                    signalActions[i].name = signalActions[i].signal.name;
-    }
-#endif
-
     public override void LaunchActions()
     {
         for (int i = 0; i < signalActions.Length; i++)
@@ -60,7 +50,7 @@ public class StringSignalListener : BBaseSignalListener<string>
     [Serializable]
     public struct SignalAction
     {
-        public string name;
+        public string name { get { return signal ? signal.name : "None"; } }
         public StringSignal signal; //Change type here
         public DXStringEvent actions; //Change type here
 
@@ -68,7 +58,6 @@ public class StringSignalListener : BBaseSignalListener<string>
         {
             this.signal = signal;
             this.actions = actions;
-            name = signal.name;
         }
     }
 }

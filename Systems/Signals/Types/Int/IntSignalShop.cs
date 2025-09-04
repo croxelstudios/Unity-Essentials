@@ -3,7 +3,8 @@ using UnityEngine;
 public class IntSignalShop : MonoBehaviour
 {
     [SerializeField]
-    int cost = 3;
+    int _cost = 3;
+    public int cost { get { return _cost; } set { _cost = value; } }
     [SerializeField]
     IntSignal moneyHolder = null;
     [SerializeField]

@@ -41,16 +41,6 @@ public class IntSignalListener : BBaseSignalListener<int>
             signals[i] = signalActions[i].signal;
     }
 
-#if UNITY_EDITOR
-    void OnValidate()
-    {
-        if (signalActions != null)
-            for (int i = 0; i < signalActions.Length; i++)
-                if ((signalActions[i].name == "") && (signalActions[i].signal != null))
-                    signalActions[i].name = signalActions[i].signal.name;
-    }
-#endif
-
     public override void LaunchActions()
     {
         LaunchActions(false);
@@ -93,8 +83,7 @@ public class IntSignalListener : BBaseSignalListener<int>
     [Serializable]
     public struct SignalAction
     {
-        [FoldoutGroup("@name")]
-        public string name;
+        public string name { get { return signal ? signal.name : "None"; } }
         [FoldoutGroup("@name")]
         public IntSignal signal; //Change type here
         [FoldoutGroup("@name")]
@@ -108,7 +97,6 @@ public class IntSignalListener : BBaseSignalListener<int>
         {
             this.signal = signal;
             this.actions = actions;
-            name = signal.name;
             onlyWhenAlreadyEnabled = new ExtraEvent(null);
             onlyOnEnable = new ExtraEvent(null);
         }

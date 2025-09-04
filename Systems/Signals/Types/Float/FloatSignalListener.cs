@@ -39,16 +39,6 @@ public class FloatSignalListener : BBaseSignalListener<float>
             signals[i] = signalActions[i].signal;
     }
 
-#if UNITY_EDITOR
-    void OnValidate()
-    {
-        if (signalActions != null)
-            for (int i = 0; i < signalActions.Length; i++)
-                if ((signalActions[i].name == "") && (signalActions[i].signal != null))
-                    signalActions[i].name = signalActions[i].signal.name;
-    }
-#endif
-
     public override void LaunchActions()
     {
         for (int i = 0; i < signalActions.Length; i++)
@@ -72,7 +62,7 @@ public class FloatSignalListener : BBaseSignalListener<float>
     [Serializable]
     public struct SignalAction
     {
-        public string name;
+        public string name { get { return signal ? signal.name : "None"; } }
         public FloatSignal signal; //Change type here
         public DXFloatEvent actions; //Change type here
 
@@ -80,7 +70,6 @@ public class FloatSignalListener : BBaseSignalListener<float>
         {
             this.signal = signal;
             this.actions = actions;
-            name = signal.name;
         }
     }
 }

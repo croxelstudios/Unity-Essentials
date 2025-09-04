@@ -196,7 +196,7 @@ public class FlagChecker : BBaseSignalListener<bool>
     [Serializable]
     public struct FlagAction
     {
-        public string name { get { return flag.name; } }
+        public string name { get { return flag ? flag.name : "None"; } }
         [FoldoutGroup("@name")]
         public Flag flag; //Change type here
         [FoldoutGroup("@name")]
