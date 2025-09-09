@@ -513,6 +513,7 @@ public class RavioliButton : RavioliButton_Button
 
     IEnumerator SelectorMovement()
     {
+        selector.SetParent(transform.parent);
         MovementBehaviour SB = SBOfButton(currentButton);
         while (!MoveSelector(currentButton.transform.position, SB, timeMode.DeltaTime(), ref tmpSpd))
             yield return timeMode.WaitFor();
@@ -532,6 +533,7 @@ public class RavioliButton : RavioliButton_Button
             SBOfButton(currentButton).stopMoving?.Invoke();
             currentButton.TrySelect();
         }
+        selector.SetParent(currentButton.transform);
     }
     #endregion
 
