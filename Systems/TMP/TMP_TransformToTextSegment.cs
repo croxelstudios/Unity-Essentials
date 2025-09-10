@@ -1,5 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -13,6 +13,8 @@ public class TMP_TransformToTextSegment : MonoBehaviour
     Transform transformToMove = null;
     [SerializeField]
     bool turnSegmentTransparent = true;
+    [SerializeField]
+    bool handleObjectActivation = true;
 
     TMP_Text text;
 
@@ -38,10 +40,14 @@ public class TMP_TransformToTextSegment : MonoBehaviour
     public void UpdatePosition(ScriptableRenderContext con, List<Camera> cams)
     {
         string t = text.text;
+        t = Regex.Replace(t, "<.*?>", string.Empty, RegexOptions.Singleline | RegexOptions.Compiled);
+        t = t.Replace("'", " ");
         TMP_TextInfo textInfo = text.textInfo;
         if (t.Contains(textSegment))
         {
-            t = text.text;
+            if (handleObjectActivation)
+                transformToMove.gameObject.SetActive(true);
+
             int i = t.IndexOf(textSegment);
 
             Vector3 min = Vector3.one * Mathf.Infinity;
@@ -50,6 +56,7 @@ public class TMP_TransformToTextSegment : MonoBehaviour
             {
                 TMP_CharacterInfo ch = textInfo.characterInfo[i + j];
                 Color32[] colors = textInfo.meshInfo[ch.materialReferenceIndex].colors32;
+                bool characterVisible = false;
                 for (byte k = 0; k < verticesPerChar; k++)
                 {
                     Vector3 vertex =
@@ -59,8 +66,15 @@ public class TMP_TransformToTextSegment : MonoBehaviour
                     max = new Vector3(Mathf.Max(max.x, vertex.x), 
                         Mathf.Max(max.y, vertex.y),Mathf.Max(max.z, vertex.z));
 
+                    if ((!characterVisible) && ((max - min).sqrMagnitude > Mathf.Epsilon))
+                        characterVisible = true;
+
                     colors[ch.vertexIndex + k].a = 0;
                 }
+                characterVisible &= ch.isVisible;
+
+                if ((!characterVisible) && handleObjectActivation)
+                    transformToMove.gameObject.SetActive(false);
 
                 if (turnSegmentTransparent)
                 {
@@ -71,5 +85,7 @@ public class TMP_TransformToTextSegment : MonoBehaviour
             Vector3 pos = transform.TransformPoint(Vector3.Lerp(min, max, 0.5f));
             transformToMove.position = pos;
         }
+        else if (handleObjectActivation)
+            transformToMove.gameObject.SetActive(false);
     }
 }
