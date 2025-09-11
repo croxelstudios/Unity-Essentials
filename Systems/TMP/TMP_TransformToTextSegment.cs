@@ -43,20 +43,18 @@ public class TMP_TransformToTextSegment : MonoBehaviour
         t = Regex.Replace(t, "<.*?>", string.Empty, RegexOptions.Singleline | RegexOptions.Compiled);
         t = t.Replace("'", " ");
         TMP_TextInfo textInfo = text.textInfo;
+        bool characterVisible = false;
         if (t.Contains(textSegment))
         {
-            if (handleObjectActivation)
-                transformToMove.gameObject.SetActive(true);
-
             int i = t.IndexOf(textSegment);
 
             Vector3 min = Vector3.one * Mathf.Infinity;
             Vector3 max = -min;
+            text.ForceMeshUpdate();
             for (int j = 0; j < textSegment.Length; j++)
             {
                 TMP_CharacterInfo ch = textInfo.characterInfo[i + j];
                 Color32[] colors = textInfo.meshInfo[ch.materialReferenceIndex].colors32;
-                bool characterVisible = false;
                 for (byte k = 0; k < verticesPerChar; k++)
                 {
                     Vector3 vertex =
@@ -66,15 +64,11 @@ public class TMP_TransformToTextSegment : MonoBehaviour
                     max = new Vector3(Mathf.Max(max.x, vertex.x), 
                         Mathf.Max(max.y, vertex.y),Mathf.Max(max.z, vertex.z));
 
-                    if ((!characterVisible) && ((max - min).sqrMagnitude > Mathf.Epsilon))
-                        characterVisible = true;
-
                     colors[ch.vertexIndex + k].a = 0;
                 }
-                characterVisible &= ch.isVisible;
 
-                if ((!characterVisible) && handleObjectActivation)
-                    transformToMove.gameObject.SetActive(false);
+                if (((max - min).sqrMagnitude > Mathf.Epsilon) && ch.isVisible)
+                    characterVisible = true;
 
                 if (turnSegmentTransparent)
                 {
@@ -82,10 +76,17 @@ public class TMP_TransformToTextSegment : MonoBehaviour
                     text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
                 }
             }
+
             Vector3 pos = transform.TransformPoint(Vector3.Lerp(min, max, 0.5f));
             transformToMove.position = pos;
         }
-        else if (handleObjectActivation)
-            transformToMove.gameObject.SetActive(false);
+
+        if (handleObjectActivation)
+        {
+            if (characterVisible)
+                transformToMove.gameObject.SetActive(true);
+            else
+                transformToMove.gameObject.SetActive(false);
+        }
     }
 }
