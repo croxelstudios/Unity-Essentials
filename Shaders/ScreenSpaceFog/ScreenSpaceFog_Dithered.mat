@@ -8,12 +8,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: ScreenSpaceFog_Dithered
-  m_Shader: {fileID: -6465566751694194690, guid: 98b7d6a5b29fcca4c951ecee165e7193,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 98b7d6a5b29fcca4c951ecee165e7193, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _DITHERED
+  - _FOGMODE_CUSTOM
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -51,6 +51,7 @@ Material:
     - _Density: 0.6
     - _Distance: 24
     - _Easing: 0.4
+    - _FOGMODE: 0
     - _Fade: 9
     - _OverrideSkybox: 0
     m_Colors:

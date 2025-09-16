@@ -208,7 +208,7 @@ public struct CustomTagItem : IEquatable<CustomTagItem>
 
     public override int GetHashCode()
     {
-        return tagList.GetHashCode() * 31 + customTag.GetHashCode();
+        return ((tagList == null) ? 0 : tagList.GetHashCode()) * 31 + customTag.GetHashCode();
     }
 
     public static bool operator ==(CustomTagItem o1, CustomTagItem o2)

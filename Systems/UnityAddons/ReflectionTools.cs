@@ -89,7 +89,7 @@ public static class ReflectionTools
 
         string fieldName = fieldStructure.Last();
 
-        string text = fieldName.BreakDownArrayVariableName(out int index);
+        fieldName = fieldName.BreakDownArrayVariableName(out int index);
 
         FieldInfo fieldInfo = GetField(fieldName, inObj, bindings);
         PropertyInfo propInfo = null;
@@ -102,12 +102,14 @@ public static class ReflectionTools
     static ObjectInfo GetCachedInfo(object inObj, string fieldPath)
     {
         ObjectInfo objectInfo;
-        if (!cachedObjectInfo.SmartGetValue(inObj, out Dictionary<string, ObjectInfo> dict))
+        if (!cachedObjectInfo.SmartGetValue(inObj, out Dictionary<string, ObjectInfo> dict)
+            || (dict == null))
         {
             dict = new Dictionary<string, ObjectInfo>();
             cachedObjectInfo = cachedObjectInfo.CreateAdd(inObj, new Dictionary<string, ObjectInfo>());
         }
-        if (!dict.TryGetValue(fieldPath, out objectInfo))
+        if (!dict.TryGetValue(fieldPath, out objectInfo)
+            || (objectInfo.fieldInfo == null))
         {
             objectInfo = GetObjectInfo(inObj, fieldPath);
             dict.Add(fieldPath, objectInfo);
