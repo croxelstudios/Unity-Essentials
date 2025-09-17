@@ -7,7 +7,7 @@ public class Timer : MonoBehaviour
     Randomizable secs = new Randomizable("Seconds", 0.02f, 1f);
     public float seconds
     {
-        get { return secs.Reset(); }
+        get { return secs.GetValue(); }
         set { secs.SetValue(value); }
     }
     [SerializeField]

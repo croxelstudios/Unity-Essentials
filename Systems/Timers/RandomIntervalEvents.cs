@@ -94,7 +94,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
     IEnumerator Interval()
     {
         StartInterval();
-        float t = intervalsDuration.Reset();
+        float t = intervalsDuration.GetValue();
         while (t > 0f)
         {
             yield return null;
@@ -107,7 +107,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
 
     IEnumerator WaitForInterval()
     {
-        float t = timeBetweenIntervals.Reset();
+        float t = timeBetweenIntervals.GetValue();
         while (t > 0f)
         {
             yield return null;

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Animations;
 
 [DefaultExecutionOrder(-1)]
 public class RavioliButton : RavioliButton_Button
@@ -107,7 +108,7 @@ public class RavioliButton : RavioliButton_Button
     {
         base.OnEnable();
 
-        if (toReadd != null)
+        if (!toReadd.IsNullOrEmpty())
             foreach (RavioliButton_Button button in toReadd)
                 if (button.IsInGroup(this))
                     AddButton(button);
@@ -180,10 +181,15 @@ public class RavioliButton : RavioliButton_Button
             {
                 for (int i = 0; i < buttons.Count; i++) buttons[i].TryDeselect();
                 InitializeMovementBehaviors();
-                UpdateMovementBehaviours(false);
-                currentButton.TrySelect();
+                TrySelectCurrent();
             }
         }
+    }
+
+    void TrySelectCurrent()
+    {
+        if ((!UpdateMovementBehaviours(false)) && (currentButton != null))
+            currentButton.TrySelect();
     }
 
     /// <summary>
@@ -513,7 +519,7 @@ public class RavioliButton : RavioliButton_Button
 
     IEnumerator SelectorMovement()
     {
-        selector.SetParent(transform.parent);
+        selector.SetVirtualParent(null);
         MovementBehaviour SB = SBOfButton(currentButton);
         while (!MoveSelector(currentButton.transform.position, SB, timeMode.DeltaTime(), ref tmpSpd))
             yield return timeMode.WaitFor();
@@ -533,7 +539,7 @@ public class RavioliButton : RavioliButton_Button
             SBOfButton(currentButton).stopMoving?.Invoke();
             currentButton.TrySelect();
         }
-        selector.SetParent(currentButton.transform);
+        selector.SetVirtualParent(currentButton.transform);
     }
     #endregion
 
@@ -625,11 +631,10 @@ public class RavioliButton : RavioliButton_Button
                 if (currentButton == null)
                 {
                     UpdateCurrentButton(button);
-                    InitializeMovementBehaviors();
-                    UpdateMovementBehaviours(false);
-                    currentButton.TrySelect();
+                    InitializeMovementBehaviors(); 
+                    TrySelectCurrent();
                 }
-                else UpdateMovementBehaviours(false);
+                else TrySelectCurrent();
             }
             else
             //Handles spacific case where the group has just been activated and needs to preserve data from before the previous deactivation
@@ -693,7 +698,7 @@ public class RavioliButton : RavioliButton_Button
     IEnumerator MBResetAfterOneFrame()
     {
         yield return WaitFor.Frames(2);
-        UpdateMovementBehaviours(false);
+        TrySelectCurrent();
     }
 
     struct ProgrammedSelectButtonAction
@@ -830,7 +835,7 @@ public class RavioliButton_Button : MonoBehaviour
         if (!imAddedToGroups)
         {
             imAddedToGroups = true;
-            if (groups != null)
+            if (!groups.IsNullOrEmpty())
                 foreach (RavioliButton gr in groups)
                     gr.AddButton(this);
         }
@@ -838,7 +843,7 @@ public class RavioliButton_Button : MonoBehaviour
 
     void RemoveFromAllGroups()
     {
-        if (groups != null)
+        if (!groups.IsNullOrEmpty())
             foreach (RavioliButton group in groups)
                 group.RemoveButton(this);
         imAddedToGroups = false;
@@ -864,7 +869,7 @@ public class RavioliButton_Button : MonoBehaviour
 
     public virtual void PressButtonWith_Internal(int id)
     {
-        if (groups != null)
+        if (!groups.IsNullOrEmpty())
             foreach (RavioliButton group in groups)
                 group.PressButtonGroup(id, transform.GetSiblingIndex());
 
@@ -880,7 +885,7 @@ public class RavioliButton_Button : MonoBehaviour
         {
             AddMyselfToParentGroups();
 
-            if (groups != null)
+            if (!groups.IsNullOrEmpty())
                 foreach (RavioliButton group in groups)
                 {
                     group.SelectButton(this);
@@ -895,7 +900,7 @@ public class RavioliButton_Button : MonoBehaviour
         {
             AddMyselfToParentGroups();
 
-            if (groups != null)
+            if (!groups.IsNullOrEmpty())
                 foreach (RavioliButton group in groups)
                 {
                     group.SelectButtonInstant(transform.GetSiblingIndex());

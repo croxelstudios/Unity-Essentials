@@ -213,16 +213,28 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
 
     protected virtual void SetValue(T value)
     {
+#if UNITY_EDITOR
+        if (MustShowStartValue())
+            startValue = value;
+#endif
         currentValue = value;
     }
 
     public void SetValueParse(string value)
     {
+#if UNITY_EDITOR
+        if (MustShowStartValue())
+            startValue = value.Parse<T>();
+#endif
         CallSignal(value.Parse<T>());
     }
 
     public virtual string GetStringValue()
     {
+#if UNITY_EDITOR
+        if (MustShowStartValue())
+            return startValue.ToString();
+#endif
         return currentValue.ToString();
     }
 
@@ -303,6 +315,10 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
 
     public static void Set(ValueSignal<T> signal, T value)
     {
+#if UNITY_EDITOR
+        if (signal.MustShowStartValue())
+            signal.startValue = value;
+#endif
         signal.CallSignal(value);
     }
 

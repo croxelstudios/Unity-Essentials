@@ -11,7 +11,7 @@ public class PeriodicEvent : MonoBehaviour
     bool randomizeOnlyOnEnable = false;
     public float seconds
     {
-        get { return randomizeOnlyOnEnable ? secs : secs.Reset(); }
+        get { return randomizeOnlyOnEnable ? secs : secs.GetValue(); }
         set { secs.SetValue(value); }
     }
     [SerializeField]

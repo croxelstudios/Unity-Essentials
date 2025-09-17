@@ -16,14 +16,24 @@ public class StringSignal : ValueSignal<string> //Change type here
     [SerializeField]
     bool isScenePath = false;
     [SerializeField]
+    [ShowIf("MustShowStartValue")]
     [ShowIf("isScenePath")]
-    SceneReference scene;
+    [LabelText("Scene")]
+    SceneReference startScene = default;
+    [HideIf("MustShowStartValue")]
+    [OnValueChanged("CallSignalOnCurrentTagAndValues")]
+    [ShowIf("isScenePath")]
+    [LabelText("Scene")]
+    SceneReference currentScene = default;
 
 #if UNITY_EDITOR
     void OnValidate()
     {
         if (isScenePath && !Application.isPlaying)
-            startValue = scene.ScenePath;
+        {
+            startValue = startScene.ScenePath;
+            currentValue = currentScene.ScenePath;
+        }
     }
 #endif
 
@@ -32,16 +42,33 @@ public class StringSignal : ValueSignal<string> //Change type here
         base.SetValue(value);
         if (isScenePath)
         {
-            if (scene == null)
-                scene = new SceneReference();
-            scene.ScenePath = value;
+#if UNITY_EDITOR
+            if (MustShowStartValue())
+                SetSceneRef(ref startScene, value);
+#endif
+            SetSceneRef(ref currentScene, value);
         }
+    }
+
+    static void SetSceneRef(ref SceneReference scRef, string value)
+    {
+        if (scRef == null)
+            scRef = new SceneReference();
+        scRef.ScenePath = value;
     }
 
     [Command("set-string")]
     public static void SetString(StringSignal signal, string value) //Change type here
     {
         Set(signal, value);
+        if (signal.isScenePath)
+        {
+#if UNITY_EDITOR
+            if (signal.MustShowStartValue())
+                SetSceneRef(ref signal.startScene, value);
+#endif
+            SetSceneRef(ref signal.currentScene, value);
+        }
     }
 
     protected override string Calculate() //Change type here

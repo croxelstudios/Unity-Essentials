@@ -65,8 +65,10 @@ public struct Randomizable
         max = Mathf.Max(value, max);
     }
 
-    public float GetValue()
+    public float GetValue(bool resetRandomize = true)
     {
+        if (resetRandomize)
+            wasRandomized = false;
         if (randomize)
         {
             if (!wasRandomized)
@@ -79,19 +81,13 @@ public struct Randomizable
         else return value;
     }
 
-    public float Reset()
-    {
-        wasRandomized = false;
-        return GetValue();
-    }
-
     public void SetValue(float value)
     {
         this.value = value;
         randomize = false;
     }
 
-    public static implicit operator float(Randomizable obj) => obj.GetValue();
+    public static implicit operator float(Randomizable obj) => obj.GetValue(false);
 }
 
 #if UNITY_EDITOR

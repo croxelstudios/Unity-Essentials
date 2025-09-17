@@ -34,7 +34,7 @@ public class FadeInOut : MonoBehaviour
     DXEvent beginOut = null;
 
     Coroutine co;
-    FadeBehaviour current;
+    FadeBehaviour current = FadeBehaviour.None;
     FadeBehaviour onEnableOverride = FadeBehaviour.None;
     bool init;
 
