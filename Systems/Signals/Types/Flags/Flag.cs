@@ -123,6 +123,7 @@ public class Flag : ValueSignal<bool> //Change type here
     protected override void AfterReset()
     {
         currentConditionCount = 0;
+        base.AfterReset();
     }
 
     public void LaunchOnTrue()

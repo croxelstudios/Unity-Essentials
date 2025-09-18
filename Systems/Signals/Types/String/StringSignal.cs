@@ -30,10 +30,7 @@ public class StringSignal : ValueSignal<string> //Change type here
     void OnValidate()
     {
         if (isScenePath && !Application.isPlaying)
-        {
             startValue = startScene.ScenePath;
-            currentValue = currentScene.ScenePath;
-        }
     }
 #endif
 

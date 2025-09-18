@@ -56,22 +56,22 @@ public class DXStringEvent : DXTypedEvent<string>
 
     public void AddIsEmptyListener(UnityAction call)
     {
-        isEmpty.AddListener(call);
+        isEmpty = isEmpty.CreateAddListener(call);
     }
 
     public void AddIsNotEmptyListener(UnityAction call)
     {
-        isNotEmpty.AddListener(call);
+        isNotEmpty = isNotEmpty.CreateAddListener(call);
     }
 
     public void RemoveIsEmptyListener(UnityAction call)
     {
-        isEmpty.RemoveListener(call);
+        isEmpty.SmartRemoveListener(call);
     }
 
     public void RemoveIsNotEmptyListener(UnityAction call)
     {
-        isNotEmpty.RemoveListener(call);
+        isNotEmpty.SmartRemoveListener(call);
     }
 
     public override bool IsNull()

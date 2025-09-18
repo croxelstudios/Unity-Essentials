@@ -37,12 +37,12 @@ public class DXEvent : BDXEvent<UnityEvent>
 
     public void AddListener(UnityAction call)
     {
-        unityEvent.AddListener(call);
+        unityEvent = unityEvent.CreateAddListener(call);
     }
 
     public void RemoveListener(UnityAction call)
     {
-        unityEvent.RemoveListener(call);
+        unityEvent.SmartRemoveListener(call);
     }
 }
 

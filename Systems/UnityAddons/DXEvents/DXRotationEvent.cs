@@ -89,62 +89,62 @@ public class DXRotationEvent : DXTypedEvent<Vector3>
 
     public void AddListener(UnityAction<Quaternion> call)
     {
-        quaternionEvent.AddListener(call);
+        quaternionEvent = quaternionEvent.CreateAddListener(call);
     }
 
     public void RemoveListener(UnityAction<Quaternion> call)
     {
-        quaternionEvent.RemoveListener(call);
+        quaternionEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Angle(UnityAction<float> call)
     {
-        angleEvent.AddListener(call);
+        angleEvent = angleEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Angle(UnityAction<float> call)
     {
-        angleEvent.RemoveListener(call);
+        angleEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Axis(UnityAction<Vector3> call)
     {
-        axisEvent.AddListener(call);
+        axisEvent = axisEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Axis(UnityAction<Vector3> call)
     {
-        axisEvent.RemoveListener(call);
+        axisEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_X(UnityAction<float> call)
     {
-        xEvent.AddListener(call);
+        xEvent = xEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_X(UnityAction<float> call)
     {
-        xEvent.RemoveListener(call);
+        xEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Y(UnityAction<float> call)
     {
-        yEvent.AddListener(call);
+        yEvent = yEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Y(UnityAction<float> call)
     {
-        yEvent.RemoveListener(call);
+        yEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Z(UnityAction<float> call)
     {
-        zEvent.AddListener(call);
+        zEvent = zEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Z(UnityAction<float> call)
     {
-        zEvent.RemoveListener(call);
+        zEvent.SmartRemoveListener(call);
     }
 
     public override bool IsNull()

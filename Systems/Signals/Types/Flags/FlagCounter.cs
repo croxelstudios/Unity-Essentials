@@ -56,14 +56,14 @@ public class FlagCounter : MonoBehaviour
 
     void SubscribeToFlag(Flag f)
     {
-        f.whenTrue.AddListener(Add);
-        f.whenFalse.AddListener(Remove);
+        f.whenTrue = f.whenTrue.CreateAddListener(Add);
+        f.whenFalse = f.whenFalse.CreateAddListener(Remove);
     }
 
     void UnsubscribeFromFlag(Flag f)
     {
-        f.whenTrue.RemoveListener(Add);
-        f.whenFalse.RemoveListener(Remove);
+        f.whenTrue.SmartRemoveListener(Add);
+        f.whenFalse.SmartRemoveListener(Remove);
     }
 
     void Add()

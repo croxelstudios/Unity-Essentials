@@ -17,9 +17,8 @@ public class SaveSystem_Saver : MonoBehaviour
 
     public void DeleteSave()
     {
-        SaveMaster.ClearListeners(false);
-        SaveMaster.DeleteSave();
-        CheckSlots();
+        BSaver.ResetSavers();
+        SaveToFile();
     }
 
     public void LoadNewSave()

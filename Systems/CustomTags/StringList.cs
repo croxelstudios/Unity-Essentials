@@ -99,6 +99,12 @@ public class StringList : ScriptableObject
 
     public void Reset()
     {
+        foreach (string value in runtimeValues)
+            if (!tags.Contains(value)) valueRemoved?.Invoke(value);
+
+        foreach (string value in tags)
+            if (!runtimeValues.Contains(value)) valueAdded?.Invoke(value);
+
         runtimeValues = new string[tags.Length];
         for (int i = 0; i < tags.Length; i++)
             runtimeValues[i] = tags[i];

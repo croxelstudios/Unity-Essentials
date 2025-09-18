@@ -45,7 +45,8 @@ public class IntHolder : MonoBehaviour
         if (originIntHolder != null)
         {
             Set(originIntHolder.current);
-            originIntHolder.intChanged?.AddListener(Set);
+            originIntHolder.intChanged =
+                originIntHolder.intChanged.CreateAddListener<DXIntEvent, int>(Set);
         }
         if(launchCurrentOnEnable)
             ForceManageIntChangeGeneric(current, true);
@@ -54,7 +55,7 @@ public class IntHolder : MonoBehaviour
     protected virtual void OnDisable()
     {
         if (originIntHolder != null)
-            originIntHolder.intChanged?.RemoveListener(Set);
+            originIntHolder.intChanged.SmartRemoveListener<DXIntEvent, int>(Set);
         ForceManageIntChangeGeneric(current, false);
         if (resetOnDisable) ResetHolder();
     }

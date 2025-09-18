@@ -60,32 +60,32 @@ public class DXFloatEvent : DXTypedEvent<float>
 
     public void AddListener_Abs(UnityAction<float> call)
     {
-        absEvent.AddListener(call);
+        absEvent = absEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Abs(UnityAction<float> call)
     {
-        absEvent.RemoveListener(call);
+        absEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Negative(UnityAction<float> call)
     {
-        negativeEvent.AddListener(call);
+        negativeEvent = negativeEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Negative(UnityAction<float> call)
     {
-        negativeEvent.RemoveListener(call);
+        negativeEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_OneMinus(UnityAction<float> call)
     {
-        oneMinusEvent.AddListener(call);
+        oneMinusEvent = oneMinusEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_OneMinus(UnityAction<float> call)
     {
-        oneMinusEvent.RemoveListener(call);
+        oneMinusEvent.SmartRemoveListener(call);
     }
 
     public override bool IsNull()

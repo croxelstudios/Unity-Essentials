@@ -1,7 +1,5 @@
 using Sirenix.OdinInspector;
-using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class ScaleByCurve : MonoBehaviour
 {
@@ -62,23 +60,7 @@ public class ScaleByCurve : MonoBehaviour
     {
         if (currentTime > 0f)
         {
-            float factor = currentTime / time;
-            float current = curve.Evaluate(negative ? factor : 1 - factor) * scale;
-
-            //Prevent 0 scale locks
-            if (Mathf.Abs(current) < minScale) current = minScale * Mathf.Sign(current);
-            if (transform.localScale.x < minScale)
-                transform.localScale = new Vector3(minScale, transform.localScale.y, transform.localScale.z);
-            if (transform.localScale.y < minScale)
-                transform.localScale = new Vector3(transform.localScale.x, minScale, transform.localScale.z);
-            if (transform.localScale.z < minScale)
-                transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, minScale);
-
-            //Modify scale according to curve without affecting other scaling behaviours
-            float currentMult = current / lastScaleModifier;
-            transform.localScale = transform.localScale * currentMult;
-
-            lastScaleModifier = current;
+            ScaleAtTime(currentTime);
 
             currentTime -= deltaTime;
 
@@ -89,6 +71,27 @@ public class ScaleByCurve : MonoBehaviour
                 else finishedScale?.Invoke();
             }
         }
+    }
+
+    void ScaleAtTime(float currentTime)
+    {
+        float factor = currentTime / time;
+        float current = curve.Evaluate(negative ? factor : 1 - factor) * scale;
+
+        //Prevent 0 scale locks
+        if (Mathf.Abs(current) < minScale) current = minScale * Mathf.Sign(current);
+        if (transform.localScale.x < minScale)
+            transform.localScale = new Vector3(minScale, transform.localScale.y, transform.localScale.z);
+        if (transform.localScale.y < minScale)
+            transform.localScale = new Vector3(transform.localScale.x, minScale, transform.localScale.z);
+        if (transform.localScale.z < minScale)
+            transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, minScale);
+
+        //Modify scale according to curve without affecting other scaling behaviours
+        float currentMult = current / lastScaleModifier;
+        transform.localScale = transform.localScale * currentMult;
+
+        lastScaleModifier = current;
     }
 
     void Init()
@@ -102,9 +105,10 @@ public class ScaleByCurve : MonoBehaviour
 
     public void DoScaleAnimation()
     {
-        Init();
         if (this.IsActiveAndEnabled())
         {
+            Init();
+
             if (normalizeScaleAtStart)
             {
                 if (transform.localScale.sqrMagnitude <= 0f) transform.localScale = Vector3.one;
@@ -115,14 +119,17 @@ public class ScaleByCurve : MonoBehaviour
             else if (negative)
                 currentTime = time - currentTime;
             negative = false;
+
+            ScaleAtTime(currentTime);
         }
     }
 
     public void ReverseScaleAnimation()
     {
-        Init();
         if (this.IsActiveAndEnabled())
         {
+            Init();
+
             if (normalizeScaleAtStart)
             {
                 if (transform.localScale.sqrMagnitude <= 0f) transform.localScale = Vector3.one;
@@ -133,6 +140,8 @@ public class ScaleByCurve : MonoBehaviour
             else if (!negative)
                 currentTime = time - currentTime;
             negative = true;
+
+            ScaleAtTime(currentTime);
         }
     }
 }

@@ -125,92 +125,92 @@ public class DXVectorEvent : DXTypedEvent<Vector3>
 
     public void AddListener(UnityAction<Vector2> call)
     {
-        vector2Event.AddListener(call);
+        vector2Event = vector2Event.CreateAddListener(call);
     }
 
     public void RemoveListener(UnityAction<Vector2> call)
     {
-        vector2Event.RemoveListener(call);
+        vector2Event.SmartRemoveListener(call);
     }
 
     public void AddListener(UnityAction<float> call)
     {
-        magnitude.AddListener(call);
+        magnitude = magnitude.CreateAddListener(call);
     }
 
     public void RemoveListener(UnityAction<float> call)
     {
-        magnitude.RemoveListener(call);
+        magnitude.SmartRemoveListener(call);
     }
 
     public void AddListener_Normal(UnityAction<Vector3> call)
     {
-        unityEventNormal.AddListener(call);
+        unityEventNormal = unityEventNormal.CreateAddListener(call);
     }
 
     public void RemoveListener_Normal(UnityAction<Vector3> call)
     {
-        unityEventNormal.RemoveListener(call);
+        unityEventNormal.SmartRemoveListener(call);
     }
 
     public void AddListener_Normal(UnityAction<Vector2> call)
     {
-        vector2EventNormal.AddListener(call);
+        vector2EventNormal = vector2EventNormal.CreateAddListener(call);
     }
 
     public void RemoveListener_Normal(UnityAction<Vector2> call)
     {
-        vector2EventNormal.RemoveListener(call);
+        vector2EventNormal.SmartRemoveListener(call);
     }
 
     public void AddListener_X(UnityAction<float> call)
     {
-        xEvent.AddListener(call);
+        xEvent = xEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_X(UnityAction<float> call)
     {
-        xEvent.RemoveListener(call);
+        xEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Y(UnityAction<float> call)
     {
-        yEvent.AddListener(call);
+        yEvent = yEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Y(UnityAction<float> call)
     {
-        yEvent.RemoveListener(call);
+        yEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Z(UnityAction<float> call)
     {
-        zEvent.AddListener(call);
+        zEvent = zEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Z(UnityAction<float> call)
     {
-        zEvent.RemoveListener(call);
+        zEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_MagnitudeNonZero(UnityAction<float> call)
     {
-        magnitudeNonZero.AddListener(call);
+        magnitudeNonZero = magnitudeNonZero.CreateAddListener(call);
     }
 
     public void RemoveListener_MagnitudeNonZero(UnityAction<float> call)
     {
-        magnitudeNonZero.RemoveListener(call);
+        magnitudeNonZero.SmartRemoveListener(call);
     }
 
     public void AddListener_MagnitudeZero(UnityAction call)
     {
-        magnitudeZero.AddListener(call);
+        magnitudeZero = magnitudeZero.CreateAddListener(call);
     }
 
     public void RemoveListener_MagnitudeZero(UnityAction call)
     {
-        magnitudeZero.RemoveListener(call);
+        magnitudeZero.SmartRemoveListener(call);
     }
 
     public override bool IsNull()

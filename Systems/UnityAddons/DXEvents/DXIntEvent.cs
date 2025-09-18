@@ -52,22 +52,22 @@ public class DXIntEvent : DXTypedEvent<int>
 
     public void AddListener_Abs(UnityAction<int> call)
     {
-        absEvent.AddListener(call);
+        absEvent = absEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Abs(UnityAction<int> call)
     {
-        absEvent.RemoveListener(call);
+        absEvent.SmartRemoveListener(call);
     }
 
     public void AddListener_Negative(UnityAction<int> call)
     {
-        negativeEvent.AddListener(call);
+        negativeEvent = negativeEvent.CreateAddListener(call);
     }
 
     public void RemoveListener_Negative(UnityAction<int> call)
     {
-        negativeEvent.RemoveListener(call);
+        negativeEvent.SmartRemoveListener(call);
     }
 
     public override bool IsNull()

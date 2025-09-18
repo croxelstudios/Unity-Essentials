@@ -9,27 +9,26 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 #endif
 
-public class SaveSignals : MonoBehaviour, ISaveable
+public class SaveSignals : BSaver
 {
     [SerializeField]
     string substring = "";
-#if UNITY_EDITOR
     [SerializeField]
     bool autoSave = false;
-#endif
     [SerializeField]
     BaseSignal[] signals = null;
 
-#if UNITY_EDITOR
-    private void Awake()
+    void Awake()
     {
+#if UNITY_EDITOR
         EditorApplication.playModeStateChanged += PlayModeChanged;
-
+#endif
         if (autoSave)
             foreach (BaseSignal s in signals)
                 s.AddListener(TriggerSave);
     }
 
+#if UNITY_EDITOR
     public void PlayModeChanged(PlayModeStateChange state)
     {
         if (state == PlayModeStateChange.ExitingEditMode)
@@ -62,48 +61,50 @@ public class SaveSignals : MonoBehaviour, ISaveable
         SaveMaster.WriteActiveSaveToDisk();
     }
 
-    public void OnLoad(string data)
+    public override void Load(string data)
     {
-        if (this.IsActiveAndEnabled())
-        {
-            List<IValueSignal> signals = new List<IValueSignal>();
-            foreach (BaseSignal signal in this.signals)
-                if (signal.GetType().IsOrInheritsFrom(typeof(IValueSignal)))
-                {
-                    IValueSignal valueSig = (IValueSignal)(object)signal;
-                    valueSig.Reset();
-                    signals.Add(valueSig);
-                }
+        base.Load(data);
 
-            foreach (string signal in data.Split(','))
+        List<IValueSignal> signals = new List<IValueSignal>();
+        foreach (BaseSignal signal in this.signals)
+            if (signal.GetType().IsOrInheritsFrom(typeof(IValueSignal)))
             {
-                string[] signalData = signal.Split('=');
-                signals.First(x => x.name == signalData[0]).SetValueParse(signalData[1]);
+                IValueSignal valueSig = (IValueSignal)(object)signal;
+                valueSig.Reset();
+                signals.Add(valueSig);
             }
-        }
-    }
 
-    public string OnSave()
-    {
-        if (this.IsActiveAndEnabled())
+        foreach (string signal in data.Split(','))
         {
-            Dictionary<string, string> signalValues = new Dictionary<string, string>();
-            foreach (BaseSignal signal in this.signals)
-                if (signal.GetType().IsOrInheritsFrom(typeof(IValueSignal)))
-                {
-                    IValueSignal valueSig = (IValueSignal)(object)signal;
-                    signalValues.Add(valueSig.name, valueSig.GetStringValue());
-                }
-
-            string save = string.Join(",", signalValues.Select(kv => kv.Key + "=" + kv.Value)
-                .ToArray());
-            return save;
+            string[] signalData = signal.Split('=');
+            signals.First(x => x.name == signalData[0]).SetValueParse(signalData[1]);
         }
-        else return "";
     }
 
-    public bool OnSaveCondition()
+    public override string Save()
+    {
+        Dictionary<string, string> signalValues = new Dictionary<string, string>();
+        foreach (BaseSignal signal in this.signals)
+            if (signal.GetType().IsOrInheritsFrom(typeof(IValueSignal)))
+            {
+                IValueSignal valueSig = (IValueSignal)(object)signal;
+                signalValues.Add(valueSig.name, valueSig.GetStringValue());
+            }
+
+        string save = string.Join(",", signalValues.Select(kv => kv.Key + "=" + kv.Value)
+            .ToArray());
+        return save;
+    }
+
+    public override bool ShouldISave()
     {
         return true;
+    }
+
+    public override void ResetSaver()
+    {
+        base.ResetSaver();
+        foreach (BaseSignal signal in signals)
+            signal.Reset();
     }
 }

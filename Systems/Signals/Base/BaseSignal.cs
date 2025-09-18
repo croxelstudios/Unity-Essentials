@@ -168,14 +168,14 @@ public class BaseSignal : ScriptableObject
 
     public void AddListener(UnityAction action, bool beforeCall = false)
     {
-        if (beforeCall) this.beforeCall.AddListener(action);
-        else called.AddListener(action);
+        if (beforeCall) this.beforeCall = this.beforeCall.CreateAddListener(action);
+        else called = called.CreateAddListener(action);
     }
 
     public void RemoveListener(UnityAction action)
     {
-        beforeCall.RemoveListener(action);
-        called.RemoveListener(action);
+        beforeCall.SmartRemoveListener(action);
+        called.SmartRemoveListener(action);
     }
 }
 
@@ -348,13 +348,22 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
     protected override void OnLoad()
     {
         if (resetValueOnStart)
-            Reset();
+        {
+            SetValue(startValue);
+            AfterReset();
+        }
         base.OnLoad();
     }
 
     public override void Reset()
     {
-        SetValue(startValue);
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            SetValue(startValue);
+        else
+#endif
+            CallSignal(startValue);
+
         AfterReset();
     }
 

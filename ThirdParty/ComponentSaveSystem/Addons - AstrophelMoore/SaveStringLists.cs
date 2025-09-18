@@ -9,7 +9,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 #endif
 
-public class SaveStringLists : MonoBehaviour, ISaveable
+public class SaveStringLists : BSaver
 {
     [SerializeField]
     string substring = "";
@@ -26,8 +26,8 @@ public class SaveStringLists : MonoBehaviour, ISaveable
         if (autoSave)
             foreach (StringList s in lists)
             {
-                s.valueAdded.AddListener(TriggerSave);
-                s.valueRemoved.AddListener(TriggerSave);
+                s.valueAdded = s.valueAdded.CreateAddListener<DXStringEvent, string>(TriggerSave);
+                s.valueRemoved = s.valueRemoved.CreateAddListener<DXStringEvent, string>(TriggerSave);
             }
     }
 
@@ -62,8 +62,10 @@ public class SaveStringLists : MonoBehaviour, ISaveable
         SaveMaster.WriteActiveSaveToDisk();
     }
 
-    public void OnLoad(string data)
+    public override void Load(string data)
     {
+        base.Load(data);
+
         foreach (StringList list in lists)
             list.Reset();
 
@@ -74,7 +76,7 @@ public class SaveStringLists : MonoBehaviour, ISaveable
         }
     }
 
-    public string OnSave()
+    public override string Save()
     {
         Dictionary<string, string> listsValues = new Dictionary<string, string>();
         foreach (StringList s in lists)
@@ -85,9 +87,16 @@ public class SaveStringLists : MonoBehaviour, ISaveable
         return save;
     }
 
-    public bool OnSaveCondition()
+    public override bool ShouldISave()
     {
         return true;
+    }
+
+    public override void ResetSaver()
+    {
+        base.ResetSaver();
+        foreach (StringList list in lists)
+            list.Reset();
     }
 
     string StringListToString(StringList list)
