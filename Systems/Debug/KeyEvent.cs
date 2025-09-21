@@ -12,32 +12,42 @@ public class KeyEvent : MonoBehaviour
     DXEvent KeyReleased = null;
 
     [SerializeField]
+    bool editorOnly = true;
+
+    [SerializeField]
     bool toggle = false;
 
     bool isOn = false;
 
     void Update()
     {
-        if (toggle)
+        if ((!editorOnly)
+#if UNITY_EDITOR
+            || true
+#endif
+        )
         {
-            if (Input.GetKeyDown(key))
+            if (toggle)
             {
-                if (isOn)
+                if (Input.GetKeyDown(key))
                 {
-                    KeyReleased?.Invoke();
-                    isOn = false;
-                }
-                else
-                {
-                    KeyPressed?.Invoke();
-                    isOn = true;
+                    if (isOn)
+                    {
+                        KeyReleased?.Invoke();
+                        isOn = false;
+                    }
+                    else
+                    {
+                        KeyPressed?.Invoke();
+                        isOn = true;
+                    }
                 }
             }
-        }
-        else
-        {
-            if (Input.GetKeyDown(key)) KeyPressed?.Invoke();
-            else if (Input.GetKeyUp(key)) KeyReleased?.Invoke();
+            else
+            {
+                if (Input.GetKeyDown(key)) KeyPressed?.Invoke();
+                else if (Input.GetKeyUp(key)) KeyReleased?.Invoke();
+            }
         }
     }
 
