@@ -18,6 +18,8 @@ public class SaveSignals : BSaver
     [SerializeField]
     BaseSignal[] signals = null;
 
+    static bool lateSave = false;
+
     void Awake()
     {
 #if UNITY_EDITOR
@@ -58,7 +60,16 @@ public class SaveSignals : BSaver
 
     public void TriggerSave()
     {
-        SaveMaster.WriteActiveSaveToDisk();
+        lateSave = true;
+    }
+
+    void LateUpdate()
+    {
+        if (lateSave)
+        {
+            SaveMaster.WriteActiveSaveToDisk();
+            lateSave = false;
+        }
     }
 
     public override void Load(string data)

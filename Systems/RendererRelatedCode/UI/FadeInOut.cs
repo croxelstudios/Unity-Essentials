@@ -99,7 +99,7 @@ public class FadeInOut : MonoBehaviour
         bool objectWasDisabled = !gameObject.activeInHierarchy;
         if (resetAlphaOnCall || objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
         StopEffect();
-        if (objectWasDisabled)
+        if (objectWasDisabled && !isActiveAndEnabled)
         {
             onEnableOverride = FadeBehaviour.FadeIn;
             gameObject.SetActive(true);
