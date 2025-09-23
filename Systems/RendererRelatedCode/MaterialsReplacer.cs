@@ -23,7 +23,7 @@ public class MaterialsReplacer : MonoBehaviour
     EditorMode editorMode = EditorMode.OnRendering;
 # endif
 
-    enum EditorMode { OnRendering, OnEnable, DontReplace}
+    enum EditorMode { OnRendering, OnEnable, DontReplace }
 
     Renderer[] rend;
     Material[] tmpMaterials;
@@ -69,6 +69,8 @@ public class MaterialsReplacer : MonoBehaviour
                     RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
                     break;
                 case EditorMode.OnEnable:
+                    if (reverseReplacement)
+                        ResetMaterials();
                     ReplaceMaterials();
                     break;
                 default:
@@ -77,7 +79,11 @@ public class MaterialsReplacer : MonoBehaviour
         }
         else
 # endif
+        {
+            if (reverseReplacement)
+                ResetMaterials();
             ReplaceMaterials();
+        }
     }
 
     void OnDisable()
@@ -150,11 +156,11 @@ public class MaterialsReplacer : MonoBehaviour
                     }
             }
             else foreach (KeyValuePair<RendMat, Material> kv in changedMaterials)
-            {
-                Material[] sm = kv.Key.rend.sharedMaterials;
+                {
+                    Material[] sm = kv.Key.rend.sharedMaterials;
                     sm[kv.Key.mat] = kv.Value;
-                kv.Key.rend.sharedMaterials = sm;
-            }
+                    kv.Key.rend.sharedMaterials = sm;
+                }
             changedMaterials.Clear();
             isChanged = false;
         }
