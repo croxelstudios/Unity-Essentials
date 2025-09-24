@@ -29,9 +29,13 @@ public class ScaleByCurve : MonoBehaviour
     bool initialized;
     Coroutine co;
 
+    //Vector3 currentVirtualScale;
+    //TO DO: Make this script relative so it is compatible with other scaling scripts.
+
     void Awake()
     {
         Init();
+        //currentVirtualScale = Vector3.one;
     }
 
     void OnEnable()

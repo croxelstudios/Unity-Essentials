@@ -7,9 +7,11 @@ public class FloatModifyModes : MonoBehaviour
     [SerializeField]
     int mode = 0;
     [SerializeField]
-    ScaleMode[] scaleModes = null;
+    ScaleMode[] scaleModes = new ScaleMode[] { new ScaleMode(1f, 0f, 0f, false, false) };
     [SerializeField]
     DXFloatEvent modifiedValue = null;
+
+    float value;
 
     public void ModifyValue(int value)
     {
@@ -17,6 +19,25 @@ public class FloatModifyModes : MonoBehaviour
     }
 
     public void ModifyValue(float value)
+    {
+        this.value = value;
+        Apply();
+    }
+
+    public void ModifyScale(int value)
+    {
+        ModifyScale((float)value);
+    }
+
+    public void ModifyScale(float value)
+    {
+        ScaleMode sclMode = scaleModes[mode];
+        sclMode.scale = value;
+        scaleModes[mode] = sclMode;
+        Apply();
+    }
+
+    void Apply()
     {
         float newValue = (value + scaleModes[mode].preAddition) * scaleModes[mode].scale;
         if (scaleModes[mode].oneMinus) newValue = 1f - newValue;

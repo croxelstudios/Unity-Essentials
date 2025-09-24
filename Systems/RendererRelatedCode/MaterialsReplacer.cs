@@ -69,8 +69,6 @@ public class MaterialsReplacer : MonoBehaviour
                     RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
                     break;
                 case EditorMode.OnEnable:
-                    if (reverseReplacement)
-                        ResetMaterials();
                     ReplaceMaterials();
                     break;
                 default:
@@ -79,11 +77,7 @@ public class MaterialsReplacer : MonoBehaviour
         }
         else
 # endif
-        {
-            if (reverseReplacement)
-                ResetMaterials();
             ReplaceMaterials();
-        }
     }
 
     void OnDisable()

@@ -11,7 +11,7 @@ public class SetRenderingLayer : MonoBehaviour
     void OnEnable()
     {
         System.Array enumValues = System.Enum.GetValues(typeof(LightLayerEnum));
-        renderers = GetComponentsInChildren<Renderer>();
+        renderers = GetComponentsInChildren<Renderer>(true);
         for (int i = 0; i < renderers.Length; i++)
         {
             int bitmask = (int)renderingLayer;
@@ -44,5 +44,4 @@ public class SetRenderingLayer : MonoBehaviour
 
         return bitmask;
     }
-
 }
