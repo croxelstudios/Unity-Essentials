@@ -15,11 +15,13 @@ public class StringSignal : ValueSignal<string> //Change type here
 {
     [SerializeField]
     bool isScenePath = false;
+#if UNITY_EDITOR
     [SerializeField]
     [ShowIf("MustShowStartValue")]
     [ShowIf("isScenePath")]
     [LabelText("Scene")]
     SceneReference startScene = default;
+#endif
     [HideIf("MustShowStartValue")]
     [OnValueChanged("CallSignalOnCurrentTagAndValues")]
     [ShowIf("isScenePath")]

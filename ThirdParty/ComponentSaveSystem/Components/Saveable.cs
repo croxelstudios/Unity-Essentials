@@ -21,8 +21,10 @@ namespace Lowscope.Saving.Components
                                  "this is useful for displaying data from a different save file")]
         private bool manualSaveLoad = false;
 
+#if UNITY_EDITOR
         [SerializeField, Tooltip("Sets the save ID automatically by the scene and object name")]
         private bool automaticID = true;
+#endif
 
         [SerializeField, Tooltip("It will scan other objects for ISaveable components")]
         private List<GameObject> externalListeners = new List<GameObject>();

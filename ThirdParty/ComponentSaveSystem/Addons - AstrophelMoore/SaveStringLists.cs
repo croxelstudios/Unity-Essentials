@@ -18,11 +18,11 @@ public class SaveStringLists : BSaver
     [SerializeField]
     StringList[] lists = null;
 
-#if UNITY_EDITOR
     private void Awake()
     {
+#if UNITY_EDITOR
         EditorApplication.playModeStateChanged += PlayModeChanged;
-
+#endif
         if (autoSave)
             foreach (StringList s in lists)
             {
@@ -31,6 +31,7 @@ public class SaveStringLists : BSaver
             }
     }
 
+#if UNITY_EDITOR
     public void PlayModeChanged(PlayModeStateChange state)
     {
         if (state == PlayModeStateChange.ExitingEditMode)
