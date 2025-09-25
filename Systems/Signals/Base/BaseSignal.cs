@@ -224,18 +224,18 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
     {
 #if UNITY_EDITOR
         if (MustShowStartValue())
-            startValue = value.Parse<T>();
+            startValue = value.Replace('|', ',').Parse<T>();
 #endif
-        CallSignal(value.Parse<T>());
+        CallSignal(value.Replace('|', ',').Parse<T>());
     }
 
     public virtual string GetStringValue()
     {
 #if UNITY_EDITOR
         if (MustShowStartValue())
-            return startValue.ToString();
+            return startValue.ToString().Replace(',', '|');
 #endif
-        return currentValue.ToString();
+        return currentValue.ToString().Replace(',', '|');
     }
 
     [TagSelector]

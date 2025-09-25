@@ -51,6 +51,27 @@ public class FloatSignalListener : BBaseSignalListener<float>
             signalActions[index].actions?.Invoke(value * multiplier); //Change type here
     }
 
+    public void CallSignal(float value) //Change type here
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < signalActions.Length; i++)
+                signalActions[i].signal.CallSignal(value);
+    }
+
+    public void Add(float amount)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < signalActions.Length; i++)
+                signalActions[i].signal.Add(amount);
+    }
+
+    public void Subtract(float amount)
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            for (int i = 0; i < signalActions.Length; i++)
+                signalActions[i].signal.Subtract(amount);
+    }
+
 #if UNITY_EDITOR
     [ContextMenu("Create new FloatSignal")] //Change type here
     void CreateSignal()
