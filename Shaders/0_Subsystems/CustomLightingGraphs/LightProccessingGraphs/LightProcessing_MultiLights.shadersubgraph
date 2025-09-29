@@ -58,6 +58,9 @@
         },
         {
             "m_Id": "246e8e99791d4ae780669431c46b6d40"
+        },
+        {
+            "m_Id": "36dc4218f0544bb1b4a66e01863e237e"
         }
     ],
     "m_Dropdowns": [],
@@ -1214,6 +1217,31 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "36dc4218f0544bb1b4a66e01863e237e",
+    "m_Guid": {
+        "m_GuidSerialized": "74fbe055-fc1c-4bd9-821c-68a9f27d7182"
+    },
+    "m_Name": "_CLUSTER_LIGHT_LOOP",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "_CLUSTER_LIGHT_LOOP",
+    "m_DefaultReferenceName": "_CLUSTER_LIGHT_LOOP",
+    "m_OverrideReferenceName": "_CLUSTER_LIGHT_LOOP",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 1,
+    "m_KeywordScope": 1,
+    "m_KeywordStages": 63,
+    "m_Entries": [],
+    "m_Value": 1,
+    "m_IsEditable": true
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BranchOnInputConnectionNode",
     "m_ObjectId": "3a6b5dc763f14c3688d285509dece521",
@@ -1436,7 +1464,7 @@
     "m_ObjectId": "48512e8bbfd245b08a1b76069eeb9029",
     "m_Title": "Position Input",
     "m_Position": {
-        "x": -1263.9998779296875,
+        "x": -1264.0,
         "y": 1275.0
     }
 }
@@ -1447,7 +1475,7 @@
     "m_ObjectId": "4b07317a75cd46718637cfbfbecd4134",
     "m_Title": "InternalData",
     "m_Position": {
-        "x": -1263.9998779296875,
+        "x": -1264.0,
         "y": 529.0
     }
 }
@@ -1951,7 +1979,7 @@
     "m_FunctionName": "AdditionalLightsLoop",
     "m_FunctionSource": "b37a938110fac254fbddbebad249da2d",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "    Diffuse = float4(0, 0, 0, 1);\r\n    Specular = float3(0, 0, 0);\r\n    RimLight = float3(0, 0, 0);\r\n    BackRimLight = float3(0, 0, 0);\r\n    SpecularMask = 0;\r\n\r\n#if !defined(SHADERGRAPH_PREVIEW)\r\n#ifdef _ADDITIONAL_LIGHTS\r\n        uint lightsCount = GetAdditionalLightsCount();\r\n        uint meshRenderingLayers = GetMeshRenderingLayer();\r\n\r\n#ifdef _FORWARD_PLUS\r\n#if SHADOWS_SCREEN\r\n            float4 shadowCoord = ComputeScreenPos(positionCS);\r\n#else\r\n            float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n#endif\r\n        InputData inputData = (InputData)0;\r\n        inputData.positionWS = Position;\r\n        inputData.normalWS = Normal;\r\n        //inputData.viewDirectionWS = ViewDirection;\r\n        inputData.shadowCoord = shadowCoord;\r\n        float4 positionCS = TransformWorldToHClip(Position);\r\n        inputData.normalizedScreenSpaceUV =\r\n            float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);\r\n                \r\n        LIGHT_LOOP_BEGIN(lightsCount)\r\n            Light light = GetAdditionalLight(lightIndex, Position, 1);\r\n    \r\n#ifdef _LIGHT_LAYERS\r\n                if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\r\n            {\r\n                float4 _Diffuse = float4(0, 0, 0, 1);\r\n                float3 _Specular = float3(0, 0, 0);\r\n                float3 _RimLight = float3(0, 0, 0);\r\n                float3 _BackRimLight = float3(0, 0, 0);\r\n                float _SpecularMask = 0;\r\n\r\n                float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                bindings.WorldSpacePosition = Position;\r\n                SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,\r\n\t                Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \r\n\t                UseRampTexture, RampTexture, UseRampTexture,\r\n\t                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,\r\n\t                light.direction, 1, light.color, 1, shadowAtten, 1,\r\n\t                light.distanceAttenuation, Position, 1, bindings,\r\n                    _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                Diffuse.rgb += _Diffuse.rgb;\r\n                Diffuse.a *= _Diffuse.a;\r\n\t            Specular += _Specular;\r\n                RimLight += _RimLight;\r\n                BackRimLight += _BackRimLight;\r\n                SpecularMask += _SpecularMask;\r\n            }\r\n        LIGHT_LOOP_END\r\n#else\r\n        for (uint lightI = 0; lightI < min(MAX_VISIBLE_LIGHTS, lightsCount); lightI++)\r\n        {\r\n            Light light = GetAdditionalLight(lightI, Position, 1);\r\n    \r\n#ifdef _LIGHT_LAYERS\r\n                if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\r\n            {\r\n                float4 _Diffuse = float4(0, 0, 0, 1);\r\n                float3 _Specular = float3(0, 0, 0);\r\n                float3 _RimLight = float3(0, 0, 0);\r\n                float3 _BackRimLight = float3(0, 0, 0);\r\n                float _SpecularMask = 0;\r\n                    \t\r\n                float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                bindings.WorldSpacePosition = Position;\r\n                SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,\r\n\t                Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \r\n\t                UseRampTexture, RampTexture, UseRampTexture,\r\n\t                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,\r\n\t                light.direction, 1, light.color, 1, shadowAtten, 1,\r\n\t                light.distanceAttenuation, Position, 1, bindings,\r\n                    _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                Diffuse.rgb += _Diffuse.rgb;\r\n                Diffuse.a *= _Diffuse.a;\r\n\t            Specular += _Specular;\r\n                RimLight += _RimLight;\r\n                BackRimLight += _BackRimLight;\r\n                SpecularMask += _SpecularMask;\r\n            }\r\n        }\r\n#endif\r\n#endif\r\n#endif"
+    "m_FunctionBody": "Diffuse = float4(0, 0, 0, 1);\r\nSpecular = float3(0, 0, 0);\r\nRimLight = float3(0, 0, 0);\r\nBackRimLight = float3(0, 0, 0);\r\nSpecularMask = 0;\r\n\r\n#if !defined(SHADERGRAPH_PREVIEW)\r\n    #ifdef _ADDITIONAL_LIGHTS\r\n        uint lightsCount = GetAdditionalLightsCount();\r\n        uint meshRenderingLayers = GetMeshRenderingLayer();\r\n\r\n        #ifdef _FORWARD_PLUS\r\n            float4 positionCS = TransformWorldToHClip(Position);\r\n            #if SHADOWS_SCREEN\r\n                float4 shadowCoord = ComputeScreenPos(positionCS);\r\n            #else\r\n                float4 shadowCoord = TransformWorldToShadowCoord(Position);\r\n            #endif\r\n\r\n            InputData inputData = (InputData)0;\r\n            inputData.positionWS = Position;\r\n            inputData.normalWS = Normal;\r\n            //inputData.viewDirectionWS = ViewDirection;\r\n            inputData.shadowCoord = shadowCoord;\r\n            inputData.normalizedScreenSpaceUV =\r\n                float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);\r\n\r\n            //#if USE_CLUSTER_LIGHT_LOOP\r\n                UNITY_LOOP for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)\r\n                {\r\n                    Light light = GetAdditionalLight(lightIndex, Position);\r\n\r\n                    #ifdef _LIGHT_LAYERS\r\n                        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n                    #endif\r\n                    {\r\n                        light.shadowAttenuation =\r\n                            AdditionalLightRealtimeShadow(lightIndex, Position, light.direction);\r\n\r\n                        #if defined(_LIGHT_COOKIES)\r\n                            float3 cookieColor = SampleAdditionalLightCookie(lightIndex, Position);\r\n                            light.color *= cookieColor;\r\n                        #endif\r\n\r\n                        float4 _Diffuse = float4(0, 0, 0, 1);\r\n                        float3 _Specular = float3(0, 0, 0);\r\n                        float3 _RimLight = float3(0, 0, 0);\r\n                        float3 _BackRimLight = float3(0, 0, 0);\r\n                        float _SpecularMask = 0;\r\n\r\n                        float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                        Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                        bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                        bindings.WorldSpacePosition = Position;\r\n                        SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,\r\n\t                        Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \r\n\t                        UseRampTexture, RampTexture, UseRampTexture,\r\n\t                        ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,\r\n\t                        light.direction, 1, light.color, 1, shadowAtten, 1,\r\n\t                        light.distanceAttenuation, Position, 1, bindings,\r\n                            _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                        Diffuse.rgb += _Diffuse.rgb;\r\n                        Diffuse.a *= _Diffuse.a;\r\n\t                    Specular += _Specular;\r\n                        RimLight += _RimLight;\r\n                        BackRimLight += _BackRimLight;\r\n                        SpecularMask += _SpecularMask;\r\n                    }\r\n                }\r\n            //#endif\r\n\r\n            LIGHT_LOOP_BEGIN(lightsCount)\r\n                Light light = GetAdditionalLight(lightIndex, Position);\r\n\r\n                #ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n                #endif\r\n                {\r\n                    light.shadowAttenuation =\r\n                        AdditionalLightRealtimeShadow(lightIndex, Position, light.direction);\r\n\r\n                    #if defined(_LIGHT_COOKIES)\r\n                        float3 cookieColor = SampleAdditionalLightCookie(lightIndex, Position);\r\n                        light.color *= cookieColor;\r\n                    #endif\r\n\r\n                    float4 _Diffuse = float4(0, 0, 0, 1);\r\n                    float3 _Specular = float3(0, 0, 0);\r\n                    float3 _RimLight = float3(0, 0, 0);\r\n                    float3 _BackRimLight = float3(0, 0, 0);\r\n                    float _SpecularMask = 0;\r\n\r\n                    float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                    Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                    bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                    bindings.WorldSpacePosition = Position;\r\n                    SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,\r\n\t                    Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \r\n\t                    UseRampTexture, RampTexture, UseRampTexture,\r\n\t                    ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,\r\n\t                    light.direction, 1, light.color, 1, shadowAtten, 1,\r\n\t                    light.distanceAttenuation, Position, 1, bindings,\r\n                        _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                    Diffuse.rgb += _Diffuse.rgb;\r\n                    Diffuse.a *= _Diffuse.a;\r\n\t                Specular += _Specular;\r\n                    RimLight += _RimLight;\r\n                    BackRimLight += _BackRimLight;\r\n                    SpecularMask += _SpecularMask;\r\n                }\r\n            LIGHT_LOOP_END\r\n        #else\r\n            for (uint lightI = 0; lightI < min(MAX_VISIBLE_LIGHTS, lightsCount); lightI++)\r\n            {\r\n                Light light = GetAdditionalLight(lightI, Position);\r\n    \r\n                #ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n                #endif\r\n                {\r\n                    light.shadowAttenuation =\r\n                        AdditionalLightRealtimeShadow(lightIndex, Position, light.direction);\r\n\r\n                    #if defined(_LIGHT_COOKIES)\r\n                        float3 cookieColor = SampleAdditionalLightCookie(lightIndex, Position);\r\n                        light.color *= cookieColor;\r\n                    #endif\r\n\r\n                    float4 _Diffuse = float4(0, 0, 0, 1);\r\n                    float3 _Specular = float3(0, 0, 0);\r\n                    float3 _RimLight = float3(0, 0, 0);\r\n                    float3 _BackRimLight = float3(0, 0, 0);\r\n                    float _SpecularMask = 0;\r\n                    \t\r\n                    float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                    Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                    bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                    bindings.WorldSpacePosition = Position;\r\n                    SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,\r\n\t                    Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \r\n\t                    UseRampTexture, RampTexture, UseRampTexture,\r\n\t                    ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,\r\n\t                    light.direction, 1, light.color, 1, shadowAtten, 1,\r\n\t                    light.distanceAttenuation, Position, 1, bindings,\r\n                        _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                    Diffuse.rgb += _Diffuse.rgb;\r\n                    Diffuse.a *= _Diffuse.a;\r\n\t                Specular += _Specular;\r\n                    RimLight += _RimLight;\r\n                    BackRimLight += _BackRimLight;\r\n                    SpecularMask += _SpecularMask;\r\n                }\r\n            }\r\n        #endif\r\n    #endif\r\n#endif"
 }
 
 {
@@ -2770,6 +2798,9 @@
         },
         {
             "m_Id": "246e8e99791d4ae780669431c46b6d40"
+        },
+        {
+            "m_Id": "36dc4218f0544bb1b4a66e01863e237e"
         }
     ]
 }
@@ -3866,7 +3897,7 @@
     "m_ObjectId": "ff2fbd5e169141cca4c5e9472dfd0957",
     "m_Title": "UseRampTex",
     "m_Position": {
-        "x": -1361.999755859375,
+        "x": -1362.0,
         "y": 259.0
     }
 }
