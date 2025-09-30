@@ -28,20 +28,12 @@
 //             //#if USE_CLUSTER_LIGHT_LOOP
 //                 UNITY_LOOP for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
 //                 {
-//                     Light light = GetAdditionalLight(lightIndex, Position);
+//                     Light light = GetAdditionalLight(lightIndex, Position, 1);
 
 //                     #ifdef _LIGHT_LAYERS
 //                         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 //                     #endif
 //                     {
-//                         light.shadowAttenuation =
-//                             AdditionalLightRealtimeShadow(lightIndex, Position, light.direction);
-
-//                         #if defined(_LIGHT_COOKIES)
-//                             float3 cookieColor = SampleAdditionalLightCookie(lightIndex, Position);
-//                             light.color *= cookieColor;
-//                         #endif
-
 //                         float4 _Diffuse = float4(0, 0, 0, 1);
 //                         float3 _Specular = float3(0, 0, 0);
 //                         float3 _RimLight = float3(0, 0, 0);
@@ -71,20 +63,12 @@
 //             //#endif
 
 //             LIGHT_LOOP_BEGIN(lightsCount)
-//                 Light light = GetAdditionalLight(lightIndex, Position);
+//                 Light light = GetAdditionalLight(lightIndex, Position, 1);
 
 //                 #ifdef _LIGHT_LAYERS
 //                     if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 //                 #endif
 //                 {
-//                     light.shadowAttenuation =
-//                         AdditionalLightRealtimeShadow(lightIndex, Position, light.direction);
-
-//                     #if defined(_LIGHT_COOKIES)
-//                         float3 cookieColor = SampleAdditionalLightCookie(lightIndex, Position);
-//                         light.color *= cookieColor;
-//                     #endif
-
 //                     float4 _Diffuse = float4(0, 0, 0, 1);
 //                     float3 _Specular = float3(0, 0, 0);
 //                     float3 _RimLight = float3(0, 0, 0);
@@ -114,20 +98,12 @@
 //         #else
 //             for (uint lightI = 0; lightI < min(MAX_VISIBLE_LIGHTS, lightsCount); lightI++)
 //             {
-//                 Light light = GetAdditionalLight(lightI, Position);
+//                 Light light = GetAdditionalLight(lightI, Position, 1);
     
 //                 #ifdef _LIGHT_LAYERS
 //                     if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
 //                 #endif
 //                 {
-//                     light.shadowAttenuation =
-//                         AdditionalLightRealtimeShadow(lightIndex, Position, light.direction);
-
-//                     #if defined(_LIGHT_COOKIES)
-//                         float3 cookieColor = SampleAdditionalLightCookie(lightIndex, Position);
-//                         light.color *= cookieColor;
-//                     #endif
-
 //                     float4 _Diffuse = float4(0, 0, 0, 1);
 //                     float3 _Specular = float3(0, 0, 0);
 //                     float3 _RimLight = float3(0, 0, 0);
