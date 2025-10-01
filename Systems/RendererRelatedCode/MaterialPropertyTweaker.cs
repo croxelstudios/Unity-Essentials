@@ -171,7 +171,17 @@ public class MaterialPropertyTweaker : MonoBehaviour
         fValue = value;
     }
 
-    public void SetAlpha(float value, bool useBlackValue = false)
+    public void SetAlpha(float value)
+    {
+        SetAlpha(value, false);
+    }
+
+    public void SetBlackValue(float value)
+    {
+        SetAlpha(value, true);
+    }
+
+    public void SetAlpha(float value, bool useBlackValue)
     {
         switch (type)
         {

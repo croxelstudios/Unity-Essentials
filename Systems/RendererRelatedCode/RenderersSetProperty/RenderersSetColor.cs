@@ -70,4 +70,10 @@ public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
         _color = color;
         UpdateBehaviour();
     }
+
+    public virtual void SetAlpha(float alpha)
+    {
+        _color.a = alpha;
+        UpdateBehaviour();
+    }
 }
