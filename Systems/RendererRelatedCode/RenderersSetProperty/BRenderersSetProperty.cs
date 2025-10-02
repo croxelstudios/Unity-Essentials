@@ -56,11 +56,37 @@ public class BRenderersSetProperty : MonoBehaviour
     protected virtual void UpdateRenderersInternal()
     {
         if (affectsChildren)
-            rend = GetComponentsInChildren<Renderer>(true);
+        {
+            Renderer[] rends = GetComponentsInChildren<Renderer>(true);
+            RendererSetProperty_Exclude[] excluders =
+                GetComponentsInChildren<RendererSetProperty_Exclude>(true);
+            if (!excluders.IsNullOrEmpty())
+            {
+                rend = new Renderer[rends.Length - excluders.Length];
+                int n = 0;
+                for (int i = 0; i < rends.Length; i++)
+                {
+                    bool isValid = true;
+                    for (int j = 0; j < excluders.Length; j++)
+                        if (excluders[j].gameObject == rends[i].gameObject)
+                        {
+                            isValid = false;
+                            break;
+                        }
+                    if (isValid)
+                    {
+                        rend[n] = rends[i];
+                        n++;
+                    }
+                }
+            }
+            else rend = rends;
+        }
         else
         {
             Renderer r = GetComponent<Renderer>();
-            if (r != null) rend = new Renderer[] { r };
+            RendererSetProperty_Exclude e = GetComponent<RendererSetProperty_Exclude>();
+            if ((r != null) && (e == null)) rend = new Renderer[] { r };
         }
     }
 
