@@ -77,7 +77,7 @@ public class MaterialPropertyTweaker : MonoBehaviour
         }
     }
 
-    void SetProperty()
+    public void SetProperty()
     {
         if ((material != null) && material.HasProperty(propertyName))
         {
@@ -102,7 +102,7 @@ public class MaterialPropertyTweaker : MonoBehaviour
         }
     }
 
-    void ResetProperty()
+    public void ResetProperty()
     {
         if ((material != null) && material.HasProperty(propertyName))
         {
