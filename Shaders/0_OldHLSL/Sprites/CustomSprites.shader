@@ -6,6 +6,7 @@
 		_Color("Tint", Color) = (1,1,1,1)
 		_Saturation("Saturation", Range(0, 1)) = 1
 		[MaterialToggle] _ColorAlphaMultiply("ColorAlphaMultiply", Float) = 0
+		[MaterialToggle] _DitherAlpha("DitherAlpha", Float) = 0
 		_BlackValue("BlackValue", Range(0, 1)) = 0
 
 		[Space]
@@ -107,6 +108,7 @@
 			float _ShadowColorReplaceAmount;
 			float _ShadowThreshold;
 			float _ShadowColorIntensity;
+			float _DitherAlpha;
 
 			fixed4 RGBToGrayscale(fixed4 color)
 			{
@@ -118,6 +120,20 @@
 			{
 				return clamp((value - from) / (to - from), 0, 1);
 			}
+			
+			float Dither(float In, float4 ScreenPosition)
+			{
+				float2 uv = ScreenPosition.xy * _ScreenParams.xy;
+				float DITHER_THRESHOLDS[16] =
+				{
+					1.0 / 17.0,  9.0 / 17.0,  3.0 / 17.0, 11.0 / 17.0,
+					13.0 / 17.0,  5.0 / 17.0, 15.0 / 17.0,  7.0 / 17.0,
+					4.0 / 17.0, 12.0 / 17.0,  2.0 / 17.0, 10.0 / 17.0,
+					16.0 / 17.0,  8.0 / 17.0, 14.0 / 17.0,  6.0 / 17.0
+				};
+				uint index = (uint(uv.x) % 4) * 4 + uint(uv.y) % 4;
+				return step(0.05, In - DITHER_THRESHOLDS[index]);
+			}
 
 			fixed4 frag(v2f IN) : SV_Target
 			{
@@ -125,7 +141,9 @@
 				fixed4 grayscale = RGBToGrayscale(c);
 				c = lerp(grayscale, c, _Saturation);
 
-				if (_CutOffIgnoresColor) clip(c.a - _CutOff);
+				if (_CutOffIgnoresColor) clip(
+					((_DitherAlpha > 0.5) ? Dither(c.a, IN.scrPos) : c.a)
+					- _CutOff);
 
 				fixed4 targetColor = lerp(c * _LightColorOverride, _LightColorOverride, _LightColorReplaceAmount);
 				float amount = InvLerp(_LightThreshold, lerp(1, _LightThreshold, _LightColorIntensity), grayscale);
@@ -147,6 +165,7 @@
 
 				if (_ReplaceColor) c.rgb = _Color.rgb;
 				if (_ReplaceAlpha) c.a = _Color.a;
+				if (_DitherAlpha) c.a = Dither(c.a, IN.scrPos);
 
 				return c;
 			}

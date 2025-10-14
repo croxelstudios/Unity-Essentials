@@ -42,6 +42,7 @@ struct v2f
     float4 vertex   : SV_POSITION;
     fixed4 color    : COLOR;
     float2 texcoord : TEXCOORD0;
+    float4 scrPos : TEXCOORD2;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -67,6 +68,8 @@ v2f SpriteVert(appdata_t IN)
     #ifdef PIXELSNAP_ON
     OUT.vertex = UnityPixelSnap (OUT.vertex);
     #endif
+
+    OUT.scrPos = ComputeScreenPos(OUT.vertex);
 
     return OUT;
 }
