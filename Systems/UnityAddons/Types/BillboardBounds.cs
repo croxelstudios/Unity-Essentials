@@ -90,9 +90,9 @@ public struct BillboardBounds
         _cornerLT = Vector3.zero;
     }
 
-    public BillboardBounds(Bounds bounds, Vector3 direction)
+    public BillboardBounds(Bounds bounds, Vector3 direction, bool pushCenter = false)
     {
-        _center = bounds.center;
+        _center = pushCenter ? PushCenter(bounds, direction, bounds.center) : bounds.center;
         _normal = direction.normalized;
 
         _planeUp = Vector3.ProjectOnPlane(Vector2.up, direction).normalized;
@@ -111,9 +111,9 @@ public struct BillboardBounds
         _cornerLT = Vector3.zero;
     }
 
-    public BillboardBounds(Bounds bounds, Vector3 direction, Vector3 upDirection)
+    public BillboardBounds(Bounds bounds, Vector3 direction, Vector3 upDirection, bool pushCenter = false)
     {
-        _center = bounds.center;
+        _center = pushCenter ? PushCenter(bounds, direction, bounds.center) : bounds.center;
         _normal = direction.normalized;
 
         _planeUp = Vector3.ProjectOnPlane(upDirection, direction).normalized;
@@ -162,6 +162,30 @@ public struct BillboardBounds
             bounds2D.Encapsulate(corners[i].InterpretVector3Back(direction, upDirection));
 
         return bounds2D.extents;
+    }
+
+    static Vector3 PushCenter(Bounds bounds, Vector3 direction, Vector3 center)
+    {
+        Vector3[] corners = new Vector3[8];
+        corners[0] = bounds.extents;
+        corners[1] = Vector3.Scale(bounds.extents, new Vector3(1, 1, -1));
+        corners[2] = Vector3.Scale(bounds.extents, new Vector3(1, -1, 1));
+        corners[3] = Vector3.Scale(bounds.extents, new Vector3(-1, 1, 1));
+        corners[4] = -corners[0];
+        corners[5] = -corners[1];
+        corners[6] = -corners[2];
+        corners[7] = -corners[3];
+
+        Vector3 pusher = Vector3.zero;
+        for (int i = 0; i < corners.Length; i++)
+            if (Vector3.Dot(corners[i], direction) > 0f)
+            {
+                Vector3 proj = Vector3.Project(corners[i], direction);
+                if (proj.magnitude > pusher.magnitude)
+                    pusher = proj;
+            }
+
+        return center + pusher;
     }
 
     public static float BillboardRadius(Bounds bounds, Vector3 direction)
