@@ -6,6 +6,8 @@ public class IntSignalShop : MonoBehaviour
     int _cost = 3;
     public int cost { get { return _cost; } set { _cost = value; } }
     [SerializeField]
+    bool subtractAmount = true;
+    [SerializeField]
     IntSignal moneyHolder = null;
     [SerializeField]
     DXEvent successPurchase = null;
@@ -16,7 +18,7 @@ public class IntSignalShop : MonoBehaviour
     {
         if (moneyHolder.currentValue >= cost)
         {
-            moneyHolder.Subtract(cost);
+            if (subtractAmount) moneyHolder.Subtract(cost);
             successPurchase?.Invoke();
         }
         else failPurchase?.Invoke();
