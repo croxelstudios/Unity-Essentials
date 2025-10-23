@@ -26,7 +26,7 @@ public class ChildParentEvents : MonoBehaviour
     public List<ChildParentEvents> childrenEventsISubscribedAsParent;
     int currentChild = 0;
 
-    List<ChildParentEvents> tmpEvents;
+    static List<ChildParentEvents> auxEvents;
 
     bool init;
 
@@ -55,15 +55,15 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            tmpEvents = tmpEvents.ClearOrCreate();
-            tmpEvents.TryAddRange(childEvents);
-            if (!tmpEvents.IsNullOrEmpty())
-                for (int i = tmpEvents.Count - 1; i >= 0; i--)
-                    if ((i < tmpEvents.Count) && IsChildEventAvailable(tmpEvents[i], name))
+            auxEvents = auxEvents.ClearOrCreate();
+            auxEvents.TryAddRange(childEvents);
+            if (!auxEvents.IsNullOrEmpty())
+                for (int i = auxEvents.Count - 1; i >= 0; i--)
+                    if ((i < auxEvents.Count) && IsChildEventAvailable(auxEvents[i], name))
                     {
-                        IEnumerable<int> indices = tmpEvents[i].eventNames.IndicesOf(name);
+                        IEnumerable<int> indices = auxEvents[i].eventNames.IndicesOf(name);
                         foreach (int index in indices)
-                            tmpEvents[i].events[index]?.Invoke();
+                            auxEvents[i].events[index]?.Invoke();
                     }
         }
     }
@@ -79,12 +79,12 @@ public class ChildParentEvents : MonoBehaviour
             }
 
             OnEnable();
-            tmpEvents = tmpEvents.ClearOrCreate();
-            tmpEvents.TryAddRange(childEvents);
-            if (!tmpEvents.IsNullOrEmpty())
-                for (int i = tmpEvents.Count - 1; i >= 0; i--)
-                    if ((i < tmpEvents.Count) && IsChildEventAvailable(tmpEvents[i], index))
-                        tmpEvents[i].events[index]?.Invoke();
+            auxEvents = auxEvents.ClearOrCreate();
+            auxEvents.TryAddRange(childEvents);
+            if (!auxEvents.IsNullOrEmpty())
+                for (int i = auxEvents.Count - 1; i >= 0; i--)
+                    if ((i < auxEvents.Count) && IsChildEventAvailable(auxEvents[i], index))
+                        auxEvents[i].events[index]?.Invoke();
         }
     }
 
@@ -93,12 +93,12 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            tmpEvents = tmpEvents.ClearOrCreate();
-            tmpEvents.TryAddRange(childEvents);
-            if (!tmpEvents.IsNullOrEmpty())
-                for (int i = tmpEvents.Count - 1; i >= 0; i--)
-                    if ((i < tmpEvents.Count) && AreChildEventsAvailable(tmpEvents[i]))
-                        foreach (DXEvent e in tmpEvents[i].events)
+            auxEvents = auxEvents.ClearOrCreate();
+            auxEvents.TryAddRange(childEvents);
+            if (!auxEvents.IsNullOrEmpty())
+                for (int i = auxEvents.Count - 1; i >= 0; i--)
+                    if ((i < auxEvents.Count) && AreChildEventsAvailable(auxEvents[i]))
+                        foreach (DXEvent e in auxEvents[i].events)
                             e?.Invoke();
         }
     }
@@ -150,15 +150,15 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            tmpEvents = tmpEvents.ClearOrCreate();
-            tmpEvents.TryAddRange(parentEvents);
-            if (!tmpEvents.IsNullOrEmpty())
-                for (int i = tmpEvents.Count - 1; i >= 0; i--)
-                    if ((i < tmpEvents.Count) && IsParentEventAvailable(tmpEvents[i], name))
+            auxEvents = auxEvents.ClearOrCreate();
+            auxEvents.TryAddRange(parentEvents);
+            if (!auxEvents.IsNullOrEmpty())
+                for (int i = auxEvents.Count - 1; i >= 0; i--)
+                    if ((i < auxEvents.Count) && IsParentEventAvailable(auxEvents[i], name))
                     {
-                        IEnumerable<int> indices = tmpEvents[i].eventNames.IndicesOf(name);
+                        IEnumerable<int> indices = auxEvents[i].eventNames.IndicesOf(name);
                         foreach (int index in indices)
-                            tmpEvents[i].events[index]?.Invoke();
+                            auxEvents[i].events[index]?.Invoke();
                     }
         }
     }
@@ -174,12 +174,12 @@ public class ChildParentEvents : MonoBehaviour
             }
 
             OnEnable();
-            tmpEvents = tmpEvents.ClearOrCreate();
-            tmpEvents.TryAddRange(parentEvents);
-            if (!tmpEvents.IsNullOrEmpty())
-                for (int i = tmpEvents.Count - 1; i >= 0; i--)
-                    if ((i < tmpEvents.Count) && IsParentEventAvailable(tmpEvents[i], index))
-                        tmpEvents[i].events[index]?.Invoke();
+            auxEvents = auxEvents.ClearOrCreate();
+            auxEvents.TryAddRange(parentEvents);
+            if (!auxEvents.IsNullOrEmpty())
+                for (int i = auxEvents.Count - 1; i >= 0; i--)
+                    if ((i < auxEvents.Count) && IsParentEventAvailable(auxEvents[i], index))
+                        auxEvents[i].events[index]?.Invoke();
         }
     }
 
@@ -188,12 +188,12 @@ public class ChildParentEvents : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             OnEnable();
-            tmpEvents = tmpEvents.ClearOrCreate();
-            tmpEvents.TryAddRange(parentEvents);
-            if (!tmpEvents.IsNullOrEmpty())
-                for (int i = tmpEvents.Count - 1; i >= 0; i--)
-                    if ((i < tmpEvents.Count) && AreParentEventsAvailable(tmpEvents[i]))
-                        foreach (DXEvent e in tmpEvents[i].events)
+            auxEvents = auxEvents.ClearOrCreate();
+            auxEvents.TryAddRange(parentEvents);
+            if (!auxEvents.IsNullOrEmpty())
+                for (int i = auxEvents.Count - 1; i >= 0; i--)
+                    if ((i < auxEvents.Count) && AreParentEventsAvailable(auxEvents[i]))
+                        foreach (DXEvent e in auxEvents[i].events)
                             e?.Invoke();
         }
     }

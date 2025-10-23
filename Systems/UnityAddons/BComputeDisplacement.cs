@@ -16,6 +16,11 @@ public class BComputeDisplacement : MonoBehaviour
     protected ComputeBuffer[] mask;
     protected ComputeBuffer[] displacement;
 
+    void OnEnable()
+    {
+        
+    }
+
     void OnDisable()
     {
         ResetMeshesData();
@@ -24,20 +29,30 @@ public class BComputeDisplacement : MonoBehaviour
 
     void LateUpdate()
     {
+        //TO DO: [Optimized unified buffer version] Can I call these methods on OnEnable?
         meshes = ComputableMesh.Get(this);
         ComputableMesh.SetRenderingEvent_Start(this, BeginRendering);
         ComputableMesh.SetRenderingEvent_Finished(this, FinishRendering);
 
+        //TO DO: [Optimized unified buffer version]
+        //These will be called only once per frame in the "OptimizedLateUpdate"
+        //function and be unified buffers.
         mask = UpdateBufferArray(mask);
         displacement = UpdateBufferArray(displacement);
 
         OnUpdate();
 
+        //TO DO: [Optimized unified buffer version]
+        //These will be called only once per frame in the "OptimizedLateUpdate"
+        //function and be unified buffers.
+        //Computes called per mesh on OnUpdateMesh() should also work on unified buffers.
         for (int i = 0; i < meshes.Length; i++)
         {
+            //Gets a mask indicating which vertices are affected according to submesh.
             if ((mask[i] == null) || (mask[i].count != meshes[i].vertexCount))
                 mask[i] = meshes[i].SubmeshVertexMask(specificSubmesh ? (int)submesh : -1);
 
+            //Initializes displacement buffer.
             if ((displacement[i] == null) || (displacement[i].count != meshes[i].vertexCount))
             {
                 displacement[i] = new ComputeBuffer(meshes[i].vertexCount, sizeof(float) * 3);
@@ -48,6 +63,11 @@ public class BComputeDisplacement : MonoBehaviour
         }
     }
 
+    //TO DO: [Optimized unified buffer version]
+    //This method will just call the apply displacement compute by default and replace mesh data
+    //with the unified buffer data.
+    //Can also call a virtual method to allow the appliance of custom behaviours to the mesh
+    //such as the wind colors.
     void BeginRendering()
     {
         if ((meshes != null) && (mask != null))
@@ -119,9 +139,13 @@ public class BComputeDisplacement : MonoBehaviour
 
     void OnWillRenderObject()
     {
-        if ((!rendering) && ComputableMesh.IsRenderingAgentFilter(this))
+        //Checks if the rendering agent is a filter and starts computing behaviour.
+        //If the agent is a CustomRenderer, the rendering is handled by itself.
+        if ((!rendering) && ComputableMesh.IsRenderingAgentAFilter(this))
         {
             rendering = true;
+            //Prepares the mesh for rendering.
+            //Calls FinishedRendering inside if already rendering by another instance.
             ComputableMesh.PrepareStartRendering(this);
             BeginRendering();
         }

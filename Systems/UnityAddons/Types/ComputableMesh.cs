@@ -1024,6 +1024,12 @@ public class ComputableMesh : IDisposable
         original = null;
     }
 
+    /// <summary>
+    /// Generates a compute buffer of booleans indicating which vertices belong to the specified submesh.
+    /// Negative submesh index will generate a mask including all vertices.
+    /// </summary>
+    /// <param name="submesh"></param>
+    /// <returns></returns>
     public ComputeBuffer SubmeshVertexMask(int submesh)
     {
         if (_genericCompute == null)
@@ -1236,6 +1242,13 @@ public class ComputableMesh : IDisposable
     static Dictionary<Component, UnityAction> finishActions;
     static Dictionary<Mesh, UnityAction> meshFinishActions;
 
+    /// <summary>
+    /// Gets the ComputableMesh or ComputableMeshes associated with the specified component.
+    /// If the Rendering Agent is a MeshFilter, automatically sets up the mesh replacement on rendering.
+    /// </summary>
+    /// <param name="comp"></param>
+    /// <param name="nameSufix"></param>
+    /// <returns></returns>
     public static ComputableMesh[] Get(Component comp, string nameSufix = "_Computable")
     {
         return Get(comp, false, nameSufix);
@@ -1308,7 +1321,7 @@ public class ComputableMesh : IDisposable
         else return filter.customRenderer.enabled;
     }
 
-    public static bool IsRenderingAgentFilter(Component comp)
+    public static bool IsRenderingAgentAFilter(Component comp)
     {
         ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
 
@@ -1328,6 +1341,13 @@ public class ComputableMesh : IDisposable
         return false;
     }
 
+
+    /// <summary>
+    /// Tracks the start rendering event for the specified component.
+    /// If the rendering agent is a CustomRenderer, it assigns the method to be called when rendering starts.
+    /// </summary>
+    /// <param name="comp"></param>
+    /// <param name="method"></param>
     public static void SetRenderingEvent_Start(Component comp, UnityAction method)
     {
         ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
@@ -1335,10 +1355,17 @@ public class ComputableMesh : IDisposable
         if (!filter.isMeshFilter)
         {
             filter.customRenderer.startRendering.RemoveListener(method);
+            //^ Just in case it's already added
             filter.customRenderer.startRendering.AddListener(method);
         }
     }
 
+    /// <summary>
+    /// Tracks the finished rendering event for the specified component.
+    /// If the rendering agent is a CustomRenderer, it assigns the method to be called when rendering is finished.
+    /// </summary>
+    /// <param name="comp"></param>
+    /// <param name="method"></param>
     public static void SetRenderingEvent_Finished(Component comp, UnityAction method)
     {
         ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
@@ -1346,6 +1373,7 @@ public class ComputableMesh : IDisposable
         if (!filter.isMeshFilter)
         {
             filter.customRenderer.finishedRendering.RemoveListener(method);
+            //^ Just in case it's already added
             filter.customRenderer.finishedRendering.AddListener(method);
         }
     }
@@ -1441,6 +1469,10 @@ public class ComputableMesh : IDisposable
         Dictionary<MeshFilter, List<Component>> usedBy;
         Dictionary<MeshFilter, Mesh> originals;
         public bool isInitialized;
+        bool wasCleaned;
+
+        static List<Mesh> auxMeshList;
+        static List<MeshFilter> auxFilterList;
 
         public bool MeshChanged(MeshFilter filter)
         {
@@ -1466,28 +1498,28 @@ public class ComputableMesh : IDisposable
 
         public void CleanNullValues()
         {
-            if (!originals.IsNullOrEmpty())
+            if ((!wasCleaned) && (!originals.IsNullOrEmpty()))
             {
                 //Register meshes that are linked to null filters
-                List<Mesh> hanging = new List<Mesh>();
+                auxMeshList = auxMeshList.ClearOrCreate(); //Hanging meshes
                 foreach (KeyValuePair<MeshFilter, Mesh> pair in originals)
                     if ((pair.Key == null) && (pair.Value != null))
-                        hanging.Add(pair.Value);
+                        auxMeshList.Add(pair.Value);
 
                 //Remove null filters
-                originals.ClearNulls();
-                usedBy.ClearNulls();
+                originals = originals.ClearNulls();
+                usedBy = usedBy.ClearNulls();
 
                 //Remove filters with null meshes
-                List<MeshFilter> empty = new List<MeshFilter>();
+                auxFilterList = auxFilterList.ClearOrCreate();
                 foreach (KeyValuePair<MeshFilter, Mesh> pair in originals)
                     if (pair.Value == null)
-                        empty.Add(pair.Key);
-                foreach (MeshFilter filter in empty)
+                        auxFilterList.Add(pair.Key);
+                foreach (MeshFilter filter in auxFilterList)
                     originals.Remove(filter);
 
                 //Check hanging meshes
-                foreach (Mesh mesh in hanging)
+                foreach (Mesh mesh in auxMeshList) //Hanging meshes
                     if (!originals.Values.Contains(mesh))
                     {
                         meshes[mesh].SetNull();
@@ -1500,16 +1532,25 @@ public class ComputableMesh : IDisposable
                         pair.Value.SetNull();
 
                 //Remove null meshes
-                meshes.ClearNulls();
+                meshes = meshes.ClearNulls();
 
                 //Remove meshes with null computables
-                List<Mesh> toRemove = new List<Mesh>();
+                auxMeshList = auxMeshList.ClearOrCreate(); //To remove
                 foreach (KeyValuePair<Mesh, ComputableMesh> pair in meshes)
                     if ((pair.Value == null) || (pair.Value.mesh == null))
-                        toRemove.Add(pair.Key);
-                foreach (Mesh mesh in toRemove)
+                        auxMeshList.Add(pair.Key);
+                foreach (Mesh mesh in auxMeshList)
                     meshes.Remove(mesh);
+
+                wasCleaned = true;
+                Application.onBeforeRender += ResetCleaner;
             }
+        }
+
+        void ResetCleaner()
+        {
+            wasCleaned = false;
+            Application.onBeforeRender -= ResetCleaner;
         }
 
         public ComputableMesh GetComputable(MeshFilter filter)
@@ -1597,6 +1638,7 @@ public class ComputableMesh : IDisposable
     struct ComputableFilter : IEquatable<ComputableFilter>
     {
         static Dictionary<GameObject, ComputableFilter> filters = null;
+        static bool wasCleaned;
         public MeshFilter filter;
         public MeshRenderer renderer;
         public CustomRenderer customRenderer;
@@ -1612,6 +1654,8 @@ public class ComputableMesh : IDisposable
             return isMeshFilter ? filter.transform.worldToLocalMatrix :
                 customRenderer.WorldToLocalMatrix(id);
         }
+
+        static List<GameObject> auxGOs;
 
         public ComputableFilter(MeshFilter filter)
         {
@@ -1653,16 +1697,25 @@ public class ComputableMesh : IDisposable
 
         static void ClearNulls()
         {
-            if (filters != null)
+            if ((!wasCleaned) && (filters != null))
             {
                 filters = filters.ClearNulls();
-                List<GameObject> gos = new List<GameObject>();
+                auxGOs = auxGOs.ClearOrCreate();
                 foreach (KeyValuePair<GameObject, ComputableFilter> pair in filters)
                     if (pair.Value.isNull)
-                        gos.Add(pair.Key);
-                foreach (GameObject go in gos)
+                        auxGOs.Add(pair.Key);
+                foreach (GameObject go in auxGOs)
                     filters.Remove(go);
+
+                wasCleaned = true;
+                Application.onBeforeRender += ResetCleaner;
             }
+        }
+
+        static void ResetCleaner()
+        {
+            wasCleaned = false;
+            Application.onBeforeRender -= ResetCleaner;
         }
 
         public override bool Equals(object other)

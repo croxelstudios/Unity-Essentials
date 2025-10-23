@@ -44,7 +44,7 @@ public class BRemoteLauncher : MonoBehaviour
         Dictionary<string, List<Component>> dict;
         if (staticArray.SmartGetValue(t, out dict))
         {
-            dict.ClearNulls();
+            dict = dict.ClearNulls();
             foreach (KeyValuePair<string, List<Component>> pair0 in dict)
                 pair0.Value.ClearNulls();
         }

@@ -94,7 +94,7 @@ public class RavioliButton : RavioliButton_Button
     ProgrammedSelectButtonAction programmedSelection;
     int buttonsInitCount = -1;
     List<RavioliButton_Button> buttons;
-    List<RavioliButton_Button> toReadd;
+    static List<RavioliButton_Button> auxButtonList;
     Vector3 tmpSpd;
     RavioliButton_Button currentButton;
     RavioliButton_Button prevButton;
@@ -108,8 +108,8 @@ public class RavioliButton : RavioliButton_Button
     {
         base.OnEnable();
 
-        if (!toReadd.IsNullOrEmpty())
-            foreach (RavioliButton_Button button in toReadd)
+        if (!auxButtonList.IsNullOrEmpty())
+            foreach (RavioliButton_Button button in auxButtonList)
                 if (button.IsInGroup(this))
                     AddButton(button);
 
@@ -120,9 +120,9 @@ public class RavioliButton : RavioliButton_Button
     {
         if (!buttons.IsNullOrEmpty())
         {
-            toReadd = toReadd.ClearOrCreate();
-            toReadd.AddRange(buttons);
-            foreach (RavioliButton_Button button in toReadd)
+            auxButtonList = auxButtonList.ClearOrCreate();
+            auxButtonList.AddRange(buttons);
+            foreach (RavioliButton_Button button in auxButtonList)
                 RemoveButton(button);
         }
 
@@ -369,8 +369,6 @@ public class RavioliButton : RavioliButton_Button
         if (this.IsActiveAndEnabled()) DirectionSelect(direction, true);
     }
 
-    List<RavioliButton_Button> oppositeButtons;
-
     void DirectionSelect(Vector3 direction, bool doMovement)
     {
         if (currentButton != null)
@@ -405,12 +403,12 @@ public class RavioliButton : RavioliButton_Button
 
                 if (loopButtons)
                 {
-                    oppositeButtons = oppositeButtons.ClearOrCreate();
-                    oppositeButtons.AddRange(buttons);
+                    auxButtonList = auxButtonList.ClearOrCreate(); //Opposite buttons
+                    auxButtonList.AddRange(buttons);
                     for (int i = 0; i < buttons.Count; i++)
                     {
                         if (buttons[i] == currentButton)
-                            oppositeButtons.Remove(buttons[i]);
+                            auxButtonList.Remove(buttons[i]);
                         else
                             for (int j = 0; j < buttons.Count; j++)
                             {
@@ -420,7 +418,7 @@ public class RavioliButton : RavioliButton_Button
                                 Vector3 dir = buttons[j].position - buttons[i].position;
                                 if (Vector3.Angle(-direction, dir) < directionSelectMaxAngle)
                                 {
-                                    oppositeButtons.Remove(buttons[i]);
+                                    auxButtonList.Remove(buttons[i]);
                                     break;
                                 }
                             }
@@ -428,9 +426,9 @@ public class RavioliButton : RavioliButton_Button
 
                     float ang = 180f;
                     int opId = -1;
-                    for (int i = 0; i < oppositeButtons.Count; i++)
+                    for (int i = 0; i < auxButtonList.Count; i++)
                     {
-                        Vector3 dir = oppositeButtons[i].position - currentButton.position;
+                        Vector3 dir = auxButtonList[i].position - currentButton.position;
                         float angle = Vector3.Angle(-direction, dir);
                         if (angle < ang)
                         {
@@ -438,7 +436,7 @@ public class RavioliButton : RavioliButton_Button
                             opId = i;
                         }
                     }
-                    if (opId >= 0) id = buttons.IndexOf(oppositeButtons[opId]);
+                    if (opId >= 0) id = buttons.IndexOf(auxButtonList[opId]);
                 }
             }
 
