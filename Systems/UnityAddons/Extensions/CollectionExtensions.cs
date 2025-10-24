@@ -539,6 +539,14 @@ public static class CollectionExtensions
         }
     }
 
+    /// <summary>
+    /// Clears the dictionary of null key values.
+    /// WARNING: Causes overhead on big dictionaries and GC when the dictionary actually has null values. Use with caution.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Y"></typeparam>
+    /// <param name="dict"></param>
+    /// <returns></returns>
     public static Dictionary<T, Y> ClearNulls<T, Y>(this Dictionary<T, Y> dict)
     {
         if (dict == null) return null;

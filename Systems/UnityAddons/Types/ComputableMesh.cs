@@ -11,6 +11,11 @@ public class ComputableMesh : IDisposable
 {
     public Mesh original { get; private set; }
     public Mesh mesh { get; private set; }
+    public string name
+    {
+        get { return mesh.name; }
+        set { mesh.name = value; }
+    }
     public GraphicsBuffer vertexBuffer
     {
         get
@@ -120,11 +125,13 @@ public class ComputableMesh : IDisposable
         SetTriangles(triangleData);
     }
 
-    public void Initialize(Mesh meshToCopy, string name)
+    public void Initialize(Mesh meshToCopy, string name = "")
     {
         int[] tCount = new int[meshToCopy.subMeshCount];
         for (int i = 0; i < tCount.Length; i++)
             tCount[i] = (int)meshToCopy.GetIndexCount(i);
+        if (name.IsNullOrEmpty())
+            name = this.name;
         Initialize(name, meshToCopy.vertexCount, tCount);
         for (int i = 0; i < meshToCopy.subMeshCount; i++)
             CopyMesh(meshToCopy, 0, 0, i, i);
@@ -1240,7 +1247,6 @@ public class ComputableMesh : IDisposable
     static ComputableFilterCollection filtersProcessor;
     static Dictionary<Component, UnityAction> startActions;
     static Dictionary<Component, UnityAction> finishActions;
-    static Dictionary<Mesh, UnityAction> meshFinishActions;
 
     /// <summary>
     /// Gets the ComputableMesh or ComputableMeshes associated with the specified component.
@@ -1378,25 +1384,6 @@ public class ComputableMesh : IDisposable
         }
     }
 
-    public static void PrepareStartRendering(Component comp)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-
-        if (filter.isMeshFilter)
-        {
-            Mesh m = filtersProcessor.OriginalMesh(filter.filter);
-            if (m != null)
-            {
-                if (meshFinishActions.SmartGetValue(m, out UnityAction action))
-                {
-                    action.Invoke();
-                    meshFinishActions.Remove(m);
-                }
-                meshFinishActions = meshFinishActions.CreateAdd(m, finishActions[comp]);
-            }
-        }
-    }
-
     //By MeshFilter
     static ComputableMesh Get(MeshFilter filter, Component comp, string nameSufix = "_Computable")
     {
@@ -1407,6 +1394,7 @@ public class ComputableMesh : IDisposable
     {
         if (!filtersProcessor.isInitialized)
         {
+            RenderPipelineManager.endContextRendering += EndRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
             RenderPipelineManager.endCameraRendering += EndCameraRendering;
         }
@@ -1423,8 +1411,8 @@ public class ComputableMesh : IDisposable
             mesh = filtersProcessor.GetComputable(filter);
 
             if (reinitialize)
-                mesh.Initialize(filter.sharedMesh, filter.sharedMesh.name + nameSufix);
-            else mesh.mesh.name = filter.sharedMesh.name + nameSufix;
+                mesh.Initialize(filter.sharedMesh, filter.transform.parent.name + nameSufix);
+            else mesh.name = filter.transform.parent.name + nameSufix;
 
             filtersProcessor.SetUseByComponent(filter, comp);
 
@@ -1435,7 +1423,7 @@ public class ComputableMesh : IDisposable
             if (filter.sharedMesh != null)
             {
                 return filtersProcessor.Create(filter, comp,
-                    filter.sharedMesh, filter.sharedMesh.name + nameSufix);
+                    filter.sharedMesh, filter.transform.parent.name + nameSufix);
             }
             else return null;
         }
@@ -1446,6 +1434,12 @@ public class ComputableMesh : IDisposable
         filtersProcessor.StopUsing(filter, comp);
     }
 
+    static void EndRendering(ScriptableRenderContext context, List<Camera> cams)
+    {
+        foreach (KeyValuePair<Component, UnityAction> pair in finishActions)
+            pair.Value?.Invoke();
+    }
+
     static void BeginCameraRendering(ScriptableRenderContext context, Camera cam)
     {
         filtersProcessor.SubstituteFilterMeshes();
@@ -1454,21 +1448,15 @@ public class ComputableMesh : IDisposable
     static void EndCameraRendering(ScriptableRenderContext context, Camera cam)
     {
         filtersProcessor.RestoreFilterMeshes();
-        if (!meshFinishActions.IsNullOrEmpty())
-        {
-            filtersProcessor.CleanNullValues();
-            foreach (KeyValuePair<Mesh, UnityAction> pair in meshFinishActions)
-                pair.Value.Invoke();
-            meshFinishActions.Clear();
-        }
     }
 
     struct ComputableFilterCollection
     {
-        Dictionary<Mesh, ComputableMesh> meshes;
+        Dictionary<MeshFilter, ComputableMesh> meshes;
         Dictionary<MeshFilter, List<Component>> usedBy;
         Dictionary<MeshFilter, Mesh> originals;
         public bool isInitialized;
+        public int count { get { return (meshes != null) ? meshes.Count : 0; } }
         bool wasCleaned;
 
         static List<Mesh> auxMeshList;
@@ -1491,8 +1479,7 @@ public class ComputableMesh : IDisposable
             {
                 originals.Remove(filter);
                 usedBy.SmartRemove(filter);
-                if (!originals.Values.Contains(original))
-                    meshes.SmartRemove(original);
+                meshes.SmartRemove(filter);
             }
         }
 
@@ -1500,15 +1487,10 @@ public class ComputableMesh : IDisposable
         {
             if ((!wasCleaned) && (!originals.IsNullOrEmpty()))
             {
-                //Register meshes that are linked to null filters
-                auxMeshList = auxMeshList.ClearOrCreate(); //Hanging meshes
-                foreach (KeyValuePair<MeshFilter, Mesh> pair in originals)
-                    if ((pair.Key == null) && (pair.Value != null))
-                        auxMeshList.Add(pair.Value);
-
                 //Remove null filters
                 originals = originals.ClearNulls();
                 usedBy = usedBy.ClearNulls();
+                meshes = meshes.ClearNulls();
 
                 //Remove filters with null meshes
                 auxFilterList = auxFilterList.ClearOrCreate();
@@ -1516,31 +1498,21 @@ public class ComputableMesh : IDisposable
                     if (pair.Value == null)
                         auxFilterList.Add(pair.Key);
                 foreach (MeshFilter filter in auxFilterList)
+                {
                     originals.Remove(filter);
+                    meshes.Remove(filter);
+                }
 
-                //Check hanging meshes
-                foreach (Mesh mesh in auxMeshList) //Hanging meshes
-                    if (!originals.Values.Contains(mesh))
-                    {
-                        meshes[mesh].SetNull();
-                        meshes.Remove(mesh);
-                    }
-
-                //Nullify computables from null meshes
-                foreach (KeyValuePair<Mesh, ComputableMesh> pair in meshes)
-                    if ((pair.Key == null) && (pair.Value != null))
-                        pair.Value.SetNull();
-
-                //Remove null meshes
-                meshes = meshes.ClearNulls();
-
-                //Remove meshes with null computables
-                auxMeshList = auxMeshList.ClearOrCreate(); //To remove
-                foreach (KeyValuePair<Mesh, ComputableMesh> pair in meshes)
+                //Remove filters with null computables
+                auxFilterList = auxFilterList.ClearOrCreate(); //To remove
+                foreach (KeyValuePair<MeshFilter, ComputableMesh> pair in meshes)
                     if ((pair.Value == null) || (pair.Value.mesh == null))
-                        auxMeshList.Add(pair.Key);
-                foreach (Mesh mesh in auxMeshList)
-                    meshes.Remove(mesh);
+                        auxFilterList.Add(pair.Key);
+                foreach (MeshFilter filter in auxFilterList)
+                {
+                    originals.Remove(filter);
+                    meshes.Remove(filter);
+                }
 
                 wasCleaned = true;
                 Application.onBeforeRender += ResetCleaner;
@@ -1558,10 +1530,10 @@ public class ComputableMesh : IDisposable
             if (!originals.NotNullContainsKey(filter))
                 return null;
 
-            if (!meshes.NotNullContainsKey(filter.sharedMesh))
+            if (!meshes.NotNullContainsKey(filter))
                 return null;
 
-            return meshes[filter.sharedMesh];
+            return meshes[filter];
         }
 
         public void SetUseByComponent(MeshFilter filter, Component comp)
@@ -1607,7 +1579,7 @@ public class ComputableMesh : IDisposable
 
             foreach (MeshFilter filter in filters)
                 if (filter != null)
-                    filter.sharedMesh = meshes[originals[filter]];
+                    filter.sharedMesh = meshes[filter];
         }
 
         public void RestoreFilterMeshes()
@@ -1616,7 +1588,7 @@ public class ComputableMesh : IDisposable
 
             foreach (MeshFilter filter in filters)
                 if (filter != null)
-                    filter.sharedMesh = meshes[originals[filter]].original;
+                    filter.sharedMesh = meshes[filter].original;
         }
 
         public Mesh OriginalMesh(MeshFilter filter)
@@ -1629,7 +1601,7 @@ public class ComputableMesh : IDisposable
         void Create(MeshFilter filter, Component comp, ComputableMesh mesh)
         {
             originals = originals.CreateAdd(filter, filter.sharedMesh);
-            meshes = meshes.CreateAdd(filter.sharedMesh, mesh);
+            meshes = meshes.CreateAdd(filter, mesh);
             SetUseByComponent(filter, comp);
             isInitialized = true;
         }
