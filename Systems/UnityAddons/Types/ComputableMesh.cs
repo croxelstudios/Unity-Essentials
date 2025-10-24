@@ -11,11 +11,6 @@ public class ComputableMesh : IDisposable
 {
     public Mesh original { get; private set; }
     public Mesh mesh { get; private set; }
-    public string name
-    {
-        get { return mesh.name; }
-        set { mesh.name = value; }
-    }
     public GraphicsBuffer vertexBuffer
     {
         get
@@ -83,12 +78,6 @@ public class ComputableMesh : IDisposable
             return _genericCompute;
         }
     }
-    const string computeShader_ApplyDisplacementKernel = "ApplyDisplacement";
-    const string computeShader_ResetDisplacementKernel = "ResetDisplacement";
-    const string computeShader_ResetColorsKernel = "ResetColors";
-    const string computeShader_ResetVerticesKernel = "ResetVertices";
-    const string computeShader_ResetVerticesAndColorKernel = "ResetVerticesAndColor";
-    const string computeShader_RecordVerticesKernel = "RecordVertices";
     const string genericComputeShaderName = "ComputableMeshGenericCompute";
     const string cleanNullAreaTrianglesKernel = "CleanNullAreaTriangles";
     const string clearMaskKernel = "ClearMask";
@@ -410,6 +399,12 @@ public class ComputableMesh : IDisposable
     public void Clear()
     {
         mesh.Clear();
+    }
+
+    public string name
+    {
+        get { return mesh.name; }
+        set { mesh.name = value; }
     }
 
     public Bounds bounds { get { return mesh.bounds; } }
@@ -1093,120 +1088,6 @@ public class ComputableMesh : IDisposable
 
         _genericCompute.Dispatch(ki, Mathf.CeilToInt(
             indexCount / Numthreads_Small), 1, 1);
-    }
-
-    public static void Compute_ResetDisplacement(ComputeBuffer displacement)
-    {
-        ComputeShader compute = genericCompute;
-        int ki = compute.FindKernel(computeShader_ResetDisplacementKernel);
-
-        compute.SetInt("dispStride", displacement.stride);
-        compute.SetInt("dispSize", displacement.count);
-        compute.SetBuffer(ki, "displacement", displacement);
-
-        compute.Dispatch(ki, Mathf.CeilToInt(
-            displacement.count / Numthreads_Small), 1, 1);
-    }
-
-    public static void Compute_ResetColors(ComputeBuffer colors)
-    {
-        ComputeShader compute = genericCompute;
-        int ki = compute.FindKernel(computeShader_ResetColorsKernel);
-
-        compute.SetInt("colorsStride", colors.stride);
-        compute.SetInt("colorsSize", colors.count);
-        compute.SetBuffer(ki, "colors", colors);
-
-        compute.Dispatch(ki, Mathf.CeilToInt(
-            colors.count / Numthreads_Small), 1, 1);
-    }
-
-    public static void Compute_ApplyDisplacement(ComputableMesh mesh, ComputeBuffer mask,
-        ComputeBuffer displacement)
-    {
-        ComputeShader compute = genericCompute;
-
-        int ki = compute.FindKernel(computeShader_ApplyDisplacementKernel);
-
-        compute.SetInt("dispStride", displacement.stride);
-        compute.SetInt("dispSize", displacement.count);
-        compute.SetBuffer(ki, "displacement", displacement);
-
-        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
-        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
-        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
-
-        compute.SetBuffer(ki, "mask", mask);
-
-        compute.Dispatch(ki, Mathf.CeilToInt(
-            mesh.vertexCount / Numthreads_Small), 1, 1);
-    }
-
-    public static void Compute_ResetVertexData(ComputableMesh mesh, ComputeBuffer mask,
-        ComputeBuffer displacement)
-    {
-        ComputeShader compute = genericCompute;
-
-        int ki = compute.FindKernel(computeShader_ResetVerticesKernel);
-
-        compute.SetInt("dispStride", displacement.stride);
-        compute.SetInt("dispSize", displacement.count);
-        compute.SetBuffer(ki, "displacement", displacement);
-
-        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
-        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
-        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
-
-        compute.SetBuffer(ki, "mask", mask);
-
-        compute.Dispatch(ki, Mathf.CeilToInt(
-            mesh.vertexCount / Numthreads_Small), 1, 1);
-    }
-
-    public static void Compute_ResetVertexData(ComputableMesh mesh, ComputeBuffer mask,
-        ComputeBuffer displacement, ComputeBuffer colors)
-    {
-        ComputeShader compute = genericCompute;
-
-        int ki = compute.FindKernel(computeShader_ResetVerticesAndColorKernel);
-
-        compute.SetInt("dispStride", displacement.stride);
-        compute.SetInt("dispSize", displacement.count);
-        compute.SetBuffer(ki, "displacement", displacement);
-
-        compute.SetInt("colorsStride", colors.stride);
-        compute.SetInt("colorsSize", colors.count);
-        compute.SetBuffer(ki, "colors", colors);
-
-        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
-        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
-        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
-
-        compute.SetBuffer(ki, "mask", mask);
-
-        compute.Dispatch(ki, Mathf.CeilToInt(
-            mesh.vertexCount / Numthreads_Small), 1, 1);
-    }
-
-    public static void Compute_RecordVertices(ComputableMesh mesh, ComputeBuffer recorded,
-        Matrix4x4 transform)
-    {
-        ComputeShader compute = genericCompute;
-
-        compute.SetMatrix("modelMatrix", transform);
-
-        int ki = compute.FindKernel(computeShader_RecordVerticesKernel);
-
-        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
-        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
-        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
-
-        compute.SetInt("dispStride", recorded.stride);
-        compute.SetInt("dispSize", recorded.count);
-        compute.SetBuffer(ki, "displacement", recorded);
-
-        compute.Dispatch(ki, Mathf.CeilToInt(
-            recorded.count / Numthreads_Small), 1, 1);
     }
     #endregion
 

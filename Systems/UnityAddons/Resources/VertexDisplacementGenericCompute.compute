@@ -1,0 +1,118 @@
+#include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputeShaderGeneric.cginc"
+#include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMeshGeneric.cginc"
+
+#pragma kernel ResetDisplacement
+
+RWByteAddressBuffer displacement;
+uint dispStride;
+uint dispSize;
+
+float3 ExtractDisplacement(uint i)
+{
+    uint v = i * dispStride;
+    return asfloat(displacement.Load3(v));
+}
+
+void SetDisplacement(uint i, float3 value)
+{
+    uint v = i * dispStride;
+    displacement.Store3(v, asuint(value));
+}
+
+[numthreads(128, 1, 1)]
+void ResetDisplacement(uint id : SV_DispatchThreadID)
+{
+    if (id < dispSize)
+        SetDisplacement(id, float3(0.0, 0.0, 0.0));
+}
+
+#pragma kernel ResetColors
+
+RWByteAddressBuffer colors;
+uint colorsStride;
+uint colorsSize;
+
+float4 ExtractColor(uint i)
+{
+    uint v = i * colorsStride;
+    return asfloat(colors.Load4(v));
+}
+
+void SetColor(uint i, float4 value)
+{
+    uint v = i * colorsStride;
+    colors.Store4(v, asuint(value));
+}
+
+[numthreads(128, 1, 1)]
+void ResetColors(uint id : SV_DispatchThreadID)
+{
+    if (id < colorsSize)
+        SetColor(id, float4(0.0, 0.0, 0.0, 0.0));
+}
+
+#pragma kernel ApplyDisplacement
+
+RWStructuredBuffer<uint> mask;
+
+[numthreads(128, 1, 1)]
+void ApplyDisplacement(uint id : SV_DispatchThreadID)
+{
+    if ((id < vertexCount) && (mask[id] > 0))
+    {
+        float3 pos = ExtractVertexPosition(id);
+
+        pos += ExtractDisplacement(id);
+
+        SetVertexPosition(id, pos);
+    }
+}
+
+#pragma kernel ResetVertices
+
+[numthreads(128, 1, 1)]
+void ResetVertices(uint id : SV_DispatchThreadID)
+{
+    if ((id < vertexCount) && (mask[id] > 0))
+    {
+        float3 pos = ExtractVertexPosition(id);
+
+        pos -= ExtractDisplacement(id);
+
+        SetVertexPosition(id, pos);
+    }
+}
+
+#pragma kernel ResetVerticesAndColor
+
+[numthreads(128, 1, 1)]
+void ResetVerticesAndColor(uint id : SV_DispatchThreadID)
+{
+    if ((id < vertexCount) && (mask[id] > 0))
+    {
+        float3 pos = ExtractVertexPosition(id);
+        float4 color = ExtractVertexColor(id);
+
+        pos -= ExtractDisplacement(id);
+        color -= ExtractColor(id);
+
+        SetVertexPosition(id, pos);
+        SetVertexColor(id, color);
+    }
+}
+
+#pragma kernel RecordVertices
+
+float4x4 modelMatrix;
+
+[numthreads(128, 1, 1)]
+void RecordVertices(uint id : SV_DispatchThreadID)
+{
+    if (id < vertexCount)
+    {
+        float3 pos = ExtractVertexPosition(id);
+        pos = mul(modelMatrix, float4(pos, 1.0)).xyz;
+
+        SetDisplacement(id, pos);
+    }
+}

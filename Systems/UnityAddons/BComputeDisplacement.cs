@@ -74,7 +74,7 @@ public class BComputeDisplacement : MonoBehaviour
             if ((displacement[i] == null) || (displacement[i].count != meshes[i].vertexCount))
             {
                 displacement[i] = new ComputeBuffer(meshes[i].vertexCount, sizeof(float) * 3);
-                ComputableMesh.Compute_ResetDisplacement(displacement[i]);
+                Compute_ResetDisplacement(displacement[i]);
             }
 
             OnUpdateMesh(i);
@@ -148,5 +148,143 @@ public class BComputeDisplacement : MonoBehaviour
     protected virtual void OnBeginRenderingMesh(int i)
     {
 
+    }
+
+    //--------------------------------------------------------------
+
+    static ComputeShader _displacementCompute;
+    public static ComputeShader displacementCompute
+    {
+        get
+        {
+            if (_displacementCompute == null)
+                _displacementCompute = (ComputeShader)Resources.Load(displacementComputeShaderName);
+            return _displacementCompute;
+        }
+    }
+    const string displacementComputeShaderName = "VertexDisplacementGenericCompute";
+
+    const string computeShader_ApplyDisplacementKernel = "ApplyDisplacement";
+    const string computeShader_ResetDisplacementKernel = "ResetDisplacement";
+    const string computeShader_ResetColorsKernel = "ResetColors";
+    const string computeShader_ResetVerticesKernel = "ResetVertices";
+    const string computeShader_ResetVerticesAndColorKernel = "ResetVerticesAndColor";
+    const string computeShader_RecordVerticesKernel = "RecordVertices";
+    const float Numthreads_Large = 512;
+    const float Numthreads_Small = 128;
+    const float Numthreads_2D = 16;
+
+    protected static void Compute_ResetDisplacement(ComputeBuffer displacement)
+    {
+        ComputeShader compute = displacementCompute;
+        int ki = compute.FindKernel(computeShader_ResetDisplacementKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            displacement.count / Numthreads_Small), 1, 1);
+    }
+
+    protected static void Compute_ResetColors(ComputeBuffer colors)
+    {
+        ComputeShader compute = displacementCompute;
+        int ki = compute.FindKernel(computeShader_ResetColorsKernel);
+
+        compute.SetInt("colorsStride", colors.stride);
+        compute.SetInt("colorsSize", colors.count);
+        compute.SetBuffer(ki, "colors", colors);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            colors.count / Numthreads_Small), 1, 1);
+    }
+
+    protected static void Compute_ApplyDisplacement(ComputableMesh mesh, ComputeBuffer mask,
+        ComputeBuffer displacement)
+    {
+        ComputeShader compute = displacementCompute;
+
+        int ki = compute.FindKernel(computeShader_ApplyDisplacementKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetBuffer(ki, "mask", mask);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            mesh.vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    protected static void Compute_ResetVertexData(ComputableMesh mesh, ComputeBuffer mask,
+        ComputeBuffer displacement)
+    {
+        ComputeShader compute = displacementCompute;
+
+        int ki = compute.FindKernel(computeShader_ResetVerticesKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetBuffer(ki, "mask", mask);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            mesh.vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    protected static void Compute_ResetVertexData(ComputableMesh mesh, ComputeBuffer mask,
+        ComputeBuffer displacement, ComputeBuffer colors)
+    {
+        ComputeShader compute = displacementCompute;
+
+        int ki = compute.FindKernel(computeShader_ResetVerticesAndColorKernel);
+
+        compute.SetInt("dispStride", displacement.stride);
+        compute.SetInt("dispSize", displacement.count);
+        compute.SetBuffer(ki, "displacement", displacement);
+
+        compute.SetInt("colorsStride", colors.stride);
+        compute.SetInt("colorsSize", colors.count);
+        compute.SetBuffer(ki, "colors", colors);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetBuffer(ki, "mask", mask);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            mesh.vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    protected static void Compute_RecordVertices(ComputableMesh mesh, ComputeBuffer recorded,
+        Matrix4x4 transform)
+    {
+        ComputeShader compute = displacementCompute;
+
+        compute.SetMatrix("modelMatrix", transform);
+
+        int ki = compute.FindKernel(computeShader_RecordVerticesKernel);
+
+        compute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        compute.SetInt("vertexCount", mesh.vertexBuffer.count);
+        compute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        compute.SetInt("dispStride", recorded.stride);
+        compute.SetInt("dispSize", recorded.count);
+        compute.SetBuffer(ki, "displacement", recorded);
+
+        compute.Dispatch(ki, Mathf.CeilToInt(
+            recorded.count / Numthreads_Small), 1, 1);
     }
 }
