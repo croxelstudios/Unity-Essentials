@@ -32,7 +32,7 @@ public class BByTag<T> : MonoBehaviour where T : Component
         if ((updateMode != ByTagUpdateMode.DontUpdate) &&
             ((target == null) ||
             ((updateMode == ByTagUpdateMode.UpdateWhenNullOrInactive) &&
-            (!(target.gameObject.activeInHierarchy && target.IsEnabled())))))
+            (!target.IsEnabled()))))
             ResetSource();
     }
 

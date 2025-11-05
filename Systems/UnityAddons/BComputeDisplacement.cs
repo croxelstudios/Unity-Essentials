@@ -1,5 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 [ExecuteAlways]
 public class BComputeDisplacement : MonoBehaviour
@@ -12,58 +14,60 @@ public class BComputeDisplacement : MonoBehaviour
     [SerializeField]
     uint submesh = 0;
 
-    bool rendering;
+    List<Camera> renderingCameras;
     protected ComputableMesh[] meshes;
     protected ComputeBuffer[] mask;
     protected ComputeBuffer[] displacement;
 
-    void OnEnable()
+    protected virtual void OnEnable()
     {
+        renderingCameras = new List<Camera>();
         ComputableMesh.SetRenderingEvent_Start(this, BeginRendering);
         ComputableMesh.SetRenderingEvent_Finished(this, FinishRendering);
     }
 
-    void OnDisable()
+    protected virtual void OnDisable()
     {
         ResetMeshesData();
         ComputableMesh.StopUsing(this);
+        StopAllCoroutines();
     }
 
     void LateUpdate()
     {
-        //TO DO: [Optimized unified buffer version] Can I call these methods on OnEnable?
+        //Needs to be called here to account for CustomRenderers before OnWillRenderobject.
         meshes = ComputableMesh.Get(this);
+        OnUpdate();
     }
 
     void OnWillRenderObject()
     {
         //Checks if the rendering agent is being rendered and is a filter.
         //If the agent is a CustomRenderer, the rendering moment is handled by itself.
-        if ((!rendering) && ComputableMesh.IsRenderingAgentAFilter(this))
+        if ((renderingCameras.Count <= 0) && ComputableMesh.IsRenderingAgentAFilter(this))
             BeginRendering();
+
+        renderingCameras.Add(Camera.current);
     }
 
-    //TO DO: [Optimized unified buffer version]
-    //This method will just call the apply displacement compute by default and replace mesh data
-    //with the unified buffer data.
-    //Can also call a virtual method to allow the appliance of custom behaviours to the mesh
-    //such as the wind colors.
+    void OnRenderObject()
+    {
+        //Checks if the rendering agent is being rendered and is a filter.
+        //If the agent is a CustomRenderer, the rendering moment is handled by itself.
+        if (renderingCameras.Count > 0)
+        {
+            renderingCameras.Remove(Camera.current);
+            if (renderingCameras.Count <= 0)
+                FinishRendering();
+        }
+    }
+
     void BeginRendering()
     {
-        rendering = true;
-
-        //TO DO: [Optimized unified buffer version]
-        //These will be called only once per frame in the "OptimizedLateUpdate"
-        //function and be unified buffers.
         mask = UpdateBufferArray(mask);
         displacement = UpdateBufferArray(displacement);
+        OnUpdateBuffers();
 
-        OnUpdate();
-
-        //TO DO: [Optimized unified buffer version]
-        //These will be called only once per frame in the "OptimizedLateUpdate"
-        //function and be unified buffers.
-        //Computes called per mesh on OnUpdateMesh() should also work on unified buffers.
         for (int i = 0; i < meshes.Length; i++)
         {
             //Gets a mask indicating which vertices are affected according to submesh.
@@ -78,20 +82,14 @@ public class BComputeDisplacement : MonoBehaviour
             }
 
             OnUpdateMesh(i);
+            OnBeginRenderingMesh(i);
         }
-
-        if ((meshes != null) && (mask != null))
-            for (int i = 0; i < meshes.Length; i++)
-                OnBeginRenderingMesh(i);
     }
 
     void FinishRendering()
     {
-        if (rendering && (mask != null))
-        {
-            rendering = false;
+        if (mask != null)
             ResetMeshesData();
-        }
     }
 
     void ResetMeshesData()
@@ -115,6 +113,9 @@ public class BComputeDisplacement : MonoBehaviour
 
     protected ComputeBuffer[] UpdateBufferArray(ComputeBuffer[] buffer)
     {
+        if (meshes.IsNullOrEmpty())
+            LateUpdate();
+
         if ((buffer == null) || (meshes.Length != buffer.Length))
             buffer = buffer.Resize(meshes.Length);
         return buffer;
@@ -132,10 +133,15 @@ public class BComputeDisplacement : MonoBehaviour
 
     protected virtual void ResetData(int i)
     {
-
+        Compute_ResetVertexData(meshes[i], mask[i], displacement[i]);
     }
 
     protected virtual void OnUpdate()
+    {
+
+    }
+
+    protected virtual void OnUpdateBuffers()
     {
 
     }
@@ -170,9 +176,9 @@ public class BComputeDisplacement : MonoBehaviour
     const string computeShader_ResetVerticesKernel = "ResetVertices";
     const string computeShader_ResetVerticesAndColorKernel = "ResetVerticesAndColor";
     const string computeShader_RecordVerticesKernel = "RecordVertices";
-    const float Numthreads_Large = 512;
-    const float Numthreads_Small = 128;
-    const float Numthreads_2D = 16;
+    protected const float Numthreads_Large = 512;
+    protected const float Numthreads_Small = 128;
+    protected const float Numthreads_2D = 16;
 
     protected static void Compute_ResetDisplacement(ComputeBuffer displacement)
     {

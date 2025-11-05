@@ -1172,12 +1172,12 @@ public class ComputableMesh : IDisposable
             {
                 if (startActions.SmartGetValue(comp, out UnityAction staction))
                 {
-                    filter.customRenderer.startRendering.RemoveListener(staction);
+                    filter.customRenderer.RemoveStartAction(staction);
                     startActions.Remove(comp);
                 }
                 if (finishActions.SmartGetValue(comp, out UnityAction fiaction))
                 {
-                    filter.customRenderer.finishedRendering.RemoveListener(fiaction);
+                    filter.customRenderer.RemoveFinishAction(fiaction);
                     finishActions.Remove(comp);
                 }
                 filter.customRenderer.StopUseByComponent(comp);
@@ -1241,9 +1241,9 @@ public class ComputableMesh : IDisposable
         startActions = startActions.CreateAdd(comp, method);
         if (!filter.isMeshFilter)
         {
-            filter.customRenderer.startRendering.RemoveListener(method);
-            //^ Just in case it's already added
-            filter.customRenderer.startRendering.AddListener(method);
+            filter.customRenderer.RemoveStartAction(method);
+            //^ In case it's already added
+            filter.customRenderer.AddStartAction(method);
         }
     }
 
@@ -1259,9 +1259,9 @@ public class ComputableMesh : IDisposable
         finishActions = finishActions.CreateAdd(comp, method);
         if (!filter.isMeshFilter)
         {
-            filter.customRenderer.finishedRendering.RemoveListener(method);
-            //^ Just in case it's already added
-            filter.customRenderer.finishedRendering.AddListener(method);
+            filter.customRenderer.RemoveFinishAction(method);
+            //^ In case it's already added
+            filter.customRenderer.AddFinishAction(method);
         }
     }
 
@@ -1275,7 +1275,6 @@ public class ComputableMesh : IDisposable
     {
         if (!filtersProcessor.isInitialized)
         {
-            RenderPipelineManager.endContextRendering += EndRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
             RenderPipelineManager.endCameraRendering += EndCameraRendering;
         }
@@ -1292,8 +1291,8 @@ public class ComputableMesh : IDisposable
             mesh = filtersProcessor.GetComputable(filter);
 
             if (reinitialize)
-                mesh.Initialize(filter.sharedMesh, filter.transform.parent.name + nameSufix);
-            else mesh.name = filter.transform.parent.name + nameSufix;
+                mesh.Initialize(filter.sharedMesh, filter.name + nameSufix);
+            else mesh.name = filter.name + nameSufix;
 
             filtersProcessor.SetUseByComponent(filter, comp);
 
@@ -1304,7 +1303,7 @@ public class ComputableMesh : IDisposable
             if (filter.sharedMesh != null)
             {
                 return filtersProcessor.Create(filter, comp,
-                    filter.sharedMesh, filter.transform.parent.name + nameSufix);
+                    filter.sharedMesh, filter.name + nameSufix);
             }
             else return null;
         }
@@ -1313,12 +1312,6 @@ public class ComputableMesh : IDisposable
     static void StopUsing(MeshFilter filter, Component comp)
     {
         filtersProcessor.StopUsing(filter, comp);
-    }
-
-    static void EndRendering(ScriptableRenderContext context, List<Camera> cams)
-    {
-        foreach (KeyValuePair<Component, UnityAction> pair in finishActions)
-            pair.Value?.Invoke();
     }
 
     static void BeginCameraRendering(ScriptableRenderContext context, Camera cam)
@@ -1545,6 +1538,13 @@ public class ComputableMesh : IDisposable
                 filter = new ComputableFilter(gameObject);
                 filters = filters.CreateAdd(gameObject, filter);
             }
+            else
+                if (filter.isNull)
+                {
+                    filters.Remove(gameObject);
+                    filter = new ComputableFilter(gameObject);
+                    filters = filters.CreateAdd(gameObject, filter);
+                }
             return filter;
         }
 

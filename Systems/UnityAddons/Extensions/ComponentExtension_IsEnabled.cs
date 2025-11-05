@@ -4,7 +4,7 @@ public static class ComponentExtension_IsEnabled
 {
     public static bool IsEnabled(this Component component)
     {
-        if (component == null)
+        if ((component == null) || !component.gameObject.activeInHierarchy)
             return false;
 
         Behaviour b = component as Behaviour;

@@ -32,9 +32,43 @@ float SignedAngle(float3 from, float3 to, float3 axis)
     return unsignedAngle * s;
 }
 
+float3 Project(float3 v, float3 normal)
+{
+    float sqrMag = dot(normal, normal);
+    if (sqrMag <= 0.0)
+    {
+        sqrMag = 0.0001;
+        return float3(0.0, 0.0, 0.0);
+    }
+    
+    float d = dot(v, normal);
+    float div = d / sqrMag;
+    return normal * div;
+}
+
+float LProject(float3 v, float3 normal)
+{
+    return length(Project(v, normal)) * sign(dot(v, normal));
+}
+
 float4 Projection(float4 A, float4 B)
 {
     return B * dot(A, B) / dot(B, B);
+}
+
+float3 ProjectOnPlane(float3 v, float3 planeNormal)
+{
+    float sqrMag = dot(planeNormal, planeNormal);
+    if (sqrMag <= 0.0)
+    {
+        sqrMag = 0.0001;
+        return v;
+    }
+
+    float d = dot(v, planeNormal);
+    float div = d / sqrMag;
+    return v - (planeNormal * div);
+
 }
 // ^ ---------- ^
 
