@@ -318,6 +318,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": false
 }
 
@@ -327,8 +329,8 @@
     "m_ObjectId": "1361b1cb15f747ff8f618fe263528ef5",
     "m_Title": "UV Input",
     "m_Position": {
-        "x": -1226.0001220703125,
-        "y": -82.0
+        "x": -1226.0,
+        "y": -81.99998474121094
     }
 }
 
@@ -440,7 +442,7 @@
     "m_Group": {
         "m_Id": "6a473e0e76e5455c9e1b2f869d4fa5e8"
     },
-    "m_Name": "Base_ProcessTangentNormals",
+    "m_Name": "Base_Process Tangent Normals",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -623,10 +625,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -121.0000228881836,
-            "y": -47.000003814697269,
-            "width": 119.99993896484375,
-            "height": 77.00000762939453
+            "x": -120.9999771118164,
+            "y": -46.99999237060547,
+            "width": 119.99998474121094,
+            "height": 77.0
         }
     },
     "m_Slots": [
@@ -673,7 +675,7 @@
     "m_Title": "Process",
     "m_Position": {
         "x": -802.0,
-        "y": -106.00001525878906
+        "y": -106.0
     }
 }
 
@@ -720,12 +722,15 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": {
         "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"ad9c756f37d4758418f9c8bc10b9ea2b\",\"type\":3}}",
         "m_Guid": ""
     },
     "isMainTexture": false,
     "useTilingAndOffset": false,
+    "useTexelSize": true,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -855,7 +860,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "TangentToWorldNormal",
+    "m_Name": "Tangent To World Normal",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -1050,12 +1055,24 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": 30.0,
     "m_FloatType": 0,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
-    }
+    },
+    "m_SliderType": 0,
+    "m_SliderPower": 3.0,
+    "m_EnumType": 0,
+    "m_CSharpEnumString": "",
+    "m_EnumNames": [
+        "Default"
+    ],
+    "m_EnumValues": [
+        0
+    ]
 }
 
 {
@@ -1152,6 +1169,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": {
         "x": 0.0,
         "y": 0.0,

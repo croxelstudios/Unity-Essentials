@@ -12,9 +12,14 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - REQUIRE_DEPTH_TEXTURE
   - _3DBOOLEANS_IGNORE
   - _ALPHATEST_ON
+  - _LIGHT_LAYERS
+  - _MAIN_LIGHT_SHADOWS
+  - _MAIN_LIGHT_SHADOWS_CASCADE
   - _NORMALSHANDLER_MESH
+  - _SHADOWS_SOFT
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
@@ -138,6 +143,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - REQUIRE_DEPTH_TEXTURE: 1
     - _3DBOOLEANS: 0
     - _AddPrecomputedVelocity: 0
     - _AffineTextureMapping: 0
@@ -178,6 +184,7 @@ Material:
     - _ExtraMapThreshold: 0.15
     - _FlipX: 0
     - _FlipY: 0
+    - _FogInfluence: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
@@ -186,10 +193,13 @@ Material:
     - _InvertCubemap: 0
     - _InvertSubtractor: 0
     - _InvertedAlphaTex: 0
+    - _LIGHT_LAYERS: 1
     - _LightCurveFactor: 0
     - _LightInfluence: 0
     - _LightPositionFromVertexColors: 0
     - _LightStepsCurveFactor: 0
+    - _MAIN_LIGHT_SHADOWS: 1
+    - _MAIN_LIGHT_SHADOWS_CASCADE: 1
     - _MapSaturation: 1
     - _Metallic: 0
     - _NORMALSHANDLER: 0
@@ -207,6 +217,7 @@ Material:
     - _ReceiveShadows: 1
     - _RimLightAmount: 0.1
     - _Rotation: 0
+    - _SHADOWS_SOFT: 1
     - _ScaleInOtherSpace: 0
     - _ScreenMapIsNormals: 0
     - _ScreenMapThreshold: 1
@@ -292,4 +303,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10
