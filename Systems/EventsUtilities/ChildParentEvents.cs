@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
 using System.Linq;
+using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,6 +14,10 @@ public class ChildParentEvents : MonoBehaviour
     public bool propagateToParents = false;
     public bool ignoreFromChildren = false;
     public bool ignoreFromParents = false;
+    [ListDrawerSettings(ShowFoldout = false)]
+    //TO DO: Doesn't work because I'm using GenericNamedEvents_Inspector.
+    //The GenericNamedEvents_Inspector class should be remade into an Attribute.
+    public string[] notedTargetEventNames = null;
     [HideInInspector]
     public DXEvent[] events = null;
     [HideInInspector]
@@ -50,6 +55,7 @@ public class ChildParentEvents : MonoBehaviour
     }
 
     #region Children Functions
+    [StringPopup("notedTargetEventNames")]
     public void CallChildEvent(string name)
     {
         if (this.IsActiveAndEnabled())
@@ -145,6 +151,7 @@ public class ChildParentEvents : MonoBehaviour
     #endregion
 
     #region Parents Functions
+    [StringPopup("notedTargetEventNames")]
     public void CallParentEvent(string name)
     {
         if (this.IsActiveAndEnabled())
