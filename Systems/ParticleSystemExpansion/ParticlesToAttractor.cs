@@ -15,7 +15,7 @@ public class ParticlesToAttractor : MonoBehaviour
     [Range(0f, 1f)]
     float attractPercent = 1f;
     [SerializeField]
-    bool intantAdaption = true;
+    bool instantAdaption = true;
     [SerializeField]
     TimeMode timeMode = TimeMode.Update;
 
@@ -45,26 +45,20 @@ public class ParticlesToAttractor : MonoBehaviour
         if (target != null)
         {
             int amount = ps.GetParticles(particles, ps.particleCount);
-            if (intantAdaption)
-                for (int i = 0; i < amount; i++)
+            for (int i = 0; i < amount; i++)
+            {
+                if (particles[i].remainingLifetime > 0f)
                 {
                     Vector3 vel = particles[i].velocity;
                     particles[i].position = Vector3.SmoothDamp(
                         particles[i].position, target.position, ref vel,
-                        particles[i].remainingLifetime / attractPercent,
+                        (instantAdaption ? particles[i].remainingLifetime : particles[i].startLifetime)
+                        / attractPercent,
                         Mathf.Infinity, deltaTime);
                     particles[i].velocity = vel;
                 }
-            else
-                for (int i = 0; i < amount; i++)
-                {
-                    Vector3 vel = particles[i].velocity;
-                    particles[i].position = Vector3.SmoothDamp(
-                        particles[i].position, target.position, ref vel,
-                        particles[i].startLifetime / attractPercent, Mathf.Infinity, deltaTime);
-                    particles[i].velocity = vel;
-                }
-            ps.SetParticles(particles);
+            }
+            ps.SetParticles(particles, amount);
         }
     }
 }

@@ -812,6 +812,55 @@ public class NDCollider
         return finalHits.ToArray();
     }
 
+    public void Draw(Color color)
+    {
+        Vector3 center = transform.position;
+        if (is3D)
+        {
+            BoxCollider boxCol = col3 as BoxCollider;
+            //TO DO: Other types of 3D colliders
+            if (boxCol != null)
+            {
+                center += boxCol.center;
+                Vector3 size = Vector3.Scale(boxCol.size, transform.lossyScale);
+                Bounds bounds = new Bounds(center, size);
+                bounds.Draw(color, transform.rotation);
+            }
+        }
+        else
+        {
+            BoxCollider2D boxCol = col2 as BoxCollider2D;
+            EdgeCollider2D edgeCol = col2 as EdgeCollider2D;
+            PolygonCollider2D polyCol = col2 as PolygonCollider2D;
+            if (boxCol != null)
+            {
+                center += (Vector3)boxCol.offset;
+                Vector3 size = Vector3.Scale((Vector3)boxCol.size, transform.lossyScale);
+                Bounds bounds = new Bounds(center, size);
+                bounds.Draw(color, transform.rotation);
+            }
+            if (edgeCol != null)
+            {
+                Vector3 offset = edgeCol.offset;
+                for (int i = 1; i < edgeCol.points.Length; i++)
+                    Debug.DrawLine(
+                        transform.TransformPoint(edgeCol.points[i - 1] + edgeCol.offset),
+                        transform.TransformPoint(edgeCol.points[i] + edgeCol.offset));
+            }
+            if (polyCol != null)
+            {
+                Vector3 offset = polyCol.offset;
+                Debug.DrawLine(
+                    transform.TransformPoint(polyCol.points[polyCol.points.Length - 1] + polyCol.offset),
+                    transform.TransformPoint(polyCol.points[0] + polyCol.offset));
+                for (int i = 1; i < polyCol.points.Length; i++)
+                    Debug.DrawLine(
+                        transform.TransformPoint(polyCol.points[i - 1] + polyCol.offset),
+                        transform.TransformPoint(polyCol.points[i] + polyCol.offset));
+            }
+        }
+    }
+
     public enum Scope { inThis, inParents, inChildren }
 }
 

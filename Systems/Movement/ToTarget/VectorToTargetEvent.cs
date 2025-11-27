@@ -10,11 +10,13 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
     bool useNavMesh = false;
     [SerializeField]
     [ShowIf("@useNavMesh")]
+    [Indent]
     [Tooltip("NavMesh agent type to consider")]
     [NavMeshAgentTypeSelector]
     int navMeshAgentType = 0;
     [SerializeField]
     [ShowIf("@useNavMesh")]
+    [Indent]
     [Tooltip("NavMesh area to use")]
     NavMeshAreas navMeshAreaMask = NavMeshAreas.Walkable;
     //[SerializeField]
@@ -48,9 +50,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
     protected override MovementPath GetPath()
     {
         Vector3 oPos = Current();
-        Vector3 tPos = target.position;
-        if (local && (origin.parent != null))
-            tPos = origin.parent.InverseTransformPoint(tPos);
+        Vector3 tPos = Target();
         if (speedBehaviour.MoveAway())
             tPos = oPos - (tPos - oPos);
 
@@ -190,27 +190,34 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
             //Calculate and send vector with direction and amount of speed
             Vector3 result = direction * unitsPerSecondSpeed;
             vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
-            if (local && (origin.parent != null)) result = origin.parent.TransformVector(result);
-            if (applyInTransform)
-                origin.Translate(speedPerThisFrame, local ? Space.Self : Space.World);
-            if (reorientTransform)
-                origin.forward = result;
+            Apply(speedPerThisFrame, locally);
         }
     }
 
-    /// <summary>
-    /// Instantly applies transformations to the origin transform
-    /// </summary>
-    public override void Teleport()
+    public override void Set(Vector3 target)
     {
-        Vector3 dif = target.position - origin.position;
-        origin.Translate(dif, Space.World);
+        Vector3 dif = target - Current();
+        Apply(dif);
         ResetSpeed();
     }
 
-    public override Vector3 Current()
+    public override void Apply(Vector3 speed, bool isLocal = false)
     {
-        return origin.Position(local);
+        if (applyInTransform)
+            origin.Translate(speed, isLocal ? Space.Self : Space.World);
+        if (reorientTransform)
+            origin.forward = isLocal ?
+                origin.parent.TransformDirection(speed) : speed;
+    }
+
+    public override Vector3 GetGlobal(Transform tr)
+    {
+        return tr.position;
+    }
+
+    public override Vector3 ToLocal(Vector3 value)
+    {
+        return origin.parent.InverseTransformPoint(value);
     }
 
     public override void UpdateSpeed(ref Vector3 speed,

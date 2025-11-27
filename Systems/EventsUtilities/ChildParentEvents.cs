@@ -123,6 +123,24 @@ public class ChildParentEvents : MonoBehaviour
         }
     }
 
+    public void CallEventOnCurrentChild(string name)
+    {
+        if (this.IsActiveAndEnabled())
+        {
+            OnEnable();
+            if (!childEvents.IsNullOrEmpty())
+            {
+                ChildParentEvents childEvent = childEvents[currentChild];
+                if (IsChildEventAvailable(childEvent, name))
+                {
+                    IEnumerable<int> indices = childEvents[currentChild].eventNames.IndicesOf(name);
+                    foreach (int index in indices)
+                        childEvents[currentChild].events[index]?.Invoke();
+                }
+            }
+        }
+    }
+
     public void SetChild(int index)
     {
         currentChild = Mathf.Clamp(index, 0, childEvents.Count - 1);

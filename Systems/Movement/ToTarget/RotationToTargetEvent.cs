@@ -24,9 +24,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
     protected override RotationPath GetPath()
     {
         Quaternion oRot = Current();
-        Quaternion tRot = target.rotation;
-        if (local && (origin.parent != null))
-            tRot = Quaternion.Inverse(origin.parent.rotation) * tRot;
+        Quaternion tRot = Target();
         if (speedBehaviour.MoveAway())
             tRot = Quaternion.Inverse(tRot);
 
@@ -179,25 +177,31 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
             //Calculate and send euler angles with direction and amount of rotation
             Quaternion result = Quaternion.AngleAxis(degreesPerSecondSpeed, axis);
             rotation?.Invoke(sendFrameMovement ? angleAxisPerThisFrame : result);
-            if (local && (origin.parent != null)) result = origin.parent.rotation * result;
-            if (applyInTransform)
-                origin.Rotate(angleAxisPerThisFrame.eulerAngles, local ? Space.Self : Space.World);
+            Apply(angleAxisPerThisFrame, locally);
         }
     }
 
-    /// <summary>
-    /// Instantly applies transformations to the origin transform
-    /// </summary>
-    public override void Teleport()
+    public override void Set(Quaternion target)
     {
-        Quaternion dif = target.rotation.Subtract(origin.rotation);
+        Quaternion dif = target.Subtract(origin.rotation);
         origin.Rotate(dif.eulerAngles, Space.World);
         ResetSpeed();
     }
 
-    public override Quaternion Current()
+    public override void Apply(Quaternion speed, bool isLocal = false)
     {
-        return origin.Rotation(local);
+        if (applyInTransform)
+            origin.Rotate(speed.eulerAngles, isLocal ? Space.Self : Space.World);
+    }
+
+    public override Quaternion GetGlobal(Transform tr)
+    {
+        return tr.rotation;
+    }
+
+    public override Quaternion ToLocal(Quaternion value)
+    {
+        return Quaternion.Inverse(origin.parent.rotation) * value;
     }
 
     public override void UpdateSpeed(ref Vector3 speed,

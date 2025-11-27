@@ -43,7 +43,8 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     }
 
     [SerializeField]
-    protected bool local = false;
+    bool local = false;
+    public bool locally { get { return local && (origin.parent != null); } }
     [SerializeField]
     protected bool sendWhenZeroToo = false;
     [SerializeField]
@@ -74,6 +75,8 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     [FoldoutGroup("$StartStopFoldout")]
     [Tooltip("Resulting transformation was not zero and is zero now")]
     DXEvent stopped = null;
+
+    TransformData recorded;
 
 #if UNITY_EDITOR
     public string StartStopFoldout()
@@ -167,11 +170,13 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
     protected void ResetSpeed()
     {
-        dynamicInfo.speed = Vector3.zero;
+        dynamicInfo = new DynamicInfo();
+        UpdatePrev(ref dynamicInfo.prev);
     }
 
     protected virtual void Awake()
     {
+        recorded = new TransformData(origin);
         UpdatePrev(ref dynamicInfo.prev);
     }
 
@@ -255,13 +260,47 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     /// <summary>
     /// Instantly moves the origin transform to the target position
     /// </summary>
-    public virtual void Teleport()
+    public void Teleport()
+    {
+        Set(Target());
+    }
+
+    public void Respawn()
+    {
+        recorded.SetInTransform(origin);
+    }
+
+    public virtual void Set(T target)
     {
     }
 
-    public virtual T Current()
+    public virtual void Apply(T speed, bool isLocal)
+    {
+    }
+
+    public T Get(Transform tr)
+    {
+        return locally ? ToLocal(GetGlobal(tr)) : GetGlobal(tr);
+    }
+
+    public virtual T GetGlobal(Transform tr)
     {
         return Default<T>.Value;
+    }
+
+    public virtual T ToLocal(T value)
+    {
+        return value;
+    }
+
+    public T Target()
+    {
+        return Get(target);
+    }
+
+    public T Current()
+    {
+        return Get(origin);
     }
 
     public virtual void UpdateSpeed(ref Vector3 speed, Vector3 accelHalf, T prev, float deltaTime)

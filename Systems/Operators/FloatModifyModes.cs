@@ -10,6 +10,12 @@ public class FloatModifyModes : MonoBehaviour
     ScaleMode[] scaleModes = new ScaleMode[] { new ScaleMode(1f, 0f, 0f, false, false) };
     [SerializeField]
     DXFloatEvent modifiedValue = null;
+    [SerializeField]
+    RoundMode roundMode = RoundMode.Floor;
+    [SerializeField]
+    DXIntEvent intValue = null;
+
+    enum RoundMode { Floor, Ceil, Round }
 
     float value;
 
@@ -43,6 +49,20 @@ public class FloatModifyModes : MonoBehaviour
         if (scaleModes[mode].oneMinus) newValue = 1f - newValue;
         newValue += scaleModes[mode].postAddition;
         modifiedValue?.Invoke(newValue);
+        int iValue;
+        switch (roundMode)
+        {
+            case RoundMode.Ceil:
+                iValue = Mathf.CeilToInt(newValue);
+                break;
+            case RoundMode.Round:
+                iValue = Mathf.RoundToInt(newValue);
+                break;
+            default:
+                iValue = Mathf.FloorToInt(newValue);
+                break;
+        }
+        intValue?.Invoke(iValue);
     }
 
     public void SetMode(int mode)
