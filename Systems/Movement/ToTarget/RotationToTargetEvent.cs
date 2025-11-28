@@ -177,21 +177,21 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
             //Calculate and send euler angles with direction and amount of rotation
             Quaternion result = Quaternion.AngleAxis(degreesPerSecondSpeed, axis);
             rotation?.Invoke(sendFrameMovement ? angleAxisPerThisFrame : result);
-            Apply(angleAxisPerThisFrame, locally);
+            if (applyInTransform)
+                Apply(angleAxisPerThisFrame, locally);
         }
     }
 
-    public override void Set(Quaternion target)
+    public override void Set(Quaternion target, bool isLocal = false)
     {
-        Quaternion dif = target.Subtract(origin.rotation);
-        origin.Rotate(dif.eulerAngles, Space.World);
+        Quaternion dif = target.Subtract(Current());
+        Apply(dif, isLocal);
         ResetSpeed();
     }
 
     public override void Apply(Quaternion speed, bool isLocal = false)
     {
-        if (applyInTransform)
-            origin.Rotate(speed.eulerAngles, isLocal ? Space.Self : Space.World);
+        origin.Rotate(speed.eulerAngles, isLocal ? Space.Self : Space.World);
     }
 
     public override Quaternion GetGlobal(Transform tr)

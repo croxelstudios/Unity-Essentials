@@ -190,24 +190,31 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
             //Calculate and send vector with direction and amount of speed
             Vector3 result = direction * unitsPerSecondSpeed;
             vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
-            Apply(speedPerThisFrame, locally);
+            if (applyInTransform)
+                Apply(speedPerThisFrame, locally);
+            else if (reorientTransform)
+                ReorientTransform(speedPerThisFrame, locally);
         }
     }
 
-    public override void Set(Vector3 target)
+    void ReorientTransform(Vector3 speed, bool isLocal = false)
+    {
+        origin.forward = isLocal ?
+            origin.parent.TransformDirection(speed) : speed;
+    }
+
+    public override void Set(Vector3 target, bool isLocal = false)
     {
         Vector3 dif = target - Current();
-        Apply(dif);
+        Apply(dif, isLocal);
         ResetSpeed();
     }
 
     public override void Apply(Vector3 speed, bool isLocal = false)
     {
-        if (applyInTransform)
-            origin.Translate(speed, isLocal ? Space.Self : Space.World);
+        origin.Translate(speed, isLocal ? Space.Self : Space.World);
         if (reorientTransform)
-            origin.forward = isLocal ?
-                origin.parent.TransformDirection(speed) : speed;
+            ReorientTransform(speed, isLocal);
     }
 
     public override Vector3 GetGlobal(Transform tr)

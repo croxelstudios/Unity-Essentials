@@ -41,6 +41,7 @@ public class ChildParentEvents : MonoBehaviour
         {
             SearchParentEvents();
             SearchChildEvents();
+            SortChildren();
             init = true;
         }
     }
@@ -165,6 +166,15 @@ public class ChildParentEvents : MonoBehaviour
     bool IsChildEventAvailable(ChildParentEvents childEvents, string name)
     {
         return AreChildEventsAvailable(childEvents) && childEvents.eventNames.Contains(name);
+    }
+
+    void SortChildren()
+    {
+        if (!childEvents.IsNullOrEmpty())
+            childEvents.Sort(delegate (ChildParentEvents x, ChildParentEvents y)
+            {
+                return x.transform.ChildIndex().CompareTo(y.transform.ChildIndex());
+            });
     }
     #endregion
 

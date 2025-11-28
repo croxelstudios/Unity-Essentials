@@ -262,7 +262,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
     /// </summary>
     public void Teleport()
     {
-        Set(Target());
+        Set(Target(), locally);
     }
 
     public void Respawn()
@@ -270,7 +270,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
         recorded.SetInTransform(origin);
     }
 
-    public virtual void Set(T target)
+    public virtual void Set(T target, bool isLocal = false)
     {
     }
 
