@@ -30,6 +30,17 @@ public class BComputeDisplacement : MonoBehaviour
     {
         ResetMeshesData();
         ComputableMesh.StopUsing(this);
+
+        if (!meshes.IsNullOrEmpty())
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                if (!mask.IsNullOrEmpty())
+                    mask[i]?.Release();
+                if (!displacement.IsNullOrEmpty())
+                    displacement[i]?.Release();
+                OnReleaseBuffers(i);
+            }
+
         StopAllCoroutines();
     }
 
@@ -43,7 +54,7 @@ public class BComputeDisplacement : MonoBehaviour
     void OnWillRenderObject()
     {
         //Checks if the rendering agent is being rendered and is a filter.
-        //If the agent is a CustomRenderer, the rendering moment is handled by itself.
+        //If the agent is a CustomRenderer, its rendering moment is handled by it.
         if ((renderingCameras.Count <= 0) && ComputableMesh.IsRenderingAgentAFilter(this))
             BeginRendering();
 
@@ -53,7 +64,7 @@ public class BComputeDisplacement : MonoBehaviour
     void OnRenderObject()
     {
         //Checks if the rendering agent is being rendered and is a filter.
-        //If the agent is a CustomRenderer, the rendering moment is handled by itself.
+        //If the agent is a CustomRenderer, the rendering moment is handled by it.
         if (renderingCameras.Count > 0)
         {
             renderingCameras.Remove(Camera.current);
@@ -146,6 +157,11 @@ public class BComputeDisplacement : MonoBehaviour
 
     }
 
+    protected virtual void OnReleaseBuffers(int i)
+    {
+
+    }
+
     protected virtual void OnUpdateMesh(int i)
     {
 
@@ -156,7 +172,7 @@ public class BComputeDisplacement : MonoBehaviour
 
     }
 
-    //--------------------------------------------------------------
+//--------------------------------------------------------------
 
     static ComputeShader _displacementCompute;
     public static ComputeShader displacementCompute
