@@ -448,11 +448,39 @@ public class ComputableMesh : IDisposable
         SetVertexColors(0, vertexCount, Color.white);
     }
 
+    #region Complex compute operations
+    const string getEdgesKernel = "GetEdges";
+    const string proccessEdgesKernel = "ProccessDuplicateEdges";
+
+    void Compute_GetEdges(ComputeBuffer edgesDataBuff, int submesh)
+    {
+        int indexStart = (int)mesh.GetIndexStart(submesh);
+        int indexCount = (int)mesh.GetIndexCount(submesh);
+
+        int ki = genericCompute.FindKernel(getEdgesKernel);
+        genericCompute.SetInt("indexStart", indexStart);
+        genericCompute.SetInt("indexCount", indexCount);
+        genericCompute.SetInt("indexStride", indexBuffer.stride);
+        genericCompute.SetBuffer(ki, "indices", indexBuffer);
+        genericCompute.SetBuffer(ki, "edges", edgesDataBuff);
+
+        genericCompute.Dispatch(ki, Mathf.CeilToInt(
+            (indexCount / 3f) / Numthreads_Small), 1, 1);
+    }
+
+    void Compute_ProccessEdges(ComputeBuffer edgesDataBuff)
+    {
+        int ki = genericCompute.FindKernel(proccessEdgesKernel);
+        genericCompute.SetBuffer(ki, "edges", edgesDataBuff);
+
+        int threadGroups = Mathf.CeilToInt(edgesDataBuff.count / Numthreads_2D);
+        genericCompute.Dispatch(ki, threadGroups, threadGroups, 1);
+    }
+    #endregion
+
     #region Cut mesh
     static ComputeShader cuttingCompute;
     const string cutMeshComputeShaderName = "CutMeshCompute";
-    const string getEdgesKernel = "GetEdges";
-    const string proccessEdgesKernel = "ProccessDuplicateEdges";
     const string getIntersectionsKernel = "GetIntersections";
     const string getTriangleCutDataKernel = "GetTriangleCutData";
     const string getTriangleCutDataSquareKernel = "GetTriangleCutData_SquareCut";
@@ -828,31 +856,6 @@ public class ComputableMesh : IDisposable
 
         //Add triangles
         AddIndices(indicesToAdd, submesh);
-    }
-
-    void Compute_GetEdges(ComputeBuffer edgesDataBuff, int submesh)
-    {
-        int indexStart = (int)mesh.GetIndexStart(submesh);
-        int indexCount = (int)mesh.GetIndexCount(submesh);
-
-        int ki = cuttingCompute.FindKernel(getEdgesKernel);
-        cuttingCompute.SetInt("indexStart", indexStart);
-        cuttingCompute.SetInt("indexCount", indexCount);
-        cuttingCompute.SetInt("indexStride", indexBuffer.stride);
-        cuttingCompute.SetBuffer(ki, "indices", indexBuffer);
-        cuttingCompute.SetBuffer(ki, "edges", edgesDataBuff);
-
-        cuttingCompute.Dispatch(ki, Mathf.CeilToInt(
-            (indexCount / 3f) / Numthreads_Small), 1, 1);
-    }
-
-    void Compute_ProccessEdges(ComputeBuffer edgesDataBuff)
-    {
-        int ki = cuttingCompute.FindKernel(proccessEdgesKernel);
-        cuttingCompute.SetBuffer(ki, "edges", edgesDataBuff);
-
-        int threadGroups = Mathf.CeilToInt(edgesDataBuff.count / Numthreads_2D);
-        cuttingCompute.Dispatch(ki, threadGroups, threadGroups, 1);
     }
 
     void Compute_GetIntersections(

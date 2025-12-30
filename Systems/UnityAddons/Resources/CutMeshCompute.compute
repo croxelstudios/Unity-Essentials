@@ -1,60 +1,9 @@
 #include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputeShaderGeneric.cginc"
 #include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMeshGeneric.cginc"
+#include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMesh_Edges.cginc"
 
 //TO DO: Some functions are not being filtered by buffer size,
 //that might be causing the issues on Lovecraftify.cs
-#pragma kernel GetEdges
-
-struct Edge
-{
-    int v1;
-    int v2;
-    int index1;
-    int index2;
-};
-
-RWStructuredBuffer<Edge> edges;
-
-[numthreads(128, 1, 1)]
-void GetEdges(uint id : SV_DispatchThreadID)
-{
-    if (id < indexCount)
-    {
-        int index = indexStart + (id * 3);
-        edges[index].v1 = ExtractIndex(index);
-        edges[index].v2 = ExtractIndex(index + 1);
-        edges[index].index1 = index;
-        edges[index].index2 = -1;
-    
-        edges[index + 1].v1 = ExtractIndex(index + 1);
-        edges[index + 1].v2 = ExtractIndex(index + 2);
-        edges[index + 1].index1 = index;
-        edges[index + 1].index2 = -1;
-    
-        edges[index + 2].v1 = ExtractIndex(index + 2);
-        edges[index + 2].v2 = ExtractIndex(index);
-        edges[index + 2].index1 = index;
-        edges[index + 2].index2 = -1;
-    }
-}
-
-#pragma kernel ProccessDuplicateEdges
-
-[numthreads(16, 16, 1)]
-void ProccessDuplicateEdges(uint2 id : SV_DispatchThreadID)
-{
-    if (id.x < id.y)
-        if (((edges[id.x].v1 == edges[id.y].v1) &&
-            (edges[id.x].v2 == edges[id.y].v2))
-            ||
-            ((edges[id.x].v1 == edges[id.y].v2) &&
-            (edges[id.x].v2 == edges[id.y].v1)))
-        {
-            edges[id.x].index2 = edges[id.y].index1;
-            edges[id.y].index2 = -int(id.x) - 2;
-        }
-}
-
 #pragma kernel GetIntersections
 
 struct Intersection
@@ -132,8 +81,8 @@ void GetIntersections(uint id : SV_DispatchThreadID)
     int i2 = (i1 == 2) ? 0 : i1 + 1;
     intersections[id].leftIndex = (dot1 < 0) ? i1 : i2;
 
-    if (edges[id].index2 < -1)
-        intersections[id].info = -edges[id].index2 - 2;
+    if (edges[id].IsDupe())
+        intersections[id].info = edges[id].GetOriginal();
     else
     {
         if (dot1 != dot2)

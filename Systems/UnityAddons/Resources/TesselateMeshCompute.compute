@@ -1,0 +1,24 @@
+#include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputeShaderGeneric.cginc"
+#include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMeshGeneric.cginc"
+#include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMesh_Edges.cginc"
+
+// Step 1: Get edges data
+// Step 2: Get bool buffer to mark each edge colindant to a triangle with an area too large.
+//	Area can be calculated with a transformation matrix,
+//	or you can pass the identity matrix for a local calculation.
+//	[Omit this step if the subdivision is absolute]
+// Step 3: In the CPU, count marked edges and create a new vertex buffer with the new expected size
+//	[Counting can be omited if the subdivision is absolute]
+// Step 4: Back in the GPU, copy old vertices to the new vertex buffer
+// Step 5: Write the new vertices into the new vertex buffer, checking each marked edge.
+//	Save the new IDs in an info buffer [Same size as the edges buffer, or reuse same]
+//	All data in new vertex is an average of the two edge extremes.
+// Step 6: For each triangle, check its edges in the buffer and substitute and create new triangles
+//	following one of three methods, depending on amount of subdivided edges.
+//	Save the data in a "triangle subdivision" buffer.
+// Step 7: Back in the CPU, read the "triangle subdivision" buffer and create the new triangle buffer.
+//	Then create the new mesh using the vertex and triangle buffers.
+//
+// Repeat whole process recursively until either you reach the absolute subdivision target
+// or the marked edges buffer ends up empty
+//
