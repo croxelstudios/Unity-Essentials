@@ -595,6 +595,9 @@ public class RavioliButton : RavioliButton_Button
 
     int CalculateCarouselDirection()
     {
+        //TO DO: BUG - When initializing after having closed on a non-default button,
+        //the previous button is not determined correctly (It is set to default),
+        //and carousel movement stacks with each activation
         int cID = buttons.IndexOf(currentButton);
         int pID = buttons.IndexOf(prevButton);
         if (pID < 0) pID = cID;

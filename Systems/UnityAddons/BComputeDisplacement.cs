@@ -35,9 +35,9 @@ public class BComputeDisplacement : MonoBehaviour
             for (int i = 0; i < meshes.Length; i++)
             {
                 if (!mask.IsNullOrEmpty())
-                    mask[i]?.Release();
+                    mask[i] = mask[i].ReleaseToNull();
                 if (!displacement.IsNullOrEmpty())
-                    displacement[i]?.Release();
+                    displacement[i] = displacement[i].ReleaseToNull();
                 OnReleaseBuffers(i);
             }
 
