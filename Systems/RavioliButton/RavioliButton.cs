@@ -188,8 +188,13 @@ public class RavioliButton : RavioliButton_Button
 
     void TrySelectCurrent()
     {
+        RavioliButton_Button prev = prevButton;
+        prevButton = currentButton;
+
         if ((!UpdateMovementBehaviours(false)) && (currentButton != null))
             currentButton.TrySelect();
+
+        prevButton = prev;
     }
 
     /// <summary>

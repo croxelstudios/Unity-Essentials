@@ -5,6 +5,8 @@ public class FallTrigger : MonoBehaviour
     [SerializeField]
     Vector3 direction = Vector3.down;
     [SerializeField]
+    Space space = Space.World;
+    [SerializeField]
     float distance = 5f;
     [SerializeField]
     DXEvent entered = null;
@@ -47,10 +49,12 @@ public class FallTrigger : MonoBehaviour
 
     bool CheckTransform()
     {
-        if (Vector3.Dot(transform.position, direction) < 0f)
+        Vector3 position = space == Space.Self ? transform.localPosition : transform.position;
+
+        if (Vector3.Dot(position, direction) < 0f)
             return false;
 
-        Vector3 proj = Vector3.Project(transform.position, direction);
+        Vector3 proj = Vector3.Project(position, direction);
         return proj.magnitude > distance;
     }
 }
