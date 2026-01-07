@@ -5,9 +5,6 @@
     "m_Properties": [
         {
             "m_Id": "34a1eb618e844f22ae25e40056f96728"
-        },
-        {
-            "m_Id": "d910881d33c14bfdb10a9959e0ced502"
         }
     ],
     "m_Keywords": [
@@ -45,9 +42,6 @@
         },
         {
             "m_Id": "8633fe23525e41419e4bab4db70a3119"
-        },
-        {
-            "m_Id": "d5bd6a7602904e0093734c651bb3eb92"
         }
     ],
     "m_GroupDatas": [
@@ -167,20 +161,6 @@
                     "m_Id": "8633fe23525e41419e4bab4db70a3119"
                 },
                 "m_SlotId": 868671825
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "d5bd6a7602904e0093734c651bb3eb92"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "b0cc8c845fe64cc7bf5f7a9ff63f46d6"
-                },
-                "m_SlotId": 4
             }
         }
     ],
@@ -514,31 +494,6 @@
 }
 
 {
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "7a7b21352dc147378fad67f78349fc01",
-    "m_Id": 4,
-    "m_DisplayName": "VertexShadowCoords",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "VertexShadowCoords",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
-}
-
-{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
     "m_ObjectId": "7cc9c83216d64fe888a5555459d5a497",
@@ -726,9 +681,6 @@
             "m_Id": "490d70e283004aa6bab951b8d1ef67f9"
         },
         {
-            "m_Id": "7a7b21352dc147378fad67f78349fc01"
-        },
-        {
             "m_Id": "6d2c7e2c1a7a425d9ef1193f55fd321c"
         },
         {
@@ -796,31 +748,6 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "b84f09a64e35498abe4344c09a45ae5c",
-    "m_Id": 0,
-    "m_DisplayName": "VertexShadowCoords",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
 }
 
 {
@@ -913,6 +840,7 @@
     "m_Title": "Position Input",
     "m_Position": {
         "x": -876.0,
+<<<<<<< Updated upstream
         "y": -11.0
     }
 }
@@ -980,6 +908,9 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+=======
+        "y": -10.999874114990235
+>>>>>>> Stashed changes
     }
 }
 
@@ -1015,9 +946,6 @@
         },
         {
             "m_Id": "87de38caecc44a51a644330089137412"
-        },
-        {
-            "m_Id": "d910881d33c14bfdb10a9959e0ced502"
         }
     ]
 }
