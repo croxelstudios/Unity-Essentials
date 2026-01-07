@@ -715,10 +715,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -210.00003051757813,
-            "y": 47.99998092651367,
-            "width": 292.0,
-            "height": 141.99998474121095
+            "x": -210.00001525878907,
+            "y": 48.000003814697269,
+            "width": 292.0000305175781,
+            "height": 142.00001525878907
         }
     },
     "m_Slots": [
@@ -753,7 +753,7 @@
     "m_FunctionName": "MainLightData",
     "m_FunctionSource": "",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\n\tDirection = half3(0.5, 0.5, 0);\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n\tShaddowAtten = 1;\r\n#else\r\n    \tfloat4 shadowCoord;\n\t#if SHADOWS_SCREEN\n\t\tshadowCoord = ComputeScreenPos(TransformWorldToHClip(Position));\n\t#else\n\t\tshadowCoord = TransformWorldToShadowCoord(Position);\n\t#endif\r\n    \tLight light = GetMainLight(shadowCoord);\n\r\r\t\n\tDirection = half3(0, 0, 0);\n\tColor = float3(0, 0, 0);\n\tShaddowAtten = 1;\n\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))\r\n#endif\n\t{\n    \t\tDirection = light.direction;\n\t\t\r\r\t\tColor = light.color;\n\t\tShaddowAtten = light.shadowAttenuation;\n\t}\r\n#endif"
+    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\n\tDirection = half3(0.5, 0.5, 0);\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n\tShaddowAtten = 1;\r\n#else\r\n    \tfloat4 shadowCoord;\n\t#ifdef _MAIN_LIGHT_SHADOWS_CASCADES\n\t\tshadowCoord = TransformWorldToShadowCoord(Position);\n\t#else\n\t\tshadowCoord =\n\t\t\tmul(_MainLightWorldToShadow[0], float4(Position, 1.0));\n\t#endif\r\n    \tLight light = GetMainLight(shadowCoord);\n\r\r\t\n\tDirection = half3(0, 0, 0);\n\tColor = float3(0, 0, 0);\n\tShaddowAtten = 1;\n\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))\r\n#endif\n\t{\n    \t\tDirection = light.direction;\n\t\t\r\r\t\tColor = light.color;\n\t\tShaddowAtten = light.shadowAttenuation;\n\t}\r\n#endif"
 }
 
 {
@@ -912,7 +912,7 @@
     "m_ObjectId": "cd51923958154007b0f119f4cb4bad2d",
     "m_Title": "Position Input",
     "m_Position": {
-        "x": -876.0,
+        "x": -876.0001220703125,
         "y": -11.0
     }
 }
