@@ -1,5 +1,6 @@
 #pragma shader_feature _MAIN_LIGHT_CALCULATE_SHADOWS
 #pragma shader_feature _MAIN_LIGHT_SHADOWS
+#pragma shader_feature _MAIN_LIGHT_SHADOWS_SCREEN
 #pragma shader_feature _MAIN_LIGHT_SHADOWS_CASCADES
 #pragma shader_feature _SHADOWS_SOFT
 #pragma shader_feature _LIGHT_COOKIES

@@ -753,7 +753,7 @@
     "m_FunctionName": "MainLightData",
     "m_FunctionSource": "",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\n\tDirection = half3(0.5, 0.5, 0);\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n\tShaddowAtten = 1;\r\n#else\n\t#ifdef _MAIN_LIGHT_SHADOWS\r\n    \t\tfloat4 shadowCoord;\r\n    \t\t#ifdef REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR\r\n        \t\t\tshadowCoord = VertexShadowCoords;\r\n    \t\t#else\r\n        \t\t\t#ifdef MAIN_LIGHT_CALCULATE_SHADOWS\r\n            \t\t\tshadowCoord = TransformWorldToShadowCoord(Position);\r\n        \t\t\t#else\r\n            \t\t\tshadowCoord = float4(0, 0, 0, 0);\r\n        \t\t\t#endif\r\n    \t\t#endif\r\n    \t\tLight light = GetMainLight(shadowCoord);\r\n\t#else\r\n    \t\tLight light = GetMainLight();\r\n\t#endif\n\tuint meshRenderingLayers = GetMeshRenderingLayer();\n\r\r\t\n\tDirection = half3(0, 0, 0);\n\tColor = float3(0, 0, 0);\n\tShaddowAtten = 1;\n\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n#endif\n\t{\n    \t\tDirection = light.direction;\n\t\t\r\r\t\tColor = light.color;\n\t\tShaddowAtten = light.shadowAttenuation;\n\t}\r\n#endif"
+    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\n\tDirection = half3(0.5, 0.5, 0);\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n\tShaddowAtten = 1;\r\n#else\r\n    \tfloat4 shadowCoord;\n\t#if SHADOWS_SCREEN\n\t\tshadowCoord = ComputeScreenPos(TransformWorldToHClip(Position));\n\t#else\n\t\tshadowCoord = TransformWorldToShadowCoord(Position);\n\t#endif\r\n    \tLight light = GetMainLight(shadowCoord);\n\r\r\t\n\tDirection = half3(0, 0, 0);\n\tColor = float3(0, 0, 0);\n\tShaddowAtten = 1;\n\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))\r\n#endif\n\t{\n    \t\tDirection = light.direction;\n\t\t\r\r\t\tColor = light.color;\n\t\tShaddowAtten = light.shadowAttenuation;\n\t}\r\n#endif"
 }
 
 {
@@ -912,8 +912,8 @@
     "m_ObjectId": "cd51923958154007b0f119f4cb4bad2d",
     "m_Title": "Position Input",
     "m_Position": {
-        "x": -876.0001220703125,
-        "y": -11.000003814697266
+        "x": -876.0,
+        "y": -11.0
     }
 }
 

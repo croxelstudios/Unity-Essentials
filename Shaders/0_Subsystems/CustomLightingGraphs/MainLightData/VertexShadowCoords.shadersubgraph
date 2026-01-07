@@ -146,7 +146,7 @@
     "m_ObjectId": "03ac877cc1b249de96ef6c3647ce162e",
     "m_Title": "Position Input",
     "m_Position": {
-        "x": -1000.0001220703125,
+        "x": -1000.0,
         "y": -122.0
     }
 }
@@ -192,7 +192,7 @@
     "m_FunctionName": "GetShadowCoords",
     "m_FunctionSource": "d1c2483a6efa0e24799362fae70042f3",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "float4 shadowPos = mul(_MainLightWorldToShadow[0], float4(Position, 1.0));\r\n\r\nOut.xy = shadowPos.xy / shadowPos.w;\r\nOut.z = shadowPos.z / shadowPos.w;\r\nOut.w = shadowPos.w;"
+    "m_FunctionBody": "VertexPositionInputs posInputs = GetVertexPositionInputs(Position);\r\nOut = GetShadowCoord(posInputs);"
 }
 
 {
@@ -424,7 +424,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 2,
+    "m_Space": 0,
     "m_PositionSource": 0
 }
 
