@@ -18,8 +18,10 @@ public class BaseSignal : ScriptableObject
     public bool dynamicSearch { get { return _dynamicSearch; } }
     [SerializeField]
     protected string currentTag = "";
+    [SerializeField]
     [FoldoutGroup("Standard Calls")]
     protected DXEvent beforeCall = null;
+    [SerializeField]
     [FoldoutGroup("Standard Calls")]
     protected DXEvent called = null;
 

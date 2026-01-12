@@ -2,7 +2,7 @@
 using UnityEngine;
 using static SpeedBehaviour;
 
-public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath>
+public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3>
 {
     [SerializeField]
     [Tooltip("If set to 'Positive' or 'Negative' it will force the rotation to be in a specific direction even if it's not the fastest")]

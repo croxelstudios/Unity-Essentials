@@ -108,4 +108,10 @@ public struct ObjectRef<T> where T : Object
             UpdateObj();
         return obj;
     }
+
+    public T GetObjEditor()
+    {
+        UpdateObj();
+        return obj;
+    }
 }

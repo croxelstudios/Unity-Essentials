@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using Sirenix.OdinInspector;
 using static SpeedBehaviour;
-using System.Collections;
 
-public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, new()
+//TO DO: Add intermediate class that removes the Q component.
+//TO DO: General Path class that implements ITransformationSequence and generalized common methods
+public class BToTarget<T, P, Q> : MonoBehaviour where P : ITransformationSequence, new()
 {
     [SerializeField]
     [Tooltip("Wether this code should apply transformations to the 'origin' or it should just send the events elsewhere")]
@@ -200,7 +201,7 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
 
         if (speedBehaviour.AffectedByCurrentSpeed() && (deltaTime != 0f))
             UpdateSpeed(ref dynamicInfo.speed, dynamicInfo.accelHalf, dynamicInfo.prev, deltaTime);
-        dynamicInfo.accelHalf = Vector3.zero;
+        dynamicInfo.accelHalf = Default<Q>.Value;
 
         UpdatePrev(ref dynamicInfo.prev);
     }
@@ -303,17 +304,17 @@ public class BToTarget<T, P> : MonoBehaviour where P : ITransformationSequence, 
         return Get(origin);
     }
 
-    public virtual void UpdateSpeed(ref Vector3 speed, Vector3 accelHalf, T prev, float deltaTime)
+    public virtual void UpdateSpeed(ref Q speed, Q accelHalf, T prev, float deltaTime)
     {
     }
 
     protected struct DynamicInfo
     {
-        public Vector3 speed;
-        public Vector3 accelHalf;
+        public Q speed;
+        public Q accelHalf;
         public T prev;
 
-        public DynamicInfo(Vector3 speed, Vector3 accelHalf, T prev)
+        public DynamicInfo(Q speed, Q accelHalf, T prev)
         {
             this.speed = speed;
             this.prev = prev;

@@ -1,14 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(MaterialPropertyTweaker))]
 public class MaterialPropertyTweaker_Scroll : MonoBehaviour
 {
+    [SerializeField]
+    bool isCustom2DVector = false;
     [Range(-180f, 180f)]
     public float angle = 0f;
-    [SerializeField]
-    RenderingTimeMode timeMode = RenderingTimeMode.Update;
     [SerializeField]
     float _moveSpeed = 1f;
     public float moveSpeed
@@ -17,6 +15,8 @@ public class MaterialPropertyTweaker_Scroll : MonoBehaviour
         set { _moveSpeed = value; }
     }
     public Vector2 referenceOffset = Vector2.zero;
+    [SerializeField]
+    RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
     MaterialPropertyTweaker tweaker;
     Vector2 direction;
@@ -44,8 +44,16 @@ public class MaterialPropertyTweaker_Scroll : MonoBehaviour
         currentOffset.x %= 1f;
         currentOffset.y %= 1f;
         Vector4 ST = tweaker.GetVector();
-        ST.z = currentOffset.x;
-        ST.w = currentOffset.y;
+        if (isCustom2DVector)
+        {
+            ST.x = currentOffset.x;
+            ST.y = currentOffset.y;
+        }
+        else
+        {
+            ST.z = currentOffset.x;
+            ST.w = currentOffset.y;
+        }
         tweaker.SetVector(ST);
     }
 }

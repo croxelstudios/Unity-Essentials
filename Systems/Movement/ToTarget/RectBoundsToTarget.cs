@@ -1,74 +1,53 @@
-﻿using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.AI;
+using Sirenix.OdinInspector;
 using static SpeedBehaviour;
 
-public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, INavMeshAgentTypeContainer
+public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
 {
     [SerializeField]
-    [Tooltip("Use NavMesh system to calculate the direction")]
-    bool useNavMesh = false;
+    bool leftOrWidth = true;
     [SerializeField]
-    [ShowIf("@useNavMesh")]
-    [Indent]
-    [Tooltip("NavMesh agent type to consider")]
-    [NavMeshAgentTypeSelector]
-    int navMeshAgentType = 0;
+    bool topOrHeight = true;
     [SerializeField]
-    [ShowIf("@useNavMesh")]
-    [Indent]
-    [Tooltip("NavMesh area to use")]
-    NavMeshAreas navMeshAreaMask = NavMeshAreas.Walkable;
-    //[SerializeField]
-    //[Tooltip("If this is set to true this code will keep the object in a straight path to the target instead of overshooting")]
-    //[ShowIf("@useNavMesh && (speedBehaviour.speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp)")]
-    //bool keepInStraightPath = false;
+    bool right = true;
     [SerializeField]
-    bool reorientTransform = false;
-    #region Events
+    bool bottom = true;
     [SerializeField]
-    [Tooltip("Resulting movement vector in units per second")]
-    DXVectorEvent vector = null;
+    [ShowIf("leftOrWidth")]
+    DXFloatEvent leftOrWidthValue = null;
     [SerializeField]
-    [Tooltip("Resulting speed percentage between zero and max speed")]
-    DXFloatEvent magnitudePercent = null;
-    #endregion
-
-    //Agent type
-    public void OverrideNavMeshAgentType(int navMeshAgentType, out int prevAgentType)
-    {
-        prevAgentType = this.navMeshAgentType;
-        this.navMeshAgentType = navMeshAgentType;
-    }
-    //
+    [ShowIf("topOrHeight")]
+    DXFloatEvent topOrHeightValue = null;
+    [SerializeField]
+    [ShowIf("right")]
+    DXFloatEvent rightValue = null;
+    [SerializeField]
+    [ShowIf("bottom")]
+    DXFloatEvent bottomValue = null;
+    [SerializeField]
+    DXFloatEvent speedPercent = null;
 
     protected override void OnEnable()
     {
         base.OnEnable();
     }
 
-    protected override MovementPath GetPath()
+    protected override Movement4DPath GetPath()
     {
-        Vector3 oPos = Current();
-        Vector3 tPos = Target();
+        Vector4 oPos = Current();
+        Vector4 tPos = Target();
         if (speedBehaviour.MoveAway())
             tPos = oPos - (tPos - oPos);
 
-        MovementPath path = new MovementPath(oPos, tPos, useNavMesh, (int)navMeshAreaMask, navMeshAgentType);
-
-        if (projectOnPlane)
-        {
-            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
-            path.ProjectOnPlane(localPlaneNormal);
-        }
+        Movement4DPath path = new Movement4DPath(oPos, tPos);
 
         return path;
     }
 
-    protected override Vector3 Accelerated(MovementPath path, ref DynamicInfo dynamicInfo, float deltaTime)
+    protected override Vector4 Accelerated(Movement4DPath path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
         float inverseDeltaTime = deltaTime.Reciprocal();
-        Vector3 accelerationHalf0 = Vector3.zero;
+        Vector4 accelerationHalf0 = Vector4.zero;
         if (doAccelerate)
         {
             float accel = speedBehaviour.acceleration * deltaTime * 0.5f;
@@ -117,7 +96,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
         }
 
         dynamicInfo.speed += accelerationHalf0;
-        Vector3 spd = dynamicInfo.speed * deltaTime;
+        Vector4 spd = dynamicInfo.speed * deltaTime;
 
         //Limit speed by maximum speed
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
@@ -135,23 +114,22 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
         return spd;
     }
 
-    protected override Vector3 SmoothDamp(MovementPath path, ref DynamicInfo dynamicInfo, float deltaTime)
+    protected override Vector4 SmoothDamp(Movement4DPath path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
         //TO DO: Doesn't work with keepinpath feature
         return path.SmoothDamp(ref dynamicInfo.speed,
-            speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime,
-            useNavMesh ? MovementPath.SmoothMode.NavMesh : MovementPath.SmoothMode.AlongPath)
+            speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime)
             - path.origin;
     }
 
-    protected override Vector3 LerpSmooth(MovementPath path, float deltaTime)
+    protected override Vector4 LerpSmooth(Movement4DPath path, float deltaTime)
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
         return path.Displacement(
             Mathf.Min(0f.LerpSmooth(path.magnitude, speedBehaviour.decay, deltaTime), maxDTSpeed));
     }
 
-    protected override Vector3 Teleport(MovementPath path, float deltaTime)
+    protected override Vector4 Teleport(Movement4DPath path, float deltaTime)
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed;
         float moveAmount = path.magnitude;
@@ -160,7 +138,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
         return path.Displacement(moveAmount);
     }
 
-    protected override Vector3 Linear(MovementPath path, float deltaTime)
+    protected override Vector4 Linear(Movement4DPath path, float deltaTime)
     {
         float maxDTSpeed = speedBehaviour.unsignedMaxSpeed * deltaTime;
         float moveAmount = path.magnitude;
@@ -171,7 +149,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
         return path.Displacement(moveAmount);
     }
 
-    protected override void Execute(Vector3 speedPerThisFrame, float deltaTime)
+    protected override void Execute(Vector4 speedPerThisFrame, float deltaTime)
     {
         float unitsPerSecondSpeed = speedPerThisFrame.magnitude * deltaTime.Reciprocal();
 
@@ -183,53 +161,137 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
             float percent = (speedBehaviour.speedMode == SpeedMode.Teleport) ?
                 speedPerThisFrame.magnitude / speedBehaviour.unsignedMaxSpeed :
                 unitsPerSecondSpeed / speedBehaviour.unsignedMaxSpeed;
-            magnitudePercent?.Invoke(percent);
+            speedPercent?.Invoke(percent);
 
-            Vector3 direction = speedPerThisFrame.normalized;
+            Vector4 direction = speedPerThisFrame.normalized;
 
             //Calculate and send vector with direction and amount of speed
-            Vector3 result = direction * unitsPerSecondSpeed;
-            vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
+            Vector4 result = direction * unitsPerSecondSpeed;
+            Vector4 r = sendFrameMovement ? speedPerThisFrame : result;
+
+            if (leftOrWidth) leftOrWidthValue?.Invoke(r.x);
+            if (topOrHeight) topOrHeightValue?.Invoke(r.y);
+            if (right) rightValue?.Invoke(r.z);
+            if (bottom) bottomValue?.Invoke(r.w);
+
             if (applyInTransform)
                 Apply(speedPerThisFrame, locally);
-            else if (reorientTransform)
-                ReorientTransform(speedPerThisFrame, locally);
         }
     }
 
-    void ReorientTransform(Vector3 speed, bool isLocal = false)
+    public override void Set(Vector4 target, bool isLocal = false)
     {
-        origin.forward = isLocal ?
-            origin.parent.TransformDirection(speed) : speed;
-    }
-
-    public override void Set(Vector3 target, bool isLocal = false)
-    {
-        Vector3 dif = target - Current();
+        Vector4 dif = target - Current();
         Apply(dif, isLocal);
         ResetSpeed();
     }
 
-    public override void Apply(Vector3 speed, bool isLocal = false)
+    public override void Apply(Vector4 speed, bool isLocal = false)
     {
-        origin.Translate(speed, isLocal ? Space.Self : Space.World);
-        if (reorientTransform)
-            ReorientTransform(speed, isLocal);
+        RectTransform tr = origin as RectTransform;
+        if (leftOrWidth)
+            AddLeftOrWidth(tr, speed.x);
+        if (topOrHeight)
+            AddTopOrHeight(tr, speed.y);
+        if (right)
+            AddRight(tr, speed.z);
+        if (bottom)
+            AddBottom(tr, speed.w);
     }
 
-    public override Vector3 GetGlobal(Transform tr)
+    public override Vector4 GetGlobal(Transform tr)
     {
-        return tr.position;
+        RectTransform rt = tr as RectTransform;
+        return new Vector4(GetLeftOrWidth(rt), GetTopOrHeight(rt), GetRight(rt), GetBottom(rt));
     }
 
-    public override Vector3 ToLocal(Vector3 value)
+    public override Vector4 ToLocal(Vector4 value)
     {
-        return origin.parent.InverseTransformPoint(value);
+        //TO DO
+        return value;
     }
 
-    public override void UpdateSpeed(ref Vector3 speed,
-        Vector3 accelHalf, Vector3 prev, float deltaTime)
+    public override void UpdateSpeed(ref Vector4 speed,
+        Vector4 accelHalf, Vector4 prev, float deltaTime)
     {
         speed = ((Current() - prev) / deltaTime) + accelHalf;
+    }
+
+    bool IsHorizontalCompacted(RectTransform tr)
+    {
+        return tr.anchorMin.x == tr.anchorMax.x;
+    }
+
+    bool IsVerticalCompacted(RectTransform tr)
+    {
+        return tr.anchorMin.y == tr.anchorMax.y;
+    }
+
+    float GetLeftOrWidth(RectTransform tr)
+    {
+        return IsHorizontalCompacted(tr) ? tr.sizeDelta.x : tr.offsetMin.x;
+    }
+
+    float GetTopOrHeight(RectTransform tr)
+    {
+        return IsVerticalCompacted(tr) ? tr.sizeDelta.y : tr.offsetMax.y;
+    }
+
+    float GetRight(RectTransform tr)
+    {
+        return tr.offsetMax.x;
+    }
+
+    float GetBottom(RectTransform tr)
+    {
+        return tr.offsetMin.y;
+    }
+
+    //TO DO: This needs to be improved and generalized for more cases.
+    // This will fail if anchors are different in each rect transform.
+    void SetLeftOrWidth(RectTransform tr, float value)
+    {
+        if (IsHorizontalCompacted(tr))
+            tr.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, value);
+        else
+            tr.offsetMin = new Vector2(value, tr.offsetMin.y);
+    }
+
+    void SetTopOrHeight(RectTransform tr, float value)
+    {
+        if (IsVerticalCompacted(tr))
+            tr.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, value);
+        else
+            tr.offsetMax = new Vector2(tr.offsetMax.x, value);
+    }
+
+    void SetRight(RectTransform tr, float value)
+    {
+        tr.offsetMax = new Vector2(value, tr.offsetMax.y);
+    }
+
+    void SetBottom(RectTransform tr, float value)
+    {
+        tr.offsetMin = new Vector2(tr.offsetMin.x, value);
+    }
+
+    void AddLeftOrWidth(RectTransform tr, float value)
+    {
+        SetLeftOrWidth(tr, GetLeftOrWidth(tr) + value);
+    }
+
+    void AddTopOrHeight(RectTransform tr, float value)
+    {
+        SetTopOrHeight(tr, GetTopOrHeight(tr) + value);
+    }
+
+    void AddRight(RectTransform tr, float value)
+    {
+        SetRight(tr, GetRight(tr) + value);
+    }
+
+    void AddBottom(RectTransform tr, float value)
+    {
+        SetBottom(tr, GetBottom(tr) + value);
     }
 }

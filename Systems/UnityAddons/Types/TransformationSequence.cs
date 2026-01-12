@@ -5,10 +5,270 @@ using UnityEngine.AI;
 public interface ITransformationSequence
 {
     public float GetMagnitude();
-    public void ProjectOnPlane(Vector3 normal);
     public float CalculateDistanceTo(int point);
     public void Draw();
     public void Draw(Color color);
+}
+
+public struct ValuePath : ITransformationSequence
+{
+    public float[] path;
+    public int count { get; private set; }
+    public int last { get; private set; }
+    public float origin { get; private set; }
+    public float target { get; private set; }
+    public float dif { get; private set; }
+    public float magnitude { get; private set; }
+
+    public ValuePath(float origin, float target)
+    {
+        path = new float[] { origin, target };
+
+        count = default;
+        last = default;
+        this.origin = default;
+        this.target = default;
+        dif = default;
+        magnitude = default;
+
+        CalculateData();
+    }
+
+    public ValuePath(float[] values)
+    {
+        path = values;
+
+        count = default;
+        last = default;
+        origin = default;
+        target = default;
+        dif = default;
+        magnitude = default;
+
+        CalculateData();
+    }
+
+    void CalculateData()
+    {
+        count = path.Length;
+        last = count - 1;
+        origin = path[0];
+        target = path[last];
+        dif = target - origin;
+        if (IsComplexPath())
+            magnitude = CalculateDistanceTo(last);
+        else magnitude = dif;
+    }
+
+    public void AddValue(float values)
+    {
+        path = path.Resize(count + 1, values);
+        CalculateData();
+    }
+
+    public void AddValueKillOld(float values, int maxValues)
+    {
+        if (count < maxValues)
+            AddValue(values);
+        else AddValueKillOld(values);
+    }
+
+    public void AddValueKillOld(float values)
+    {
+        for (int i = 1; i < count; i++)
+            path[i - 1] = path[i];
+        path[last] = values;
+        CalculateData();
+    }
+
+    public void ReplaceValue(int id, float value)
+    {
+        path[id] = value;
+        CalculateData();
+    }
+
+    public float GetMagnitude()
+    {
+        return magnitude;
+    }
+
+    public float PredictNext(float multiplier = 1f)
+    {
+        if (IsComplexPath())
+            return path.PredictNext(multiplier);
+        else return target + dif;
+    }
+
+    public float CalculateDistanceTo(int value)
+    {
+        if (IsComplexPath())
+        {
+            float previousCorner = path[0];
+            float lengthSoFar = 0f;
+            int i = 1;
+            while (i <= value)
+            {
+                float currentCorner = path[i];
+                lengthSoFar += Mathf.Abs(currentCorner - previousCorner);
+                previousCorner = currentCorner;
+                i++;
+            }
+            return lengthSoFar;
+        }
+        else return (value > 0) ? magnitude : 0f;
+    }
+
+    public float ValueAlong(float distance)
+    {
+        if (IsComplexPath())
+        {
+            float previousCorner = path[0];
+            float wholeDist = 0f;
+            int i = 1;
+            while (i < count)
+            {
+                float currentCorner = path[i];
+                float dist = Mathf.Abs(currentCorner - previousCorner);
+                if ((wholeDist + dist) > distance)
+                    return previousCorner +
+                        ((currentCorner - previousCorner) * (distance - wholeDist));
+                wholeDist += dist;
+                previousCorner = currentCorner;
+                i++;
+            }
+            return previousCorner + (previousCorner - path[last - 1]) * (distance - wholeDist);
+        }
+        else return origin + (dif * distance);
+    }
+
+    public float DisplacementAlong(float distance)
+    {
+        float worldPos = ValueAlong(distance);
+        return worldPos - origin;
+    }
+
+    public float SmoothDamp(ref float currentVelocity, float smoothTime, float maxSpeed, float deltaTime)
+    {
+        //Limit smoothTime to avoid division by 0f;
+        smoothTime = Mathf.Max(0.0001F, smoothTime);
+
+        //Calculate omega and exponent
+        float omega = 2f / smoothTime;
+        float x = omega * deltaTime;
+        float exp = 1f / (1f + x + 0.48f * x * x + 0.235f * x * x * x);
+
+        float change = Mathf.Min(maxSpeed * smoothTime, magnitude);
+        float target = origin + Displacement(change);
+        ValuePath subPath = new ValuePath(target, origin);
+
+        float temp = (currentVelocity * deltaTime * exp) +
+            subPath.Displacement((subPath.magnitude + (omega * subPath.magnitude) * deltaTime) * exp);
+
+        float output = target + temp;
+
+        //Avoid overshoot
+        if (change > magnitude) output = this.target;
+
+        currentVelocity = (output - origin) / deltaTime;
+
+        return output;
+    }
+
+    public float Displacement(float distance)
+    {
+        return DisplacementAlong(distance);
+    }
+
+    public float Displacement(float distance, float offset)
+    {
+        return SubPath(magnitude - offset, offset).Displacement(distance);
+    }
+
+    public ValuePath SubPath(float distance, float offset, bool invert = false)
+    {
+        if (IsComplexPath())
+        {
+            List<float> corners = new List<float>();
+
+            float previousCorner = path[0];
+            float currentCorner = previousCorner;
+            float wholeDist = 0f;
+            int i = 1;
+            while (i < count)
+            {
+                currentCorner = path[i];
+                float dist = Mathf.Abs(currentCorner - previousCorner);
+                wholeDist += dist;
+                if (wholeDist > offset)
+                {
+                    wholeDist = wholeDist - offset;
+                    break;
+                }
+                previousCorner = currentCorner;
+                i++;
+            }
+            corners.Add(currentCorner + ((previousCorner - currentCorner) * wholeDist));
+
+            if (wholeDist > distance)
+                corners.Add(previousCorner + ((currentCorner - previousCorner) * (wholeDist + distance)));
+            else
+            {
+                corners.Add(currentCorner);
+                distance -= wholeDist;
+                previousCorner = currentCorner;
+                wholeDist = 0f;
+                i++;
+                while (i < count)
+                {
+                    currentCorner = path[i];
+                    float dist = Mathf.Abs(currentCorner - previousCorner);
+                    wholeDist += dist;
+                    if (wholeDist > distance)
+                    {
+                        wholeDist = wholeDist - offset;
+                        break;
+                    }
+                    corners.Add(currentCorner);
+                    previousCorner = currentCorner;
+                    i++;
+                }
+                corners.Add(previousCorner + ((currentCorner - previousCorner) * wholeDist));
+            }
+
+            if (invert)
+            {
+                List<float> inverted = new List<float>();
+                for (int j = corners.Count - 1; j >= 0; j--)
+                    inverted.Add(corners[j]);
+                corners.Clear();
+                corners = inverted;
+            }
+
+            return new ValuePath(corners.ToArray());
+        }
+        else
+        {
+            return invert ?
+                new ValuePath(origin + (dif * (offset + distance)), origin + (dif * offset)) :
+                new ValuePath(origin + (dif * offset), origin + (dif * (offset + distance)));
+        }
+    }
+
+    public void Draw()
+    {
+        Draw(Color.red);
+    }
+
+    public void Draw(Color color)
+    {
+        for (int i = 0; i < last; i++)
+            Debug.DrawLine(new Vector2(0f, path[i]), new Vector2(0f, path[i + 1]), color);
+    }
+
+    bool IsComplexPath()
+    {
+        return (path != null) && (count > 2);
+    }
 }
 
 public struct RotationPath : ITransformationSequence
@@ -641,6 +901,321 @@ public struct MovementPath : ITransformationSequence
             return invert ?
                 new MovementPath(origin + (dif.normalized * (offset + distance)), origin + (dif.normalized * offset)) :
                 new MovementPath(origin + (dif.normalized * offset), origin + (dif.normalized * (offset + distance)));
+        }
+    }
+
+    public void Draw()
+    {
+        Draw(Color.red);
+    }
+
+    public void Draw(Color color)
+    {
+        for (int i = 0; i < last; i++)
+            Debug.DrawLine(path[i], path[i + 1], color);
+    }
+
+    bool IsComplexPath()
+    {
+        return (path != null) && (count > 2);
+    }
+}
+
+public struct Movement4DPath : ITransformationSequence
+{
+    public Vector4[] path;
+    public int count { get; private set; }
+    public int last { get; private set; }
+    public Vector4 origin { get; private set; }
+    public Vector4 target { get; private set; }
+    public Vector4 dif { get; private set; }
+    public float magnitude { get; private set; }
+
+    public enum SmoothMode { AlongPath, Direct }
+
+    public Movement4DPath(Vector4 origin, Vector4 target)
+    {
+        path = new Vector4[] { origin, target };
+
+        count = default;
+        last = default;
+        this.origin = default;
+        this.target = default;
+        dif = default;
+        magnitude = default;
+
+        CalculateData();
+    }
+
+    public Movement4DPath(Vector4[] points)
+    {
+        path = points;
+
+        count = default;
+        last = default;
+        origin = default;
+        target = default;
+        dif = default;
+        magnitude = default;
+
+        CalculateData();
+    }
+
+    void CalculateData()
+    {
+        count = path.Length;
+        last = count - 1;
+        origin = path[0];
+        target = path[last];
+        dif = target - origin;
+        if (IsComplexPath())
+            magnitude = CalculateDistanceTo(last);
+        else magnitude = dif.magnitude;
+    }
+
+    public void AddPoint(Vector4 point)
+    {
+        path = path.Resize(count + 1, point);
+        CalculateData();
+    }
+
+    public void AddPointKillOld(Vector4 point, int maxPoints)
+    {
+        if (count < maxPoints)
+            AddPoint(point);
+        else AddPointKillOld(point);
+    }
+
+    public void AddPointKillOld(Vector4 point)
+    {
+        for (int i = 1; i < count; i++)
+            path[i - 1] = path[i];
+        path[last] = point;
+        CalculateData();
+    }
+
+    public void ReplacePoint(int id, Vector4 point)
+    {
+        path[id] = point;
+        CalculateData();
+    }
+
+    public float GetMagnitude()
+    {
+        return magnitude;
+    }
+
+    //public void ProjectOnPlane(Vector4 normal)
+    //{
+    //    for (int i = 0; i < count; i++)
+    //        path[i] = Vector4.ProjectOnPlane(path[i], normal);
+    //    CalculateData();
+    //}
+
+    public Vector4 PredictNext(float multiplier = 1f)
+    {
+        if (IsComplexPath())
+            return path.PredictNext(multiplier);
+        else return target + dif;
+    }
+
+    public float CalculateDistanceTo(int point)
+    {
+        if (IsComplexPath())
+        {
+            Vector4 previousCorner = path[0];
+            float lengthSoFar = 0f;
+            int i = 1;
+            while (i <= point)
+            {
+                Vector4 currentCorner = path[i];
+                lengthSoFar += Vector4.Distance(previousCorner, currentCorner);
+                previousCorner = currentCorner;
+                i++;
+            }
+            return lengthSoFar;
+        }
+        else return (point > 0) ? magnitude : 0f;
+    }
+
+    public Vector4 PositionAlong(float distance)
+    {
+        if (IsComplexPath())
+        {
+            Vector4 previousCorner = path[0];
+            float wholeDist = 0f;
+            int i = 1;
+            while (i < count)
+            {
+                Vector4 currentCorner = path[i];
+                float dist = Vector4.Distance(previousCorner, currentCorner);
+                if ((wholeDist + dist) > distance)
+                    return previousCorner + ((currentCorner - previousCorner).normalized * (distance - wholeDist));
+                wholeDist += dist;
+                previousCorner = currentCorner;
+                i++;
+            }
+            return previousCorner + (previousCorner - path[last - 1]).normalized * (distance - wholeDist);
+        }
+        else return origin + (dif.normalized * distance);
+    }
+
+    public Vector4 DisplacementAlong(float distance)
+    {
+        Vector4 worldPos = PositionAlong(distance);
+        return worldPos - origin;
+    }
+
+    public Vector4 Direction(float multiplier = 1f)
+    {
+        if (IsComplexPath())
+            return (path[1] - path[0]).normalized * multiplier;
+        else return dif.normalized * multiplier;
+    }
+
+    public Vector4 SmoothDamp(ref Vector4 currentVelocity, float smoothTime, float maxSpeed, float deltaTime, SmoothMode smoothMode = SmoothMode.AlongPath)
+    {
+        //Limit smoothTime to avoid division by 0f;
+        smoothTime = Mathf.Max(0.0001F, smoothTime);
+
+        //Calculate omega and exponent
+        float omega = 2f / smoothTime;
+        float x = omega * deltaTime;
+        float exp = 1f / (1f + x + 0.48f * x * x + 0.235f * x * x * x);
+
+        float change = Mathf.Min(maxSpeed * smoothTime, magnitude);
+        Vector4 target = origin + Displacement(change, smoothMode != SmoothMode.Direct);
+        Movement4DPath subPath = (smoothMode != SmoothMode.Direct) ?
+            SubPath(change, magnitude - change, true) :
+            new Movement4DPath(target, origin);
+
+        Vector4 temp = (currentVelocity * deltaTime * exp) +
+            subPath.Displacement((subPath.magnitude + (omega * subPath.magnitude) * deltaTime) * exp,
+            smoothMode != SmoothMode.Direct);
+
+        Vector4 output = target + temp;
+
+        //Avoid overshoot
+        ClosestInPath(output, out float disp);
+        if (disp > magnitude) output = this.target;
+
+        currentVelocity = (output - origin) / deltaTime;
+
+        return output;
+    }
+
+    public Vector4 Displacement(float distance, bool alongPath = true)
+    {
+        return alongPath ? DisplacementAlong(distance) : Direction(distance);
+    }
+
+    public Vector4 Displacement(float distance, float offset, bool alongPath = true)
+    {
+        return SubPath(magnitude - offset, offset).Displacement(distance, alongPath);
+    }
+
+    public Vector4 ClosestInPath(Vector4 point)
+    {
+        return ClosestInPath(point, out float d);
+    }
+
+    public Vector4 ClosestInPath(Vector4 point, out float disp)
+    {
+        if (IsComplexPath())
+        {
+            float dist = Mathf.Infinity;
+            float dispAdd = 0f;
+            int n = 0;
+            Vector4 clos = path[0];
+            for (int i = 0; i < last; i++)
+            {
+                Vector4 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd_c);
+                float d = Vector4.Distance(point, c);
+                if (d < dist)
+                {
+                    dispAdd = dispAdd_c;
+                    dist = d;
+                    clos = c;
+                    n = i;
+                }
+            }
+
+            disp = dispAdd * Vector4.Distance(path[n], path[n + 1]);
+            for (int i = 0; i < n; i++)
+                disp += Vector4.Distance(path[i], path[i + 1]);
+
+            return clos;
+        }
+        else return point.ClosestPointOnSegment(origin, target, out disp);
+    }
+
+    public Movement4DPath SubPath(float distance, float offset, bool invert = false)
+    {
+        if (IsComplexPath())
+        {
+            List<Vector4> corners = new List<Vector4>();
+
+            Vector4 previousCorner = path[0];
+            Vector4 currentCorner = previousCorner;
+            float wholeDist = 0f;
+            int i = 1;
+            while (i < count)
+            {
+                currentCorner = path[i];
+                float dist = Vector4.Distance(previousCorner, currentCorner);
+                wholeDist += dist;
+                if (wholeDist > offset)
+                {
+                    wholeDist = wholeDist - offset;
+                    break;
+                }
+                previousCorner = currentCorner;
+                i++;
+            }
+            corners.Add(currentCorner + ((previousCorner - currentCorner).normalized * wholeDist));
+
+            if (wholeDist > distance)
+                corners.Add(previousCorner + ((currentCorner - previousCorner).normalized * (wholeDist + distance)));
+            else
+            {
+                corners.Add(currentCorner);
+                distance -= wholeDist;
+                previousCorner = currentCorner;
+                wholeDist = 0f;
+                i++;
+                while (i < count)
+                {
+                    currentCorner = path[i];
+                    float dist = Vector4.Distance(previousCorner, currentCorner);
+                    wholeDist += dist;
+                    if (wholeDist > distance)
+                    {
+                        wholeDist = wholeDist - offset;
+                        break;
+                    }
+                    corners.Add(currentCorner);
+                    previousCorner = currentCorner;
+                    i++;
+                }
+                corners.Add(previousCorner + ((currentCorner - previousCorner).normalized * wholeDist));
+            }
+
+            if (invert)
+            {
+                List<Vector4> inverted = new List<Vector4>();
+                for (int j = corners.Count - 1; j >= 0; j--)
+                    inverted.Add(corners[j]);
+                corners.Clear();
+                corners = inverted;
+            }
+
+            return new Movement4DPath(corners.ToArray());
+        }
+        else
+        {
+            return invert ?
+                new Movement4DPath(origin + (dif.normalized * (offset + distance)), origin + (dif.normalized * offset)) :
+                new Movement4DPath(origin + (dif.normalized * offset), origin + (dif.normalized * (offset + distance)));
         }
     }
 

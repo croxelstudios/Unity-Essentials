@@ -1,0 +1,90 @@
+using UnityEngine;
+using System.Collections.Generic;
+using TMPro;
+
+public class RenderersSetTexture_FromTMP : RenderersSetTexture
+{
+    [SerializeField]
+    string[] otherProperties = null;
+    [SerializeField]
+    RenderingTimeModeOrOnEnable timeMode = RenderingTimeModeOrOnEnable.Update;
+
+    Dictionary<Renderer, TMP_Text> tmps;
+
+    void LateUpdate()
+    {
+        if (timeMode.IsSmooth())
+            UpdateBehaviour();
+    }
+
+    Texture[] oldTexs;
+    protected override void Init()
+    {
+        tmps = new Dictionary<Renderer, TMP_Text>();
+
+        UpdateRenderersInternal();
+
+        for (int i = 0; i < rend.Length; i++)
+        {
+            TMP_Text tmp = rend[i].gameObject.GetComponent<TMP_Text>();
+            tmps.Add(rend[i], tmp);
+        }
+
+        base.Init();
+
+        List<Texture> list = new List<Texture>();
+        foreach (KeyValuePair<Renderer, TMP_Text> kv in tmps)
+        {
+            TMP_FontAsset font = kv.Value?.font;
+            if (font != null)
+                list.Add(font.atlasTexture);
+        }
+        oldTexs = list.ToArray();
+    }
+
+    protected override void UpdateBehaviour()
+    {
+        int j = 0;
+        for (int i = 0; i < rend.Length; i++)
+        {
+            TMP_FontAsset font = tmps[rend[i]]?.font;
+            if (font != null)
+            {
+                Texture tex = font.atlasTexture;
+                if (tex != oldTexs[j])
+                {
+                    oldTexs[j] = tex;
+                    _texture = tex;
+                    break;
+                }
+                j++;
+            }
+        }
+
+        base.UpdateBehaviour();
+    }
+
+    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    {
+        TMP_FontAsset font = tmps[rend]?.font;
+        if (font != null)
+            _texture = font.atlasTexture;
+
+        base.BlSetProperty(block, rend, mat);
+
+        foreach (string prop in otherProperties)
+            block.SetTexture(prop, texture);
+    }
+
+    protected override void VSetProperty(Renderer rend, int mat)
+    {
+        TMP_FontAsset font = tmps[rend]?.font;
+        if (font != null)
+            _texture = font.atlasTexture;
+
+        base.VSetProperty(rend, mat);
+
+        foreach (string prop in otherProperties)
+            rend.materials[mat].SetTexture(prop, texture);
+    }
+}
