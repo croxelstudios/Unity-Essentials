@@ -15,10 +15,11 @@ public class RendererDuplicator : BRendererDuplicator
     bool updateRenderers = false;
     [SerializeField]
     protected int amountOfDuplicates = 1;
-    [SerializeField]
-    Material[] materialsOverride = null;
-    [SerializeField]
-    bool replaceAllMaterials = false;
+    // TO DO: This is broken
+    //[SerializeField]
+    //Material[] materialsOverride = null;
+    //[SerializeField]
+    //bool replaceAllMaterials = false;
     [SerializeField]
     Transform duplicatesParent = null;
     [SerializeField]
@@ -114,7 +115,8 @@ public class RendererDuplicator : BRendererDuplicator
         Destroy(duplicate.parent.gameObject);
 
         duplicate = CreateDuplicate(source, parent);
-        ReplaceRendererData(duplicate, materialsOverride, queueMultiplier, sortingOrderMultiplier, replaceAllMaterials, replaceLayer);
+        // TO DO: Broken
+        //ReplaceRendererData(duplicate, materialsOverride, queueMultiplier, sortingOrderMultiplier, replaceAllMaterials, replaceLayer);
         //Color
         RenderersSetColor bsc = AddMaterialSetColor(duplicate);
         colorSetters.Add(duplicate, bsc);
@@ -134,7 +136,8 @@ public class RendererDuplicator : BRendererDuplicator
         duplicates = CreateDuplicates(source, amountOfDuplicates, duplicatesParent);
         if (IsSortingLayerValid(replaceSortingLayer))
             ReplaceSortingLayers(duplicates, replaceSortingLayer);
-        ReplaceRenderersData(duplicates, materialsOverride, queueMultiplier, sortingOrderMultiplier, replaceAllMaterials, replaceLayer);
+        // TO DO: Broken
+        //ReplaceRenderersData(duplicates, materialsOverride, queueMultiplier, sortingOrderMultiplier, replaceAllMaterials, replaceLayer);
 
         colorSetters = AddBlockSetColors(duplicates);
         UpdateDuplicateOffsets(objectToDuplicate.transform, duplicates, offsetLocally, tranformOffsetMultipliers);
