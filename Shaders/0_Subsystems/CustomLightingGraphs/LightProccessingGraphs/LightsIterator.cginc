@@ -36,7 +36,11 @@
 //         inputData.fogCoord = InitializeInputDataFog(float4(Position, 1.0),
 //             ComputeFogFactor(positionCS.z));
 
-//         inputData.normalizedScreenSpaceUV = float2(GetNormalizedScreenSpaceUV(screenPos) * 0.5 + 0.5);
+//         float2 uv = (positionCS.xy / positionCS.w) * 0.5 + 0.5;
+//         #if defined(UNITY_UV_STARTS_AT_TOP)
+//             uv.y = 1.0 - uv.y;
+//         #endif
+//         inputData.normalizedScreenSpaceUV = uv;
         
 //         #if defined(DEBUG_DISPLAY)
 //             #if defined(DYNAMICLIGHTMAP_ON)
@@ -57,7 +61,7 @@
 //             {
 //                 CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
                 
-//                 Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+//                 Light light = GetAdditionalLight(lightIndex, inputData.positionWS, 1);
 
 //                 #ifdef _LIGHT_LAYERS
 //                     if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
@@ -91,7 +95,7 @@
 //             }
 //         #endif
 //         LIGHT_LOOP_BEGIN(lightsCount)
-//             Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+//             Light light = GetAdditionalLight(lightIndex, inputData.positionWS, 1);
 
 //             #ifdef _LIGHT_LAYERS
 //                 if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
@@ -126,37 +130,37 @@
 //     #endif
 // #endif
 
-// #if defined(SHADERGRAPH_PREVIEW)
-// 	Direction = half3(0.5, 0.5, 0);
-// 	Color = float3(1, 0.898, 0.6);
-// 	ShaddowAtten = 1;
-// #else
-//     	float4 shadowCoord;
-// 	#ifdef _MAIN_LIGHT_SHADOWS_CASCADES
-// 		shadowCoord = TransformWorldToShadowCoord(Position);
-// 	#else
-// 		shadowCoord =
-// 			mul(_MainLightWorldToShadow[0], float4(Position, 1.0));
-// 	#endif
-//     	Light light = GetMainLight(shadowCoord);
+#if defined(SHADERGRAPH_PREVIEW)
+	Direction = half3(0.5, 0.5, 0);
+	Color = float3(1, 0.898, 0.6);
+	ShaddowAtten = 1;
+#else
+    	float4 shadowCoord;
+	#ifdef _MAIN_LIGHT_SHADOWS_CASCADES
+		shadowCoord = TransformWorldToShadowCoord(Position);
+	#else
+		shadowCoord =
+			mul(_MainLightWorldToShadow[0], float4(Position, 1.0));
+	#endif
+    	Light light = GetMainLight(shadowCoord);
 
 
 	
-// 	Direction = half3(0, 0, 0);
-// 	Color = float3(0, 0, 0);
-// 	ShaddowAtten = 1;
+	Direction = half3(0, 0, 0);
+	Color = float3(0, 0, 0);
+	ShaddowAtten = 1;
 
-// #ifdef _LIGHT_LAYERS
-// 	if (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))
-// #endif
-// 	{
-//     		Direction = light.direction;
+#ifdef _LIGHT_LAYERS
+	if (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))
+#endif
+	{
+    		Direction = light.direction;
 		
 
-// 		Color = light.color;
-// 		ShaddowAtten = light.shadowAttenuation;
-// 	}
-// #endif
+		Color = light.color;
+		ShaddowAtten = light.shadowAttenuation;
+	}
+#endif
 
   //       float4 positionCS = TransformWorldToHClip(Position);
 		// float4 shadowCoord = TransformWorldToShadowCoord(Position);
