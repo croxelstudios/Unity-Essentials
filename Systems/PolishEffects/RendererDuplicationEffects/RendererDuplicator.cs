@@ -22,16 +22,16 @@ public class RendererDuplicator : BRendererDuplicator
     //bool replaceAllMaterials = false;
     [SerializeField]
     Transform duplicatesParent = null;
-    [SerializeField]
-    string replaceLayer = "";
-    [Header("Renderer multipliers")]
-    [SerializeField]
-    int queueMultiplier = 0; //TO DO: Popup with options to select which materials to apply render queue addition to
+    //[SerializeField]
+    //string replaceLayer = "";
+    //[Header("Renderer multipliers")]
+    //[SerializeField]
+    //int queueMultiplier = 0; //TO DO: Popup with options to select which materials to apply render queue addition to
     [SerializeField]
     [SortingLayerSelector]
     string replaceSortingLayer = "";
-    [SerializeField]
-    int sortingOrderMultiplier = 0;
+    //[SerializeField]
+    //int sortingOrderMultiplier = 0;
     [SerializeField]
     protected TransformData tranformOffsetMultipliers = new TransformData();
     [SerializeField]
