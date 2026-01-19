@@ -35,6 +35,5 @@ public static class SkinnedMeshRendererExtension_PopulateBones
 
             skinnedMesh.bones = boneArray.ToArray();
         }
-
     }
 }

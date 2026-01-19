@@ -6,7 +6,6 @@ using Sirenix.OdinInspector;
 public class RendererDuplicator : BRendererDuplicator
 {
     //TO DO: TransformOffsets animated variant for hotline miami effects
-
     [SerializeField]
     Component[] extraDuplicableComponents = null;
     [SerializeField]
@@ -15,23 +14,22 @@ public class RendererDuplicator : BRendererDuplicator
     bool updateRenderers = false;
     [SerializeField]
     protected int amountOfDuplicates = 1;
-    // TO DO: This is broken
-    //[SerializeField]
-    //Material[] materialsOverride = null;
-    //[SerializeField]
-    //bool replaceAllMaterials = false;
+    [SerializeField]
+    Material[] materialsOverride = null;
+    [SerializeField]
+    bool replaceAllMaterials = false;
     [SerializeField]
     Transform duplicatesParent = null;
-    //[SerializeField]
-    //string replaceLayer = "";
-    //[Header("Renderer multipliers")]
-    //[SerializeField]
-    //int queueMultiplier = 0; //TO DO: Popup with options to select which materials to apply render queue addition to
+    [SerializeField]
+    string replaceLayer = "";
+    [Header("Renderer multipliers")]
+    [SerializeField]
+    int addQueue = 0; //TO DO: Popup with options to select which materials to apply render queue addition to
     [SerializeField]
     [SortingLayerSelector]
     string replaceSortingLayer = "";
-    //[SerializeField]
-    //int sortingOrderMultiplier = 0;
+    [SerializeField]
+    int addSortingOrder = 0;
     [SerializeField]
     protected TransformData tranformOffsetMultipliers = new TransformData();
     [SerializeField]
@@ -66,6 +64,28 @@ public class RendererDuplicator : BRendererDuplicator
     protected override void EnableActions()
     {
         base.EnableActions();
+        if (materialsOverride != null)
+        {
+            if (replaceAllMaterials)
+            {
+                AddRendExclusion("sharedMaterials");
+                AddRendExclusion("sharedMaterial");
+                AddRendExclusion("materials");
+                AddRendExclusion("material");
+            }
+            else for (int i = 0; i < materialsOverride.Length; i++)
+                    if (materialsOverride[i] != null)
+                    {
+                        AddRendExclusion("sharedMaterials[" + i + "]");
+                        AddRendExclusion("materials[" + i + "]");
+                        if (i == 0)
+                        {
+                            AddRendExclusion("sharedMaterial");
+                            AddRendExclusion("material");
+                        }
+                    }
+        }
+        if (addSortingOrder > 0) AddRendExclusion("sortingOrder");
         source = new RenderingAgent(objectToDuplicate, extraDuplicableComponents);
         CreateDuplicates();
     }
@@ -115,8 +135,7 @@ public class RendererDuplicator : BRendererDuplicator
         Destroy(duplicate.parent.gameObject);
 
         duplicate = CreateDuplicate(source, parent);
-        // TO DO: Broken
-        //ReplaceRendererData(duplicate, materialsOverride, queueMultiplier, sortingOrderMultiplier, replaceAllMaterials, replaceLayer);
+        ReplaceRendererData(duplicate, materialsOverride, addQueue, addSortingOrder, replaceAllMaterials, replaceLayer);
         //Color
         RenderersSetColor bsc = AddMaterialSetColor(duplicate);
         colorSetters.Add(duplicate, bsc);
@@ -136,8 +155,7 @@ public class RendererDuplicator : BRendererDuplicator
         duplicates = CreateDuplicates(source, amountOfDuplicates, duplicatesParent);
         if (IsSortingLayerValid(replaceSortingLayer))
             ReplaceSortingLayers(duplicates, replaceSortingLayer);
-        // TO DO: Broken
-        //ReplaceRenderersData(duplicates, materialsOverride, queueMultiplier, sortingOrderMultiplier, replaceAllMaterials, replaceLayer);
+        ReplaceRenderersData(duplicates, materialsOverride, addQueue, addSortingOrder, replaceAllMaterials, replaceLayer);
 
         colorSetters = AddBlockSetColors(duplicates);
         UpdateDuplicateOffsets(objectToDuplicate.transform, duplicates, offsetLocally, tranformOffsetMultipliers);

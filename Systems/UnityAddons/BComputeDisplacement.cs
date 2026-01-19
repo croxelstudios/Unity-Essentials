@@ -1,5 +1,6 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -18,12 +19,14 @@ public class BComputeDisplacement : MonoBehaviour
     protected ComputableMesh[] meshes;
     protected ComputeBuffer[] mask;
     protected ComputeBuffer[] displacement;
+    bool gotMeshes = false;
 
     protected virtual void OnEnable()
     {
         renderingCameras = new List<Camera>();
         ComputableMesh.SetRenderingEvent_Start(this, BeginRendering);
         ComputableMesh.SetRenderingEvent_Finished(this, FinishRendering);
+        RenderPipelineManager.endContextRendering += EndFrameRendering;
     }
 
     protected virtual void OnDisable()
@@ -42,39 +45,37 @@ public class BComputeDisplacement : MonoBehaviour
             }
 
         StopAllCoroutines();
-    }
-
-    void LateUpdate()
-    {
-        //Needs to be called here to account for CustomRenderers before OnWillRenderobject.
-        meshes = ComputableMesh.Get(this);
-        OnUpdate();
+        RenderPipelineManager.endContextRendering -= EndFrameRendering;
     }
 
     void OnWillRenderObject()
     {
-        //Checks if the rendering agent is being rendered and is a filter.
-        //If the agent is a CustomRenderer, its rendering moment is handled by it.
-        if ((renderingCameras.Count <= 0) && ComputableMesh.IsRenderingAgentAFilter(this))
-            BeginRendering();
+        if (renderingCameras.Count <= 0)
+        {
+            TryUpdateMeshes();
+
+            //Checks if the rendering agent is being rendered and is a filter.
+            //If the agent is a CustomRenderer, its rendering moment is handled by it.
+            if (ComputableMesh.IsRenderingAgentAFilter(this))
+                BeginRendering();
+        }
 
         renderingCameras.Add(Camera.current);
     }
 
-    void OnRenderObject()
+    void EndFrameRendering(ScriptableRenderContext context, List<Camera> cams)
     {
-        //Checks if the rendering agent is being rendered and is a filter.
-        //If the agent is a CustomRenderer, the rendering moment is handled by it.
-        if (renderingCameras.Count > 0)
+        if (!renderingCameras.IsNullOrEmpty())
         {
-            renderingCameras.Remove(Camera.current);
-            if (renderingCameras.Count <= 0)
-                FinishRendering();
+            renderingCameras.Clear();
+            FinishRendering();
         }
     }
 
     void BeginRendering()
     {
+        TryUpdateMeshes();
+
         mask = UpdateBufferArray(mask);
         displacement = UpdateBufferArray(displacement);
         OnUpdateBuffers();
@@ -115,6 +116,7 @@ public class BComputeDisplacement : MonoBehaviour
                     ((!displacement.IsNullOrEmpty()) && (displacement[i] != null)))
                     ResetData(i);
             }
+        gotMeshes = false;
     }
 
     protected void NullMask()
@@ -122,10 +124,20 @@ public class BComputeDisplacement : MonoBehaviour
         mask = null;
     }
 
+    void TryUpdateMeshes()
+    {
+        if (!gotMeshes)
+        {
+            meshes = ComputableMesh.Get(this);
+            OnUpdate();
+            gotMeshes = true;
+        }
+    }
+
     protected ComputeBuffer[] UpdateBufferArray(ComputeBuffer[] buffer)
     {
         if (meshes.IsNullOrEmpty())
-            LateUpdate();
+            TryUpdateMeshes();
 
         if ((buffer == null) || (meshes.Length != buffer.Length))
             buffer = buffer.Resize(meshes.Length);
@@ -172,7 +184,7 @@ public class BComputeDisplacement : MonoBehaviour
 
     }
 
-//--------------------------------------------------------------
+    //--------------------------------------------------------------
 
     static ComputeShader _displacementCompute;
     public static ComputeShader displacementCompute

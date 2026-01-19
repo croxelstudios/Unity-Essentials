@@ -17,6 +17,8 @@ public class BRendererDuplicator : MonoBehaviour
 
     const int DECIMALIDPRECISION = 2;
     string[] rspExclusions = new string[] { "rend", "block", "oldValue" };
+    string[] rendExclusions = null;
+    string[] skinnedRendExclusions = new string[] { "rootBone", "bones", "actualRootBone" };
     //string[] rendExclusions = new string[] { "m_MaterialPropertyBlock" };
 
     #region Unity Actions
@@ -217,6 +219,12 @@ public class BRendererDuplicator : MonoBehaviour
                 target.AddComponentCopy(source.setProperties[child][i], rspExclusions);
     }
 
+    //TO DO: This causes massive lag spikes. This should only be done at the start,
+    //but as a consequence of using GetCopyOf to update Renderer properties,
+    //this has to be done to get the correct skinnedmesh values.
+    //The solution is: Implement arguments in GetCopyOf and by extension in CopyRenderersData to skip
+    //specific properties that don't need to be updated every frame.
+    //This could also be useful for the implementation of the currently disabled functionality.
     void UpdateSkinnedMeshes(RenderingAgent source, ref RenderingAgent duplicate)
     {
         for (int i = 0; i < duplicate.skinnedRends.Length; i++)
@@ -282,7 +290,7 @@ public class BRendererDuplicator : MonoBehaviour
         CopyChildTransforms(source, duplicate.transform);
         CopyRenderersData(source.renderers, duplicate.renderers);
         CopyExtraDuplicableData(source, duplicate);
-        UpdateSkinnedMeshes(source, ref duplicate);
+        //UpdateSkinnedMeshes(source, ref duplicate);
     }
 
     protected void UpdateDuplicates(RenderingAgent source, ref RenderingAgent[] duplicates)
@@ -294,7 +302,8 @@ public class BRendererDuplicator : MonoBehaviour
     void CopyRSPData(RenderingAgent source, RenderingAgent target, Transform duplicate, ref UniqueIntList id)
     {
         id.Add(0);
-        for (int i = 0; i < duplicate.childCount; i++)
+        int count = duplicate.childCount;
+        for (int i = 0; i < count; i++)
         {
             Transform child = duplicate.GetChild(i);
 
@@ -321,7 +330,8 @@ public class BRendererDuplicator : MonoBehaviour
     void CopyChildsActiveState(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
     {
         id.Add(0);
-        for (int i = 0; i < duplicate.childCount; i++)
+        int count = duplicate.childCount;
+        for (int i = 0; i < count; i++)
         {
             Transform child = duplicate.GetChild(i);
 
@@ -346,15 +356,18 @@ public class BRendererDuplicator : MonoBehaviour
             target[i].enabled = source[i].enabled;
     }
 
-    void CopyRendererData(Renderer source, Renderer target)
+    void CopyRendererData(Renderer source, Renderer target, string[] exclusions = null)
     {
-        target.GetCopyOf(source);
+        target.GetCopyOf(source, exclusions);
     }
 
     void CopyRenderersData(Renderer[] source, Renderer[] target)
     {
         for (int i = 0; i < source.Length; i++)
-            CopyRendererData(source[i], target[i]);
+            if ((target[i] as SkinnedMeshRenderer) != null)
+                CopyRendererData(source[i], target[i], skinnedRendExclusions);
+            else
+                CopyRendererData(source[i], target[i], rendExclusions);
     }
 
     void CopyExtraDuplicableData(RenderingAgent source, RenderingAgent duplicate)
@@ -367,7 +380,8 @@ public class BRendererDuplicator : MonoBehaviour
     void CopyChildTransforms(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
     {
         id.Add(0);
-        for (int i = 0; i < duplicate.transform.childCount; i++)
+        int count = duplicate.childCount;
+        for (int i = 0; i < count; i++)
         {
             Transform child = duplicate.GetChild(i);
 
@@ -477,6 +491,13 @@ public class BRendererDuplicator : MonoBehaviour
     {
         return (!string.IsNullOrEmpty(sortingLayer)) &&
             SortingLayer.IsValid(SortingLayer.NameToID(sortingLayer));
+    }
+
+    public void AddRendExclusion(string newExclusion)
+    {
+        if (rendExclusions == null) rendExclusions = new string[] { newExclusion };
+        else rendExclusions = rendExclusions.Append(newExclusion).ToArray();
+        skinnedRendExclusions = skinnedRendExclusions.Append(newExclusion).ToArray();
     }
     #endregion
 

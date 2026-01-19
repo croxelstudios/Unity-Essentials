@@ -482,6 +482,12 @@ public static class CollectionExtensions
     #endregion
 
     #region Not Null Contains
+    public static bool NotNullContains<T>(this T[] array, T element)
+    {
+        if (array == null) return false;
+        return array.Contains(element);
+    }
+
     public static bool NotNullContains<T>(this List<T> list, T element)
     {
         if (list == null) return false;
