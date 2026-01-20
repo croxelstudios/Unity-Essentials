@@ -20,10 +20,12 @@ public class BComputeDisplacement : MonoBehaviour
     protected ComputeBuffer[] mask;
     protected ComputeBuffer[] displacement;
     bool gotMeshes = false;
+    PerFrameTracker perFrame;
 
     protected virtual void OnEnable()
     {
         renderingCameras = new List<Camera>();
+        perFrame = new PerFrameTracker();
         ComputableMesh.SetRenderingEvent_Start(this, BeginRendering);
         ComputableMesh.SetRenderingEvent_Finished(this, FinishRendering);
         RenderPipelineManager.endContextRendering += EndFrameRendering;
@@ -65,7 +67,7 @@ public class BComputeDisplacement : MonoBehaviour
 
     void EndFrameRendering(ScriptableRenderContext context, List<Camera> cams)
     {
-        if (!renderingCameras.IsNullOrEmpty())
+        if (perFrame.IsLastExecute() && (!renderingCameras.IsNullOrEmpty()))
         {
             renderingCameras.Clear();
             FinishRendering();

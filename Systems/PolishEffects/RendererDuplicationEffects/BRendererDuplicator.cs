@@ -122,7 +122,7 @@ public class BRendererDuplicator : MonoBehaviour
         }
         //
 
-        UpdateSkinnedMeshes(source, ref duplicate);
+        FixSkinnedMeshes(source, ref duplicate);
 
         CopyRenderersEnabledState(source.renderers, duplicate.renderers);
         CopyChildsActiveState(source, duplicate);
@@ -143,8 +143,7 @@ public class BRendererDuplicator : MonoBehaviour
     }
 
     protected void ReplaceRendererData(RenderingAgent duplicate, Material[] replaceMaterials,
-        int queueAdd = 0, int sortOrderAdd = 0, bool replaceAllMaterials = false,
-        string replaceLayer = "", int replaceSortingLayer = -1)
+        bool replaceAllMaterials = false, string replaceLayer = "", int replaceSortingLayer = -1)
     {
         foreach (Renderer rend in duplicate.renderers)
         {
@@ -152,28 +151,15 @@ public class BRendererDuplicator : MonoBehaviour
                 rend.gameObject.layer = LayerMask.NameToLayer(replaceLayer);
             if (replaceAllMaterials) rend.sharedMaterials = replaceMaterials;
             else OverrideMaterials(rend, replaceMaterials);
-            if (queueAdd != 0)
-            {
-                Material[] shM = rend.sharedMaterials;
-                for (int j = 0; j < shM.Length; j++)
-                {
-                    rend.materials[j].renderQueue += queueAdd;
-                    //TO DO: Popup with options to select which materials to apply render queue addition to
-                }
-            }
-            rend.sortingOrder += sortOrderAdd;
         }
     }
 
     protected void ReplaceRenderersData(RenderingAgent[] duplicates, Material[] replaceMaterials,
-        int queueMultiplier = 0, int sortOrderMultiplier = 0, bool replaceAllMaterials = false,
-        string replaceLayer = "", int replaceSortingLayer = -1)
+        bool replaceAllMaterials = false, string replaceLayer = "", int replaceSortingLayer = -1)
     {
         for (int i = 0; i < duplicates.Length; i++)
-        {
-            ReplaceRendererData(duplicates[i], replaceMaterials, (i + 1) * queueMultiplier,
-                (i + 1) * sortOrderMultiplier, replaceAllMaterials, replaceLayer, replaceSortingLayer);
-        }
+            ReplaceRendererData(duplicates[i], replaceMaterials,
+                replaceAllMaterials, replaceLayer, replaceSortingLayer);
     }
 
     void AddComponentsToDuplicate(ref RenderingAgent source, ref RenderingAgent duplicate,
@@ -185,47 +171,43 @@ public class BRendererDuplicator : MonoBehaviour
             MeshFilter mf = rend.GetComponent<MeshFilter>();
             if (mf != null) target.AddComponentCopy(mf);
 
-            Component[] extraDuplicableComponents = source.extraDuplicable;
-            if (extraDuplicableComponents != null)
-            {
-                if (duplicate.extraDuplicable == null)
-                    duplicate.extraDuplicable = new Component[extraDuplicableComponents.Length];
-                for (int i = 0; i < extraDuplicableComponents.Length; i++)
-                {
-                    Component c = extraDuplicableComponents[i];
-                    if (c.gameObject == child.gameObject)
-                        duplicate.extraDuplicable[i] = target.AddComponentCopy(c);
-                }
-            }
-
             Renderer copy = target.AddComponentCopy(rend);
             copy.sortingLayerID = rend.sortingLayerID;
             copy.sortingOrder = rend.sortingOrder;
         }
 
         BRenderersSetProperty[] rsp;
+        bool hasRSP = true;
         if (source.setProperties.ContainsKey(child))
             rsp = source.setProperties[child];
         else
         {
             rsp = child.GetComponents<BRenderersSetProperty>();
-            source.setProperties.Add(child, rsp);
+            if (rsp != null) source.setProperties.Add(child, rsp);
+            else hasRSP = false;
         }
 
-        duplicate.setProperties = duplicate.setProperties.CreateAdd(
-            target.transform, new BRenderersSetProperty[rsp.Length]);
-        for (int i = 0; i < source.setProperties[child].Length; i++)
-            duplicate.setProperties[target.transform][i] =
-                target.AddComponentCopy(source.setProperties[child][i], rspExclusions);
+        if (hasRSP)
+        {
+            duplicate.setProperties = duplicate.setProperties.CreateAdd(
+                target.transform, new BRenderersSetProperty[rsp.Length]);
+            for (int i = 0; i < source.setProperties[child].Length; i++)
+                duplicate.setProperties[target.transform][i] =
+                    target.AddComponentCopy(rsp[i], rspExclusions);
+        }
+
+        if (source.extraDuplicable.ContainsKey(child))
+        {
+            List<Component> extraDupl = source.extraDuplicable[child];
+            duplicate.extraDuplicable = duplicate.extraDuplicable.CreateAdd(
+                target.transform, new List<Component>(extraDupl.Count));
+            for (int i = 0; i < extraDupl.Count; i++)
+                duplicate.extraDuplicable[target.transform].Add(
+                    target.AddComponentCopy(extraDupl[i]));
+        }
     }
 
-    //TO DO: This causes massive lag spikes. This should only be done at the start,
-    //but as a consequence of using GetCopyOf to update Renderer properties,
-    //this has to be done to get the correct skinnedmesh values.
-    //The solution is: Implement arguments in GetCopyOf and by extension in CopyRenderersData to skip
-    //specific properties that don't need to be updated every frame.
-    //This could also be useful for the implementation of the currently disabled functionality.
-    void UpdateSkinnedMeshes(RenderingAgent source, ref RenderingAgent duplicate)
+    void FixSkinnedMeshes(RenderingAgent source, ref RenderingAgent duplicate)
     {
         for (int i = 0; i < duplicate.skinnedRends.Length; i++)
         {
@@ -237,7 +219,8 @@ public class BRendererDuplicator : MonoBehaviour
                 current = current.GetChild(key[j]);
 
             duplicate.skinnedRends[i].rootBone = current;
-            duplicate.skinnedRends[i].PopulateBoneArray(source.skinnedRends[i].rootBone, source.skinnedRends[i].bones);
+            duplicate.skinnedRends[i].PopulateBoneArray(
+                source.skinnedRends[i].rootBone, source.skinnedRends[i].bones);
         }
     }
 
@@ -311,9 +294,10 @@ public class BRendererDuplicator : MonoBehaviour
             CopyRSPData(source, target, child, ref id);
 
             Transform from = source.trEquivalence[id];
-            for (int j = 0; j < source.setProperties[from].Length; j++)
-                target.setProperties[child][j].GetCopyOf(
-                    source.setProperties[from][j], rspExclusions);
+            if (source.setProperties.ContainsKey(from))
+                for (int j = 0; j < source.setProperties[from].Length; j++)
+                    target.setProperties[child][j].GetCopyOf(
+                        source.setProperties[from][j], rspExclusions);
         }
         id.RemoveLast();
     }
@@ -322,9 +306,10 @@ public class BRendererDuplicator : MonoBehaviour
     {
         hierarchyIds.Clear();
         CopyRSPData(source, target, target.transform, ref hierarchyIds);
-        for (int j = 0; j < source.setProperties[source.transform].Length; j++)
-            target.setProperties[target.transform][j].GetCopyOf(
-                source.setProperties[source.transform][j], rspExclusions);
+        if (source.setProperties.ContainsKey(source.transform))
+            for (int j = 0; j < source.setProperties[source.transform].Length; j++)
+                target.setProperties[target.transform][j].GetCopyOf(
+                    source.setProperties[source.transform][j], rspExclusions);
     }
 
     void CopyChildsActiveState(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
@@ -370,11 +355,42 @@ public class BRendererDuplicator : MonoBehaviour
                 CopyRendererData(source[i], target[i], rendExclusions);
     }
 
-    void CopyExtraDuplicableData(RenderingAgent source, RenderingAgent duplicate)
+    void CopyExtraDuplicableData(RenderingAgent source, RenderingAgent target, Transform duplicate, ref UniqueIntList id)
     {
-        if (!source.extraDuplicable.IsNullOrEmpty())
-            for (int i = 0; i < source.extraDuplicable.Length; i++)
-                duplicate.extraDuplicable[i].GetCopyOf(source.extraDuplicable[i]);
+        id.Add(0);
+        int count = duplicate.childCount;
+        for (int i = 0; i < count; i++)
+        {
+            Transform child = duplicate.GetChild(i);
+
+            id.ReplaceLast(i);
+            CopyExtraDuplicableData(source, target, child, ref id);
+
+            Transform from = source.trEquivalence[id];
+            if (source.extraDuplicable.ContainsKey(from))
+                for (int j = 0; j < source.extraDuplicable[from].Count; j++)
+                    target.extraDuplicable[child][j].GetCopyOf(source.extraDuplicable[from][j]);
+        }
+        id.RemoveLast();
+    }
+
+    void CopyExtraDuplicableData(RenderingAgent source, RenderingAgent target)
+    {
+        hierarchyIds.Clear();
+        CopyExtraDuplicableData(source, target, target.transform, ref hierarchyIds);
+        if (source.extraDuplicable.ContainsKey(source.transform))
+            for (int j = 0; j < source.extraDuplicable[source.transform].Count; j++)
+                target.extraDuplicable[target.transform][j].GetCopyOf(
+                    source.extraDuplicable[source.transform][j]);
+    }
+
+    protected void CopyTransform(RenderingAgent source, RenderingAgent duplicate)
+    {
+        Transform from = source.transform;
+        Transform to = duplicate.transform;
+        to.position = from.position;
+        to.rotation = from.rotation;
+        to.localScale = from.localScale;
     }
 
     void CopyChildTransforms(RenderingAgent source, Transform duplicate, ref UniqueIntList id)
@@ -404,53 +420,59 @@ public class BRendererDuplicator : MonoBehaviour
     #endregion
 
     #region Useful for Inheritance
-    protected void UpdateDuplicateOffset(Transform source, RenderingAgent duplicate, bool offsetLocally,
-        TransformData tranformOffsetMultipliers = new TransformData())
+    protected void UpdateDuplicateOffset(Transform source, RenderingAgent duplicate,
+        TransformData transformOffsets, bool offsetLocally = true, bool reset = true)
     {
         if (duplicate.gameObject.activeInHierarchy)
         {
             Transform tr = duplicate.transform;
+
+            if (reset)
+            {
+                tr.parent.position = source.position;
+                tr.parent.rotation = Quaternion.identity;
+                tr.parent.localScale = Vector3.one;
+                tr.position = source.position;
+                tr.rotation = source.rotation;
+                tr.localScale = source.lossyScale;
+            }
+
             if (offsetLocally)
             {
-                Transform lastParent = duplicate.parent;
-                tr.SetParent(source);
-                tr.localPosition = tranformOffsetMultipliers.position;
-                tr.localRotation = Quaternion.Euler(tranformOffsetMultipliers.eulerAngles);
-                tr.localScale = Vector3.one + tranformOffsetMultipliers.localScale;
-                tr.SetParent(lastParent, true);
+                tr.position += source.TransformPoint(transformOffsets.position) - source.position;
+                tr.rotation = Quaternion.Euler(transformOffsets.eulerAngles).Add(tr.rotation);
+                tr.localScale = Vector3.Scale(tr.localScale,
+                    Vector3.one + transformOffsets.localScale)
+                    .InverseScale(tr.parent.lossyScale);
             }
             else
             {
-                tr.position = source.position + (tranformOffsetMultipliers.position);
-                tr.rotation = Quaternion.Euler(tranformOffsetMultipliers.eulerAngles) * source.rotation;
-                tr.localScale = source.lossyScale + (tranformOffsetMultipliers.localScale);
-            }
-
-            if (tranformOffsetMultipliers.parent != null)
-            {
-                Transform p = tranformOffsetMultipliers.parent;
-                tr.position += p.position - source.position;
-                tr.rotation = p.rotation * Quaternion.Inverse(source.rotation) * tr.rotation;
-                Vector3 newScale = tr.localScale;
-                if (tr.IsChildOf(p.parent)) newScale.Scale(p.localScale);
-                else newScale.Scale(p.lossyScale);
-                tr.localScale = newScale;
+                tr.position += transformOffsets.position;
+                tr.rotation = tr.rotation.Add(Quaternion.Euler(transformOffsets.eulerAngles));
+                tr.parent.localScale = Vector3.Scale(tr.parent.localScale,
+                    (Vector3.one + transformOffsets.localScale)
+                    .InverseScale(tr.parent.parent ? tr.parent.parent.lossyScale : Vector3.one));
             }
         }
     }
 
-    protected void UpdateDuplicateOffsets(Transform source, RenderingAgent[] duplicates, bool offsetLocally,
-        TransformData tranformOffsetMultipliers = new TransformData())
+    protected void UpdateDuplicateOffset(Transform source, int index, RenderingAgent duplicate,
+        TransformData maxTranformOffset, bool offsetLocally = true, bool reset = true)
+    {
+        TransformData tr = new TransformData(
+            (index + 1) * maxTranformOffset.position,
+            Quaternion.Euler((index + 1) * maxTranformOffset.eulerAngles),
+            ((index + 1) * maxTranformOffset.localScale),
+            maxTranformOffset.parent);
+        UpdateDuplicateOffset(source, duplicate, tr, offsetLocally, reset);
+    }
+
+    protected void UpdateDuplicateOffsets(Transform source, RenderingAgent[] duplicates,
+        TransformData tranformOffsetMultipliers, bool offsetLocally = true, bool reset = true)
     {
         for (int i = 0; i < duplicates.Length; i++)
-        {
-            TransformData tr = new TransformData();
-            tr.position = (i + 1) * tranformOffsetMultipliers.position;
-            tr.rotation = Quaternion.Euler((i + 1) * tranformOffsetMultipliers.eulerAngles);
-            tr.localScale = ((i + 1) * tranformOffsetMultipliers.localScale);
-            tr.parent = tranformOffsetMultipliers.parent;
-            UpdateDuplicateOffset(source, duplicates[i], offsetLocally, tr);
-        }
+            UpdateDuplicateOffset(source, i, duplicates[i],
+                tranformOffsetMultipliers, offsetLocally, reset);
     }
 
     protected int GetDuplicateIndex(RenderingAgent[] duplicates, RenderingAgent duplicate)
@@ -459,6 +481,13 @@ public class BRendererDuplicator : MonoBehaviour
             if (duplicates[i].gameObject == duplicate.gameObject)
                 return i;
         return -1;
+    }
+
+    public void AddRendExclusion(string newExclusion)
+    {
+        if (rendExclusions == null) rendExclusions = new string[] { newExclusion };
+        else rendExclusions = rendExclusions.Append(newExclusion).ToArray();
+        skinnedRendExclusions = skinnedRendExclusions.Append(newExclusion).ToArray();
     }
 
     protected void ReplaceSortingLayer(Renderer renderer, string sortingLayer)
@@ -491,13 +520,6 @@ public class BRendererDuplicator : MonoBehaviour
     {
         return (!string.IsNullOrEmpty(sortingLayer)) &&
             SortingLayer.IsValid(SortingLayer.NameToID(sortingLayer));
-    }
-
-    public void AddRendExclusion(string newExclusion)
-    {
-        if (rendExclusions == null) rendExclusions = new string[] { newExclusion };
-        else rendExclusions = rendExclusions.Append(newExclusion).ToArray();
-        skinnedRendExclusions = skinnedRendExclusions.Append(newExclusion).ToArray();
     }
     #endregion
 
@@ -572,7 +594,7 @@ public class BRendererDuplicator : MonoBehaviour
                 return _largestHierarchy;
             }
         }
-        public Component[] extraDuplicable = null;
+        public Dictionary<Transform, List<Component>> extraDuplicable = null;
 
         Transform[] GetChildrenRecursive(Transform tr)
         {
@@ -665,7 +687,9 @@ public class BRendererDuplicator : MonoBehaviour
             _trEquivalence = null;
             _trInverseEquivalence = null;
             _skinnedRends = null;
-            this.extraDuplicable = extraDuplicable;
+            this.extraDuplicable = new Dictionary<Transform, List<Component>>();
+            foreach (Component comp in extraDuplicable)
+                this.extraDuplicable.CreateAdd(comp.transform, comp);
             setProperties = new Dictionary<Transform, BRenderersSetProperty[]>();
         }
 

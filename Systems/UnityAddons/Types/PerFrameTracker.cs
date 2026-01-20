@@ -45,7 +45,13 @@ public class PerFrameTracker
             }
         }
         return false;
-    } 
+    }
+
+    public bool IsLastExecute()
+    {
+        ShouldStart(out bool isLastExecute);
+        return ShouldEnd() || isLastExecute;
+    }
 }
 
 public static class PerFrameTrackerExtensions
