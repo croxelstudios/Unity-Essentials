@@ -1,10 +1,11 @@
-using Unity.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
+using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.U2D;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 public class ComputableMesh : IDisposable
@@ -36,10 +37,10 @@ public class ComputableMesh : IDisposable
     Vector3[] tmpParticleVert;
     Vector3[] tmpParticleNorm;
 
-    struct VertexData //TO DO: Posibility of using less data? ->
-                      //Would require different versions of compute shaders
-                      //or implementing custom stride reading by passing a
-                      //parameter to the compute shader that holds info on the data structure
+    public struct VertexData //TO DO: Posibility of using less data? ->
+                             //Would require different versions of compute shaders
+                             //or implementing custom stride reading by passing a
+                             //parameter to the compute shader that holds info on the data structure
     {
         public Vector3 position;
         public Vector3 normal;
@@ -95,23 +96,22 @@ public class ComputableMesh : IDisposable
         Initialize(meshToCopy, name);
     }
 
+    public ComputableMesh(NativeArray<VertexData> vertexData, NativeArray<uint>[] triangleData, string name)
+    {
+        Initialize(vertexData, triangleData, name);
+    }
+
     public void Initialize(string name, int vCount, params int[] tCount)
     {
-        mesh = mesh.ClearOrCreate();
-
-        mesh.name = name;
-        mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
-        mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
-
         //Vertex data setup
         vertexData = new NativeArray<VertexData>(vCount, Allocator.Persistent);
-        SetMeshData(vertexData);
 
         //Triangles
         triangleData = new NativeArray<uint>[tCount.Length];
         for (int i = 0; i < tCount.Length; i++)
             triangleData[i] = new NativeArray<uint>(tCount[i], Allocator.Persistent);
-        SetTriangles(triangleData);
+
+        Initialize(vertexData, triangleData, name);
     }
 
     public void Initialize(Mesh meshToCopy, string name = "")
@@ -125,6 +125,21 @@ public class ComputableMesh : IDisposable
         for (int i = 0; i < meshToCopy.subMeshCount; i++)
             CopyMesh(meshToCopy, 0, 0, i, i);
         original = meshToCopy;
+    }
+
+    public void Initialize(NativeArray<VertexData> vertexData, NativeArray<uint>[] triangleData, string name = "")
+    {
+        mesh = mesh.ClearOrCreate();
+
+        mesh.name = name;
+        mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+        mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
+
+        //Vertex data setup
+        SetMeshData(vertexData);
+
+        //Triangles
+        SetTriangles(triangleData);
     }
     #endregion
 
@@ -934,9 +949,6 @@ public class ComputableMesh : IDisposable
     #region Utilities
     public void CleanNullAreaTriangles(float minArea)
     {
-        if (_genericCompute == null)
-            _genericCompute = (ComputeShader)Resources.Load(genericComputeShaderName);
-
         for (int i = 0; i < subMeshCount; i++)
         {
             int indexCount = (int)mesh.GetIndexCount(i);
@@ -974,19 +986,19 @@ public class ComputableMesh : IDisposable
         int indexStart = (int)mesh.GetIndexStart(submesh);
         int indexCount = (int)mesh.GetIndexCount(submesh);
 
-        _genericCompute.SetFloat("minArea", minArea);
+        genericCompute.SetFloat("minArea", minArea);
 
-        int ki = _genericCompute.FindKernel(cleanNullAreaTrianglesKernel);
-        _genericCompute.SetInt("vertexStride", vertexBuffer.stride);
-        _genericCompute.SetInt("vertexCount", vertexBuffer.count);
-        _genericCompute.SetBuffer(ki, "vertices", vertexBuffer);
-        _genericCompute.SetInt("indexStart", indexStart);
-        _genericCompute.SetInt("indexCount", indexCount);
-        _genericCompute.SetInt("indexStride", indexBuffer.stride);
-        _genericCompute.SetBuffer(ki, "indices", indexBuffer);
-        _genericCompute.SetBuffer(ki, "toClean", toClean);
+        int ki = genericCompute.FindKernel(cleanNullAreaTrianglesKernel);
+        genericCompute.SetInt("vertexStride", vertexBuffer.stride);
+        genericCompute.SetInt("vertexCount", vertexBuffer.count);
+        genericCompute.SetBuffer(ki, "vertices", vertexBuffer);
+        genericCompute.SetInt("indexStart", indexStart);
+        genericCompute.SetInt("indexCount", indexCount);
+        genericCompute.SetInt("indexStride", indexBuffer.stride);
+        genericCompute.SetBuffer(ki, "indices", indexBuffer);
+        genericCompute.SetBuffer(ki, "toClean", toClean);
 
-        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
+        genericCompute.Dispatch(ki, Mathf.CeilToInt(
             (indexCount / 3f) / Numthreads_Small), 1, 1);
     }
 
@@ -1037,9 +1049,6 @@ public class ComputableMesh : IDisposable
     /// <returns></returns>
     public ComputeBuffer SubmeshVertexMask(int submesh)
     {
-        if (_genericCompute == null)
-            _genericCompute = (ComputeShader)Resources.Load(genericComputeShaderName);
-
         ComputeBuffer mask = new ComputeBuffer(vertexCount, sizeof(uint));
         if (submesh < 0)
         {
@@ -1070,10 +1079,10 @@ public class ComputableMesh : IDisposable
 
     void Compute_FillMask(ComputeBuffer mask)
     {
-        int ki = _genericCompute.FindKernel(fillMaskKernel);
-        _genericCompute.SetBuffer(ki, "mask", mask);
+        int ki = genericCompute.FindKernel(fillMaskKernel);
+        genericCompute.SetBuffer(ki, "mask", mask);
 
-        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
+        genericCompute.Dispatch(ki, Mathf.CeilToInt(
             vertexCount / Numthreads_Small), 1, 1);
     }
 
@@ -1082,14 +1091,14 @@ public class ComputableMesh : IDisposable
         int indexStart = (int)mesh.GetIndexStart(submesh);
         int indexCount = (int)mesh.GetIndexCount(submesh);
 
-        int ki = _genericCompute.FindKernel(getSubmeshMaskKernel);
-        _genericCompute.SetInt("indexStart", indexStart);
-        _genericCompute.SetInt("indexCount", indexCount);
-        _genericCompute.SetInt("indexStride", indexBuffer.stride);
-        _genericCompute.SetBuffer(ki, "indices", indexBuffer);
-        _genericCompute.SetBuffer(ki, "mask", mask);
+        int ki = genericCompute.FindKernel(getSubmeshMaskKernel);
+        genericCompute.SetInt("indexStart", indexStart);
+        genericCompute.SetInt("indexCount", indexCount);
+        genericCompute.SetInt("indexStride", indexBuffer.stride);
+        genericCompute.SetBuffer(ki, "indices", indexBuffer);
+        genericCompute.SetBuffer(ki, "mask", mask);
 
-        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
+        genericCompute.Dispatch(ki, Mathf.CeilToInt(
             indexCount / Numthreads_Small), 1, 1);
     }
     #endregion
@@ -1127,482 +1136,6 @@ public class ComputableMesh : IDisposable
     }
     #endregion
 
-    #region Automatic modularity
-    static ComputableFilterCollection filtersProcessor;
-    static Dictionary<Component, UnityAction> startActions;
-    static Dictionary<Component, UnityAction> finishActions;
-
-    /// <summary>
-    /// Gets the ComputableMesh or ComputableMeshes associated with the specified component.
-    /// If the Rendering Agent is a MeshFilter, automatically sets up the mesh replacement on rendering.
-    /// </summary>
-    /// <param name="comp"></param>
-    /// <param name="nameSufix"></param>
-    /// <returns></returns>
-    public static ComputableMesh[] Get(Component comp, string nameSufix = "_Computable")
-    {
-        return Get(comp, false, nameSufix);
-    }
-
-    public static ComputableMesh[] Get(Component comp, bool reinitialize, string nameSufix = "_Computable")
-    {
-        if (comp == null)
-            return null;
-
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-
-        if (filter.isNull)
-            return null;
-
-        if (filter.isMeshFilter) return new ComputableMesh[] { Get(filter.filter, comp) };
-        else return filter.customRenderer.enabled ?
-                filter.customRenderer.GetComputables(comp) : new ComputableMesh[0];
-    }
-
-    public static void StopUsing(Component comp)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-
-        if (!filter.isNull)
-        {
-            if (filter.isMeshFilter)
-            {
-                StopUsing(filter.filter, comp);
-                startActions.SmartRemove(comp);
-                finishActions.SmartRemove(comp);
-            }
-            else
-            {
-                if (startActions.SmartGetValue(comp, out UnityAction staction))
-                {
-                    filter.customRenderer.RemoveStartAction(staction);
-                    startActions.Remove(comp);
-                }
-                if (finishActions.SmartGetValue(comp, out UnityAction fiaction))
-                {
-                    filter.customRenderer.RemoveFinishAction(fiaction);
-                    finishActions.Remove(comp);
-                }
-                filter.customRenderer.StopUseByComponent(comp);
-            }
-        }
-    }
-
-    public static Matrix4x4 LocalToWorldMatrix(Component comp, int id)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-        return filter.LocalToWorldMatrix(id);
-    }
-
-    public static Matrix4x4 WorldToLocalMatrix(Component comp, int id)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-        return filter.WorldToLocalMatrix(id);
-    }
-
-    public static bool IsRenderingAgentEnabled(Component comp)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-
-        if (filter.isNull)
-            return false;
-
-        if (filter.isMeshFilter) return true;
-        else return filter.customRenderer.enabled;
-    }
-
-    public static bool IsRenderingAgentAFilter(Component comp)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-
-        return filter.isMeshFilter;
-    }
-
-    public static bool FilterMeshChanged(Component comp)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-
-        if (filter.isNull)
-            return true;
-
-        if (filter.isMeshFilter)
-            return filtersProcessor.MeshChanged(filter.filter);
-
-        return false;
-    }
-
-
-    /// <summary>
-    /// Tracks the start rendering event for the specified component.
-    /// If the rendering agent is a CustomRenderer, it assigns the method to be called when rendering starts.
-    /// </summary>
-    /// <param name="comp"></param>
-    /// <param name="method"></param>
-    public static void SetRenderingEvent_Start(Component comp, UnityAction method)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-        startActions = startActions.CreateAdd(comp, method);
-        if (!filter.isMeshFilter)
-        {
-            filter.customRenderer.RemoveStartAction(method);
-            //^ In case it's already added
-            filter.customRenderer.AddStartAction(method);
-        }
-    }
-
-    /// <summary>
-    /// Tracks the finished rendering event for the specified component.
-    /// If the rendering agent is a CustomRenderer, it assigns the method to be called when rendering is finished.
-    /// </summary>
-    /// <param name="comp"></param>
-    /// <param name="method"></param>
-    public static void SetRenderingEvent_Finished(Component comp, UnityAction method)
-    {
-        ComputableFilter filter = ComputableFilter.Get(comp.gameObject);
-        finishActions = finishActions.CreateAdd(comp, method);
-        if (!filter.isMeshFilter)
-        {
-            filter.customRenderer.RemoveFinishAction(method);
-            //^ In case it's already added
-            filter.customRenderer.AddFinishAction(method);
-        }
-    }
-
-    //By MeshFilter
-    static ComputableMesh Get(MeshFilter filter, Component comp, string nameSufix = "_Computable")
-    {
-        return Get(filter, comp, false, nameSufix);
-    }
-
-    static ComputableMesh Get(MeshFilter filter, Component comp, bool reinitialize, string nameSufix = "_Computable")
-    {
-        if (!filtersProcessor.isInitialized)
-        {
-            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-            RenderPipelineManager.endCameraRendering += EndCameraRendering;
-        }
-        else filtersProcessor.CleanNullValues();
-
-        bool validMeshExists = false;
-        if (filtersProcessor.MeshChanged(filter))
-            filtersProcessor.SmartRemove(filter);
-        else validMeshExists = true;
-
-        ComputableMesh mesh;
-        if (validMeshExists)
-        {
-            mesh = filtersProcessor.GetComputable(filter);
-
-            if (reinitialize)
-                mesh.Initialize(filter.sharedMesh, filter.name + nameSufix);
-            else mesh.name = filter.name + nameSufix;
-
-            filtersProcessor.SetUseByComponent(filter, comp);
-
-            return mesh;
-        }
-        else
-        {
-            if (filter.sharedMesh != null)
-            {
-                return filtersProcessor.Create(filter, comp,
-                    filter.sharedMesh, filter.name + nameSufix);
-            }
-            else return null;
-        }
-    }
-
-    static void StopUsing(MeshFilter filter, Component comp)
-    {
-        filtersProcessor.StopUsing(filter, comp);
-    }
-
-    static void BeginCameraRendering(ScriptableRenderContext context, Camera cam)
-    {
-        filtersProcessor.SubstituteFilterMeshes();
-    }
-
-    static void EndCameraRendering(ScriptableRenderContext context, Camera cam)
-    {
-        filtersProcessor.RestoreFilterMeshes();
-    }
-
-    struct ComputableFilterCollection
-    {
-        Dictionary<MeshFilter, ComputableMesh> meshes;
-        Dictionary<MeshFilter, List<Component>> usedBy;
-        Dictionary<MeshFilter, Mesh> originals;
-        public bool isInitialized;
-        public int count { get { return (meshes != null) ? meshes.Count : 0; } }
-        bool wasCleaned;
-
-        static List<Mesh> auxMeshList;
-        static List<MeshFilter> auxFilterList;
-
-        public bool MeshChanged(MeshFilter filter)
-        {
-            if (!originals.NotNullContainsKey(filter))
-                return true;
-
-            if (filter.sharedMesh != originals[filter])
-                return true;
-
-            return false;
-        }
-
-        public void SmartRemove(MeshFilter filter)
-        {
-            if (originals.SmartGetValue(filter, out Mesh original))
-            {
-                originals.Remove(filter);
-                usedBy.SmartRemove(filter);
-                meshes.SmartRemove(filter);
-            }
-        }
-
-        public void CleanNullValues()
-        {
-            if ((!wasCleaned) && (!originals.IsNullOrEmpty()))
-            {
-                //Remove null filters
-                originals = originals.ClearNulls();
-                usedBy = usedBy.ClearNulls();
-                meshes = meshes.ClearNulls();
-
-                //Remove filters with null meshes
-                auxFilterList = auxFilterList.ClearOrCreate();
-                foreach (KeyValuePair<MeshFilter, Mesh> pair in originals)
-                    if (pair.Value == null)
-                        auxFilterList.Add(pair.Key);
-                foreach (MeshFilter filter in auxFilterList)
-                {
-                    originals.Remove(filter);
-                    meshes.Remove(filter);
-                }
-
-                //Remove filters with null computables
-                auxFilterList = auxFilterList.ClearOrCreate(); //To remove
-                foreach (KeyValuePair<MeshFilter, ComputableMesh> pair in meshes)
-                    if ((pair.Value == null) || (pair.Value.mesh == null))
-                        auxFilterList.Add(pair.Key);
-                foreach (MeshFilter filter in auxFilterList)
-                {
-                    originals.Remove(filter);
-                    meshes.Remove(filter);
-                }
-
-                wasCleaned = true;
-                Application.onBeforeRender += ResetCleaner;
-            }
-        }
-
-        void ResetCleaner()
-        {
-            wasCleaned = false;
-            Application.onBeforeRender -= ResetCleaner;
-        }
-
-        public ComputableMesh GetComputable(MeshFilter filter)
-        {
-            if (!originals.NotNullContainsKey(filter))
-                return null;
-
-            if (!meshes.NotNullContainsKey(filter))
-                return null;
-
-            return meshes[filter];
-        }
-
-        public void SetUseByComponent(MeshFilter filter, Component comp)
-        {
-            usedBy = usedBy.CreateAdd(filter, comp);
-        }
-
-        public ComputableMesh Create(MeshFilter filter, Component comp, string name, int vCount, int tCount)
-        {
-            ComputableMesh mesh = new ComputableMesh(name, vCount, tCount);
-            Create(filter, comp, mesh);
-            return mesh;
-        }
-
-        public ComputableMesh Create(MeshFilter filter, Component comp, Mesh mesh, string name)
-        {
-            ComputableMesh computable = new ComputableMesh(mesh, name);
-            Create(filter, comp, computable);
-            return computable;
-        }
-
-        public void StopUsing(MeshFilter filter, Component comp)
-        {
-            if (usedBy.SmartGetValue(filter, out List<Component> list))
-            {
-                list.SmartRemove(comp);
-                if (list.Count <= 0)
-                    SmartRemove(filter);
-            }
-        }
-
-        public void ResetCompletely()
-        {
-            MeshFilter[] filters = originals.Keys.ToArray();
-            foreach (MeshFilter filter in filters)
-                for (int i = usedBy[filter].Count - 1; i >= 0; i--)
-                    StopUsing(filter, usedBy[filter][i]);
-        }
-
-        public void SubstituteFilterMeshes()
-        {
-            MeshFilter[] filters = originals.Keys.ToArray();
-
-            foreach (MeshFilter filter in filters)
-                if (filter != null)
-                    filter.sharedMesh = meshes[filter];
-        }
-
-        public void RestoreFilterMeshes()
-        {
-            MeshFilter[] filters = originals.Keys.ToArray();
-
-            foreach (MeshFilter filter in filters)
-                if (filter != null)
-                    filter.sharedMesh = meshes[filter].original;
-        }
-
-        public Mesh OriginalMesh(MeshFilter filter)
-        {
-            if (!originals.NotNullContainsKey(filter))
-                return null;
-            return originals[filter];
-        }
-
-        void Create(MeshFilter filter, Component comp, ComputableMesh mesh)
-        {
-            originals = originals.CreateAdd(filter, filter.sharedMesh);
-            meshes = meshes.CreateAdd(filter, mesh);
-            SetUseByComponent(filter, comp);
-            isInitialized = true;
-        }
-    }
-
-    struct ComputableFilter : IEquatable<ComputableFilter>
-    {
-        static Dictionary<GameObject, ComputableFilter> filters = null;
-        static bool wasCleaned;
-        public MeshFilter filter;
-        public MeshRenderer renderer;
-        public CustomRenderer customRenderer;
-        public bool isMeshFilter { get { return (filter != null); } }
-        public bool isNull { get { return (filter == null) && (customRenderer == null); } }
-        public Matrix4x4 LocalToWorldMatrix(int id)
-        {
-            return isMeshFilter ? filter.transform.localToWorldMatrix :
-                customRenderer.LocalToWorldMatrix(id);
-        }
-        public Matrix4x4 WorldToLocalMatrix(int id)
-        {
-            return isMeshFilter ? filter.transform.worldToLocalMatrix :
-                customRenderer.WorldToLocalMatrix(id);
-        }
-
-        static List<GameObject> auxGOs;
-
-        public ComputableFilter(MeshFilter filter)
-        {
-            this.filter = filter;
-            renderer = filter.gameObject.GetComponent<MeshRenderer>();
-            customRenderer = null;
-        }
-
-        public ComputableFilter(CustomRenderer customRenderer)
-        {
-            filter = null;
-            renderer = null;
-            this.customRenderer = customRenderer;
-        }
-
-        public ComputableFilter(GameObject gameObject)
-        {
-            filter = gameObject.GetComponent<MeshFilter>();
-            renderer = null;
-            customRenderer = null;
-            if (filter == null)
-                customRenderer = gameObject.GetComponent<CustomRenderer>();
-            else
-                renderer = filter.gameObject.GetComponent<MeshRenderer>();
-        }
-
-        public static ComputableFilter Get(GameObject gameObject)
-        {
-            ClearNulls();
-
-            ComputableFilter filter;
-            if (!filters.SmartGetValue(gameObject, out filter))
-            {
-                filter = new ComputableFilter(gameObject);
-                filters = filters.CreateAdd(gameObject, filter);
-            }
-            else
-                if (filter.isNull)
-                {
-                    filters.Remove(gameObject);
-                    filter = new ComputableFilter(gameObject);
-                    filters = filters.CreateAdd(gameObject, filter);
-                }
-            return filter;
-        }
-
-        static void ClearNulls()
-        {
-            if ((!wasCleaned) && (filters != null))
-            {
-                filters = filters.ClearNulls();
-                auxGOs = auxGOs.ClearOrCreate();
-                foreach (KeyValuePair<GameObject, ComputableFilter> pair in filters)
-                    if (pair.Value.isNull)
-                        auxGOs.Add(pair.Key);
-                foreach (GameObject go in auxGOs)
-                    filters.Remove(go);
-
-                wasCleaned = true;
-                Application.onBeforeRender += ResetCleaner;
-            }
-        }
-
-        static void ResetCleaner()
-        {
-            wasCleaned = false;
-            Application.onBeforeRender -= ResetCleaner;
-        }
-
-        public override bool Equals(object other)
-        {
-            if (!(other is ComputableFilter)) return false;
-            return Equals((ComputableFilter)other);
-        }
-
-        public bool Equals(ComputableFilter other)
-        {
-            return (filter == other.filter)
-                && (customRenderer == other.customRenderer);
-        }
-
-        public override int GetHashCode()
-        {
-            return isMeshFilter ? filter.GetHashCode() : customRenderer.GetHashCode();
-        }
-
-        public static bool operator ==(ComputableFilter o1, ComputableFilter o2)
-        {
-            return o1.Equals(o2);
-        }
-
-        public static bool operator !=(ComputableFilter o1, ComputableFilter o2)
-        {
-            return !o1.Equals(o2);
-        }
-    }
-    #endregion
-
     public void Dispose()
     {
         vertexData.Dispose();
@@ -1623,6 +1156,272 @@ public class ComputableMesh : IDisposable
     }
 
     ~ComputableMesh()
+    {
+        //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
+        Dispose();
+    }
+}
+
+public class ComputableSprite
+{
+    const string MESHSUFFIX = "_m";
+
+    Sprite sprite;
+    public ComputableMesh mesh;
+    public Sprite original;
+    public GraphicsBuffer vertexBuffer { get { return mesh.vertexBuffer; } }
+    public GraphicsBuffer indexBuffer { get { return mesh.indexBuffer; } }
+    public Bounds bounds { get { return mesh.bounds; } }
+    public int indexCount { get { return (int)mesh.indexCount; } }
+    public int totalIndexCount { get { return (int)mesh.totalIndexCount; } }
+    public int vertexCount { get { return mesh.vertexCount; } }
+    public int subMeshCount { get { return mesh.subMeshCount; } }
+    public Vector3[] vertices { get { return mesh.vertices; } }
+
+    public static implicit operator Sprite(ComputableSprite s) => s.sprite;
+
+    public GraphicsBuffer positions;
+    public GraphicsBuffer normals;
+    public GraphicsBuffer tangents;
+    public GraphicsBuffer colors;
+    public GraphicsBuffer uvs;
+
+    static ComputeShader _genericCompute;
+    public static ComputeShader genericCompute
+    {
+        get
+        {
+            if (_genericCompute == null)
+                _genericCompute = (ComputeShader)Resources.Load(genericComputeShaderName);
+            return _genericCompute;
+        }
+    }
+    const string genericComputeShaderName = "ComputableMeshGenericCompute";
+    const string constructVertexDataKernel = "ConstructVertexDataBuffer";
+    const string extractVertexDataKernel = "ExtractVertexDataBuffers";
+    const float Numthreads_Large = 512;
+    const float Numthreads_Small = 128;
+    const float Numthreads_2D = 16;
+
+    public string name
+    {
+        get { return sprite.name; }
+        set
+        {
+            sprite.name = value;
+            mesh.name = value + MESHSUFFIX;
+        }
+    }
+
+    public ComputableSprite(Sprite spriteToCopy, string name)
+    {
+        Initialize(spriteToCopy, name);
+    }
+
+    public void Initialize(Sprite spriteToCopy, string name)
+    {
+        if (sprite == null)
+            Object.DestroyImmediate(sprite);
+
+        Rect rect = spriteToCopy.rect;
+        Vector2 normalizedPivot = new Vector2(
+            spriteToCopy.pivot.x / rect.width,
+            spriteToCopy.pivot.y / rect.height
+        );
+
+        NativeArray<ComputableMesh.VertexData> vData = CPU_ConstructVertexData(spriteToCopy);
+        NativeArray<uint>[] iData = CPU_ConstructIndexData(spriteToCopy);
+
+        if (mesh != null)
+            mesh.Initialize(vData, iData, name + MESHSUFFIX);
+        else mesh = new ComputableMesh(vData, iData, name + MESHSUFFIX);
+
+        vData.Dispose();
+        iData[0].Dispose();
+
+        sprite = Sprite.Create(spriteToCopy.texture, rect, normalizedPivot,
+                                      spriteToCopy.pixelsPerUnit, 0, SpriteMeshType.Tight, spriteToCopy.border);
+        InitializeBuffers();
+        SetMeshDataOnSprite();
+
+        original = spriteToCopy;
+    }
+
+    void InitializeBuffers()
+    {
+        positions = new GraphicsBuffer(
+            GraphicsBuffer.Target.Structured, vertexCount, sizeof(float) * 3);
+        normals = new GraphicsBuffer(
+            GraphicsBuffer.Target.Structured, vertexCount, sizeof(float) * 3);
+        tangents = new GraphicsBuffer(
+            GraphicsBuffer.Target.Structured, vertexCount, sizeof(float) * 4);
+        colors = new GraphicsBuffer(
+            GraphicsBuffer.Target.Structured, vertexCount, sizeof(float) * 4);
+        uvs = new GraphicsBuffer(
+            GraphicsBuffer.Target.Structured, vertexCount, sizeof(float) * 2);
+    }
+
+    public Sprite GetSprite()
+    {
+        SetMeshDataOnSprite();
+        return sprite;
+    }
+
+    void SetMeshDataOnSprite()
+    {
+        Compute_ExtractVertexData(positions, normals, tangents, colors, uvs);
+
+        SetBufferOnSprite<Vector3>(sprite, positions, VertexAttribute.Position);
+        SetBufferOnSprite<Vector3>(sprite, normals, VertexAttribute.Normal);
+        SetBufferOnSprite<Vector4>(sprite, tangents, VertexAttribute.Tangent);
+        SetBufferOnSprite<Color>(sprite, colors, VertexAttribute.Color);
+        SetBufferOnSprite<Vector2>(sprite, uvs, VertexAttribute.TexCoord0);
+    }
+
+    void SetBufferOnSprite<T>(Sprite sprite, GraphicsBuffer buffer, VertexAttribute attribute) where T : struct
+    {
+        if (sprite.HasVertexAttribute(attribute))
+        {
+            NativeArray<T> array = new NativeArray<T>(vertexCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            AsyncGPUReadback.RequestIntoNativeArray(ref array, buffer, (AsyncGPUReadbackRequest req) =>
+            {
+                if (req.hasError)
+                {
+                    Debug.LogError("Readback failed");
+                    array.Dispose();
+                    array = default;
+                    return;
+                }
+
+                sprite.SetVertexAttribute(attribute, array);
+
+                array.Dispose();
+                array = default;
+            });
+        }
+    }
+
+    NativeArray<ComputableMesh.VertexData> CPU_ConstructVertexData(Sprite sprite)
+    {
+        int vCount = sprite.GetVertexCount();
+        if (vCount > 0)
+        {
+            NativeArray<ComputableMesh.VertexData> vData =
+                new NativeArray<ComputableMesh.VertexData>(vCount, Allocator.Temp);
+
+            bool hasPosition = sprite.HasVertexAttribute(VertexAttribute.Position);
+            bool hasNormal = sprite.HasVertexAttribute(VertexAttribute.Normal);
+            bool hasTangent = sprite.HasVertexAttribute(VertexAttribute.Tangent);
+            bool hasColor = sprite.HasVertexAttribute(VertexAttribute.Color);
+            bool hasUV = sprite.HasVertexAttribute(VertexAttribute.TexCoord0);
+            NativeSlice<Vector3> sprPositions = hasPosition ?
+                sprite.GetVertexAttribute<Vector3>(VertexAttribute.Position) :
+                new NativeSlice<Vector3>();
+            NativeSlice<Vector3> sprNormals = hasNormal ?
+                sprite.GetVertexAttribute<Vector3>(VertexAttribute.Normal) :
+                new NativeSlice<Vector3>();
+            NativeSlice<Vector4> sprTangents = hasTangent ?
+                sprite.GetVertexAttribute<Vector4>(VertexAttribute.Tangent) :
+                new NativeSlice<Vector4>();
+            NativeSlice<Color> sprColors = hasColor ?
+                sprite.GetVertexAttribute<Color>(VertexAttribute.Color) :
+                new NativeSlice<Color>();
+            NativeSlice<Vector2> sprUVs = hasUV ?
+                sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0) :
+                new NativeSlice<Vector2>();
+
+            for (int i = 0; i < vCount; i++)
+            {
+                ComputableMesh.VertexData data = new ComputableMesh.VertexData(
+                    hasPosition ? sprPositions[i] : Vector3.zero,
+                    hasNormal ? sprNormals[i] : Vector3.up,
+                    hasTangent ? sprTangents[i] : new Vector4(1, 0, 0, 1),
+                    hasColor ? sprColors[i] : Color.white,
+                    hasUV ? sprUVs[i] : Vector2.zero
+                    );
+
+                vData[i] = data;
+            }
+
+            return vData;
+        }
+        else return new NativeArray<ComputableMesh.VertexData>(0, Allocator.Temp);
+    }
+
+    NativeArray<uint>[] CPU_ConstructIndexData(Sprite sprite)
+    {
+        int iCount = sprite.vertices.Length;
+        NativeArray<uint>[] iData = new NativeArray<uint>[]
+            { new NativeArray<uint>(iCount, Allocator.Temp) };
+        NativeArray<ushort> indices = sprite.GetIndices();
+
+        for (int i = 0; i < iCount; i++)
+            iData[0][i] = indices[i];
+
+        return iData;
+    }
+
+    protected void Compute_ConstructVertexData(
+        GraphicsBuffer positions,
+        GraphicsBuffer normals,
+        GraphicsBuffer tangents,
+        GraphicsBuffer colors,
+        GraphicsBuffer uvs
+        )
+    {
+        int vertexCount = mesh.vertexBuffer.count;
+        int ki = genericCompute.FindKernel(constructVertexDataKernel);
+        genericCompute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        genericCompute.SetInt("vertexCount", vertexCount);
+        genericCompute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+        genericCompute.SetBuffer(ki, "positions", positions);
+        genericCompute.SetBuffer(ki, "normals", normals);
+        genericCompute.SetBuffer(ki, "tangents", tangents);
+        genericCompute.SetBuffer(ki, "colors", colors);
+        genericCompute.SetBuffer(ki, "uvs", uvs);
+
+        genericCompute.Dispatch(ki, Mathf.CeilToInt(
+            vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    protected void Compute_ExtractVertexData(
+        GraphicsBuffer positions,
+        GraphicsBuffer normals,
+        GraphicsBuffer tangents,
+        GraphicsBuffer colors,
+        GraphicsBuffer uvs
+        )
+    {
+        int vertexCount = mesh.vertexBuffer.count;
+        int ki = genericCompute.FindKernel(extractVertexDataKernel);
+        genericCompute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        genericCompute.SetInt("vertexCount", vertexCount);
+        genericCompute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+        genericCompute.SetBuffer(ki, "positions", positions);
+        genericCompute.SetBuffer(ki, "normals", normals);
+        genericCompute.SetBuffer(ki, "tangents", tangents);
+        genericCompute.SetBuffer(ki, "colors", colors);
+        genericCompute.SetBuffer(ki, "uvs", uvs);
+
+        genericCompute.Dispatch(ki, Mathf.CeilToInt(
+            vertexCount / Numthreads_Small), 1, 1);
+    }
+
+    public void Dispose()
+    {
+        mesh.Dispose();
+        Object.DestroyImmediate(sprite);
+        GC.SuppressFinalize(this);
+    }
+
+    public ComputableSprite Destroy()
+    {
+        Dispose();
+        return null;
+    }
+
+    ~ComputableSprite()
     {
         //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
         Dispose();

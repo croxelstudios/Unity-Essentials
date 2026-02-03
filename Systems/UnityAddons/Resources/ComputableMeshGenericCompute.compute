@@ -90,7 +90,7 @@ void GetEdges(uint id : SV_DispatchThreadID)
 [numthreads(16, 16, 1)]
 void ProccessDuplicateEdges(uint2 id : SV_DispatchThreadID)
 {
-    if (id.x < id.y)
+    if ((id.y < indexCount) && (id.x < id.y))
         if (((edges[id.x].v1 == edges[id.y].v1) &&
             (edges[id.x].v2 == edges[id.y].v2))
             ||
@@ -103,4 +103,40 @@ void ProccessDuplicateEdges(uint2 id : SV_DispatchThreadID)
             // stores the codified value of original edge. Data is centralized in original edge.
             edges[id.y].index2 = -int(id.x) - 2;
         }
+}
+
+#pragma kernel ConstructVertexDataBuffer
+
+RWStructuredBuffer<float3> positions;
+RWStructuredBuffer<float3> normals;
+RWStructuredBuffer<float4> tangents;
+RWStructuredBuffer<float4> colors;
+RWStructuredBuffer<float2> uvs;
+
+[numthreads(128, 1, 1)]
+void ConstructVertexDataBuffer(uint id : SV_DispatchThreadID)
+{
+    if (id < vertexCount)
+    {
+        SetVertexPosition(id, positions[id]);
+        SetVertexNormal(id, normals[id]);
+        SetVertexTangent(id, tangents[id]);
+        SetVertexColor(id, colors[id]);
+        SetVertexUV(id, uvs[id]);
+    }
+}
+
+#pragma kernel ExtractVertexDataBuffers
+
+[numthreads(128, 1, 1)]
+void ExtractVertexDataBuffers(uint id : SV_DispatchThreadID)
+{
+    if (id < vertexCount)
+    {
+        positions[id] = ExtractVertexPosition(id);
+        normals[id] = ExtractVertexNormal(id);
+        tangents[id] = ExtractVertexTangent(id);
+        colors[id] = ExtractVertexColor(id);
+        uvs[id] = ExtractVertexUV(id);
+    }
 }

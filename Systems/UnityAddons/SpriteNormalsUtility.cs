@@ -35,7 +35,7 @@ public static class SpriteNormalsUtility
             NativeArrayOptions.UninitializedMemory);
         for (int i = 0; i < vertexCount; i++)
             newNormals[i] = Vector3.back;
-        SpriteDataAccessExtensions.SetVertexAttribute(sprite, VertexAttribute.Normal, newNormals);
+        sprite.SetVertexAttribute(VertexAttribute.Normal, newNormals);
     }
 }
 #endif

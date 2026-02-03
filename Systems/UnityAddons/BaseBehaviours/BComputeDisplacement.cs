@@ -1,7 +1,6 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Collections;
 using System.Collections.Generic;
 
 [ExecuteAlways]
@@ -26,15 +25,15 @@ public class BComputeDisplacement : MonoBehaviour
     {
         renderingCameras = new List<Camera>();
         perFrame = new PerFrameTracker();
-        ComputableMesh.SetRenderingEvent_Start(this, BeginRendering);
-        ComputableMesh.SetRenderingEvent_Finished(this, FinishRendering);
+        ComputableModule.SetRenderingEvent_Start(this, BeginRendering);
+        ComputableModule.SetRenderingEvent_Finished(this, FinishRendering);
         RenderPipelineManager.endContextRendering += EndFrameRendering;
     }
 
     protected virtual void OnDisable()
     {
         ResetMeshesData();
-        ComputableMesh.StopUsing(this);
+        ComputableModule.StopUsing(this);
 
         if (!meshes.IsNullOrEmpty())
             for (int i = 0; i < meshes.Length; i++)
@@ -50,6 +49,7 @@ public class BComputeDisplacement : MonoBehaviour
         RenderPipelineManager.endContextRendering -= EndFrameRendering;
     }
 
+    #region Control execution moment
     void OnWillRenderObject()
     {
         if (renderingCameras.Count <= 0)
@@ -58,7 +58,7 @@ public class BComputeDisplacement : MonoBehaviour
 
             //Checks if the rendering agent is being rendered and is a filter.
             //If the agent is a CustomRenderer, its rendering moment is handled by it.
-            if (ComputableMesh.IsRenderingAgentAFilter(this))
+            if (ComputableModule.IsRendererCullable(this))
                 BeginRendering();
         }
 
@@ -73,6 +73,7 @@ public class BComputeDisplacement : MonoBehaviour
             FinishRendering();
         }
     }
+    #endregion
 
     void BeginRendering()
     {
@@ -130,7 +131,7 @@ public class BComputeDisplacement : MonoBehaviour
     {
         if (!gotMeshes)
         {
-            meshes = ComputableMesh.Get(this);
+            meshes = ComputableModule.Get(this);
             OnUpdate();
             gotMeshes = true;
         }
@@ -184,6 +185,16 @@ public class BComputeDisplacement : MonoBehaviour
     protected virtual void OnBeginRenderingMesh(int i)
     {
 
+    }
+
+    protected Matrix4x4 LocalToWorldMatrix(int index)
+    {
+        return ComputableModule.LocalToWorldMatrix(this, index);
+    }
+
+    protected Matrix4x4 WorldToLocalMatrix(int index)
+    {
+        return ComputableModule.WorldToLocalMatrix(this, index);
     }
 
     //--------------------------------------------------------------

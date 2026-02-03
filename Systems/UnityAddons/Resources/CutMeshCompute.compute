@@ -157,7 +157,7 @@ void RegisterFullCutTriangles(uint index, bool c12, bool c23, bool c31, int left
 [numthreads(128, 1, 1)]
 void GetTriangleCutData(uint id : SV_DispatchThreadID)
 {
-    if (id < indexCount)
+    if (id < (indexCount / 3))
     {
         uint index = indexStart + (id * 3);
 

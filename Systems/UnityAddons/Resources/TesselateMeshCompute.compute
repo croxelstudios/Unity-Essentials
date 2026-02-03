@@ -3,22 +3,306 @@
 #include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMesh_Edges.cginc"
 
 // Step 1: Get edges data
+
 // Step 2: Get bool buffer to mark each edge colindant to a triangle with an area too large.
 //	Area can be calculated with a transformation matrix,
 //	or you can pass the identity matrix for a local calculation.
 //	[Omit this step if the subdivision is absolute]
-// Step 3: In the CPU, count marked edges and create a new vertex buffer with the new expected size
+
+RWStructuredBuffer<int> divisions;
+
+#pragma kernel ResetDivisions
+
+[numthreads(128, 1, 1)]
+void ResetDivisions(uint id : SV_DispatchThreadID)
+{
+    if (id < indexCount)
+        divisions[id] = -1;
+}
+
+float4x4 objectToWorld;
+float areaThreshold;
+
+#pragma kernel GetEdgeDivisions
+
+[numthreads(128, 1, 1)]
+void GetEdgeDivisions(uint id : SV_DispatchThreadID)
+{
+    if (id < (indexCount / 3))
+	{
+        uint index = indexStart + (id * 3);
+
+        uint i1 = index;
+        uint i2 = index + 1;
+        uint i3 = index + 2;
+
+        uint ti1 = ExtractIndex(i1);
+        uint ti2 = ExtractIndex(i2);
+        uint ti3 = ExtractIndex(i3);
+
+        VertexData v1 = ExtractVertexData(ti1);
+        VertexData v2 = ExtractVertexData(ti2);
+        VertexData v3 = ExtractVertexData(ti3);
+
+        float3 p1 = mul(objectToWorld, float4(v1.position, 1)).xyz;
+        float3 p2 = mul(objectToWorld, float4(v2.position, 1)).xyz;
+        float3 p3 = mul(objectToWorld, float4(v3.position, 1)).xyz;
+
+        float area = length(cross(p2 - p1, p3 - p1)) * 0.5;
+
+        if (area > areaThreshold)
+        {
+            divisions[Edge_GetOriginal(i1)] = 1;
+            divisions[Edge_GetOriginal(i2)] = 1;
+            divisions[Edge_GetOriginal(i3)] = 1;
+        }
+	}
+}
+
+// Step 3: In the CPU, count marked edges and create a new vertex buffer with the new expected size.
+//  Take this opportunity to construct another buffer that stores division edges ids.
 //	[Counting can be omited if the subdivision is absolute]
+
 // Step 4: Back in the GPU, copy old vertices to the new vertex buffer
+
+RWByteAddressBuffer oldVertices;
+
+float3 ExtractVertexPosition_Old(uint i)
+{
+    uint v = i * vertexStride;
+    return asfloat(oldVertices.Load3(v));
+}
+
+float3 ExtractVertexNormal_Old(uint i)
+{
+    uint v = (i * vertexStride) + 12;
+    return asfloat(oldVertices.Load3(v));
+}
+
+float4 ExtractVertexTangent_Old(uint i)
+{
+    uint v = (i * vertexStride) + 24;
+    return asfloat(oldVertices.Load4(v));
+}
+
+float4 ExtractVertexColor_Old(uint i)
+{
+    uint v = (i * vertexStride) + 40;
+    return asfloat(oldVertices.Load4(v));
+}
+
+float2 ExtractVertexUV_Old(uint i)
+{
+    uint v = (i * vertexStride) + 56;
+    return asfloat(oldVertices.Load2(v));
+}
+
+VertexData ExtractVertexData_Old(uint i)
+{
+    VertexData vd;
+    vd.position = ExtractVertexPosition_Old(i);
+    vd.normal = ExtractVertexNormal_Old(i);
+    vd.tangent = ExtractVertexTangent_Old(i);
+    vd.color = ExtractVertexColor_Old(i);
+    vd.uv = ExtractVertexUV_Old(i);
+    return vd;
+}
+
+#pragma kernel CopyOldVertices
+
+[numthreads(128, 1, 1)]
+void CopyOldVertices(uint id : SV_DispatchThreadID)
+{
+    if (id < vertexCount) // vertexCount must be old vertex count
+        SetVertexData(id, ExtractVertexData_Old(id));
+}
+
 // Step 5: Write the new vertices into the new vertex buffer, checking each marked edge.
 //	Save the new IDs in an info buffer [Same size as the edges buffer, or reuse same]
 //	All data in new vertex is an average of the two edge extremes.
+
+RWStructuredBuffer<uint> divisionEdgesIds;
+uint divEdgesSize;
+uint oldSize;
+
+#pragma kernel WriteNewVertices
+
+[numthreads(128, 1, 1)]
+void WriteNewVertices(uint id : SV_DispatchThreadID)
+{
+    if (id < divEdgesSize)
+    {
+        int edgeId = divisionEdgesIds[id];
+        Edge edge = edges[edgeId];
+
+        VertexData v1 = ExtractVertexData(edge.v1);
+        VertexData v2 = ExtractVertexData(edge.v2);
+
+        int newVertexId = oldSize + id;
+        SetVertexData(newVertexId, AverageVertexData(v1, v2));
+        divisions[edgeId] = newVertexId;
+    }
+}
+
 // Step 6: For each triangle, check its edges in the buffer and substitute and create new triangles
 //	following one of three methods, depending on amount of subdivided edges.
 //	Save the data in a "triangle subdivision" buffer.
+
+struct Triangle
+{
+    uint v1;
+    uint v2;
+    uint v3;
+};
+
+struct TriangleDivision
+{
+    Triangle tri1;
+    Triangle tri2;
+    Triangle tri3;
+    Triangle tri4;
+
+    void SetTri1(uint v1, uint v2, uint v3)
+    {
+        tri1.v1 = v1;
+        tri1.v2 = v2;
+        tri1.v3 = v3;
+    }
+
+    void SetTri2(uint v1, uint v2, uint v3)
+    {
+        tri2.v1 = v1;
+        tri2.v2 = v2;
+        tri2.v3 = v3;
+    }
+
+    void SetTri3(uint v1, uint v2, uint v3)
+    {
+        tri3.v1 = v1;
+        tri3.v2 = v2;
+        tri3.v3 = v3;
+    }
+
+    void SetTri4(uint v1, uint v2, uint v3)
+    {
+        tri4.v1 = v1;
+        tri4.v2 = v2;
+        tri4.v3 = v3;
+    }
+
+    void SetTri1(uint v)
+    {
+        SetTri1(v, v, v);
+    }
+    
+    void SetTri2(uint v)
+    {
+        SetTri2(v, v, v);
+    }
+
+    void SetTri3(uint v)
+    {
+        SetTri3(v, v, v);
+    }
+
+    void SetTri4(uint v)
+    {
+        SetTri4(v, v, v);
+    }
+};
+
+RWStructuredBuffer<TriangleDivision> triangleDivisions;
+
+#pragma kernel SubdivideTriangles
+
+[numthreads(128, 1, 1)]
+void SubdivideTriangles(uint id : SV_DispatchThreadID)
+{
+    if (id < (indexCount / 3))
+    {
+        uint index = indexStart + (id * 3);
+        int edge1Div = divisions[Edge_GetOriginal(index)];
+        int edge2Div = divisions[Edge_GetOriginal(index + 1)];
+        int edge3Div = divisions[Edge_GetOriginal(index + 2)];
+        uint i1 = ExtractIndex(index);
+        uint i2 = ExtractIndex(index + 1);
+        uint i3 = ExtractIndex(index + 2);
+        if ((edge1Div != -1) && (edge2Div != -1) && (edge3Div != -1))
+        {
+            // Subdivide in 4
+            triangleDivisions[id].SetTri1(i1, edge1Div, edge3Div);
+            triangleDivisions[id].SetTri2(edge1Div, edge2Div, edge3Div);
+            triangleDivisions[id].SetTri3(edge1Div, i2, edge2Div);
+            triangleDivisions[id].SetTri4(edge3Div, edge2Div, i3);
+        }
+        else if (edge1Div != -1)
+        {
+            if (edge2Div != -1)
+            {
+                // Subdivide in 3
+                triangleDivisions[id].SetTri1(i1, edge1Div, i3);
+                triangleDivisions[id].SetTri2(edge1Div, edge2Div, i3);
+                triangleDivisions[id].SetTri3(edge1Div, i2, edge2Div);
+                triangleDivisions[id].SetTri4(-1);
+            }
+            else if (edge3Div != -1)
+            {
+                // Subdivide in 3
+                triangleDivisions[id].SetTri1(i1, edge1Div, edge3Div);
+                triangleDivisions[id].SetTri2(edge1Div, i3, edge3Div);
+                triangleDivisions[id].SetTri3(edge1Div, i2, i3);
+                triangleDivisions[id].SetTri4(-1);
+            }
+            else
+            {
+                // Subdivide in 2
+                triangleDivisions[id].SetTri1(i1, edge1Div, i3);
+                triangleDivisions[id].SetTri2(edge1Div, i2, i3);
+                triangleDivisions[id].SetTri3(-1);
+                triangleDivisions[id].SetTri4(-1);
+            }
+        }
+        else if (edge2Div != -1)
+        {
+            if (edge3Div != -1)
+            {
+                // Subdivide in 3
+                triangleDivisions[id].SetTri1(i1, i2, edge2Div);
+                triangleDivisions[id].SetTri2(i1, edge2Div, edge3Div);
+                triangleDivisions[id].SetTri3(edge2Div, i3, edge3Div);
+                triangleDivisions[id].SetTri4(-1);
+            }
+            else
+            {
+                // Subdivide in 2
+                triangleDivisions[id].SetTri1(i1, i2, edge2Div);
+                triangleDivisions[id].SetTri2(i1, edge2Div, i3);
+                triangleDivisions[id].SetTri3(-1);
+                triangleDivisions[id].SetTri4(-1);
+            }
+        }
+        else if (edge3Div != -1)
+        {
+            // Subdivide in 2
+            triangleDivisions[id].SetTri1(i1, i2, edge3Div);
+            triangleDivisions[id].SetTri2(i2, i3, edge3Div);
+            triangleDivisions[id].SetTri3(-1);
+            triangleDivisions[id].SetTri4(-1);
+        }
+        else
+        {
+            // No subdivision
+            triangleDivisions[id].SetTri1(i1, i2, i3);
+            triangleDivisions[id].SetTri2(-1);
+            triangleDivisions[id].SetTri3(-1);
+            triangleDivisions[id].SetTri4(-1);
+        }
+    }
+}
+
 // Step 7: Back in the CPU, read the "triangle subdivision" buffer and create the new triangle buffer.
 //	Then create the new mesh using the vertex and triangle buffers.
-//
+
 // Repeat whole process recursively until either you reach the absolute subdivision target
 // or the marked edges buffer ends up empty
 //

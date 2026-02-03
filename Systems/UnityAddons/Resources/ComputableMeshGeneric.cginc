@@ -15,6 +15,17 @@ struct VertexData
     float2 uv;
 };
 
+VertexData AverageVertexData(VertexData v1, VertexData v2)
+{
+    VertexData vd;
+    vd.position = (v1.position + v2.position) * 0.5;
+    vd.normal = (v1.normal + v2.normal) * 0.5;
+    vd.tangent = (v1.tangent + v2.tangent) * 0.5;
+    vd.color = (v1.color + v2.color) * 0.5;
+    vd.uv = (v1.uv + v2.uv) * 0.5;
+    return vd;
+}
+
 float3 ExtractVertexPosition(uint i)
 {
     uint v = i * vertexStride;
