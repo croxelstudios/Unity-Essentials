@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEngine.Events;
 using Sirenix.OdinInspector;
-using Unity.VisualScripting;
 
 public class IntSignalListener : BBaseSignalListener<int>
 {
