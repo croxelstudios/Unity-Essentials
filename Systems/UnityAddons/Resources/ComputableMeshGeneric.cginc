@@ -112,7 +112,7 @@ uint ExtractIndex(int i)
     return indices.Load(v);
 }
 
-uint SetIndex(int i, int value)
+void SetIndex(int i, int value)
 {
     uint v = i * indexStride;
     indices.Store(v, asuint(value));

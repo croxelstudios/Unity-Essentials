@@ -52,6 +52,18 @@ public static class PropFieldExtension_GetPropFields
             "MemberInfo must be of type PropertyInfo or FieldInfo", nameof(info));
     }
 
+    public static bool CanRead(this MemberInfo info)
+    {
+        PropertyInfo prop = info as PropertyInfo;
+        if (prop != null)
+            return prop.CanRead;
+        FieldInfo field = info as FieldInfo;
+        if (field != null)
+            return true;
+        throw new ArgumentException(
+            "MemberInfo must be of type PropertyInfo or FieldInfo", nameof(info));
+    }
+
     public static Expression PropField(this Expression instance, MemberInfo memberInfo)
     {
         PropertyInfo prop = memberInfo as PropertyInfo;

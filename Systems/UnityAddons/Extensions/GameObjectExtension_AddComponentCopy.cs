@@ -131,7 +131,7 @@ public static class GameObjectExtension_AddComponentCopy
             }
 
             foreach (MemberInfo info in infos)
-                if (info.CanWrite() && !CreatesInstance(type, info) &&
+                if (info.CanWrite() && info.CanRead() && !CreatesInstance(type, info) &&
                     !(checkExclusions && exclusions.Contains(info.Name)))
                 {
                     Expression trg = target.PropField(info);
