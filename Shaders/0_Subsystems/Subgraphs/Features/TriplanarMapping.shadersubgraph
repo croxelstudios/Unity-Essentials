@@ -2044,8 +2044,8 @@
     "m_ObjectId": "0c8b9555c53049bcb3acabbb7628f2cc",
     "m_Title": "Weights",
     "m_Position": {
-        "x": -269.0,
-        "y": -381.0
+        "x": -269.0000915527344,
+        "y": -381.0000305175781
     }
 }
 
@@ -2219,8 +2219,8 @@
     "m_ObjectId": "12966ce5a41c49d3b2d4216dec2f18a7",
     "m_Title": "Triplanar",
     "m_Position": {
-        "x": -2015.9998779296875,
-        "y": -384.99993896484377
+        "x": -2016.0001220703125,
+        "y": -385.0000305175781
     }
 }
 
@@ -2254,8 +2254,8 @@
     "m_ObjectId": "12ed4ea8fba44af5b192dc6d846fe58d",
     "m_Title": "Remap",
     "m_Position": {
-        "x": -1113.0,
-        "y": -375.9999694824219
+        "x": -1113.0001220703125,
+        "y": -376.0000305175781
     }
 }
 
@@ -3708,6 +3708,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": false
 }
 
@@ -3992,6 +3994,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": false
 }
 
@@ -5975,7 +5979,7 @@
     "m_Group": {
         "m_Id": "9826de51d4704045914cb8ba44960f09"
     },
-    "m_Name": "PositionInOtherSpace",
+    "m_Name": "Position In Other Space",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -6163,6 +6167,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": false
 }
 
@@ -6173,7 +6179,7 @@
     "m_Group": {
         "m_Id": "9826de51d4704045914cb8ba44960f09"
     },
-    "m_Name": "ObjectToWorldScale",
+    "m_Name": "Object To World Scale",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -6427,6 +6433,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": {
         "x": 1.0,
         "y": 1.0,
@@ -6830,7 +6838,7 @@
     "m_Group": {
         "m_Id": "e313d50eccc24ffd94ee970d37eda2c4"
     },
-    "m_Name": "SphericNormals",
+    "m_Name": "Spheric Normals",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -6951,8 +6959,8 @@
     "m_ObjectId": "9826de51d4704045914cb8ba44960f09",
     "m_Title": "Position",
     "m_Position": {
-        "x": -1276.0,
-        "y": 546.0
+        "x": -1276.0001220703125,
+        "y": 546.0000610351563
     }
 }
 
@@ -8002,12 +8010,24 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": 0.20000000298023225,
     "m_FloatType": 0,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
-    }
+    },
+    "m_SliderType": 0,
+    "m_SliderPower": 3.0,
+    "m_EnumType": 0,
+    "m_CSharpEnumString": "",
+    "m_EnumNames": [
+        "Default"
+    ],
+    "m_EnumValues": [
+        0
+    ]
 }
 
 {
@@ -8364,13 +8384,13 @@
     },
     "m_Name": "Object",
     "m_DrawState": {
-        "m_Expanded": true,
+        "m_Expanded": false,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1198.0001220703125,
-            "y": 1092.9998779296875,
-            "width": 153.0001220703125,
-            "height": 173.0001220703125
+            "x": -1045.0001220703125,
+            "y": 1092.0001220703125,
+            "width": 84.00006103515625,
+            "height": 77.0
         }
     },
     "m_Slots": [
@@ -8619,7 +8639,7 @@
     "m_Group": {
         "m_Id": "9826de51d4704045914cb8ba44960f09"
     },
-    "m_Name": "PositionInOtherSpace",
+    "m_Name": "Position In Other Space",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -9187,8 +9207,8 @@
     "m_ObjectId": "e313d50eccc24ffd94ee970d37eda2c4",
     "m_Title": "Spheric Normals",
     "m_Position": {
-        "x": -2838.0,
-        "y": -383.0
+        "x": -2838.000244140625,
+        "y": -383.0000305175781
     }
 }
 
@@ -9260,6 +9280,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": false
 }
 
