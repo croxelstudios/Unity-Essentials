@@ -5,6 +5,9 @@ public static class CameraExtension_IsCameraInScene
 {
     public static bool IsCameraInScene(this Camera cam, Scene scene, bool includeSceneCamera = true)
     {
+        if (cam == null)
+            return false;
+
         if (cam.name == "SceneCamera")
         {
             if (includeSceneCamera) return true;

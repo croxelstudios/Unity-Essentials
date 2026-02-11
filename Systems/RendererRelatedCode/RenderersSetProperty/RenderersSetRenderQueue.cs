@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [ExecuteAlways]
 public class RenderersSetRenderQueue : MonoBehaviour
@@ -26,6 +27,9 @@ public class RenderersSetRenderQueue : MonoBehaviour
         dominated = dominated.CreateIfNull();
         if (!dominated.Contains(gameObject))
             UpdateRenderersInternal();
+
+        RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+        RenderPipelineManager.endCameraRendering += EndCameraRendering;
     }
 
     void OnDisable()
@@ -46,6 +50,9 @@ public class RenderersSetRenderQueue : MonoBehaviour
 
             RestoreRenderQueue();
         }
+
+        RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+        RenderPipelineManager.endCameraRendering -= EndCameraRendering;
     }
 
     void OnDestroy()
@@ -116,14 +123,18 @@ public class RenderersSetRenderQueue : MonoBehaviour
             UpdateRenderersInternal();
     }
 
-    void OnWillRenderObject()
+    void BeginCameraRendering(ScriptableRenderContext context, Camera cam)
     {
-        ApplyRenderQueue();
+        if (cam.IsCameraInScene(gameObject.scene) &&
+            ((LayerMask)cam.cullingMask).ContainsLayer(gameObject.layer))
+            ApplyRenderQueue();
     }
 
-    void OnRenderObject()
+    void EndCameraRendering(ScriptableRenderContext context, Camera cam)
     {
-        RestoreRenderQueue();
+        if (cam.IsCameraInScene(gameObject.scene) &&
+            ((LayerMask)cam.cullingMask).ContainsLayer(gameObject.layer))
+            RestoreRenderQueue();
     }
 
     void ApplyRenderQueue()
