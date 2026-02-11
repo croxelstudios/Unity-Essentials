@@ -687,7 +687,7 @@
             "m_Id": "fdf7dfc09bdf4130b2a6e449b51f4cf2"
         },
         {
-            "m_Id": "ef3eede426c945fb85136c0271daa814"
+            "m_Id": "b9b27cb95aef4c98a9751e51352c3c10"
         }
     ],
     "synonyms": [
@@ -705,7 +705,7 @@
     "m_FunctionName": "MainLightData",
     "m_FunctionSource": "",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\n\tDirection = half3(0.5, 0.5, 0);\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n\tShaddowAtten = 1;\r\n#else\r\n    \tfloat4 shadowCoord;\n\t#ifdef _MAIN_LIGHT_SHADOWS_CASCADES\n\t\tshadowCoord = TransformWorldToShadowCoord(Position);\n\t#else\n\t\tshadowCoord =\n\t\t\tmul(_MainLightWorldToShadow[0], float4(Position, 1.0));\n\t#endif\r\n    \tLight light = GetMainLight(shadowCoord);\n\r\r\t\n\tDirection = half3(0, 0, 0);\n\tColor = float3(0, 0, 0);\n\tShaddowAtten = 1;\n\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))\r\n#endif\n\t{\n    \t\tDirection = light.direction;\n\t\t\r\r\t\tColor = light.color;\n\t\tShaddowAtten = light.shadowAttenuation;\n\t}\r\n#endif"
+    "m_FunctionBody": "#if defined(SHADERGRAPH_PREVIEW)\n\tDirection = half3(0.5, 0.5, 0);\r\r\n\tColor = float3(1, 0.898, 0.6);\r\n\tShadowAtten = 1;\r\n#else\r\n    \tfloat4 shadowCoord;\n\t#ifdef _MAIN_LIGHT_SHADOWS_CASCADE\n\t\tshadowCoord = TransformWorldToShadowCoord(Position);\n\t#else\n\t\tshadowCoord =\n\t\t\tmul(_MainLightWorldToShadow[0], float4(Position, 1.0));\n\t#endif\r\n    \tLight light = GetMainLight(shadowCoord);\n\r\r\t\n\tDirection = half3(0, 0, 0);\n\tColor = float3(0, 0, 0);\n\tShadowAtten = 1;\n\n#ifdef _LIGHT_LAYERS\r\n\tif (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))\r\n#endif\n\t{\n    \t\tDirection = light.direction;\n\t\t\r\r\t\tColor = light.color;\n\t\tShadowAtten = light.shadowAttenuation;\n\t}\r\n#endif"
 }
 
 {
@@ -748,6 +748,21 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "b9b27cb95aef4c98a9751e51352c3c10",
+    "m_Id": 0,
+    "m_DisplayName": "ShadowAtten",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "ShadowAtten",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -839,24 +854,9 @@
     "m_ObjectId": "cd51923958154007b0f119f4cb4bad2d",
     "m_Title": "Position Input",
     "m_Position": {
-        "x": -876.0,
-        "y": -10.999874114990235
+        "x": -876.0000610351563,
+        "y": -10.999977111816407
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "ef3eede426c945fb85136c0271daa814",
-    "m_Id": 0,
-    "m_DisplayName": "ShaddowAtten",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "ShaddowAtten",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
 }
 
 {
