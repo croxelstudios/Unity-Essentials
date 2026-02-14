@@ -113,6 +113,7 @@ public class StringList : ScriptableObject
             for (int i = 0; i < tags.Length; i++)
                 runtimeValues[i] = tags[i];
         }
+        else runtimeValues = new string[0];
     }
 
     public string GetValue(int index)

@@ -227,7 +227,7 @@ public static class ComputableModule
         {
             mesh = filtersProcessor.GetComputable(filter);
 
-            if (reinitialize)
+            if (reinitialize || (mesh.mesh == null))
                 mesh.Initialize(filter.sharedMesh, filter.name + nameSuffix);
             else mesh.name = filter.name + nameSuffix;
 

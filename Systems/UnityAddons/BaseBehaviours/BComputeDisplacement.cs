@@ -18,7 +18,6 @@ public class BComputeDisplacement : MonoBehaviour
     protected ComputableMesh[] meshes;
     protected ComputeBuffer[] mask;
     protected ComputeBuffer[] displacement;
-    bool gotMeshes = false;
     PerFrameTracker perFrame;
 
     protected virtual void OnEnable()
@@ -119,7 +118,7 @@ public class BComputeDisplacement : MonoBehaviour
                     ((!displacement.IsNullOrEmpty()) && (displacement[i] != null)))
                     ResetData(i);
             }
-        gotMeshes = false;
+        meshes = null;
     }
 
     protected void NullMask()
@@ -129,18 +128,16 @@ public class BComputeDisplacement : MonoBehaviour
 
     void TryUpdateMeshes()
     {
-        if (!gotMeshes)
+        if (meshes.IsNullOrEmpty())
         {
             meshes = ComputableModule.Get(this);
             OnUpdate();
-            gotMeshes = true;
         }
     }
 
     protected ComputeBuffer[] UpdateBufferArray(ComputeBuffer[] buffer)
     {
-        if (meshes.IsNullOrEmpty())
-            TryUpdateMeshes();
+        TryUpdateMeshes();
 
         if ((buffer == null) || (meshes.Length != buffer.Length))
             buffer = buffer.Resize(meshes.Length);
