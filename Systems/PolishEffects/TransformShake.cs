@@ -163,6 +163,6 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
 
     protected override void Transformation(Vector3 value)
     {
-        transformOverride.Translate(value, space);
+        transformOverride.DXTranslate(value, space);
     }
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 [Serializable]
 public struct ProceduralTexture
 {
+    //TO DO: Support material array to stack effects
     [SerializeField]
     Material textureMaterial;
     public readonly Material material => textureMaterial;

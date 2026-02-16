@@ -25,12 +25,6 @@ public class ReinterpretVector : MonoBehaviour
     [SerializeField]
     DXVectorEvent vectorEvent = null;
 
-    private void Awake()
-    {
-        if (local)
-            plane2DUp = transform.rotation * plane2DUp;
-    }
-
     public void Reinterpret(Vector2 input)
     {
         Reinterpret((Vector3)input);
@@ -39,7 +33,7 @@ public class ReinterpretVector : MonoBehaviour
     public void Reinterpret(Vector3 input)
     {
         if (projectOnPlane)
-            input = PlaneProjection(input.InterpretVector2(plane2DNormal, plane2DUp));
+            input = PlaneProjection(input.InterpretVector2(plane2DNormal, PlaneUp()));
         if (referenceTransform != null) input = referenceTransform.rotation * input;
         if (normalize) input = input.normalized;
         input.Scale(vectorMultiplier);
@@ -50,6 +44,12 @@ public class ReinterpretVector : MonoBehaviour
     Vector2 PlaneProjection(Vector3 input)
     {
         Vector3 localPlaneNormal = local ? transform.rotation * plane2DNormal : plane2DNormal;
-        return input.InterpretVector3Back(localPlaneNormal, plane2DUp);
+        return input.InterpretVector3Back(localPlaneNormal, PlaneUp());
+    }
+
+    Vector3 PlaneUp()
+    {
+        if (local) return transform.rotation * plane2DUp;
+        else return plane2DUp;
     }
 }

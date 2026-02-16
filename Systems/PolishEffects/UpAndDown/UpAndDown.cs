@@ -13,7 +13,7 @@ public class UpAndDown : BSinoidalTransform
 
     protected override void Transformation(float value)
     {
-        transform.Translate(axis.normalized * value * amount,
+        transform.DXTranslate(axis.normalized * value * amount,
             worldSpace ? Space.World : Space.Self);
     }
 
