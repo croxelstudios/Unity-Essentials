@@ -15,6 +15,13 @@ public class RenderersSetTexture_RampTextureGradient : RenderersSetTexture
         base.Init();
     }
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     void Reset()
     {
         propertyName = "_RampTexture";

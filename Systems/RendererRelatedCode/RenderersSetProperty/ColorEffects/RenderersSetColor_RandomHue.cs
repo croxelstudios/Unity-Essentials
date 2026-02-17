@@ -10,4 +10,11 @@ public class RenderersSetColor_RandomHue : RenderersSetColor
         color = newColor;
         base.Init();
     }
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 [ExecuteAlways]
 public class RenderersSetFloat4 : BRenderersSetBlendedProperty<Vector4>
 {
+    [DisableIf("propertyIsReadOnly")]
     [OnValueChanged("UpdateBehaviour")]
     public Vector4 value = new Vector4(1f, 1f, 0f, 0f);
     public Vector4 Value { get { return value; } protected set { Set(value); } }
@@ -95,5 +96,10 @@ public class RenderersSetFloat4 : BRenderersSetBlendedProperty<Vector4>
     {
         this.value = value;
         UpdateBehaviour();
+    }
+
+    protected override Vector4 GetProperty(RendMat renMat)
+    {
+        return renMat.sharedMaterial.GetVector(propertyName);
     }
 }

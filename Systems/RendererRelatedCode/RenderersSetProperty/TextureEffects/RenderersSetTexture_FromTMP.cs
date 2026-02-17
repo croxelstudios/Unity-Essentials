@@ -11,6 +11,13 @@ public class RenderersSetTexture_FromTMP : RenderersSetTexture
 
     Dictionary<Renderer, TMP_Text> tmps;
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     void LateUpdate()
     {
         if (timeMode.IsSmooth())

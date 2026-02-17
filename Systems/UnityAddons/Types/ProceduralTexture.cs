@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
 public struct ProceduralTexture
 {
-    //TO DO: Support material array to stack effects
     [SerializeField]
     Material textureMaterial;
     public readonly Material material => textureMaterial;
@@ -66,6 +66,18 @@ public struct ProceduralTexture
         textureMaterial.Blit(ref rt, name, textureResolution, depth, format);
         rt.wrapMode = wrapMode;
         rt.filterMode = filterMode;
+    }
+
+    public void Update(IEnumerable<ArbitraryProperty> propertyModifications, string name = "ProceduralTexture")
+    {
+        foreach (ArbitraryProperty property in propertyModifications)
+        {
+            property.SaveOriginal(material);
+            property.SetProperty(material);
+        }
+        Update(name);
+        foreach (ArbitraryProperty property in propertyModifications)
+            property.ResetProperty(material);
     }
 
     public void Release()

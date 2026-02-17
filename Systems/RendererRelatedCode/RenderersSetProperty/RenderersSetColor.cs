@@ -1,11 +1,11 @@
 ﻿using Sirenix.OdinInspector;
-using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
 public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
 {
     [SerializeField]
+    [DisableIf("propertyIsReadOnly")]
     [OnValueChanged("UpdateBehaviour")]
     Color _color = Color.white;
     public Color color { get { return _color; } protected set { SetColor(value);  } }
@@ -75,5 +75,10 @@ public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
     {
         _color.a = alpha;
         UpdateBehaviour();
+    }
+
+    protected override Color GetProperty(RendMat renMat)
+    {
+        return renMat.sharedMaterial.GetColor(propertyName);
     }
 }

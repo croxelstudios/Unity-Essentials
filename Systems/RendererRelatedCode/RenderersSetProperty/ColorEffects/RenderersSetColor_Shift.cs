@@ -47,6 +47,13 @@ public class RenderersSetColor_Shift : RenderersSetColor
 
     float currentTime = 0;
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     void LateUpdate()
     {
 #if UNITY_EDITOR

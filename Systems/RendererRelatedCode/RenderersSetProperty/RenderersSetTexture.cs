@@ -6,6 +6,7 @@ using Sirenix.OdinInspector;
 public class RenderersSetTexture : BRenderersSetProperty
 {
     [SerializeField]
+    [DisableIf("propertyIsReadOnly")]
     [OnValueChanged("UpdateBehaviour")]
     protected Texture _texture = null;
     public Texture texture { get { return _texture; } set { _texture = value; UpdateBehaviour(); } }

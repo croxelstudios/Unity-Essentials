@@ -12,6 +12,13 @@ public class RenderersSetFloat4_ObjectPosition : RenderersSetFloat4
         base.Init();
     }
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     void LateUpdate()
     {
         if (timeMode.IsSmooth())

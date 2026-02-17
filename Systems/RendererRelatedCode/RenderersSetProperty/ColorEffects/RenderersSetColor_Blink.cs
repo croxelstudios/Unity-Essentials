@@ -31,6 +31,13 @@ public class RenderersSetColor_Blink : RenderersSetColor
         updateRenderers = ur;
     }
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     protected override void OnDisable()
     {
         color = defaultColor;

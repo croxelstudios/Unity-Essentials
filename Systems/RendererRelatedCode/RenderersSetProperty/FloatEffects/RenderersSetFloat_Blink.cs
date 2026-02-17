@@ -18,6 +18,13 @@ public class RenderersSetFloat_Blink : RenderersSetFloat
 
     Coroutine co;
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     protected override void Init()
     {
         value = defaultValue;

@@ -65,6 +65,13 @@ public class RenderersSetTexture_AnimationFromArray : RenderersSetTexture
             }
     }
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     void LateUpdate()
     {
         UpdateBehaviour();

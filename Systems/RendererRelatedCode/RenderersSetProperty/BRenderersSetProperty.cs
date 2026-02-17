@@ -26,7 +26,8 @@ public class BRenderersSetProperty : MonoBehaviour
     [SerializeField]
     bool waitOneFrameForInit = false;
 
-    MaterialPropertyBlock block;
+    protected MaterialPropertyBlock block;
+    protected bool propertyIsReadOnly = false;
 
     protected virtual void OnEnable()
     {
@@ -294,6 +295,8 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
     [OnValueChanged("UpdateBehaviour")]
     public BlendMode blendMode = BlendMode.Multiply;
     BlendMode oldBlendMode;
+    [OnValueChanged("UpdateBehaviour")]
+    public bool blendWithOriginal = false;
 
     public enum BlendMode { Multiply, Average, Add, Subtract }
 
@@ -386,52 +389,71 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
 
     void ApplyFullStack(RendMatProp rendMat)
     {
-        MaterialSet(rendMat.rend.materials[rendMat.mat], GetFullStackColor(rendMat));
+        MaterialSet(rendMat.material, GetFullStackColor(rendMat));
     }
 
     T GetFullStackColor(RendMatProp rendMat)
     {
         T current = NeutralAdd();
         int count = stackDictionary[rendMat].Count;
+        foreach (BRenderersSetBlendedProperty<T> setter in stackDictionary[rendMat])
+            if (setter.blendWithOriginal) count++;
         bool first = true;
         foreach (BRenderersSetBlendedProperty<T> setter in stackDictionary[rendMat])
         {
             if (first)
             {
-                switch (setter.blendMode)
-                {
-                    case BlendMode.Average:
-                        current = NeutralAdd();
-                        break;
-                    case BlendMode.Add:
-                        current = NeutralAdd();
-                        break;
-                    case BlendMode.Subtract:
-                        current = NeutralMult();
-                        break;
-                    default:
-                        current = NeutralMult();
-                        break;
-                }
+                setter.SetNeutral(ref current);
                 first = false;
             }
-            switch (setter.blendMode)
-            {
-                case BlendMode.Average:
-                    current = Combine_Average(current, setter.tValue, count);
-                    break;
-                case BlendMode.Add:
-                    current = Combine_Add(current, setter.tValue);
-                    break;
-                case BlendMode.Subtract:
-                    current = Combine_Subtract(current, setter.tValue);
-                    break;
-                default:
-                    current = Combine_Multiply(current, setter.tValue);
-                    break;
-            }
+            setter.CombineValueIn(ref current, count);
+            if (setter.blendWithOriginal)
+                setter.CombineValueIn(ref current, GetProperty(rendMat), count);
         }
         return current;
+    }
+
+    public void SetNeutral(ref T current)
+    {
+        switch (blendMode)
+        {
+            case BlendMode.Average:
+                current = NeutralAdd();
+                break;
+            case BlendMode.Add:
+                current = NeutralAdd();
+                break;
+            case BlendMode.Subtract:
+                current = NeutralMult();
+                break;
+            default:
+                current = NeutralMult();
+                break;
+        }
+    }
+
+    public void CombineValueIn(ref T current, int count)
+    {
+        CombineValueIn(ref current, tValue, count);
+    }
+
+    public void CombineValueIn(ref T current, T value, int count)
+    {
+        switch (blendMode)
+        {
+            case BlendMode.Average:
+                current = Combine_Average(current, value, count);
+                break;
+            case BlendMode.Add:
+                current = Combine_Add(current, value);
+                break;
+            case BlendMode.Subtract:
+                current = Combine_Subtract(current, value);
+                break;
+            default:
+                current = Combine_Multiply(current, value);
+                break;
+        }
     }
 
     //IEnumerator DictionaryCleanUp()
@@ -480,5 +502,15 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
     protected virtual T Combine_Subtract(T current, T next)
     {
         return current;
+    }
+
+    protected virtual T GetProperty(RendMat rendMat)
+    {
+        return default;
+    }
+
+    protected T GetProperty(RendMatProp rendMat)
+    {
+        return GetProperty(new RendMat(rendMat.rend, rendMat.mat));
     }
 }

@@ -1,11 +1,11 @@
 ﻿using Sirenix.OdinInspector;
-using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
 public class RenderersSetFloat : BRenderersSetBlendedProperty<float>
 {
     [SerializeField]
+    [DisableIf("propertyIsReadOnly")]
     [OnValueChanged("UpdateBehaviour")]
     protected float value = 0.5f;
     public float Value { get { return value; } protected set { SetFloat(value); } }
@@ -61,5 +61,10 @@ public class RenderersSetFloat : BRenderersSetBlendedProperty<float>
     {
         value = n;
         UpdateBehaviour();
+    }
+
+    protected override float GetProperty(RendMat renMat)
+    {
+        return renMat.sharedMaterial.GetFloat(propertyName);
     }
 }

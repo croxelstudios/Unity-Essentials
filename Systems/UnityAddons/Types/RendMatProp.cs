@@ -7,6 +7,8 @@ public struct RendMatProp : IEquatable<RendMatProp>
     public Renderer rend { get { return rendMat.rend; } set { rendMat.rend = value; } }
     public int mat { get { return rendMat.mat; } set { rendMat.mat = value; } }
     public string property;
+    public Material sharedMaterial { get { return rend.sharedMaterials[mat]; } }
+    public Material material { get { return rend.materials[mat]; } }
 
     public RendMatProp(Renderer rend, int mat, string property)
     {
@@ -46,6 +48,8 @@ public struct RendMat : IEquatable<RendMat>
 {
     public Renderer rend;
     public int mat;
+    public Material sharedMaterial { get { return rend.sharedMaterials[mat]; } }
+    public Material material { get { return rend.materials[mat]; } }
 
     public RendMat(Renderer rend, int mat)
     {

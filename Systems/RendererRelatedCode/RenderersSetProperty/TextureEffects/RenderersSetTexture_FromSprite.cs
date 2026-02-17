@@ -8,6 +8,13 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
     [SerializeField]
     RenderingTimeModeOrOnEnable timeMode = RenderingTimeModeOrOnEnable.Update;
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     void LateUpdate()
     {
         if (timeMode.IsSmooth())

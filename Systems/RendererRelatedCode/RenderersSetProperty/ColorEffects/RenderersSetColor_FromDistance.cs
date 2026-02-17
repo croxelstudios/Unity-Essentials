@@ -28,6 +28,13 @@ public class RenderersSetColor_FromDistance : RenderersSetColor
         }
     }
 
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        propertyIsReadOnly = true;
+    }
+#endif
+
     void LateUpdate()
     {
 #if UNITY_EDITOR
