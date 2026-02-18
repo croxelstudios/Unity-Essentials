@@ -491,6 +491,16 @@ public class RavioliButton : RavioliButton_Button
             }
         }
     }
+
+    public void TryReselectChild()
+    {
+        currentButton.TrySelect();
+    }
+
+    public void TryDeselectChild()
+    {
+        currentButton.TryDeselect();
+    }
     #endregion
 
     #region Selector
