@@ -264,13 +264,13 @@ public class ChildParentEvents : MonoBehaviour
     public bool TryAddChild(ChildParentEvents newChild)
     {
         //If it's the same object, return
-        if ((newChild == this) || childEvents.NotNullContains(newChild))
+        if ((newChild.gameObject == gameObject) || childEvents.NotNullContains(newChild))
             return false;
 
         //Check if present children allow this child
         childEvents = childEvents.CreateIfNull();
         foreach (ChildParentEvents child in childEvents)
-            if ((!child.propagateToChildren) && newChild.transform.IsChildOf(child.transform))
+            if ((!child.propagateToChildren) && newChild.transform.IsStrictChildOf(child.transform))
                 return false;
 
         //Remove present children not allowed by the new child
@@ -278,7 +278,7 @@ public class ChildParentEvents : MonoBehaviour
             for (int i = childEvents.Count - 1; i >= 0; i--)
             {
                 ChildParentEvents child = childEvents[i];
-                if (child.transform.IsChildOf(newChild.transform))
+                if (child.transform.IsStrictChildOf(newChild.transform))
                     RemoveChild(child);
             }
 
@@ -314,13 +314,13 @@ public class ChildParentEvents : MonoBehaviour
     public bool TryAddParent(ChildParentEvents newParent)
     {
         //If it's the same object, return
-        if ((newParent == this) || parentEvents.NotNullContains(newParent))
+        if ((newParent.gameObject == gameObject) || parentEvents.NotNullContains(newParent))
             return false;
 
         //Check if present parents allow this parent
         parentEvents = parentEvents.CreateIfNull();
         foreach (ChildParentEvents parent in parentEvents)
-            if ((!parent.propagateToParents) && parent.transform.IsChildOf(newParent.transform))
+            if ((!parent.propagateToParents) && parent.transform.IsStrictChildOf(newParent.transform))
                 return false;
 
         //Remove present parents not allowed by the new parent
@@ -328,7 +328,7 @@ public class ChildParentEvents : MonoBehaviour
             for (int i = parentEvents.Count - 1; i >= 0; i--)
             {
                 ChildParentEvents parent = parentEvents[i];
-                if (newParent.transform.IsChildOf(parent.transform))
+                if (newParent.transform.IsStrictChildOf(parent.transform))
                     RemoveParent(parent);
             }
 

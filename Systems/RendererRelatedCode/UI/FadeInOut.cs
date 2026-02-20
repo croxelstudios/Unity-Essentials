@@ -424,4 +424,9 @@ public class FadeInOut : MonoBehaviour
         SetFadeInTime(nTime);
         SetFadeOutTime(nTime);
     }
+
+    public void UseUnscaledTime(bool use)
+    {
+        unscaledTime = use;
+    }
 }

@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using System.Linq;
 
 [ExecuteAlways]
 public class StateMachine_ByChildren : StateMachine

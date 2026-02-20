@@ -26,7 +26,7 @@ public class StateMachine : MonoBehaviour
         _initialState = _currentState;
     }
 
-    void OnEnable()
+    protected virtual void OnEnable()
     {
         if (launchOnEnable)
             EnterStateAction();

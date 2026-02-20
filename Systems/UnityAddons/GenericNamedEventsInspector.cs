@@ -119,7 +119,10 @@ public class GenericNamedEvents_Inspector : Editor
 
         float widthSum = -10f;
         float widthMult = 1f;
-        if (foldouts[serializedObject.targetObject][index])
+
+        if (index >= foldouts[serializedObject.targetObject].Count)
+            NameArrayChanged();
+        else if (foldouts[serializedObject.targetObject][index])
         {
             //Draw foldout
             foldouts[serializedObject.targetObject][index] = EditorGUI.Foldout(
