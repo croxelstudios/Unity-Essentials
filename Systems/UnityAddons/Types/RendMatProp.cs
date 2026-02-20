@@ -7,8 +7,10 @@ public struct RendMatProp : IEquatable<RendMatProp>
     public Renderer rend { get { return rendMat.rend; } set { rendMat.rend = value; } }
     public int mat { get { return rendMat.mat; } set { rendMat.mat = value; } }
     public string property;
-    public Material sharedMaterial { get { return rend.sharedMaterials[mat]; } }
-    public Material material { get { return rend.materials[mat]; } }
+    public Material sharedMaterial { get { return rendMat.sharedMaterial; } }
+    public Material material { get { return rendMat.material; } }
+
+    public static implicit operator RendMat(RendMatProp obj) => obj.rendMat;
 
     public RendMatProp(Renderer rend, int mat, string property)
     {

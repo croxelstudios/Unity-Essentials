@@ -63,8 +63,8 @@ public class RenderersSetFloat : BRenderersSetBlendedProperty<float>
         UpdateBehaviour();
     }
 
-    protected override float GetProperty(RendMat renMat)
+    protected override float GetProperty(Material material)
     {
-        return renMat.sharedMaterial.GetFloat(propertyName);
+        return material.GetFloat(propertyName);
     }
 }

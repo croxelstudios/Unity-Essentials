@@ -55,16 +55,16 @@ public class RavioliButton : RavioliButton_Button
     bool useSelector = true;
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
-    [ShowIf("@useSelector")]
+    [ShowIf("useSelector")]
     Transform selector = null;
     bool canUseSelector { get { return useSelector && selector; } }
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
-    [ShowIf("@useSelector")]
+    [ShowIf("useSelector")]
     bool handleSelectorActiveState = true;
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
-    [ShowIf("@useSelector")]
+    [ShowIf("useSelector")]
     MovementBehaviour selectorBehaviour = new MovementBehaviour(0f, 0.01f);
 
     [SerializeField]
@@ -73,7 +73,7 @@ public class RavioliButton : RavioliButton_Button
     bool useButtonsCarousel = false;
     [SerializeField]
     [SizedFoldoutGroup("Group options")]
-    [ShowIf("@useButtonsCarousel")]
+    [ShowIf("useButtonsCarousel")]
     MovementBehaviour carouselBehaviour = new MovementBehaviour(0f, 0.01f);
     //TO DO: Add support for non-looping carousels
     //(Limit button selection to a range and use invisible looping buttons for the extra positions.
@@ -806,14 +806,14 @@ public class RavioliButton_Button : MonoBehaviour
     [SizedFoldoutGroup("Button options")]
     [InlineProperty]
     [HideLabel]
-    [ShowIf("@overrideSelectorBehaviour")]
+    [ShowIf("overrideSelectorBehaviour")]
     public MovementBehaviour selectorBehaviourOverride = new MovementBehaviour(0f, 0.01f);
     [SizedFoldoutGroup("Button options")]
     public bool overrideCarouselBehaviour = false;
     [SizedFoldoutGroup("Button options")]
     [InlineProperty]
     [HideLabel]
-    [ShowIf("@overrideCarouselBehaviour")]
+    [ShowIf("overrideCarouselBehaviour")]
     public MovementBehaviour carouselBehaviourOverride = new MovementBehaviour(0f, 0.01f);
 
     protected RavioliButton[] groups;

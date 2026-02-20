@@ -13,10 +13,10 @@ public class ConstantRotation : MonoBehaviour
     [SerializeField]
     bool randomize = false;
     [SerializeField]
-    [ShowIf("@randomize")]
+    [ShowIf("randomize")]
     bool randomAxis = true;
     [SerializeField]
-    [ShowIf("@randomize")]
+    [ShowIf("randomize")]
     Vector2 speedRange = new Vector2(0f, 1f);
     [SerializeField]
     bool deactivationResetsRotation = false;

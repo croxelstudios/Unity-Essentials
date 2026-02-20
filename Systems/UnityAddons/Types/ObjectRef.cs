@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using Sirenix.OdinInspector;
 using Object = UnityEngine.Object;
+using NUnit.Framework;
 
 [Serializable]
 [HideLabel]
@@ -12,7 +13,7 @@ public struct ObjectRef<T> where T : Object
     bool objWasNull;
     [SerializeField]
     [TagSelector]
-    [ShowIf("@obj == null")]
+    [HideIf("obj")]
     string tag;
     [SerializeField]
     [LabelText("@name")]
@@ -113,5 +114,15 @@ public struct ObjectRef<T> where T : Object
     {
         UpdateObj();
         return obj;
+    }
+}
+
+public static class ObjectRefArrayExtensions
+{
+    public static bool Contains<T>(this ObjectRef<T>[] obRef, T obj) where T : Object
+    {
+        foreach (ObjectRef<T> o in obRef)
+            if (obj == o) return true;
+        return false;
     }
 }

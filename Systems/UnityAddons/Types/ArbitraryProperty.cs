@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -21,11 +22,11 @@ public class ArbitraryProperty
     [SerializeField]
     Texture textureObject = null;
 
-    float ofValue = 0f;
-    int oiValue = 0;
-    Color ocValue = Color.white;
-    Vector4 ovValue = Vector4.zero;
-    Texture otObject = null;
+    Dictionary<Material, float> ofValue;
+    Dictionary<Material, int> oiValue;
+    Dictionary<Material, Color> ocValue;
+    Dictionary<Material, Vector4> ovValue;
+    Dictionary<Material, Texture> otObject;
 
     public enum PropertyType { Float, Int, Color, Vector, Texture };
 
@@ -39,10 +40,10 @@ public class ArbitraryProperty
         vectorValue = Vector4.zero;
         textureObject = null;
 
-        ofValue = 0f;
-        oiValue = 0;
-        ocValue = Color.white;
-        ovValue = Vector4.zero;
+        ofValue = null;
+        oiValue = null;
+        ocValue = null;
+        ovValue = null;
         otObject = null;
     }
 
@@ -56,10 +57,10 @@ public class ArbitraryProperty
         vectorValue = Vector4.zero;
         textureObject = null;
 
-        ofValue = 0f;
-        oiValue = 0;
-        ocValue = Color.white;
-        ovValue = Vector4.zero;
+        ofValue = null;
+        oiValue = null;
+        ocValue = null;
+        ovValue = null;
         otObject = null;
     }
 
@@ -73,10 +74,10 @@ public class ArbitraryProperty
         vectorValue = Vector4.zero;
         textureObject = null;
 
-        ofValue = 0f;
-        oiValue = 0;
-        ocValue = Color.white;
-        ovValue = Vector4.zero;
+        ofValue = null;
+        oiValue = null;
+        ocValue = null;
+        ovValue = null;
         otObject = null;
     }
 
@@ -90,10 +91,10 @@ public class ArbitraryProperty
         vectorValue = value;
         textureObject = null;
 
-        ofValue = 0f;
-        oiValue = 0;
-        ocValue = Color.white;
-        ovValue = Vector4.zero;
+        ofValue = null;
+        oiValue = null;
+        ocValue = null;
+        ovValue = null;
         otObject = null;
     }
 
@@ -107,10 +108,10 @@ public class ArbitraryProperty
         vectorValue = value;
         textureObject = null;
 
-        ofValue = 0f;
-        oiValue = 0;
-        ocValue = Color.white;
-        ovValue = Vector4.zero;
+        ofValue = null;
+        oiValue = null;
+        ocValue = null;
+        ovValue = null;
         otObject = null;
     }
 
@@ -124,10 +125,10 @@ public class ArbitraryProperty
         vectorValue = value;
         textureObject = null;
 
-        ofValue = 0f;
-        oiValue = 0;
-        ocValue = Color.white;
-        ovValue = Vector4.zero;
+        ofValue = null;
+        oiValue = null;
+        ocValue = null;
+        ovValue = null;
         otObject = null;
     }
 
@@ -141,10 +142,10 @@ public class ArbitraryProperty
         vectorValue = Vector4.zero;
         textureObject = value;
 
-        ofValue = 0f;
-        oiValue = 0;
-        ocValue = Color.white;
-        ovValue = Vector4.zero;
+        ofValue = null;
+        oiValue = null;
+        ocValue = null;
+        ovValue = null;
         otObject = null;
     }
 
@@ -215,23 +216,26 @@ public class ArbitraryProperty
 
     public void SaveOriginal(Material material)
     {
-        switch (type)
+        if ((material != null) && material.HasProperty(propertyName))
         {
-            case PropertyType.Float:
-                ofValue = material.GetFloat(propertyName);
-                break;
-            case PropertyType.Int:
-                oiValue = material.GetInt(propertyName);
-                break;
-            case PropertyType.Color:
-                ocValue = material.GetColor(propertyName);
-                break;
-            case PropertyType.Vector:
-                ovValue = material.GetVector(propertyName);
-                break;
-            case PropertyType.Texture:
-                otObject = material.GetTexture(propertyName);
-                break;
+            switch (type)
+            {
+                case PropertyType.Float:
+                    ofValue = ofValue.CreateAdd(material, material.GetFloat(propertyName));
+                    break;
+                case PropertyType.Int:
+                    oiValue = oiValue.CreateAdd(material, material.GetInt(propertyName));
+                    break;
+                case PropertyType.Color:
+                    ocValue = ocValue.CreateAdd(material, material.GetColor(propertyName));
+                    break;
+                case PropertyType.Vector:
+                    ovValue = ovValue.CreateAdd(material, material.GetVector(propertyName));
+                    break;
+                case PropertyType.Texture:
+                    otObject = otObject.CreateAdd(material, material.GetTexture(propertyName));
+                    break;
+            }
         }
     }
 
@@ -267,22 +271,47 @@ public class ArbitraryProperty
             switch (type)
             {
                 case PropertyType.Float:
-                    material.SetFloat(propertyName, ofValue);
+                    material.SetFloat(propertyName, SavedFloat(material));
                     break;
                 case PropertyType.Int:
-                    material.SetInt(propertyName, oiValue);
+                    material.SetInt(propertyName, SavedInt(material));
                     break;
                 case PropertyType.Color:
-                    material.SetColor(propertyName, ocValue);
+                    material.SetColor(propertyName, SavedColor(material));
                     break;
                 case PropertyType.Vector:
-                    material.SetVector(propertyName, ovValue);
+                    material.SetVector(propertyName, SavedVector(material));
                     break;
                 case PropertyType.Texture:
-                    material.SetTexture(propertyName, otObject);
+                    material.SetTexture(propertyName, SavedTexture(material));
                     break;
             }
         }
+    }
+
+    float SavedFloat(Material material)
+    {
+        return ofValue.NotNullContainsKey(material) ? ofValue[material] : 0f;
+    }
+
+    int SavedInt(Material material)
+    {
+        return oiValue.NotNullContainsKey(material) ? oiValue[material] : 0;
+    }
+
+    Color SavedColor(Material material)
+    {
+        return ocValue.NotNullContainsKey(material) ? ocValue[material] : Color.white;
+    }
+
+    Vector4 SavedVector(Material material)
+    {
+        return ovValue.NotNullContainsKey(material) ? ovValue[material] : Vector4.zero;
+    }
+
+    Texture SavedTexture(Material material)
+    {
+        return otObject.NotNullContainsKey(material) ? otObject[material] : null;
     }
 }
 

@@ -24,14 +24,14 @@ public class IntHolder : MonoBehaviour
     [SerializeField]
     CountMode countMode = CountMode.Infinite;
     [SerializeField]
-    [ShowIf("@countMode != CountMode.Infinite")]
+    [HideIf("countMode", CountMode.Infinite)]
     Vector2Int limits = new Vector2Int(0, 5);
 
     [SerializeField]
-    [ShowIf("@countMode != CountMode.Infinite")]
+    [HideIf("countMode", CountMode.Infinite)]
     DXEvent onTopLimitReached = null;
     [SerializeField]
-    [ShowIf("@countMode != CountMode.Infinite")]
+    [HideIf("countMode", CountMode.Infinite)]
     DXEvent onBottomLimitReached = null;
 
     [SerializeField]

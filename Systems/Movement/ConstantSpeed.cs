@@ -24,19 +24,19 @@ public class ConstantSpeed : MonoBehaviour
     [SerializeField]
     bool randomize = false;
     [SerializeField]
-    [ShowIf("@randomize")]
+    [ShowIf("randomize")]
     bool lockX = false;
     [SerializeField]
-    [ShowIf("@randomize")]
+    [ShowIf("randomize")]
     bool lockY = false;
     [SerializeField]
-    [ShowIf("@randomize")]
+    [ShowIf("randomize")]
     bool lockZ = false;
     [SerializeField]
-    [ShowIf("@randomize")]
+    [ShowIf("randomize")]
     bool cardinalOnly = false;
     [SerializeField]
-    [ShowIf("@randomize")]
+    [ShowIf("randomize")]
     Vector2 speedRange = Vector2.zero;
     [SerializeField]
     TimeMode timeMode = TimeMode.FixedUpdate;

@@ -100,24 +100,24 @@ public class DXRenderObjects : ScriptableRendererFeature
     {
         public TextureTarget textureTarget = TextureTarget.Active;
 
-        [ShowIf("@textureTarget == TextureTarget.GlobalTexture")]
+        [ShowIf("textureTarget", TextureTarget.GlobalTexture)]
         public string textureName = "_CameraDepthTexture";
 
-        [ShowIf("@textureTarget == TextureTarget.GlobalTexture")]
+        [ShowIf("textureTarget", TextureTarget.GlobalTexture)]
         public TextureSettings settings =
             new TextureSettings(GraphicsFormat.R32G32B32A32_SFloat, FilterMode.Point, TextureWrapMode.Clamp,
                 MSAASamples.None, DepthBits.None);
 
-        [ShowIf("@textureTarget == TextureTarget.RenderTexture")]
+        [ShowIf("textureTarget", TextureTarget.RenderTexture)]
         public RenderTexture targetTexture = null;
 
-        [ShowIf("@textureTarget != TextureTarget.Active")]
+        [HideIf("textureTarget", TextureTarget.Active)]
         public bool clearColor = true;
 
         [ShowIf("@(textureTarget != TextureTarget.Active) && clearColor")]
         public Color color = Color.black;
 
-        [ShowIf("@textureTarget != TextureTarget.Active")]
+        [HideIf("textureTarget", TextureTarget.Active)]
         public bool clearDepth = true;
 
         [ShowIf("@(textureTarget != TextureTarget.Active) && clearDepth")]
@@ -125,7 +125,7 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         public Material blitMaterial = null;
 
-        [ShowIf("@(blitMaterial != null)")]
+        [ShowIf("@blitMaterial != null")]
         public bool fetchColorTexture = true;
 
         public bool FetchColor()

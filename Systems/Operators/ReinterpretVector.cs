@@ -14,13 +14,13 @@ public class ReinterpretVector : MonoBehaviour
     [SerializeField]
     bool projectOnPlane = true;
     [SerializeField]
-    [ShowIf("@projectOnPlane")]
+    [ShowIf("projectOnPlane")]
     Vector3 plane2DNormal = Vector3.up;
     [SerializeField]
-    [ShowIf("@projectOnPlane")]
+    [ShowIf("projectOnPlane")]
     Vector3 plane2DUp = Vector3.forward;
     [SerializeField]
-    [ShowIf("@projectOnPlane")]
+    [ShowIf("projectOnPlane")]
     bool local = false;
     [SerializeField]
     DXVectorEvent vectorEvent = null;

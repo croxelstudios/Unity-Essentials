@@ -6,27 +6,27 @@ using System;
 public struct SpeedBehaviour
 {
     public SpeedMode speedMode;
-    [ShowIf("@speedMode == SpeedMode.SmoothDamp")]
+    [ShowIf("speedMode", SpeedMode.SmoothDamp)]
     public float smoothTime;
-    [ShowIf("@speedMode == SpeedMode.LerpSmooth")]
+    [ShowIf("speedMode", SpeedMode.LerpSmooth)]
     public float decay;
     [SerializeField]
-    [ShowIf("@speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp")]
+    [ShowIf("@(speedMode == SpeedMode.Accelerated) || (speedMode == SpeedMode.SmoothDamp)")]
     bool accountForCurrentSpeed;
     [Tooltip("Start speed in units per second")]
-    [ShowIf("@speedMode == SpeedMode.Linear || speedMode == SpeedMode.LerpSmooth")]
+    [ShowIf("@(speedMode == SpeedMode.Linear) || (speedMode == SpeedMode.LerpSmooth)")]
     public float speed;
-    [ShowIf("@speedMode == SpeedMode.Accelerated")]
+    [ShowIf("speedMode", SpeedMode.Accelerated)]
     public float acceleration;
     [SerializeField]
-    [ShowIf("@speedMode == SpeedMode.Accelerated")]
+    [ShowIf("speedMode", SpeedMode.Accelerated)]
     [Tooltip("Friction multiplier relative to acceleration. Applied when doAccelerate is false. Greater = stops faster")]
     float frictionBias;
     [Tooltip("Maximum movement speed in units per second")]
-    [ShowIf("@speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp || speedMode == SpeedMode.Teleport")]
+    [ShowIf("@(speedMode == SpeedMode.Accelerated) || (speedMode == SpeedMode.SmoothDamp) || (speedMode == SpeedMode.Teleport)")]
     public float maxSpeed;
     [SerializeField]
-    [ShowIf("@speedMode == SpeedMode.Accelerated")]
+    [ShowIf("speedMode", SpeedMode.Accelerated)]
     [Tooltip("Wether the object is accelerating towards the target or slowly stopping")]
     bool _doAccelerate;
     public bool doAccelerate { get { return _doAccelerate; } set { _doAccelerate = value; } }

@@ -28,6 +28,7 @@ public class BRenderersSetProperty : MonoBehaviour
 
     protected MaterialPropertyBlock block;
     protected bool propertyIsReadOnly = false;
+    protected static Dictionary<RendMat, Material> originals;
 
     protected virtual void OnEnable()
     {
@@ -59,8 +60,8 @@ public class BRenderersSetProperty : MonoBehaviour
         if (affectsChildren)
         {
             Renderer[] rends = GetComponentsInChildren<Renderer>(true);
-            RendererSetProperty_Exclude[] excluders =
-                GetComponentsInChildren<RendererSetProperty_Exclude>(true);
+            RenderersSetProperty_Exclude[] excluders =
+                GetComponentsInChildren<RenderersSetProperty_Exclude>(true);
             if (!excluders.IsNullOrEmpty())
             {
                 rend = new Renderer[rends.Length - excluders.Length];
@@ -86,7 +87,7 @@ public class BRenderersSetProperty : MonoBehaviour
         else
         {
             Renderer r = GetComponent<Renderer>();
-            RendererSetProperty_Exclude e = GetComponent<RendererSetProperty_Exclude>();
+            RenderersSetProperty_Exclude e = GetComponent<RenderersSetProperty_Exclude>();
             if ((r != null) && (e == null)) rend = new Renderer[] { r };
         }
     }
@@ -150,12 +151,16 @@ public class BRenderersSetProperty : MonoBehaviour
     {
         if ((mat != null) && mat.HasProperty(propertyName))
         {
-            if (dontUsePropertyBlock)
+            RendMat rendMat = new RendMat(rend, materialId);
+            if (dontUsePropertyBlock || originals.NotNullContainsKey(rendMat))
             {
 #if UNITY_EDITOR
                 if (Application.isPlaying)
 #endif
                 {
+                    if (!originals.NotNullContainsKey(rendMat))
+                        originals = originals.CreateAdd(rendMat, rendMat.sharedMaterial);
+
                     if (reset) VResetProperty(rend, materialId);
                     else VSetProperty(rend, materialId);
                 }
@@ -504,13 +509,20 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         return current;
     }
 
-    protected virtual T GetProperty(RendMat rendMat)
+    protected virtual T GetProperty(Material rendMat)
     {
         return default;
     }
 
+    protected T GetProperty(RendMat rendMat)
+    {
+        if (originals.NotNullContainsKey(rendMat))
+            return GetProperty(originals[rendMat]);
+        else return GetProperty(rendMat.sharedMaterial);
+    }
+
     protected T GetProperty(RendMatProp rendMat)
     {
-        return GetProperty(new RendMat(rendMat.rend, rendMat.mat));
+        return GetProperty((RendMat)rendMat);
     }
 }

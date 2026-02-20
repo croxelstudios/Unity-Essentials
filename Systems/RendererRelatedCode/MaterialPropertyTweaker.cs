@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+//TO DO: Add support for MaterialSource as in MaterialPerCameraTweaker
+//TO DO: Use ArbitraryProperty class
 [ExecuteAlways]
 public class MaterialPropertyTweaker : MonoBehaviour
 {

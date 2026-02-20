@@ -9,13 +9,13 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
     [Tooltip("Use NavMesh system to calculate the direction")]
     bool useNavMesh = false;
     [SerializeField]
-    [ShowIf("@useNavMesh")]
+    [ShowIf("useNavMesh")]
     [Indent]
     [Tooltip("NavMesh agent type to consider")]
     [NavMeshAgentTypeSelector]
     int navMeshAgentType = 0;
     [SerializeField]
-    [ShowIf("@useNavMesh")]
+    [ShowIf("useNavMesh")]
     [Indent]
     [Tooltip("NavMesh area to use")]
     NavMeshAreas navMeshAreaMask = NavMeshAreas.Walkable;

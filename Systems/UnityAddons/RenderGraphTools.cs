@@ -629,26 +629,26 @@ public struct MaterialOverrideBehaviour
     /// <summary>
     /// The override material to use.
     /// </summary>
-    [ShowIf("@overrideMode == OverrideMaterialMode.Material")]
+    [ShowIf("overrideMode", OverrideMaterialMode.Material)]
     public Material overrideMaterial;
 
     /// <summary>
     /// The pass index to use with the override material.
     /// </summary>
     [Indent]
-    [ShowIf("@overrideMode == OverrideMaterialMode.Material")]
+    [ShowIf("overrideMode", OverrideMaterialMode.Material)]
     public int overrideMaterialPassIndex;
 
     /// <summary>
     /// The override shader to use.
     /// </summary>
-    [ShowIf("@overrideMode == OverrideMaterialMode.Shader")]
+    [ShowIf("overrideMode", OverrideMaterialMode.Shader)]
     public Shader overrideShader;
 
     /// <summary>
     /// The pass index to use with the override shader.
     /// </summary>
-    [ShowIf("@overrideMode == OverrideMaterialMode.Shader")]
+    [ShowIf("overrideMode", OverrideMaterialMode.Shader)]
     public int overrideShaderPassIndex;
 
     public MaterialOverrideBehaviour(OverrideMaterialMode overrideMode)

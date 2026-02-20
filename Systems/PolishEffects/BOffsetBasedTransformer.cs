@@ -12,7 +12,7 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
     protected ResetMode resetMode = ResetMode.OnDisable;
     [SerializeField]
     [PropertyOrder(5)]
-    [ShowIf("@resetMode != BOffsetBasedTransformer.ResetMode.Never")]
+    [HideIf("resetMode", ResetMode.Never)]
     [Indent]
     protected float returnSmoothTime = 0.1f;
 

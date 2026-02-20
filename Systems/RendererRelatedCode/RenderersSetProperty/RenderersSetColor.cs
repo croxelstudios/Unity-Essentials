@@ -77,8 +77,8 @@ public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
         UpdateBehaviour();
     }
 
-    protected override Color GetProperty(RendMat renMat)
+    protected override Color GetProperty(Material material)
     {
-        return renMat.sharedMaterial.GetColor(propertyName);
+        return material.GetColor(propertyName);
     }
 }

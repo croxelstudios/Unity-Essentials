@@ -98,8 +98,8 @@ public class RenderersSetFloat4 : BRenderersSetBlendedProperty<Vector4>
         UpdateBehaviour();
     }
 
-    protected override Vector4 GetProperty(RendMat renMat)
+    protected override Vector4 GetProperty(Material material)
     {
-        return renMat.sharedMaterial.GetVector(propertyName);
+        return material.GetVector(propertyName);
     }
 }

@@ -9,7 +9,7 @@ public class BComputeDisplacement : MonoBehaviour
     [OnValueChanged("NullMask")]
     [SerializeField]
     bool specificSubmesh = false;
-    [ShowIf("@specificSubmesh")]
+    [ShowIf("specificSubmesh")]
     [OnValueChanged("NullMask")]
     [SerializeField]
     uint submesh = 0;

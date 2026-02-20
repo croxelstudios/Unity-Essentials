@@ -399,7 +399,7 @@ public class BInputEventLauncher : MonoBehaviour
         [FoldoutGroup("@GetName()")]
         public bool useCurve;
         [FoldoutGroup("@GetName()")]
-        [ShowIf("@useCurve")]
+        [ShowIf("useCurve")]
         public AnimationCurve curve;
         [FoldoutGroup("@GetName()")]
         public FloatEvent AxisValue;

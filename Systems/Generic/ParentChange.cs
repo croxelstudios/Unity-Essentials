@@ -12,17 +12,17 @@ public class ParentChange : MonoBehaviour
     [SerializeField]
     bool resetPosition = false;
     [SerializeField]
-    [ShowIf("@resetPosition")]
+    [ShowIf("resetPosition")]
     Vector3 newLocalPosition = Vector3.zero;
     [SerializeField]
     bool resetRotation = false;
     [SerializeField]
-    [ShowIf("@resetRotation")]
+    [ShowIf("resetRotation")]
     Vector3 newLocalEulerAngles = Vector3.zero;
     [SerializeField]
     bool resetScale = false;
     [SerializeField]
-    [ShowIf("@resetScale")]
+    [ShowIf("resetScale")]
     Vector3 newLocalScale = Vector3.one;
     [SerializeField]
     bool checkActiveState = true;

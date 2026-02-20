@@ -23,7 +23,7 @@ public class PrefabInstancer : MonoBehaviour
     [SerializeField]
     SpawnMode spawnMode = SpawnMode.World;
     [SerializeField]
-    [HideIf("@this.spawnMode == SpawnMode.World")]
+    [HideIf("spawnMode", SpawnMode.World)]
     Transform customReference = null;
     [SerializeField]
     bool trackEntities = false;
