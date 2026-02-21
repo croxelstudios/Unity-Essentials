@@ -99,13 +99,15 @@ public class FadeInOut : MonoBehaviour
         bool objectWasDisabled = !gameObject.activeInHierarchy;
         if (resetAlphaOnCall || objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
         StopEffect();
-        if (objectWasDisabled && !isActiveAndEnabled)
+        if (alphaHolder.alpha < 1f)
         {
-            onEnableOverride = FadeBehaviour.FadeIn;
-            gameObject.SetActive(true);
-        }
-        else if (alphaHolder.alpha < 1f)
-            co = StartCoroutine(FadeTo(true));
+            if (objectWasDisabled && !isActiveAndEnabled)
+            {
+                onEnableOverride = FadeBehaviour.FadeIn;
+                gameObject.SetActive(true);
+            }
+            else co = StartCoroutine(FadeTo(true));
+        }    
     }
 
     public void FadeOut()
@@ -115,13 +117,15 @@ public class FadeInOut : MonoBehaviour
         if (resetAlphaOnCall) alphaHolder.alpha = 1f;
         else if (objectWasDisabled) alphaHolder.alpha = 0f; //Alpha 0 when disabled
         StopEffect();
-        if (objectWasDisabled)
+        if (alphaHolder.alpha > 0f)
         {
-            onEnableOverride = FadeBehaviour.FadeOut;
-            gameObject.SetActive(true);
+            if (objectWasDisabled)
+            {
+                onEnableOverride = FadeBehaviour.FadeOut;
+                gameObject.SetActive(true);
+            }
+            else co = StartCoroutine(FadeTo(false));
         }
-        else if (alphaHolder.alpha > 0f)
-            co = StartCoroutine(FadeTo(false));
     }
 
     public void FadeInInstant()

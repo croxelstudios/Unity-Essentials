@@ -101,6 +101,11 @@ public class RenderersSetColor_Shift : RenderersSetColor
         currentTime = 0f;
     }
 
+    public void ChangeTimeMode(RenderingTimeMode timeMode)
+    {
+        this.timeMode = timeMode;
+    }
+
     enum ShiftMode
     {
         Gradient,

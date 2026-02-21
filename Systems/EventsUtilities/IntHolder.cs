@@ -119,18 +119,7 @@ public class IntHolder : MonoBehaviour
     {
         onAdditionEvents = onAdditionEvents.OrderBy(x => x.value).ToArray();
         for (int i = 0; i < onAdditionEvents.Length; i++)
-        {
-            if (!onAdditionEvents[i].useValueMultipliers)
-            {
-                if (((prev < onAdditionEvents[i].value) || (prev > current)) && (current >= onAdditionEvents[i].value))
-                    onAdditionEvents[i].actions?.Invoke();
-            }
-            else
-            {
-                if ((current / onAdditionEvents[i].value) != (prev / onAdditionEvents[i].value))
-                    onAdditionEvents[i].actions?.Invoke();
-            }
-        }
+            onAdditionEvents[i].ProcessAddition(prev, current);
 
         int max = Mathf.Max(limits.x, limits.y);
         if ((prev < max) && (current >= max))
@@ -141,18 +130,7 @@ public class IntHolder : MonoBehaviour
     {
         onReductionEvents = onReductionEvents.OrderBy(x => -x.value).ToArray();
         for (int i = 0; i < onReductionEvents.Length; i++)
-        {
-            if (!onReductionEvents[i].useValueMultipliers)
-            {
-                if (((prev > onReductionEvents[i].value) || (prev < current)) && (current <= onReductionEvents[i].value))
-                    onReductionEvents[i].actions?.Invoke();
-            }
-            else
-            {
-                if ((current / onReductionEvents[i].value) != (prev / onReductionEvents[i].value))
-                    onReductionEvents[i].actions?.Invoke();
-            }
-        }
+            onReductionEvents[i].ProcessSubtraction(prev, current);
 
         int min = Mathf.Min(limits.x, limits.y);
         if ((prev > min) && (current <= min))
@@ -164,24 +142,13 @@ public class IntHolder : MonoBehaviour
         intChanged?.Invoke(current);
         for (int i = 0; i < onNumberEvents.Length; i++)
         {
-            bool prevIn;
-            bool currentIn;
-            if (!onNumberEvents[i].useValueMultipliers)
-            {
-                prevIn = onNumberEvents[i].IsInRange(prev);
-                currentIn = onNumberEvents[i].IsInRange(current);
-            }
-            else
-            {
-                prevIn = onNumberEvents[i].IsInRange((prev % onNumberEvents[i].value) + onNumberEvents[i].value);
-                currentIn = onNumberEvents[i].IsInRange((current % onNumberEvents[i].value) + onNumberEvents[i].value);
-            }
+            bool prevIn = onNumberEvents[i].IsInRange(prev);
 
-            if (currentIn)
+            if (onNumberEvents[i].IsInRange(current))
             {
-                if (!prevIn) onNumberEvents[i].gotIn?.Invoke();
+                if (!prevIn) onNumberEvents[i].Start();
             }
-            else if (prevIn) onNumberEvents[i].gotOut?.Invoke();
+            else if (prevIn) onNumberEvents[i].End();
         }
     }
 
@@ -189,19 +156,11 @@ public class IntHolder : MonoBehaviour
     {
         if (isIn) intChanged?.Invoke(current);
         for (int i = 0; i < onNumberEvents.Length; i++)
-        {
-            bool currentIn;
-            if (!onNumberEvents[i].useValueMultipliers)
-                currentIn = onNumberEvents[i].IsInRange(current);
-            else
-                currentIn = onNumberEvents[i].IsInRange((current % onNumberEvents[i].value) + onNumberEvents[i].value);
-
-            if (currentIn)
+            if (onNumberEvents[i].IsInRange(current))
             {
-                if (isIn) onNumberEvents[i].gotIn?.Invoke();
-                else onNumberEvents[i].gotOut?.Invoke();
+                if (isIn) onNumberEvents[i].Start();
+                else onNumberEvents[i].End();
             }
-        }
     }
 
     int AddWithCountMode(int current, int add, Vector2Int limits, CountMode mode)
@@ -227,8 +186,10 @@ public class IntHolder : MonoBehaviour
     struct OnVariationEvent
     {
         public int value;
-        public bool useValueMultipliers;
-        public DXEvent actions;
+        bool useValueMultipliers;
+        [SerializeField]
+        [FoldoutGroup("@FoldoutName()")]
+        DXEvent actions;
 
         public OnVariationEvent(int value, bool useValueMultipliers, DXEvent actions)
         {
@@ -236,18 +197,70 @@ public class IntHolder : MonoBehaviour
             this.useValueMultipliers = useValueMultipliers;
             this.actions = actions;
         }
+
+        public int Process(int prev, int current)
+        {
+            int dif = current - prev;
+            if (dif > 0) ProcessAddition(prev, current);
+            else if (dif < 0) ProcessSubtraction(prev, current);
+
+            return dif;
+        }
+
+        public void ProcessAddition(int prev, int current)
+        {
+            if (!useValueMultipliers)
+            {
+                if (((prev < value) || (prev > current)) && (current >= value))
+                    actions?.Invoke();
+            }
+            else
+            {
+                if ((current / value) != (prev / value))
+                    actions?.Invoke();
+            }
+        }
+
+        public void ProcessSubtraction(int prev, int current)
+        {
+            if (!useValueMultipliers)
+            {
+                if (((prev > value) || (prev < current)) && (current <= value))
+                    actions?.Invoke();
+            }
+            else
+            {
+                if ((current / value) != (prev / value))
+                    actions?.Invoke();
+            }
+        }
+
+        public string FoldoutName()
+        {
+            return actions.IsNull() ? "Events" : "Events ⚠";
+        }
     }
 
     [Serializable]
     struct OnNumberEvent
     {
-        public int value;
-        public bool useValueMultipliers;
-        public bool isRange;
+        [SerializeField]
+        int value;
+        [SerializeField]
+        bool useValueMultipliers;
+        [SerializeField]
+        bool isRange;
         [ShowIf("isRange")]
-        public int maxValue;
-        public DXEvent gotIn;
-        public DXEvent gotOut;
+        [SerializeField]
+        int maxValue;
+        [SerializeField]
+        GameObject[] objects;
+        [SerializeField]
+        [FoldoutGroup("@FoldoutName()")]
+        DXEvent gotIn;
+        [FoldoutGroup("@FoldoutName()")]
+        [SerializeField]
+        DXEvent gotOut;
 
         public OnNumberEvent(int value, bool useValueMultipliers, bool isRange, int maxValue)
         {
@@ -255,14 +268,36 @@ public class IntHolder : MonoBehaviour
             this.useValueMultipliers = useValueMultipliers;
             this.isRange = isRange;
             this.maxValue = maxValue;
+            objects = null;
             gotIn = null;
             gotOut = null;
         }
 
         public bool IsInRange(int n)
         {
-            if (isRange) return (n >= value) && (n <= maxValue);
-            else return (n == value);
+            int i = useValueMultipliers ? (n % value) + value : n;
+
+            if (isRange) return (i >= value) && (i <= maxValue);
+            else return (i == value);
+        }
+
+        public void Start()
+        {
+            foreach (GameObject g in objects)
+                g.SetActive(true);
+            gotIn?.Invoke();
+        }
+
+        public void End()
+        {
+            foreach (GameObject g in objects)
+                g.SetActive(false);
+            gotOut?.Invoke();
+        }
+
+        public string FoldoutName()
+        {
+            return (gotIn.IsNull() && gotOut.IsNull()) ? "Events" : "Events ⚠";
         }
     }
 

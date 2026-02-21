@@ -46,7 +46,7 @@ public class GraphicColorShift : MonoBehaviour
     [SerializeField]
     float duration = 0.143f;
     [SerializeField]
-    protected TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
+    protected RenderingTimeMode timeMode = RenderingTimeMode.Update;
     [SerializeField]
     float _speed = 1f;
     public float speed { get { return _speed; } set { _speed = value; } }
@@ -98,14 +98,12 @@ public class GraphicColorShift : MonoBehaviour
 
     void Update()
     {
-        if (timeMode != TimeModeOrOnEnable.FixedUpdate)
-            UpdateBehaviour();
+        UpdateBehaviour();
     }
 
-    void FixedUpdate()
+    public void ChangeTimeMode(int timeMode)
     {
-        if (timeMode == TimeModeOrOnEnable.FixedUpdate)
-            UpdateBehaviour();
+        this.timeMode = (RenderingTimeMode)timeMode;
     }
 
     enum ShiftMode
