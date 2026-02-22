@@ -18,6 +18,12 @@ public struct RendMatProp : IEquatable<RendMatProp>
         this.property = property;
     }
 
+    public RendMatProp(RendMat rendMat, string property)
+    {
+        this.rendMat = rendMat;
+        this.property = property;
+    }
+
     public override bool Equals(object other)
     {
         if (!(other is RendMatProp)) return false;
@@ -57,6 +63,21 @@ public struct RendMat : IEquatable<RendMat>
     {
         this.rend = rend;
         this.mat = mat;
+    }
+
+    public void GetPropertyBlock(MaterialPropertyBlock block)
+    {
+        rend.GetPropertyBlock(block, mat);
+    }
+
+    public void SetPropertyBlock(MaterialPropertyBlock block)
+    {
+        rend.SetPropertyBlock(block, mat);
+    }
+
+    public bool IsNull()
+    {
+        return (rend == null) || (!mat.IsBetween(0, rend.sharedMaterials.Length)) || (sharedMaterial == null);
     }
 
     public override bool Equals(object other)

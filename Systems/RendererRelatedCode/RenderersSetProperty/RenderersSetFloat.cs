@@ -17,12 +17,12 @@ public class RenderersSetFloat : BRenderersSetBlendedProperty<float>
         blendMode = BlendMode.Average;
     }
 
-    protected override void BlockSet(MaterialPropertyBlock block, float value)
+    protected override void BlockSet(MaterialPropertyBlock block, float value, string propertyName)
     {
         block.SetFloat(propertyName, value);
     }
 
-    protected override void MaterialSet(Material mat, float value)
+    protected override void MaterialSet(Material mat, float value, string propertyName)
     {
         mat.SetFloat(propertyName, value);
     }
@@ -63,7 +63,7 @@ public class RenderersSetFloat : BRenderersSetBlendedProperty<float>
         UpdateBehaviour();
     }
 
-    protected override float GetProperty(Material material)
+    protected override float GetProperty(Material material, string propertyName)
     {
         return material.GetFloat(propertyName);
     }

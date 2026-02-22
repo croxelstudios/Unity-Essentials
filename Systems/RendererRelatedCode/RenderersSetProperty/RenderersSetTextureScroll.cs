@@ -53,45 +53,44 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         base.UpdateBehaviour();
     }
 
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
         string fullPropertyName = propertyName + "_ST";
-        Vector4 tilingOffset = rend.sharedMaterials[mat].GetVector(fullPropertyName);
-        
+        Vector4 tilingOffset = rendMat.sharedMaterial.GetVector(fullPropertyName);
+
+        if (!originals.ContainsKey(rendMat))
+            originals.Add(rendMat, tilingOffset);
+
         tilingOffset.z = currentOffset.x;
         tilingOffset.w = currentOffset.y;
 
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (!originals.ContainsKey(rendMat))
-            originals.Add(rendMat, block.GetVector(propertyName));
         block.SetVector(fullPropertyName, tilingOffset);
     }
 
-    protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void BlResetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (originals.ContainsKey(rendMat)) block.SetVector(propertyName, originals[rendMat]);
+        if (originals.ContainsKey(rendMat))
+            block.SetVector(rendMat.property, originals[rendMat]);
     }
 
-    protected override void VSetProperty(Renderer rend, int mat)
+    protected override void VSetProperty(RendMatProp rendMat)
     {
         string fullPropertyName = propertyName + "_ST";
-        Vector4 tilingOffset = rend.sharedMaterials[mat].GetVector(fullPropertyName);
+        Vector4 tilingOffset = rendMat.sharedMaterial.GetVector(fullPropertyName);
+
+        if (!originals.ContainsKey(rendMat))
+            originals.Add(rendMat, tilingOffset);
 
         tilingOffset.z = currentOffset.x;
         tilingOffset.w = currentOffset.y;
 
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-        if (!originals.ContainsKey(rendMat))
-            originals.Add(rendMat, rend.materials[mat].GetVector(propertyName));
-        rend.materials[mat].SetVector(fullPropertyName, tilingOffset);
+        rendMat.material.SetVector(fullPropertyName, tilingOffset);
     }
 
-    protected override void VResetProperty(Renderer rend, int mat)
+    protected override void VResetProperty(RendMatProp rendMat)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if (originals.ContainsKey(rendMat))
-            rend.materials[mat].SetVector(propertyName, originals[rendMat]);
-        base.VResetProperty(rend, mat);
+            rendMat.material.SetVector(rendMat.property, originals[rendMat]);
+        base.VResetProperty(rendMat);
     }
 }

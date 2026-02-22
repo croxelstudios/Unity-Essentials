@@ -53,25 +53,25 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
         base.UpdateBehaviour();
     }
 
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
         if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-            _texture = ((SpriteRenderer)rend).sprite.texture;
+            _texture = ((SpriteRenderer)rendMat.rend).sprite.texture;
 
-        base.BlSetProperty(block, rend, mat);
+        base.BlSetProperty(block, rendMat);
 
         foreach (string prop in otherProperties)
             block.SetTexture(prop, texture);
     }
 
-    protected override void VSetProperty(Renderer rend, int mat)
+    protected override void VSetProperty(RendMatProp rendMat)
     {
         if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-            _texture = ((SpriteRenderer)rend).sprite.texture;
+            _texture = ((SpriteRenderer)rendMat.rend).sprite.texture;
 
-        base.VSetProperty(rend, mat);
+        base.VSetProperty(rendMat);
 
         foreach (string prop in otherProperties)
-            rend.materials[mat].SetTexture(prop, texture);
+            rendMat.material.SetTexture(prop, texture);
     }
 }

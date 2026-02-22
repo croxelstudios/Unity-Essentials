@@ -178,25 +178,25 @@ public class RenderersSetTexture_AnimationFromArray : RenderersSetTexture
             }
     }
 
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
         if (texture != null)
         {
-            base.BlSetProperty(block, rend, mat);
+            base.BlSetProperty(block, rendMat);
             if (extraProperties != null)
                 foreach (string name in extraProperties)
                     block.SetTexture(name, texture);
         }
     }
 
-    protected override void VSetProperty(Renderer rend, int mat)
+    protected override void VSetProperty(RendMatProp rendMat)
     {
         if (texture != null)
         {
-            base.VSetProperty(rend, mat);
+            base.VSetProperty(rendMat);
             if (extraProperties != null)
                 foreach (string name in extraProperties)
-                    rend.materials[mat].SetTexture(name, texture);
+                    rendMat.material.SetTexture(name, texture);
         }
     }
 

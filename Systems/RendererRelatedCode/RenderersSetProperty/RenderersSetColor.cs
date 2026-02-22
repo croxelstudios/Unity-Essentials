@@ -16,12 +16,12 @@ public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
         propertyName = "_BaseColor";
     }
 
-    protected override void BlockSet(MaterialPropertyBlock block, Color value)
+    protected override void BlockSet(MaterialPropertyBlock block, Color value, string propertyName)
     {
         block.SetColor(propertyName, value);
     }
 
-    protected override void MaterialSet(Material mat, Color value)
+    protected override void MaterialSet(Material mat, Color value, string propertyName)
     {
         mat.SetColor(propertyName, value);
     }
@@ -77,7 +77,7 @@ public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
         UpdateBehaviour();
     }
 
-    protected override Color GetProperty(Material material)
+    protected override Color GetProperty(Material material, string propertyName)
     {
         return material.GetColor(propertyName);
     }

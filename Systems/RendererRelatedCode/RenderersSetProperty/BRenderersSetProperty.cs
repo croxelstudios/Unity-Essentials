@@ -20,6 +20,9 @@ public class BRenderersSetProperty : MonoBehaviour
     [OnValueChanged("UpdateBehaviour")]
     protected string propertyName = "";
     [SerializeField]
+    [OnValueChanged("UpdateBehaviour")]
+    protected string[] propertyNameAlts = null;
+    [SerializeField]
     protected bool updateRenderers = false;
     [SerializeField]
     protected bool dontUsePropertyBlock = false;
@@ -135,9 +138,9 @@ public class BRenderersSetProperty : MonoBehaviour
                 Material[] shM = r.sharedMaterials;
                 if (materialIndex < 0)
                     for (int j = 0; j < shM.Length; j++)
-                        UpdateMaterial(r, shM[j], j, reset);
+                        UpdateMaterial(new RendMat(r, j), reset);
                 else if (materialIndex < shM.Length)
-                    UpdateMaterial(r, shM[materialIndex], materialIndex, reset);
+                    UpdateMaterial(new RendMat(r, materialIndex), reset);
             }
         }
     }
@@ -147,11 +150,11 @@ public class BRenderersSetProperty : MonoBehaviour
     //    UpdateMaterial(rend[rendId], rend[rendId].sharedMaterials[materialId], materialId, reset);
     //}
 
-    void UpdateMaterial(Renderer rend, Material mat, int materialId, bool reset = false)
+    void UpdateMaterial(RendMat rendMat, bool reset = false)
     {
-        if ((mat != null) && mat.HasProperty(propertyName))
+        if ((!rendMat.IsNull()) && CheckPropertyName(rendMat.sharedMaterial, out string propName))
         {
-            RendMat rendMat = new RendMat(rend, materialId);
+            RendMatProp rendMatProp = new RendMatProp(rendMat, propName);
             if (dontUsePropertyBlock || originals.NotNullContainsKey(rendMat))
             {
 #if UNITY_EDITOR
@@ -161,17 +164,17 @@ public class BRenderersSetProperty : MonoBehaviour
                     if (!originals.NotNullContainsKey(rendMat))
                         originals = originals.CreateAdd(rendMat, rendMat.sharedMaterial);
 
-                    if (reset) VResetProperty(rend, materialId);
-                    else VSetProperty(rend, materialId);
+                    if (reset) VResetProperty(rendMatProp);
+                    else VSetProperty(rendMatProp);
                 }
             }
             else
             {
-                rend.GetPropertyBlock(block, materialId);
-                CheckRendererBlocks(rend);
-                if (reset) BlResetProperty(block, rend, materialId);
-                else BlSetProperty(block, rend, materialId);
-                rend.SetPropertyBlock(block, materialId);
+                rendMat.GetPropertyBlock(block);
+                CheckRendererBlocks(rendMat.rend);
+                if (reset) BlResetProperty(block, rendMatProp);
+                else BlSetProperty(block, rendMatProp);
+                rendMat.SetPropertyBlock(block);
             }
         }
     }
@@ -199,22 +202,22 @@ public class BRenderersSetProperty : MonoBehaviour
 
     }
 
-    protected virtual void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected virtual void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
 
     }
 
-    protected virtual void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected virtual void BlResetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
 
     }
 
-    protected virtual void VSetProperty(Renderer rend, int mat)
+    protected virtual void VSetProperty(RendMatProp rendMat)
     {
 
     }
 
-    protected virtual void VResetProperty(Renderer rend, int mat)
+    protected virtual void VResetProperty(RendMatProp rendMat)
     {
         //TO DO: Full material reset must be done when every SetProperty affecting this material has been reseted or not used
 
@@ -224,6 +227,24 @@ public class BRenderersSetProperty : MonoBehaviour
         //    Destroy(rend.materials[mat]);
         //    rend.materials[mat] = shM[mat];
         //}
+    }
+
+    public bool CheckPropertyName(Material mat, out string propName)
+    {
+        if (mat.HasProperty(propertyName))
+        {
+            propName = propertyName;
+            return true;
+        }
+        else if (!propertyNameAlts.IsNullOrEmpty())
+            for (int i = 0; i < propertyNameAlts.Length; i++)
+                if (mat.HasProperty(propertyNameAlts[i]))
+                {
+                    propName = propertyNameAlts[i];
+                    return true;
+                }
+        propName = "";
+        return false;
     }
 
     [ContextMenu("Reset Property Blocks")]
@@ -249,6 +270,15 @@ public class BRenderersSetProperty : MonoBehaviour
         this.affectsChildren = affectsChildren;
         this.materialIndex = materialIndex;
         this.propertyName = propertyName;
+        this.updateRenderers = updateRenderers;
+    }
+
+    public void Set(bool affectsChildren, int materialIndex, string propertyName, string[] propertyNameAlts, bool updateRenderers)
+    {
+        this.affectsChildren = affectsChildren;
+        this.materialIndex = materialIndex;
+        this.propertyName = propertyName;
+        this.propertyNameAlts = propertyNameAlts;
         this.updateRenderers = updateRenderers;
     }
 
@@ -322,10 +352,12 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
                 {
                     Material[] shM = ren.sharedMaterials;
                     for (int i = 0; i < shM.Length; i++)
-                    {
-                        RendMatProp renMat = new RendMatProp(ren, i, propertyName);
-                        stackDictionary.SmartRemove(renMat, this);
-                    }
+                        if (shM[i] != null)
+                        {
+                            CheckPropertyName(shM[i], out string propName);
+                            RendMatProp renMat = new RendMatProp(ren, i, propName);
+                            stackDictionary.SmartRemove(renMat, this);
+                        }
                 }
             base.OnDisable();
         }
@@ -344,57 +376,51 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         //StartCoroutine(DictionaryCleanUp());
     }
 
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-
         stackDictionary = stackDictionary.CreateAdd(rendMat, this);
 
         ApplyFullStack(block, rendMat);
     }
 
-    protected override void BlResetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void BlResetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
             ApplyFullStack(block, rendMat);
     }
 
-    protected override void VSetProperty(Renderer rend, int mat)
+    protected override void VSetProperty(RendMatProp rendMat)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
-
         stackDictionary = stackDictionary.CreateAdd(rendMat, this);
 
         ApplyFullStack(rendMat);
     }
 
-    protected override void VResetProperty(Renderer rend, int mat)
+    protected override void VResetProperty(RendMatProp rendMat)
     {
-        RendMatProp rendMat = new RendMatProp(rend, mat, propertyName);
         if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
             ApplyFullStack(rendMat);
-        base.VResetProperty(rend, mat);
+        base.VResetProperty(rendMat);
     }
 
-    protected virtual void BlockSet(MaterialPropertyBlock block, T value)
+    protected virtual void BlockSet(MaterialPropertyBlock block, T value, string propertyName)
     {
 
     }
 
-    protected virtual void MaterialSet(Material mat, T value)
+    protected virtual void MaterialSet(Material mat, T value, string propertyName)
     {
 
     }
 
     void ApplyFullStack(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        BlockSet(block, GetFullStackColor(rendMat));
+        BlockSet(block, GetFullStackColor(rendMat), rendMat.property);
     }
 
     void ApplyFullStack(RendMatProp rendMat)
     {
-        MaterialSet(rendMat.material, GetFullStackColor(rendMat));
+        MaterialSet(rendMat.material, GetFullStackColor(rendMat), rendMat.property);
     }
 
     T GetFullStackColor(RendMatProp rendMat)
@@ -509,20 +535,15 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         return current;
     }
 
-    protected virtual T GetProperty(Material rendMat)
+    protected virtual T GetProperty(Material mat, string propertyName)
     {
         return default;
     }
 
-    protected T GetProperty(RendMat rendMat)
-    {
-        if (originals.NotNullContainsKey(rendMat))
-            return GetProperty(originals[rendMat]);
-        else return GetProperty(rendMat.sharedMaterial);
-    }
-
     protected T GetProperty(RendMatProp rendMat)
     {
-        return GetProperty((RendMat)rendMat);
+        if (originals.NotNullContainsKey(rendMat))
+            return GetProperty(originals[rendMat], rendMat.property);
+        else return GetProperty(rendMat.sharedMaterial, rendMat.property);
     }
 }

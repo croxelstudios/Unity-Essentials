@@ -71,27 +71,27 @@ public class RenderersSetTexture_FromTMP : RenderersSetTexture
         base.UpdateBehaviour();
     }
 
-    protected override void BlSetProperty(MaterialPropertyBlock block, Renderer rend, int mat)
+    protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        TMP_FontAsset font = tmps[rend]?.font;
+        TMP_FontAsset font = tmps[rendMat.rend]?.font;
         if (font != null)
             _texture = font.atlasTexture;
 
-        base.BlSetProperty(block, rend, mat);
+        base.BlSetProperty(block, rendMat);
 
         foreach (string prop in otherProperties)
             block.SetTexture(prop, texture);
     }
 
-    protected override void VSetProperty(Renderer rend, int mat)
+    protected override void VSetProperty(RendMatProp rendMat)
     {
-        TMP_FontAsset font = tmps[rend]?.font;
+        TMP_FontAsset font = tmps[rendMat.rend]?.font;
         if (font != null)
             _texture = font.atlasTexture;
 
-        base.VSetProperty(rend, mat);
+        base.VSetProperty(rendMat);
 
         foreach (string prop in otherProperties)
-            rend.materials[mat].SetTexture(prop, texture);
+            rendMat.material.SetTexture(prop, texture);
     }
 }
