@@ -317,7 +317,7 @@ public class ArbitraryProperty
 
 #if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(ArbitraryProperty))]
-public class MaterialPropertyTweaker_Inspector : PropertyDrawer
+public class ArbitraryProperty_Drawer : PropertyDrawer
 {
     SerializedProperty propertyName, type, fValue, iValue, cValue, vValue, tObject;
 

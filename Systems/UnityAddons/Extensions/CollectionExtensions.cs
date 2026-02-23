@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using Object = UnityEngine.Object;
+using Sirenix.OdinInspector.Editor;
 
 public static class CollectionExtensions
 {
@@ -661,4 +662,11 @@ public static class CollectionExtensions
         return list;
     }
     #endregion
+
+    public static void Set<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value)
+    {
+        if (!dict.ContainsKey(key))
+            dict.Add(key, value);
+        else dict[key] = value;
+    }
 }

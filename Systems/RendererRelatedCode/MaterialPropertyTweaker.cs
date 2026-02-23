@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using Sirenix.OdinInspector;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -10,13 +12,18 @@ using UnityEditor;
 public class MaterialPropertyTweaker : MonoBehaviour
 {
     [SerializeField]
+    [OnValueChanged("ProcessPriority")]
     Material material = null;
     [SerializeField]
     bool update = true;
     [SerializeField]
+    [OnValueChanged("ProcessPriority")]
     string propertyName = "_Color";
     [SerializeField]
     PropertyType type = PropertyType.Color;
+    [SerializeField]
+    [OnValueChanged("ProcessPriority")]
+    bool prioritize = false;
 
     [SerializeField]
     [HideInInspector]
@@ -42,8 +49,9 @@ public class MaterialPropertyTweaker : MonoBehaviour
 
     void OnEnable()
     {
+        ProcessPriority();
         SaveOriginal();
-        SetProperty();
+        if (CanAct()) SetProperty();
     }
 
     void OnDisable()
@@ -53,7 +61,7 @@ public class MaterialPropertyTweaker : MonoBehaviour
 
     void Update()
     {
-        if (update) SetProperty();
+        if (update && CanAct()) SetProperty();
     }
 
     void SaveOriginal()
@@ -254,6 +262,16 @@ public class MaterialPropertyTweaker : MonoBehaviour
     public Texture GetTexture()
     {
         return tObject;
+    }
+
+    public void ProcessPriority()
+    {
+        SharedMatProp.ProcessPriority(this, material, propertyName, prioritize, false);
+    }
+
+    public bool CanAct()
+    {
+        return SharedMatProp.CanAct(this);
     }
 
     enum PropertyType { Float, Int, Color, Vector, Texture };
