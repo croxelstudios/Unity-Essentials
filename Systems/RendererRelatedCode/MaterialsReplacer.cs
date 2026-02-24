@@ -3,13 +3,13 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 using Sirenix.OdinInspector;
-using uParser;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 [ExecuteAlways]
+[DefaultExecutionOrder(-1)]
 public class MaterialsReplacer : MonoBehaviour
 {
     [SerializeField]
@@ -53,6 +53,7 @@ public class MaterialsReplacer : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
+            Reinstantiate();
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
             Undo.postprocessModifications += OnPostprocess;
@@ -81,33 +82,36 @@ public class MaterialsReplacer : MonoBehaviour
 #if UNITY_EDITOR
     void Update()
     {
-        bool updateInstances = false;
-        for (int i = 0; i < rend.Length; i++)
+        if (!Application.isPlaying)
         {
-            if (rend[i].IsNull())
+            bool updateInstances = false;
+            for (int i = 0; i < rend.Length; i++)
             {
-                UpdateRenderers();
-                updateInstances = true;
-                break;
-            }
-            rend[i].UpdateActiveState();
-        }
-
-        if ((!updateInstances) && (instanced.IsNullOrEmpty() || (instanced.Length != rend.Length)))
-            updateInstances = true;
-
-        if (!updateInstances)
-        {
-            for (int i = 0; i < instanced.Length; i++)
-                if (instanced[i] == null)
+                if (rend[i].IsNull())
                 {
+                    UpdateRenderers();
                     updateInstances = true;
                     break;
                 }
-        }
+                rend[i].UpdateActiveState();
+            }
 
-        if (updateInstances)
-            Reinstantiate();
+            if ((!updateInstances) && (instanced.IsNullOrEmpty() || (instanced.Length != rend.Length)))
+                updateInstances = true;
+
+            if (!updateInstances)
+            {
+                for (int i = 0; i < instanced.Length; i++)
+                    if (instanced[i] == null)
+                    {
+                        updateInstances = true;
+                        break;
+                    }
+            }
+
+            if (updateInstances)
+                Reinstantiate();
+        }
     }
 
     UndoPropertyModification[] OnPostprocess(UndoPropertyModification[] modifications)
@@ -141,12 +145,6 @@ public class MaterialsReplacer : MonoBehaviour
                         }
                         else updateInstances = true;
                     }
-            }
-            else if (m.currentValue.target is GameObject obj)
-            {
-                for (int i = 0; i < rend.Length; i++)
-                    if (rend[i].gameObject == obj)
-                        rend[i].UpdateActiveState();
             }
         }
 
