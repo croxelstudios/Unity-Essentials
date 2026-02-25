@@ -6,6 +6,8 @@ public class ScaleByCurve : MonoBehaviour
     [SerializeField]
     float time = 1f;
     [SerializeField]
+    float reverseScaleTimeModifier = 1f;
+    [SerializeField]
     float scale = 1f;
     [SerializeField]
     [MinValue(0.0001f)]
@@ -79,7 +81,7 @@ public class ScaleByCurve : MonoBehaviour
 
     void ScaleAtTime(float currentTime)
     {
-        float factor = currentTime / time;
+        float factor = currentTime / ((negative ? reverseScaleTimeModifier : 1f) * time);
         float current = curve.Evaluate(negative ? factor : 1 - factor) * scale;
 
         //Prevent 0 scale locks
@@ -121,7 +123,7 @@ public class ScaleByCurve : MonoBehaviour
             if (currentTime <= 0)
                 currentTime = time;
             else if (negative)
-                currentTime = time - currentTime;
+                currentTime = Mathf.Clamp(time - currentTime, 0f, time);
             negative = false;
 
             ScaleAtTime(currentTime);
@@ -139,10 +141,11 @@ public class ScaleByCurve : MonoBehaviour
                 if (transform.localScale.sqrMagnitude <= 0f) transform.localScale = Vector3.one;
                 else transform.localScale = transform.localScale.normalized;
             }
+            float t = reverseScaleTimeModifier * time;
             if (currentTime <= 0)
-                currentTime = time;
+                currentTime = t;
             else if (!negative)
-                currentTime = time - currentTime;
+                currentTime = Mathf.Clamp(t - currentTime, 0f, t);
             negative = true;
 
             ScaleAtTime(currentTime);
