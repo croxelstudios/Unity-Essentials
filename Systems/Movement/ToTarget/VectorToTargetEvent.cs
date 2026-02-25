@@ -206,6 +206,11 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
     public override void Set(Vector3 target, bool isLocal = false)
     {
         Vector3 dif = target - Current();
+        if (projectOnPlane)
+        {
+            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
+            dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
+        }
         Apply(dif, isLocal);
         ResetSpeed();
     }

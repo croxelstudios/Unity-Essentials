@@ -185,6 +185,11 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
     public override void Set(Quaternion target, bool isLocal = false)
     {
         Quaternion dif = target.Subtract(Current());
+        if (projectOnPlane)
+        {
+            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
+            dif = Quaternion.AngleAxis(dif.Angle(rotationMode), localPlaneNormal);
+        }
         Apply(dif, isLocal);
         ResetSpeed();
     }

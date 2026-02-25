@@ -12,7 +12,6 @@ public class RenderersSetTexture_FromMaterial : RenderersSetTexture
     public Texture2D defaultTexture
     { get { return _defaultTexture; } set { _defaultTexture = value; } }
     [SerializeField]
-    [HideLabel]
     [InlineProperty]
     ProcTex[] preProcessors = null;
     [SerializeField]

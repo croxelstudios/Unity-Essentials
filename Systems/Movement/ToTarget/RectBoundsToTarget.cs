@@ -182,6 +182,11 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
     public override void Set(Vector4 target, bool isLocal = false)
     {
         Vector4 dif = target - Current();
+        if (projectOnPlane)
+        {
+            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
+            dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
+        }
         Apply(dif, isLocal);
         ResetSpeed();
     }
