@@ -1,33 +1,14 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using Object = UnityEngine.Object;
-using Sirenix.OdinInspector.Editor;
 
 public static class CollectionExtensions
 {
-    #region Create If Null
-    public static List<T> CreateIfNull<T>(this List<T> list)
-    {
-        if (list == null) list = new List<T>();
-        return list;
-    }
-
-    public static Dictionary<T, Y> CreateIfNull<T, Y>(this Dictionary<T, Y> dict)
-    {
-        if (dict == null) dict = new Dictionary<T, Y>();
-        return dict;
-    }
-
-    public static SortedDictionary<T, Y> CreateIfNull<T, Y>(this SortedDictionary<T, Y> dict)
-    {
-        if (dict == null) dict = new SortedDictionary<T, Y>();
-        return dict;
-    }
-    #endregion
-
     #region Create Add (1 layer)
-    public static List<T> CreateAdd<T>(this List<T> list, T element, bool testContains = true)
+    public static L CreateAdd<L, T>(this L list, T element, bool testContains = true)
+        where L : ICollection<T>, new()
     {
         list = list.CreateIfNull();
         if ((!testContains) || (!list.Contains(element)))
@@ -35,14 +16,7 @@ public static class CollectionExtensions
         return list;
     }
 
-    public static Dictionary<T, Y> CreateAdd<T, Y>(this Dictionary<T, Y> dict, T key, Y value)
-    {
-        dict = dict.CreateIfNull();
-        dict.TryAdd(key, value);
-        return dict;
-    }
-
-    public static SortedDictionary<T, Y> CreateAdd<T, Y>(this SortedDictionary<T, Y> dict, T key, Y value)
+    public static D CreateAdd<D, T, Y>(this D dict, T key, Y value) where D : IDictionary<T, Y>, new()
     {
         dict = dict.CreateIfNull();
         dict.TryAdd(key, value);
@@ -54,18 +28,27 @@ public static class CollectionExtensions
     public static Dictionary<T, List<Y>> CreateAdd<T, Y>(this Dictionary<T, List<Y>> dict,
         T key, Y value)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(value);
-        else dict.Add(key, new List<Y>().CreateAdd(value));
-        return dict;
+        return CreateAdd<Dictionary<T, List<Y>>, List<Y>, T, Y>(dict, key, value);
     }
 
     public static SortedDictionary<T, List<Y>> CreateAdd<T, Y>(this SortedDictionary<T, List<Y>> dict,
         T key, Y value)
     {
+        return CreateAdd<SortedDictionary<T, List<Y>>, List<Y>, T, Y>(dict, key, value);
+    }
+
+    public static SortedList<T, List<Y>> CreateAdd<T, Y>(this SortedList<T, List<Y>> dict,
+        T key, Y value)
+    {
+        return CreateAdd<SortedList<T, List<Y>>, List<Y>, T, Y>(dict, key, value);
+    }
+
+    public static D CreateAdd<D, L, T, Y>(this D dict,
+        T key, Y value) where D : IDictionary<T, L>, new() where L : ICollection<Y>, new()
+    {
         dict = dict.CreateIfNull();
         if (dict.ContainsKey(key)) dict[key].CreateAdd(value);
-        else dict.Add(key, new List<Y>().CreateAdd(value));
+        else dict.Add(key, new L().CreateAdd(value));
         return dict;
     }
     #endregion
@@ -74,36 +57,37 @@ public static class CollectionExtensions
     public static Dictionary<T, Dictionary<Y, U>> CreateAdd<T, Y, U>(
         this Dictionary<T, Dictionary<Y, U>> dict, T key, Y key2, U value)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new Dictionary<Y, U>().CreateAdd(key2, value));
-        return dict;
+        return CreateAdd<Dictionary<T, Dictionary<Y, U>>, Dictionary<Y, U>, T, Y, U>
+            (dict, key, key2, value);
     }
 
     public static Dictionary<T, SortedDictionary<Y, U>> CreateAdd<T, Y, U>(
         this Dictionary<T, SortedDictionary<Y, U>> dict, T key, Y key2, U value)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new SortedDictionary<Y, U>().CreateAdd(key2, value));
-        return dict;
+        return CreateAdd<Dictionary<T, SortedDictionary<Y, U>>, SortedDictionary<Y, U>, T, Y, U>
+            (dict, key, key2, value);
     }
 
     public static SortedDictionary<T, Dictionary<Y, U>> CreateAdd<T, Y, U>(
         this SortedDictionary<T, Dictionary<Y, U>> dict, T key, Y key2, U value)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new Dictionary<Y, U>().CreateAdd(key2, value));
-        return dict;
+        return CreateAdd<SortedDictionary<T, Dictionary<Y, U>>, Dictionary<Y, U>, T, Y, U>
+            (dict, key, key2, value);
     }
 
     public static SortedDictionary<T, SortedDictionary<Y, U>> CreateAdd<T, Y, U>(
         this SortedDictionary<T, SortedDictionary<Y, U>> dict, T key, Y key2, U value)
     {
+        return CreateAdd<SortedDictionary<T, SortedDictionary<Y, U>>, SortedDictionary<Y, U>, T, Y, U>
+            (dict, key, key2, value);
+    }
+
+    public static D CreateAdd<D, F, T, Y, U>(this D dict,
+        T key, Y key2, U value) where D : IDictionary<T, F>, new() where F : IDictionary<Y, U>, new()
+    {
         dict = dict.CreateIfNull();
         if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new SortedDictionary<Y, U>().CreateAdd(key2, value));
+        else dict.Add(key, new F().CreateAdd(key2, value));
         return dict;
     }
     #endregion
@@ -112,41 +96,71 @@ public static class CollectionExtensions
     public static Dictionary<T, Dictionary<Y, List<U>>> CreateAdd<T, Y, U>(
         this Dictionary<T, Dictionary<Y, List<U>>> dict, T key, Y key2, U value)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new Dictionary<Y, List<U>>().CreateAdd(key2, value));
-        return dict;
+        return CreateAdd<Dictionary<T, Dictionary<Y, List<U>>>,
+            Dictionary<Y, List<U>>, List<U>, T, Y, U>(dict, key, key2, value);
     }
 
     public static Dictionary<T, SortedDictionary<Y, List<U>>> CreateAdd<T, Y, U>(
         this Dictionary<T, SortedDictionary<Y, List<U>>> dict, T key, Y key2, U value)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new SortedDictionary<Y, List<U>>().CreateAdd(key2, value));
-        return dict;
+        return CreateAdd<Dictionary<T, SortedDictionary<Y, List<U>>>,
+            SortedDictionary<Y, List<U>>, List<U>, T, Y, U>(dict, key, key2, value);
     }
 
     public static SortedDictionary<T, Dictionary<Y, List<U>>> CreateAdd<T, Y, U>(
         this SortedDictionary<T, Dictionary<Y, List<U>>> dict, T key, Y key2, U value)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new Dictionary<Y, List<U>>().CreateAdd(key2, value));
-        return dict;
+        return CreateAdd<SortedDictionary<T, Dictionary<Y, List<U>>>,
+            Dictionary<Y, List<U>>, List<U>, T, Y, U>(dict, key, key2, value);
     }
 
     public static SortedDictionary<T, SortedDictionary<Y, List<U>>> CreateAdd<T, Y, U>(
         this SortedDictionary<T, SortedDictionary<Y, List<U>>> dict, T key, Y key2, U value)
     {
+        return CreateAdd<SortedDictionary<T, SortedDictionary<Y, List<U>>>,
+            SortedDictionary<Y, List<U>>, List<U>, T, Y, U>(dict, key, key2, value);
+    }
+
+    public static D CreateAdd<D, F, L, T, Y, U>(this D dict,
+        T key, Y key2, U value) where D : IDictionary<T, F>, new() where F : IDictionary<Y, L>, new()
+        where L : ICollection<U>, new()
+    {
         dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAdd(key2, value);
-        else dict.Add(key, new SortedDictionary<Y, List<U>>().CreateAdd(key2, value));
+        if (dict.ContainsKey(key)) dict[key].CreateAdd<F, L, Y, U>(key2, value);
+        else dict.Add(key, new F().CreateAdd<F, L, Y, U>(key2, value));
         return dict;
     }
     #endregion
 
     #region Create Add Range
+    //public static List<T> CreateAddRange<T>(this List<T> list,
+    //    IEnumerable<T> elements, bool testContains = false)
+    //{
+    //    return CreateAddRange<List<T>, T>(list, elements, testContains);
+    //}
+
+    //public static L CreateAddRange<L, T>(this L list,
+    //    IEnumerable<T> elements, bool testContains = false) where L : IList, new()
+    //{
+    //    list = list.CreateIfNull();
+
+    //    if (elements.IsNullOrEmpty())
+    //        return list;
+
+    //    if (list is ICollection<T> collection)
+    //    {
+    //        if (testContains)
+    //        {
+    //            foreach (T element in elements)
+    //                if (!collection.Contains(element))
+    //                    collection.Add(element);
+    //        }
+    //        else collection.AddRange(elements);
+    //    }
+    //    else throw new ArgumentException("List doesn't have defined type.");
+    //    return list;
+    //}
+
     public static List<T> CreateAddRange<T>(this List<T> list,
         IEnumerable<T> elements, bool testContains = false)
     {
@@ -165,21 +179,13 @@ public static class CollectionExtensions
         return list;
     }
 
-    public static Dictionary<T, List<Y>> CreateAddRange<T, Y>(this Dictionary<T, List<Y>> dict,
+    public static D CreateAddRange<D, T, Y>(this D dict,
         T key, IEnumerable<Y> values, bool testContains = false)
+        where D : IDictionary<T, List<Y>>, new()
     {
         dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAddRange(values, testContains);
-        else dict.Add(key, new List<Y>().CreateAddRange(values, testContains));
-        return dict;
-    }
-
-    public static SortedDictionary<T, List<Y>> CreateAddRange<T, Y>(
-        this SortedDictionary<T, List<Y>> dict, T key, IEnumerable<Y> values, bool testContains = false)
-    {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAddRange(values, testContains);
-        else dict.Add(key, new List<Y>().CreateAddRange(values, testContains));
+        if (dict.ContainsKey(key)) CreateAddRange(dict[key], values, testContains);
+        else dict.Add(key, CreateAddRange(new List<Y>(), values, testContains));
         return dict;
     }
 
@@ -187,146 +193,95 @@ public static class CollectionExtensions
         this Dictionary<T, Dictionary<Y, List<U>>> dict, T key, Y key2, IEnumerable<U> values,
         bool testContains = false)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAddRange(key2, values, testContains);
-        else dict.Add(key, new Dictionary<Y, List<U>>().CreateAddRange(key2, values, testContains));
-        return dict;
+        return CreateAddRange<Dictionary<T, Dictionary<Y, List<U>>>, Dictionary<Y, List<U>>, T, Y, U>
+            (dict, key, key2, values, testContains);
     }
 
     public static Dictionary<T, SortedDictionary<Y, List<U>>> CreateAddRange<T, Y, U>(
         this Dictionary<T, SortedDictionary<Y, List<U>>> dict, T key, Y key2, IEnumerable<U> values,
         bool testContains = false)
     {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAddRange(key2, values, testContains);
-        else dict.Add(key, new SortedDictionary<Y, List<U>>().CreateAddRange(key2, values, testContains));
-        return dict;
-    }
-
-    public static SortedDictionary<T, Dictionary<Y, List<U>>> CreateAddRange<T, Y, U>(
-        this SortedDictionary<T, Dictionary<Y, List<U>>> dict, T key, Y key2, IEnumerable<U> values,
-        bool testContains = false)
-    {
-        dict = dict.CreateIfNull();
-        if (dict.ContainsKey(key)) dict[key].CreateAddRange(key2, values, testContains);
-        else dict.Add(key, new Dictionary<Y, List<U>>().CreateAddRange(key2, values, testContains));
-        return dict;
+        return CreateAddRange<Dictionary<T, SortedDictionary<Y, List<U>>>, SortedDictionary<Y, List<U>>, T, Y, U>
+            (dict, key, key2, values, testContains);
     }
 
     public static SortedDictionary<T, SortedDictionary<Y, List<U>>> CreateAddRange<T, Y, U>(
         this SortedDictionary<T, SortedDictionary<Y, List<U>>> dict, T key, Y key2, IEnumerable<U> values,
         bool testContains = false)
     {
+        return CreateAddRange<SortedDictionary<T, SortedDictionary<Y, List<U>>>, SortedDictionary<Y, List<U>>, T, Y, U>
+            (dict, key, key2, values, testContains);
+    }
+
+    public static SortedDictionary<T, Dictionary<Y, List<U>>> CreateAddRange<T, Y, U>(
+        this SortedDictionary<T, Dictionary<Y, List<U>>> dict, T key, Y key2, IEnumerable<U> values,
+        bool testContains = false)
+    {
+        return CreateAddRange<SortedDictionary<T, Dictionary<Y, List<U>>>, Dictionary<Y, List<U>>, T, Y, U>
+            (dict, key, key2, values, testContains);
+    }
+
+    public static D CreateAddRange<D, F, T, Y, U>(
+        this D dict, T key, Y key2, IEnumerable<U> values,
+        bool testContains = false)
+        where D : IDictionary<T, F>, new() where F : IDictionary<Y, List<U>>, new()
+    {
         dict = dict.CreateIfNull();
         if (dict.ContainsKey(key)) dict[key].CreateAddRange(key2, values, testContains);
-        else dict.Add(key, new SortedDictionary<Y, List<U>>().CreateAddRange(key2, values, testContains));
+        else dict.Add(key, new F().CreateAddRange(key2, values, testContains));
         return dict;
     }
     #endregion
 
     #region Smart Remove
-    public static void SmartRemove<T>(this List<T> list, T element)
+    public static void SmartRemove<T>(this ICollection<T> list, T element)
     {
         if (list != null) list.Remove(element);
     }
 
-    public static void SmartRemove<T, Y>(this Dictionary<T, Y> dict, T key)
+    public static void SmartRemove<T, Y>(this IDictionary<T, Y> dict, T key)
     {
         if (dict != null) dict.Remove(key);
     }
 
-    public static void SmartRemove<T, Y>(this Dictionary<T, List<Y>> dict, T key, Y element)
+    public static void SmartRemove<L, T, Y>(this IDictionary<T, L> dict, T key, Y element) where L : IList<Y>
     {
-        if (dict.SmartGetValue(key, out List<Y> list))
+        if (dict.SmartGetValue(key, out L list))
             list.Remove(element);
     }
 
-    public static void SmartRemove<T, Y>(this SortedDictionary<T, Y> dict, T key)
+    public static void SmartRemove<T, Y, U>(this IDictionary<T, Dictionary<Y, U>> dict, T key, Y key2)
     {
-        if (dict != null) dict.Remove(key);
+        SmartRemove<Dictionary<Y, U>, T, Y, U>(dict, key, key2);
     }
 
-    public static void SmartRemove<T, Y>(this SortedDictionary<T, List<Y>> dict, T key, Y element)
+    public static void SmartRemove<T, Y, U>(this IDictionary<T, SortedDictionary<Y, U>> dict, T key, Y key2)
     {
-        if (dict.SmartGetValue(key, out List<Y> list))
-            list.Remove(element);
+        SmartRemove<SortedDictionary<Y, U>, T, Y, U>(dict, key, key2);
     }
 
-    public static void SmartRemove<T, Y, U>(this Dictionary<T, Dictionary<Y, U>> dict, T key, Y key2)
+    public static void SmartRemove<T, Y, U>(this IDictionary<T, SortedList<Y, U>> dict, T key, Y key2)
     {
-        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
+        SmartRemove<SortedList<Y, U>, T, Y, U>(dict, key, key2);
+    }
+
+    public static void SmartRemove<D, T, Y, U>(this IDictionary<T, D> dict, T key, Y key2)
+        where D : IDictionary<Y, U>
+    {
+        if (dict.SmartGetValue(key, out D d))
             d.SmartRemove(key2);
     }
 
-    public static void SmartRemove<T, Y, U>(this Dictionary<T, SortedDictionary<Y, U>> dict,
-        T key, Y key2)
+    public static void SmartRemove<D, L, T, Y, U>(this IDictionary<T, D> dict,
+        T key, Y key2, U element) where D : IDictionary<Y, L> where L : IList<U>
     {
-        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
-            d.SmartRemove(key2);
-    }
-
-    public static void SmartRemove<T, Y, U>(this SortedDictionary<T, Dictionary<Y, U>> dict,
-        T key, Y key2)
-    {
-        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
-            d.SmartRemove(key2);
-    }
-
-    public static void SmartRemove<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, U>> dict,
-        T key, Y key2)
-    {
-        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
-            d.SmartRemove(key2);
-    }
-
-    public static void SmartRemove<T, Y, U>(this Dictionary<T, Dictionary<Y, List<U>>> dict,
-        T key, Y key2, U element)
-    {
-        if (dict.SmartGetValue(key, out Dictionary<Y, List<U>> d))
+        if (dict.SmartGetValue(key, out D d))
             d.SmartRemove(key2, element);
-    }
-
-    public static void SmartRemove<T, Y, U>(this Dictionary<T, SortedDictionary<Y, List<U>>> dict,
-        T key, Y key2, U element)
-    {
-        if (dict.SmartGetValue(key, out SortedDictionary<Y, List<U>> d))
-            d.SmartRemove(key2, element);
-    }
-
-    public static void SmartRemove<T, Y, U>(this SortedDictionary<T, Dictionary<Y, List<U>>> dict,
-        T key, Y key2, U element)
-    {
-        if (dict.SmartGetValue(key, out Dictionary<Y, List<U>> d))
-            d.SmartRemove(key2, element);
-    }
-
-    public static void SmartRemove<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, List<U>>> dict,
-        T key, Y key2, U element)
-    {
-        if (dict.SmartGetValue(key, out SortedDictionary<Y, List<U>> d))
-            d.SmartRemove(key2, element);
-    }
-    #endregion
-
-    #region Smart Clear
-    public static void SmartClear<T>(this List<T> list)
-    {
-        if (list != null) list.Clear();
-    }
-
-    public static void SmartClear<T, Y>(this Dictionary<T, Y> dict)
-    {
-        if (dict != null) dict.Clear();
-    }
-
-    public static void SmartClear<T, Y>(this SortedDictionary<T, Y> dict)
-    {
-        if (dict != null) dict.Clear();
     }
     #endregion
 
     #region Smart GetValue
-    public static bool SmartGetValue<T>(this List<T> list, int i, out T element)
+    public static bool SmartGetValue<T>(this IList<T> list, int i, out T element)
     {
         if ((list != null) && i.IsBetween(0, list.Count))
         {
@@ -340,7 +295,7 @@ public static class CollectionExtensions
         }
     }
 
-    public static bool SmartGetValue<T, Y>(this Dictionary<T, Y> dict, T key, out Y value)
+    public static bool SmartGetValue<T, Y>(this IDictionary<T, Y> dict, T key, out Y value)
     {
         if (dict != null)
             return dict.TryGetValue(key, out value);
@@ -351,9 +306,10 @@ public static class CollectionExtensions
         }
     }
 
-    public static bool SmartGetValue<T, Y>(this Dictionary<T, List<Y>> dict, T key, int i, out Y value)
+    public static bool SmartGetValue<L, T, Y>(this IDictionary<T, L> dict, T key, int i, out Y value)
+        where L : IList<Y>
     {
-        if (dict.SmartGetValue(key, out List<Y> list))
+        if (dict.SmartGetValue(key, out L list))
             return list.SmartGetValue(i, out value);
         else
         {
@@ -362,33 +318,10 @@ public static class CollectionExtensions
         }
     }
 
-    public static bool SmartGetValue<T, Y>(this SortedDictionary<T, Y> dict, T key, out Y value)
+    public static bool SmartGetValue<D, T, Y, U>(this IDictionary<T, D> dict,
+        T key, Y key2, out U value) where D : IDictionary<Y, U>
     {
-        if (dict != null)
-            return dict.TryGetValue(key, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y>(this SortedDictionary<T, List<Y>> dict,
-        T key, int i, out Y value)
-    {
-        if (dict.SmartGetValue(key, out List<Y> list))
-            return list.SmartGetValue(i, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, Dictionary<Y, U>> dict,
-        T key, Y key2, out U value)
-    {
-        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
+        if (dict.SmartGetValue(key, out D d))
             return d.SmartGetValue(key2, out value);
         else
         {
@@ -397,82 +330,10 @@ public static class CollectionExtensions
         }
     }
 
-    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, SortedDictionary<Y, U>> dict,
-        T key, Y key2, out U value)
+    public static bool SmartGetValue<D, L, T, Y, U>(this IDictionary<T, D> dict,
+        T key, Y key2, int i, out U value) where D : IDictionary<Y, L> where L : IList<U>
     {
-        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
-            return d.SmartGetValue(key2, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, Dictionary<Y, U>> dict,
-        T key, Y key2, out U value)
-    {
-        if (dict.SmartGetValue(key, out Dictionary<Y, U> d))
-            return d.SmartGetValue(key2, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, U>> dict,
-        T key, Y key2, out U value)
-    {
-        if (dict.SmartGetValue(key, out SortedDictionary<Y, U> d))
-            return d.SmartGetValue(key2, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, Dictionary<Y, List<U>>> dict,
-        T key, Y key2, int i, out U value)
-    {
-        if (dict.SmartGetValue(key, key2, out List<U> list))
-            return list.SmartGetValue(i, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y, U>(this Dictionary<T, SortedDictionary<Y, List<U>>> dict,
-        T key, Y key2, int i, out U value)
-    {
-        if (dict.SmartGetValue(key, key2, out List<U> list))
-            return list.SmartGetValue(i, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, Dictionary<Y, List<U>>> dict,
-        T key, Y key2, int i, out U value)
-    {
-        if (dict.SmartGetValue(key, key2, out List<U> list))
-            return list.SmartGetValue(i, out value);
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
-    public static bool SmartGetValue<T, Y, U>(this SortedDictionary<T, SortedDictionary<Y, List<U>>> dict,
-        T key, Y key2, int i, out U value)
-    {
-        if (dict.SmartGetValue(key, key2, out List<U> list))
+        if (dict.SmartGetValue(key, key2, out L list))
             return list.SmartGetValue(i, out value);
         else
         {
@@ -489,19 +350,13 @@ public static class CollectionExtensions
         return array.Contains(element);
     }
 
-    public static bool NotNullContains<T>(this List<T> list, T element)
+    public static bool NotNullContains<T>(this ICollection<T> list, T element)
     {
         if (list == null) return false;
         return list.Contains(element);
     }
 
-    public static bool NotNullContainsKey<T, Y>(this Dictionary<T, Y> dict, T key)
-    {
-        if (dict == null) return false;
-        return dict.ContainsKey(key);
-    }
-
-    public static bool NotNullContainsKey<T, Y>(this SortedDictionary<T, Y> dict, T key)
+    public static bool NotNullContainsKey<T, Y>(this IDictionary<T, Y> dict, T key)
     {
         if (dict == null) return false;
         return dict.ContainsKey(key);
@@ -530,7 +385,7 @@ public static class CollectionExtensions
         return newData.ToArray();
     }
 
-    public static void ClearNulls<T>(this List<T> list)
+    public static void ClearNulls<T>(this IList<T> list)
     {
         for (int i = list.Count - 1; i >= 0; i--)
         {
@@ -548,7 +403,8 @@ public static class CollectionExtensions
 
     /// <summary>
     /// Clears the dictionary of null key values.
-    /// WARNING: Causes overhead on big dictionaries and GC when the dictionary actually has null values. Use with caution.
+    /// WARNING: Causes overhead on big dictionaries and GC when the dictionary actually has null values.
+    /// Use with caution.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="Y"></typeparam>
@@ -556,8 +412,49 @@ public static class CollectionExtensions
     /// <returns></returns>
     public static Dictionary<T, Y> ClearNulls<T, Y>(this Dictionary<T, Y> dict)
     {
-        if (dict == null) return null;
+        return ClearNulls<Dictionary<T, Y>, T, Y>(dict);
+    }
 
+    /// <summary>
+    /// Clears the dictionary of null key values.
+    /// WARNING: Causes overhead on big dictionaries and GC when the dictionary actually has null values.
+    /// Use with caution.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Y"></typeparam>
+    /// <param name="dict"></param>
+    /// <returns></returns>
+    public static SortedDictionary<T, Y> ClearNulls<T, Y>(this SortedDictionary<T, Y> dict)
+    {
+        return ClearNulls<SortedDictionary<T, Y>, T, Y>(dict);
+    }
+
+    /// <summary>
+    /// Clears the dictionary of null key values.
+    /// WARNING: Causes overhead on big dictionaries and GC when the dictionary actually has null values.
+    /// Use with caution.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Y"></typeparam>
+    /// <param name="dict"></param>
+    /// <returns></returns>
+    public static SortedList<T, Y> ClearNulls<T, Y>(this SortedList<T, Y> dict)
+    {
+        return ClearNulls<SortedList<T, Y>, T, Y>(dict);
+    }
+
+    /// <summary>
+    /// Clears the dictionary of null key values.
+    /// WARNING: Causes overhead on big dictionaries and GC when the dictionary actually has null values.
+    /// Use with caution.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Y"></typeparam>
+    /// <param name="dict"></param>
+    /// <returns></returns>
+    public static D ClearNulls<D, T, Y>(this D dict) where D : class, IDictionary<T, Y>, new()
+    {
+        if (dict == null) return null;
         bool hasNulls = false;
         foreach (KeyValuePair<T, Y> pair in dict)
         {
@@ -569,9 +466,16 @@ public static class CollectionExtensions
         }
 
         if (hasNulls)
-            return (from kv in dict
-                where kv.Key != null
-                select kv).ToDictionary(kv => kv.Key, kv => kv.Value);
+        {
+            //return (from kv in dict
+            //    where kv.Key != null
+            //    select kv).ToDictionary(kv => kv.Key, kv => kv.Value);
+            D newDict = new D();
+            foreach (KeyValuePair<T, Y> pair in dict)
+                if (pair.Key != null)
+                    newDict.Add(pair.Key, pair.Value);
+            return newDict;
+        }
         else return dict;
     }
     #endregion
@@ -579,23 +483,29 @@ public static class CollectionExtensions
     #region ClearOrCreate
     public static List<T> ClearOrCreate<T>(this List<T> list)
     {
+        return ClearOrCreate<List<T>, T>(list);
+    }
+
+    public static Dictionary<T, Y> ClearOrCreate<T, Y>(this Dictionary<T, Y> list)
+    {
+        return ClearOrCreate<Dictionary<T, Y>, KeyValuePair<T, Y>>(list);
+    }
+
+    public static SortedDictionary<T, Y> ClearOrCreate<T, Y>(this SortedDictionary<T, Y> list)
+    {
+        return ClearOrCreate<SortedDictionary<T, Y>, KeyValuePair<T, Y>>(list);
+    }
+
+    public static SortedList<T, Y> ClearOrCreate<T, Y>(this SortedList<T, Y> list)
+    {
+        return ClearOrCreate<SortedList<T, Y>, KeyValuePair<T, Y>>(list);
+    }
+
+    public static L ClearOrCreate<L, T>(this L list) where L : ICollection<T>, new()
+    {
         if (list != null) list.Clear();
-        else list = new List<T>();
+        else list = new L();
         return list;
-    }
-
-    public static Dictionary<T, Y> ClearOrCreate<T, Y>(this Dictionary<T, Y> dict)
-    {
-        if (dict != null) dict.Clear();
-        else dict = new Dictionary<T, Y>();
-        return dict;
-    }
-
-    public static SortedDictionary<T, Y> ClearOrCreate<T, Y>(this SortedDictionary<T, Y> dict)
-    {
-        if (dict != null) dict.Clear();
-        else dict = new SortedDictionary<T, Y>();
-        return dict;
     }
     #endregion
 
@@ -639,19 +549,20 @@ public static class CollectionExtensions
         collection.IndicesOf((item, offset) => item.Is(value));
 
     public static bool Equals<T>(T a, T b) => EqualityComparer<T>.Default.Equals(a, b);
+
     public static bool Is<T>(this T o, T x) => Equals(o, x);
     #endregion
 
     #region TryAdd
-    public static List<T> TryAdd<T>(this List<T> list, T element, bool testContains = true)
+    public static L TryAdd<L, T>(this L list, T element, bool testContains = true) where L : ICollection<T>
     {
         if ((element != null) && ((!testContains) || (!list.Contains(element))))
             list.Add(element);
         return list;
     }
 
-    public static List<T> TryAddRange<T>(this List<T> list,
-        IEnumerable<T> elements, bool testContains = false)
+    public static L TryAddRange<L, T>(this L list,
+        IEnumerable<T> elements, bool testContains = false) where L : ICollection<T>
     {
         if (elements.IsNullOrEmpty())
             return list;
@@ -663,7 +574,33 @@ public static class CollectionExtensions
     }
     #endregion
 
-    public static void Set<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value)
+    public static T CreateIfNull<T>(this T list) where T : new()
+    {
+        if (list == null) list = new T();
+        return list;
+    }
+
+    public static void AddRange<T>(this ICollection<T> target, IEnumerable<T> items)
+    {
+        if (target == null) throw new ArgumentNullException(nameof(target));
+        if (items == null) throw new ArgumentNullException(nameof(items));
+
+        if (target is List<T> list)
+        {
+            list.AddRange(items);
+            return;
+        }
+
+        foreach (var it in items)
+            target.Add(it);
+    }
+
+    public static void SmartClear<T>(this ICollection<T> list)
+    {
+        if (list != null) list.Clear();
+    }
+
+    public static void Set<T, Y>(this IDictionary<T, Y> dict, T key, Y value)
     {
         if (!dict.ContainsKey(key))
             dict.Add(key, value);

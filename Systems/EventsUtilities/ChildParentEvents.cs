@@ -173,7 +173,7 @@ public class ChildParentEvents : MonoBehaviour
         if (!childEvents.IsNullOrEmpty())
             childEvents.Sort(delegate (ChildParentEvents x, ChildParentEvents y)
             {
-                return x.transform.ChildIndex().CompareTo(y.transform.ChildIndex());
+                return x.transform.GetSiblingIndex().CompareTo(y.transform.GetSiblingIndex());
             });
     }
     #endregion
