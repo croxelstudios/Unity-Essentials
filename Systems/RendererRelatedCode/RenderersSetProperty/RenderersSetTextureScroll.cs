@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Sirenix.OdinInspector;
+using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -13,7 +14,14 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         get { return _moveSpeed; }
         set { _moveSpeed = value; }
     }
-    public Vector2 referenceOffset = Vector2.zero;
+    [SerializeField]
+    [OnValueChanged("UpdateRefOffset")]
+    public Vector2 _referenceOffset = Vector2.zero;
+    public Vector2 referenceOffset
+    {
+        get { return _referenceOffset; }
+        set { _referenceOffset = value; UpdateRefOffset(); }
+    }
     [SerializeField]
     RenderingTimeMode timeMode = RenderingTimeMode.Update;
 
@@ -35,7 +43,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
     protected override void Init()
     {
         originals = new Dictionary<RendMatProp, Vector4>();
-        currentOffset = referenceOffset;
+        UpdateRefOffset();
         base.Init();
     }
 
@@ -92,5 +100,10 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         if (originals.ContainsKey(rendMat))
             rendMat.material.SetVector(rendMat.property, originals[rendMat]);
         base.VResetProperty(rendMat);
+    }
+
+    void UpdateRefOffset()
+    {
+        currentOffset = _referenceOffset;
     }
 }

@@ -45,7 +45,7 @@ public class BToTarget<T, P, Q> : MonoBehaviour where P : ITransformationSequenc
 
     [SerializeField]
     bool local = false;
-    public bool locally { get { return local && (origin.parent != null); } }
+    public bool locally { get { return local; } }
     [SerializeField]
     protected bool sendWhenZeroToo = false;
     [SerializeField]

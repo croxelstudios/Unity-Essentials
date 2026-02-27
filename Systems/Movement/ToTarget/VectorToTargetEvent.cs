@@ -229,7 +229,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
 
     public override Vector3 ToLocal(Vector3 value)
     {
-        return origin.parent.InverseTransformPoint(value);
+        return origin.InverseTransformPoint(value);
     }
 
     public override void UpdateSpeed(ref Vector3 speed,

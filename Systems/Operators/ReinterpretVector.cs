@@ -10,15 +10,14 @@ public class ReinterpretVector : MonoBehaviour
     [SerializeField]
     float multiplier = 1f;
     [SerializeField]
+    float maxMagnitude = Mathf.Infinity;
+    [SerializeField]
     Vector3 vectorMultiplier = Vector3.one;
     [SerializeField]
     bool projectOnPlane = true;
     [SerializeField]
     [ShowIf("projectOnPlane")]
-    Vector3 plane2DNormal = Vector3.up;
-    [SerializeField]
-    [ShowIf("projectOnPlane")]
-    Vector3 plane2DUp = Vector3.forward;
+    Vector3 planeNormal = Vector3.up;
     [SerializeField]
     [ShowIf("projectOnPlane")]
     bool local = false;
@@ -33,23 +32,19 @@ public class ReinterpretVector : MonoBehaviour
     public void Reinterpret(Vector3 input)
     {
         if (projectOnPlane)
-            input = PlaneProjection(input.InterpretVector2(plane2DNormal, PlaneUp()));
+            input = Vector3.ProjectOnPlane(input, PlaneNormal());
         if (referenceTransform != null) input = referenceTransform.rotation * input;
         if (normalize) input = input.normalized;
+        if (input.sqrMagnitude > (maxMagnitude * maxMagnitude))
+            input = input.normalized * maxMagnitude;
         input.Scale(vectorMultiplier);
         input *= multiplier;
         vectorEvent?.Invoke(input);
     }
 
-    Vector2 PlaneProjection(Vector3 input)
+    Vector3 PlaneNormal()
     {
-        Vector3 localPlaneNormal = local ? transform.rotation * plane2DNormal : plane2DNormal;
-        return input.InterpretVector3Back(localPlaneNormal, PlaneUp());
-    }
-
-    Vector3 PlaneUp()
-    {
-        if (local) return transform.rotation * plane2DUp;
-        else return plane2DUp;
+        if (local) return transform.TransformDirection(planeNormal);
+        else return planeNormal;
     }
 }
