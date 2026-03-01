@@ -14,6 +14,8 @@ public class ReinterpretVector : MonoBehaviour
     [SerializeField]
     Vector3 vectorMultiplier = Vector3.one;
     [SerializeField]
+    Vector3 vectorMax = Vector3.one * Mathf.Infinity;
+    [SerializeField]
     bool projectOnPlane = true;
     [SerializeField]
     [ShowIf("projectOnPlane")]
@@ -31,20 +33,68 @@ public class ReinterpretVector : MonoBehaviour
 
     public void Reinterpret(Vector3 input)
     {
-        if (projectOnPlane)
-            input = Vector3.ProjectOnPlane(input, PlaneNormal());
-        if (referenceTransform != null) input = referenceTransform.rotation * input;
-        if (normalize) input = input.normalized;
-        if (input.sqrMagnitude > (maxMagnitude * maxMagnitude))
-            input = input.normalized * maxMagnitude;
-        input.Scale(vectorMultiplier);
-        input *= multiplier;
-        vectorEvent?.Invoke(input);
+        if (this.IsActiveAndEnabled())
+        {
+            if (projectOnPlane)
+                input = Vector3.ProjectOnPlane(input, PlaneNormal());
+            if (referenceTransform != null) input = referenceTransform.rotation * input;
+            if (normalize) input = input.normalized;
+            input.Scale(vectorMultiplier);
+            input *= multiplier;
+            if (input.sqrMagnitude > (maxMagnitude * maxMagnitude))
+                input = input.normalized * maxMagnitude;
+            input = new Vector3(
+                Mathf.Clamp(input.x, -vectorMax.x, vectorMax.x),
+                Mathf.Clamp(input.y, -vectorMax.y, vectorMax.y),
+                Mathf.Clamp(input.z, -vectorMax.z, vectorMax.z)
+            );
+            vectorEvent?.Invoke(input);
+        }
     }
 
     Vector3 PlaneNormal()
     {
         if (local) return transform.TransformDirection(planeNormal);
         else return planeNormal;
+    }
+
+    public void SetMultiplier(float multiplier)
+    {
+        this.multiplier = multiplier;
+    }
+
+    public void SetMultiplierX(float multiplier)
+    {
+        vectorMultiplier.x = multiplier;
+    }
+
+    public void SetMultiplierY(float multiplier)
+    {
+        vectorMultiplier.y = multiplier;
+    }
+
+    public void SetMultiplierZ(float multiplier)
+    {
+        vectorMultiplier.z = multiplier;
+    }
+
+    public void SetMaxMagnitude(float maxMagnitude)
+    {
+        this.maxMagnitude = maxMagnitude;
+    }
+
+    public void SetMaxX(float max)
+    {
+        vectorMax.x = max;
+    }
+
+    public void SetMaxY(float max)
+    {
+        vectorMax.y = max;
+    }
+
+    public void SetMaxZ(float max)
+    {
+        vectorMax.z = max;
     }
 }

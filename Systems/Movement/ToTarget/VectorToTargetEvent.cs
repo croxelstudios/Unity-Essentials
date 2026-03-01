@@ -6,6 +6,8 @@ using static SpeedBehaviour;
 public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, INavMeshAgentTypeContainer
 {
     [SerializeField]
+    Vector3 vectorMultiplier = Vector3.one;
+    [SerializeField]
     [Tooltip("Use NavMesh system to calculate the direction")]
     bool useNavMesh = false;
     [SerializeField]
@@ -173,6 +175,8 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
 
     protected override void Execute(Vector3 speedPerThisFrame, float deltaTime)
     {
+        speedPerThisFrame.Scale(vectorMultiplier);
+
         float unitsPerSecondSpeed = speedPerThisFrame.magnitude * deltaTime.Reciprocal();
 
         CheckStartStop(unitsPerSecondSpeed);
@@ -211,6 +215,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
             Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
             dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
         }
+        dif.Scale(vectorMultiplier);
         Apply(dif, isLocal);
         ResetSpeed();
     }

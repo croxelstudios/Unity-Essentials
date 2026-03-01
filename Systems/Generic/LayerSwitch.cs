@@ -1,23 +1,30 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class LayerSwitch : MonoBehaviour
 {
     [SerializeField]
+    Transform inObject = null;
+    [SerializeField]
     string newLayer = "";
 
     Dictionary<Transform, int> oldLayers;
 
+    void OnValidate()
+    {
+        if (inObject == null)
+            inObject = transform;
+    }
+
     public void SwitchLayer()
     {
         if (oldLayers == null) oldLayers = new Dictionary<Transform, int>();
-        SwitchLayer(transform, LayerMask.NameToLayer(newLayer));
+        SwitchLayer(inObject, LayerMask.NameToLayer(newLayer));
     }
 
     public void RevertLayer()
     {
-        SwitchLayer(transform, ref oldLayers, 0);
+        SwitchLayer(inObject, ref oldLayers, 0);
     }
 
     void SwitchLayer(Transform tr, int layer)
@@ -43,5 +50,15 @@ public class LayerSwitch : MonoBehaviour
                 tr.gameObject.layer = dic[tr];
             else tr.gameObject.layer = defaultLayer;
         }
+    }
+
+    public void DeactivateObject()
+    {
+        inObject.gameObject.SetActive(false);
+    }
+
+    public void ActivateObject()
+    {
+        inObject.gameObject.SetActive(true);
     }
 }
