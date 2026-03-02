@@ -14,7 +14,7 @@ public static class ComputableModule
     static bool initialized = false;
 
     /// <summary>
-    /// Gets the ComputableMesh or ComputableMeshes associated with the specified component.
+    /// Gets the ComputableMesh or ComputableMeshes associated with the specified Component.
     /// If the Rendering Agent is a MeshFilter, automatically sets up the mesh replacement on rendering.
     /// </summary>
     /// <param name="comp"></param>
@@ -22,15 +22,28 @@ public static class ComputableModule
     /// <returns></returns>
     public static ComputableMesh[] Get(Component comp, string nameSufix = "_Computable")
     {
-        return Get(comp, false, nameSufix);
+        return Get(comp, comp.gameObject, false, nameSufix);
     }
 
-    public static ComputableMesh[] Get(Component comp, bool reinitialize, string nameSufix = "_Computable")
+    /// <summary>
+    /// Gets the ComputableMesh or ComputableMeshes associated with the specified Component and GameObject.
+    /// If the Rendering Agent is a MeshFilter, automatically sets up the mesh replacement on rendering.
+    /// </summary>
+    /// <param name="comp"></param>
+    /// <param name="nameSufix"></param>
+    /// <returns></returns>
+    public static ComputableMesh[] Get(Component comp, GameObject gameObject, string nameSufix = "_Computable")
+    {
+        return Get(comp, gameObject, false, nameSufix);
+    }
+
+    public static ComputableMesh[] Get(Component comp, GameObject gameObject,
+        bool reinitialize, string nameSufix = "_Computable")
     {
         if (comp == null)
             return null;
 
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        ComputableElement filter = ComputableElement.Get(gameObject);
 
         if (filter.isNull)
             return null;
@@ -51,7 +64,12 @@ public static class ComputableModule
 
     public static void StopUsing(Component comp)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        StopUsing(comp, comp.gameObject);
+    }
+    
+    public static void StopUsing(Component comp, GameObject gameObject)
+    {
+        ComputableElement filter = ComputableElement.Get(gameObject);
 
         if (!filter.isNull)
         {
@@ -86,21 +104,21 @@ public static class ComputableModule
         }
     }
 
-    public static Matrix4x4 LocalToWorldMatrix(Component comp, int id)
+    public static Matrix4x4 LocalToWorldMatrix(GameObject obj, int id)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        ComputableElement filter = ComputableElement.Get(obj);
         return filter.LocalToWorldMatrix(id);
     }
 
-    public static Matrix4x4 WorldToLocalMatrix(Component comp, int id)
+    public static Matrix4x4 WorldToLocalMatrix(GameObject obj, int id)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        ComputableElement filter = ComputableElement.Get(obj);
         return filter.WorldToLocalMatrix(id);
     }
 
-    public static bool IsRenderingAgentEnabled(Component comp)
+    public static bool IsRenderingAgentEnabled(GameObject obj)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        ComputableElement filter = ComputableElement.Get(obj);
 
         if (filter.isNull)
             return false;
@@ -118,9 +136,9 @@ public static class ComputableModule
         }
     }
 
-    public static bool IsRendererCullable(Component comp)
+    public static bool IsRendererCullable(GameObject obj)
     {
-        switch (RendererType(comp))
+        switch (RendererType(obj))
         {
             case RenType.Filter:
                 return true;
@@ -133,16 +151,16 @@ public static class ComputableModule
         }
     }
 
-    public static RenType RendererType(Component comp)
+    public static RenType RendererType(GameObject obj)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        ComputableElement filter = ComputableElement.Get(obj);
 
         return filter.renType;
     }
 
-    public static bool FilterMeshChanged(Component comp)
+    public static bool FilterMeshChanged(GameObject obj)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        ComputableElement filter = ComputableElement.Get(obj);
 
         if (filter.isNull)
             return true;
@@ -160,16 +178,20 @@ public static class ComputableModule
         }
     }
 
-
     /// <summary>
-    /// Tracks the start rendering event for the specified component.
+    /// Tracks the start rendering event for the specified Component.
     /// If the rendering agent is a CustomRenderer, it assigns the method to be called when rendering starts.
     /// </summary>
     /// <param name="comp"></param>
     /// <param name="method"></param>
     public static void SetRenderingEvent_Start(Component comp, UnityAction method)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        SetRenderingEvent_Start(comp, comp.gameObject, method);
+    }
+
+    public static void SetRenderingEvent_Start(Component comp, GameObject obj, UnityAction method)
+    {
+        ComputableElement filter = ComputableElement.Get(obj);
         startActions = startActions.CreateAdd(comp, method);
 
         if (filter.renType == RenType.Custom)
@@ -181,14 +203,19 @@ public static class ComputableModule
     }
 
     /// <summary>
-    /// Tracks the finished rendering event for the specified component.
+    /// Tracks the finished rendering event for the specified Component.
     /// If the rendering agent is a CustomRenderer, it assigns the method to be called when rendering is finished.
     /// </summary>
     /// <param name="comp"></param>
     /// <param name="method"></param>
     public static void SetRenderingEvent_Finished(Component comp, UnityAction method)
     {
-        ComputableElement filter = ComputableElement.Get(comp.gameObject);
+        SetRenderingEvent_Finished(comp, comp.gameObject, method);
+    }
+
+    public static void SetRenderingEvent_Finished(Component comp, GameObject obj, UnityAction method)
+    {
+        ComputableElement filter = ComputableElement.Get(obj);
         finishActions = finishActions.CreateAdd(comp, method);
 
         if (filter.renType == RenType.Custom)
