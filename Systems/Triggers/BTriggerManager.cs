@@ -12,6 +12,7 @@ public class BTriggerManager : MonoBehaviour
     [Tooltip("Will fire on any collision if this array is empty")]
     string[] detectionTags = null;
 
+    int count;
     List<NDCollider> colliders;
     NDCollider[] selfColliders;
 
@@ -23,16 +24,22 @@ public class BTriggerManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!HasEnabledCollider())
-            OnDisable();
-
-        for (int i = colliders.Count - 1; i > -1; i--)
+        if (count > 0)
         {
-            if (colliders[i].IsNull() || (!colliders[i].enabled) || (!colliders[i].gameObject.activeInHierarchy))
+            if (!HasEnabledCollider())
+                Disable();
+
+            for (int i = count - 1; i > -1; i--)
             {
-                colliders.RemoveAt(i);
-                if (colliders.Count == 0) OnTrigExit();
-                OnTrigExit(null);
+                if ((colliders[i] == null) ||
+                    (!colliders[i].enabled) ||
+                    (!colliders[i].gameObject.activeInHierarchy))
+                {
+                    colliders.RemoveAt(i);
+                    count--;
+                    if (count == 0) OnTrigExit();
+                    OnTrigExit(null);
+                }
             }
         }
     }
@@ -47,8 +54,9 @@ public class BTriggerManager : MonoBehaviour
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
             NDCollider enterCol = other.ND();
-            int prevCount = colliders.Count;
+            int prevCount = count;
             colliders.Add(enterCol);
+            count++;
             if (prevCount == 0) OnTrigEnter();
             OnTrigEnter(enterCol);
         }
@@ -59,8 +67,9 @@ public class BTriggerManager : MonoBehaviour
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
             NDCollider enterCol = other.ND();
-            int prevCount = colliders.Count;
+            int prevCount = count;
             colliders.Add(enterCol);
+            count++;
             if (prevCount == 0) OnTrigEnter();
             OnTrigEnter(enterCol);
         }
@@ -71,13 +80,14 @@ public class BTriggerManager : MonoBehaviour
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
             NDCollider exitCol = other.ND();
-            for (int i = colliders.Count - 1; i >= 0; i--)
+            for (int i = count - 1; i >= 0; i--)
                 if (colliders[i] == exitCol)
                 {
                     colliders.RemoveAt(i);
+                    count--;
                     break;
                 }
-            if (colliders.Count == 0) OnTrigExit();
+            if (count == 0) OnTrigExit();
             OnTrigExit(exitCol);
         }
     }
@@ -87,13 +97,14 @@ public class BTriggerManager : MonoBehaviour
         if (IsThisEnabled() && CheckCollision(other.gameObject))
         {
             NDCollider exitCol = other.ND();
-            for (int i = colliders.Count - 1; i >= 0; i--)
+            for (int i = count - 1; i >= 0; i--)
                 if (colliders[i] == exitCol)
                 {
                     colliders.RemoveAt(i);
+                    count--;
                     break;
                 }
-            if (colliders.Count == 0) OnTrigExit();
+            if (count == 0) OnTrigExit();
             OnTrigExit(exitCol);
         }
     }
@@ -133,13 +144,17 @@ public class BTriggerManager : MonoBehaviour
 
     void OnDisable()
     {
-        if (colliders.Count > 0)
-        {
-            foreach (NDCollider col in colliders)
-                OnTrigExit(col);
-            colliders.Clear();
-            OnTrigExit();
-        }
+        if (count > 0)
+            Disable();
+    }
+
+    void Disable()
+    {
+        foreach (NDCollider col in colliders)
+            OnTrigExit(col);
+        colliders.Clear();
+        count = 0;
+        OnTrigExit();
     }
 
     bool HasEnabledCollider()
@@ -147,7 +162,7 @@ public class BTriggerManager : MonoBehaviour
         if ((selfColliders == null) || (selfColliders.Length <= 0))
             return false;
         for (int i = 0; i < selfColliders.Length; i++)
-            if ((!selfColliders[i].IsNull()) && selfColliders[i].enabled)
+            if ((selfColliders[i] != null) && selfColliders[i].enabled)
                 return true;
         return false;
     }

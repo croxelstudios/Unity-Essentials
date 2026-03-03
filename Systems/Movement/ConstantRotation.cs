@@ -24,6 +24,7 @@ public class ConstantRotation : MonoBehaviour
     protected TimeMode timeMode = TimeMode.FixedUpdate;
 
     Quaternion accumulatedRotation;
+    Transform tr;
 
     void OnEnable()
     {
@@ -38,12 +39,13 @@ public class ConstantRotation : MonoBehaviour
             speed = Random.Range(speedRange.x, speedRange.y);
         }
         axis = axis.normalized;
+        tr = transform;
     }
 
     void OnDisable()
     {
         if (deactivationResetsRotation)
-            transform.Rotate(Quaternion.Inverse(accumulatedRotation).eulerAngles);
+            tr.Rotate(Quaternion.Inverse(accumulatedRotation).eulerAngles);
     }
 
     void Update()
@@ -62,7 +64,7 @@ public class ConstantRotation : MonoBehaviour
     {
         Vector3 finalRotation = axis * speed * deltaTime;
         accumulatedRotation = Quaternion.Euler(finalRotation) * accumulatedRotation;
-        transform.Rotate(finalRotation, worldSpace ? Space.World : Space.Self);
+        tr.Rotate(finalRotation, worldSpace ? Space.World : Space.Self);
     }
 
     public void Restart()

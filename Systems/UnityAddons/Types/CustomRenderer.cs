@@ -33,6 +33,11 @@ public class CustomRenderer : MonoBehaviour
         return transform.worldToLocalMatrix;
     }
 
+    public virtual bool IsVisible(int id = -1)
+    {
+        return enabled;
+    }
+
     public void AddStartAction(UnityAction action)
     {
         if (startRendering == null)

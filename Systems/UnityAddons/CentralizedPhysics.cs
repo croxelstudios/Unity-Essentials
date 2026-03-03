@@ -488,9 +488,9 @@ public class NDCollider
     {
         get
         {
-            if (IsNull()) return false;
             if (is2D) return col2.enabled;
-            else return col3.enabled;
+            else if (is3D) return col3.enabled;
+            else return false;
         }
     }
     public bool isTrigger
@@ -507,7 +507,11 @@ public class NDCollider
     {
         get
         {
+            if (_attachedRigidbody != null)
+                return _attachedRigidbody;
+
             if (IsNull()) return null;
+
             if (is2D)
             {
                 if (col2.attachedRigidbody != null)
@@ -531,7 +535,7 @@ public class NDCollider
             else return null;
         }
     }
-    
+
     GameObject _gameObject;
     public GameObject gameObject
     {
@@ -1219,76 +1223,74 @@ public struct NDRaycastHit
     public RaycastHit hit3;
     readonly bool is2D;
     public bool is3D { get { return !is2D; } }
-    public bool isTrigger
-    {
-        get { return collider.isTrigger; }
-    }
+    public bool isTrigger { get { return collider.isTrigger; } }
+    NDCollider _collider;
     public NDCollider collider
     {
         get
         {
-            if (is2D) return hit2.collider.ND();
-            else return hit3.collider.ND();
+            if (_collider == null)
+            {
+                if (is2D) _collider = hit2.collider.ND();
+                else _collider = hit3.collider.ND();
+            }
+            return _collider;
         }
     }
+    float _distance;
     public float distance
     {
         get
         {
-            if (is2D) return hit2.distance;
-            else return hit3.distance;
+            if (_distance < 0f)
+            {
+                if (is2D) _distance = hit2.distance;
+                else _distance = hit3.distance;
+            }
+            return _distance;
         }
     }
     public float fraction;
+    Vector3? _normal;
     public Vector3 normal
     {
         get
         {
-            if (is2D) return hit2.normal;
-            else return hit3.normal;
+            if (_normal == null)
+            {
+                if (is2D) _normal = hit2.normal;
+                else _normal = hit3.normal;
+            }
+            return _normal.Value;
         }
     }
+    Vector3? _point;
     public Vector3 point
     {
         get
         {
-            if (is2D) return hit2.point;
-            else return hit3.point;
+            if (_point == null)
+            {
+                if (is2D) _point = hit2.point;
+                else _point = hit3.point;
+            }
+            return _point.Value;
         }
     }
-    NDRigidbody _rigidbody;
     public NDRigidbody rigidbody
-    {
-        get
-        {
-            if (is2D)
-            {
-                if (hit2.rigidbody != null)
-                {
-                    if ((_rigidbody == null) || (_rigidbody.rigid2 != hit2.rigidbody))
-                        _rigidbody = hit2.rigidbody.ND();
-                    return _rigidbody;
-                }
-                else return null;
-            }
-            else
-            {
-                if (hit3.rigidbody != null)
-                {
-                    if ((_rigidbody == null) || (_rigidbody.rigid3 != hit3.rigidbody))
-                        _rigidbody = hit3.rigidbody.ND();
-                    return _rigidbody;
-                }
-                else return null;
-            }
-        }
-    }
+    { get { return collider.attachedRigidbody; } }
+
+    Transform _transform;
     public Transform transform
     {
         get
         {
-            if (is2D) return hit2.transform;
-            else return hit3.transform;
+            if (_transform == null)
+            {
+                if (is2D) _transform = hit2.transform;
+                else _transform = hit3.transform;
+            }
+            return _transform;
         }
     }
 
@@ -1296,18 +1298,28 @@ public struct NDRaycastHit
     {
         hit2 = hit;
         hit3 = default;
-        _rigidbody = hit2.rigidbody.ND();
         is2D = true;
         fraction = hit.fraction;
+
+        _collider = null;
+        _distance = -1;
+        _normal = null;
+        _point = null;
+        _transform = null;
     }
 
     public NDRaycastHit(RaycastHit hit, float maxDistance)
     {
         hit2 = default;
         hit3 = hit;
-        _rigidbody = hit3.rigidbody.ND();
         is2D = false;
         fraction = Mathf.InverseLerp(0f, maxDistance, hit.distance);
+
+        _collider = null;
+        _distance = -1;
+        _normal = null;
+        _point = null;
+        _transform = null;
     }
 }
 

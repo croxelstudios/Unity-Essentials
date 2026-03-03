@@ -53,7 +53,7 @@ public static class ComputableModule
             case RenType.Filter:
                 return new ComputableMesh[] { Get(filter.filter, comp) };
             case RenType.Sprite:
-                return new ComputableMesh[] { Get(filter.spriteRenderer, comp).mesh };
+                return new ComputableMesh[] { Get(filter.renderer as SpriteRenderer, comp).mesh };
             case RenType.Custom:
                 return filter.customRenderer.enabled ?
                     filter.customRenderer.GetComputables(comp) : new ComputableMesh[0];
@@ -81,7 +81,7 @@ public static class ComputableModule
                     finishActions.SmartRemove(comp);
                     break;
                 case RenType.Sprite:
-                    StopUsing(filter.spriteRenderer, comp);
+                    StopUsing(filter.renderer as SpriteRenderer, comp);
                     startActions.SmartRemove(comp);
                     finishActions.SmartRemove(comp);
                     break;
@@ -170,7 +170,7 @@ public static class ComputableModule
             case RenType.Filter:
                 return filtersProcessor.MeshChanged(filter.filter);
             case RenType.Sprite:
-                return spritesProcessor.SpriteChanged(filter.spriteRenderer);
+                return spritesProcessor.SpriteChanged(filter.renderer as SpriteRenderer);
             case RenType.Custom:
                 return false;
             default:
@@ -224,6 +224,12 @@ public static class ComputableModule
             //^ In case it's already added
             filter.customRenderer.AddFinishAction(method);
         }
+    }
+
+    public static bool IsVisible(GameObject obj)
+    {
+        ComputableElement filter = ComputableElement.Get(obj);
+        return filter.IsVisible();
     }
 
     //By MeshFilter
@@ -703,32 +709,25 @@ public static class ComputableModule
         static Dictionary<GameObject, ComputableElement> filters = null;
         static bool wasCleaned;
         public MeshFilter filter;
-        public MeshRenderer renderer;
-        public SpriteRenderer spriteRenderer;
+        public Renderer renderer;
         public CustomRenderer customRenderer;
         public Transform transform;
-        public RenType renType
-        {
-            get
-            {
-                if (filter != null)
-                    return RenType.Filter;
-                else if (spriteRenderer != null)
-                    return RenType.Sprite;
-                else if (customRenderer != null)
-                    return RenType.Custom;
-                else
-                    return RenType.Null;
-            }
-        }
+        public RenType renType;
         public bool isNull
         {
             get
             {
-                return
-                    (filter == null) &&
-                    (spriteRenderer == null) &&
-                    (customRenderer == null);
+                switch (renType)
+                {
+                    case RenType.Filter:
+                        return filter == null;
+                    case RenType.Sprite:
+                        return renderer == null;
+                    case RenType.Custom:
+                        return customRenderer == null;
+                    default:
+                        return renderer == null;
+                }
             }
         }
         public Matrix4x4 LocalToWorldMatrix(int id)
@@ -742,6 +741,17 @@ public static class ComputableModule
                 customRenderer.WorldToLocalMatrix(id);
         }
 
+        public bool IsVisible()
+        {
+            switch (renType)
+            {
+                case RenType.Custom:
+                    return customRenderer.IsVisible(); //TO DO
+                default:
+                    return renderer.isVisible;
+            }
+        }
+
         static List<GameObject> auxGOs;
 
         public ComputableElement(MeshFilter filter)
@@ -749,8 +759,8 @@ public static class ComputableModule
             this.filter = filter;
             renderer = filter.gameObject.GetComponent<MeshRenderer>();
             customRenderer = null;
-            spriteRenderer = null;
             transform = null;
+            renType = RenType.Filter;
 
             if (filter != null)
                 transform = filter.transform;
@@ -758,11 +768,11 @@ public static class ComputableModule
 
         public ComputableElement(SpriteRenderer spriteRenderer)
         {
-            this.spriteRenderer = spriteRenderer;
             filter = null;
-            renderer = null;
+            renderer = spriteRenderer;
             customRenderer = null;
             transform = null;
+            renType = RenType.Sprite;
 
             if (spriteRenderer != null)
                 transform = spriteRenderer.transform;
@@ -772,9 +782,9 @@ public static class ComputableModule
         {
             filter = null;
             renderer = null;
-            spriteRenderer = null;
             this.customRenderer = customRenderer;
             transform = null;
+            renType = RenType.Custom;
 
             if (customRenderer != null)
                 transform = customRenderer.transform;
@@ -785,16 +795,22 @@ public static class ComputableModule
             filter = gameObject.GetComponent<MeshFilter>();
             renderer = null;
             customRenderer = null;
-            spriteRenderer = null;
             transform = gameObject.transform;
 
             if (filter != null)
+            {
                 renderer = filter.gameObject.GetComponent<MeshRenderer>();
+                renType = RenType.Filter;
+            }
             else
             {
-                spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
-                if (spriteRenderer == null)
+                renderer = gameObject.GetComponent<SpriteRenderer>();
+                if (renderer == null)
+                {
                     customRenderer = gameObject.GetComponent<CustomRenderer>();
+                    renType = RenType.Custom;
+                }
+                else renType = RenType.Sprite;
             }
         }
 
@@ -860,7 +876,7 @@ public static class ComputableModule
                 case RenType.Filter:
                     return filter.GetHashCode();
                 case RenType.Sprite:
-                    return spriteRenderer.GetHashCode();
+                    return renderer.GetHashCode();
                 case RenType.Custom:
                     return customRenderer.GetHashCode();
                 default:
