@@ -25,7 +25,7 @@ public class BRenderersSetProperty : MonoBehaviour
     [SerializeField]
     protected bool updateRenderers = false;
     [SerializeField]
-    protected bool dontUsePropertyBlock = false;
+    protected bool usePropertyBlock = false;
     [SerializeField]
     bool waitOneFrameForInit = false;
 
@@ -155,7 +155,7 @@ public class BRenderersSetProperty : MonoBehaviour
         if ((!rendMat.IsNull()) && CheckPropertyName(rendMat.sharedMaterial, out string propName))
         {
             RendMatProp rendMatProp = new RendMatProp(rendMat, propName);
-            if (dontUsePropertyBlock || originals.NotNullContainsKey(rendMat))
+            if ((!usePropertyBlock) || originals.NotNullContainsKey(rendMat))
             {
 #if UNITY_EDITOR
                 if (Application.isPlaying)

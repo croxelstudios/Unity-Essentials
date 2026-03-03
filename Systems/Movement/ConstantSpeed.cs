@@ -43,6 +43,7 @@ public class ConstantSpeed : MonoBehaviour
 
     [HideInInspector]
     public Vector3 speed3;
+    Transform tr;
 
     void OnEnable()
     {
@@ -61,6 +62,7 @@ public class ConstantSpeed : MonoBehaviour
 
         direction = direction.normalized;
         speed3 = direction * speed;
+        tr = transform;
     }
 
     void Update()
@@ -76,9 +78,9 @@ public class ConstantSpeed : MonoBehaviour
     void UpdatePosition(float deltaTime)
     {
         if (toChildren)
-            for (int i = 0; i < transform.childCount; i++)
-                transform.GetChild(i).Translate(speed3 * Time.deltaTime, worldSpace ? Space.World : Space.Self);
-        else transform.Translate(speed3 * Time.deltaTime, worldSpace ? Space.World : Space.Self);
+            for (int i = 0; i < tr.childCount; i++)
+                tr.GetChild(i).Translate(speed3 * Time.deltaTime, worldSpace ? Space.World : Space.Self);
+        else tr.Translate(speed3 * Time.deltaTime, worldSpace ? Space.World : Space.Self);
     }
 
     public enum Direction { Up, Right, Down, Left, Forward, Backwards }
