@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Sirenix.OdinInspector;
 
-public class ReinterpretVector : MonoBehaviour
+public class ReinterpretVector : DXMonoBehaviour
 {
     [SerializeField]
     Transform referenceTransform = null;

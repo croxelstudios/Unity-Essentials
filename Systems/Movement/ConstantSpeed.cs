@@ -2,7 +2,7 @@
 using Sirenix.OdinInspector;
 using System.Linq;
 
-public class ConstantSpeed : MonoBehaviour
+public class ConstantSpeed : DXMonoBehaviour
 {
     [SerializeField]
     protected float _speed = 10f;
@@ -39,11 +39,13 @@ public class ConstantSpeed : MonoBehaviour
     [ShowIf("randomize")]
     Vector2 speedRange = Vector2.zero;
     [SerializeField]
+    bool useGlobalTime = false;
+    [SerializeField]
     TimeMode timeMode = TimeMode.FixedUpdate;
 
     [HideInInspector]
     public Vector3 speed3;
-    Transform tr;
+    Vector3 accumulatedTranslation;
 
     void OnEnable()
     {
@@ -62,25 +64,37 @@ public class ConstantSpeed : MonoBehaviour
 
         direction = direction.normalized;
         speed3 = direction * speed;
-        tr = transform;
     }
 
     void Update()
     {
-        if (timeMode.IsSmooth()) UpdatePosition(timeMode.DeltaTime());
+        if (timeMode.IsSmooth()) UpdatePosition(timeMode);
     }
 
     void FixedUpdate()
     {
-        if (timeMode.IsFixed()) UpdatePosition(timeMode.DeltaTime());
+        if (timeMode.IsFixed()) UpdatePosition(timeMode);
     }
 
-    void UpdatePosition(float deltaTime)
+    void UpdatePosition(TimeMode timeMode)
     {
+        Vector3 translation;
+        if (useGlobalTime)
+        {
+            Vector3 newPos = speed3 * timeMode.Time();
+            translation = newPos - accumulatedTranslation;
+            accumulatedTranslation = newPos;
+        }
+        else
+        {
+            translation = speed3 * timeMode.DeltaTime();
+            accumulatedTranslation += translation;
+        }
+
         if (toChildren)
-            for (int i = 0; i < tr.childCount; i++)
-                tr.GetChild(i).Translate(speed3 * Time.deltaTime, worldSpace ? Space.World : Space.Self);
-        else tr.Translate(speed3 * Time.deltaTime, worldSpace ? Space.World : Space.Self);
+            for (int i = 0; i < transform.childCount; i++)
+                transform.GetChild(i).Translate(translation, worldSpace ? Space.World : Space.Self);
+        else transform.Translate(translation, worldSpace ? Space.World : Space.Self);
     }
 
     public enum Direction { Up, Right, Down, Left, Forward, Backwards }

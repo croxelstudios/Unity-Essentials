@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [ExecuteAlways]
-public class TransformLookAtTarget : MonoBehaviour
+public class TransformLookAtTarget : DXMonoBehaviour
 {
     [SerializeField]
     [Tooltip("Will look at closest if multiple with same tag are detected")]

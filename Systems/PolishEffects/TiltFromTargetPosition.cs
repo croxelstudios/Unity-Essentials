@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class TiltFromTargetPosition : MonoBehaviour
+public class TiltFromTargetPosition : DXMonoBehaviour
 {
     [SerializeField]
     [TagSelector]

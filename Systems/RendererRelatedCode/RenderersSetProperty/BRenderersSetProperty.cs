@@ -5,7 +5,7 @@ using UnityEngine;
 using System;
 
 [ExecuteAlways]
-public class BRenderersSetProperty : MonoBehaviour
+public class BRenderersSetProperty : DXMonoBehaviour
 {
     protected Renderer[] rend;
 
@@ -155,18 +155,17 @@ public class BRenderersSetProperty : MonoBehaviour
         if ((!rendMat.IsNull()) && CheckPropertyName(rendMat.sharedMaterial, out string propName))
         {
             RendMatProp rendMatProp = new RendMatProp(rendMat, propName);
-            if ((!usePropertyBlock) || originals.NotNullContainsKey(rendMat))
-            {
+            if (((!usePropertyBlock) || originals.NotNullContainsKey(rendMat))
 #if UNITY_EDITOR
-                if (Application.isPlaying)
+                && Application.isPlaying
 #endif
-                {
-                    if (!originals.NotNullContainsKey(rendMat))
-                        originals = originals.CreateAdd(rendMat, rendMat.sharedMaterial);
+                )
+            {
+                if (!originals.NotNullContainsKey(rendMat))
+                    originals = originals.CreateAdd(rendMat, rendMat.sharedMaterial);
 
-                    if (reset) VResetProperty(rendMatProp);
-                    else VSetProperty(rendMatProp);
-                }
+                if (reset) VResetProperty(rendMatProp);
+                else VSetProperty(rendMatProp);
             }
             else
             {
@@ -542,7 +541,15 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
 
     protected T GetProperty(RendMatProp rendMat)
     {
+        bool fromOriginal = false;
         if (originals.NotNullContainsKey(rendMat))
+        {
+            if (originals[rendMat] == null)
+                originals.Remove(rendMat);
+            else fromOriginal = true;
+        }
+
+        if (fromOriginal)
             return GetProperty(originals[rendMat], rendMat.property);
         else return GetProperty(rendMat.sharedMaterial, rendMat.property);
     }

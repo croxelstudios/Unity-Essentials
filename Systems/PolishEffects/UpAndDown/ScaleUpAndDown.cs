@@ -7,8 +7,8 @@ public class ScaleUpAndDown : BSinoidalTransform
 
     protected override void Awake()
     {
-        amount = Vector3.Scale(amount, transform.localScale);
         base.Awake();
+        amount = Vector3.Scale(amount, transform.localScale);
     }
 
     protected override void Transformation(float value)

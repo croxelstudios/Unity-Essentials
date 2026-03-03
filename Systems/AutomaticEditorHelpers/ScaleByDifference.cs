@@ -1,7 +1,8 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [ExecuteAlways]
-public class ScaleByDifference : MonoBehaviour
+public class ScaleByDifference : DXMonoBehaviour
 {
     [SerializeField]
     Transform other = null;

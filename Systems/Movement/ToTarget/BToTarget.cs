@@ -4,7 +4,7 @@ using static SpeedBehaviour;
 
 //TO DO: Add intermediate class that removes the Q component.
 //TO DO: General Path class that implements ITransformationSequence and generalized common methods
-public class BToTarget<T, P, Q> : MonoBehaviour where P : ITransformationSequence, new()
+public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSequence, new()
 {
     [SerializeField]
     [Tooltip("Wether this code should apply transformations to the 'origin' or it should just send the events elsewhere")]

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Sirenix.OdinInspector;
 
-public class ConstantRotation : MonoBehaviour
+public class ConstantRotation : DXMonoBehaviour
 {
     [SerializeField]
     float _speed = 50f;
@@ -21,14 +21,18 @@ public class ConstantRotation : MonoBehaviour
     [SerializeField]
     bool deactivationResetsRotation = false;
     [SerializeField]
+    bool useGlobalTime = false;
+    [SerializeField]
     protected TimeMode timeMode = TimeMode.FixedUpdate;
 
     Quaternion accumulatedRotation;
-    Transform tr;
 
     void OnEnable()
     {
+        if (useGlobalTime)
+            ResetRotation();
         accumulatedRotation = Quaternion.identity;
+
         if (randomize)
         {
             if (randomAxis)
@@ -39,32 +43,41 @@ public class ConstantRotation : MonoBehaviour
             speed = Random.Range(speedRange.x, speedRange.y);
         }
         axis = axis.normalized;
-        tr = transform;
     }
 
     void OnDisable()
     {
         if (deactivationResetsRotation)
-            tr.Rotate(Quaternion.Inverse(accumulatedRotation).eulerAngles);
+            ResetRotation();
     }
 
     void Update()
     {
         if (timeMode.IsSmooth())
-            UpdateActions(timeMode.DeltaTime());
+            UpdateActions(timeMode);
     }
 
     void FixedUpdate()
     {
         if (timeMode.IsFixed())
-            UpdateActions(timeMode.DeltaTime());
+            UpdateActions(timeMode);
     }
 
-    void UpdateActions(float deltaTime)
+    void UpdateActions(TimeMode timeMode)
     {
-        Vector3 finalRotation = axis * speed * deltaTime;
-        accumulatedRotation = Quaternion.Euler(finalRotation) * accumulatedRotation;
-        tr.Rotate(finalRotation, worldSpace ? Space.World : Space.Self);
+        if (useGlobalTime)
+        {
+            Quaternion finalRotation = Quaternion.Euler(axis * speed * timeMode.Time());
+            transform.Rotate(finalRotation.Subtract(accumulatedRotation).eulerAngles,
+                worldSpace ? Space.World : Space.Self);
+            accumulatedRotation = finalRotation;
+        }
+        else
+        {
+            Vector3 finalRotation = axis * speed * timeMode.DeltaTime();
+            accumulatedRotation = Quaternion.Euler(finalRotation) * accumulatedRotation;
+            transform.Rotate(finalRotation, worldSpace ? Space.World : Space.Self);
+        }
     }
 
     public void Restart()
@@ -74,5 +87,11 @@ public class ConstantRotation : MonoBehaviour
             OnDisable();
             OnEnable();
         }
+    }
+
+    void ResetRotation()
+    {
+        transform.Rotate(Quaternion.Inverse(accumulatedRotation).eulerAngles,
+            worldSpace ? Space.World : Space.Self);
     }
 }

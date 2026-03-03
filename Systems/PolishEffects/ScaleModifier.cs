@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [DefaultExecutionOrder(-10)]
-public class ScaleModifier : MonoBehaviour
+public class ScaleModifier : DXMonoBehaviour
 {
     [SerializeField]
     float smoothTime = 0f;

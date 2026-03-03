@@ -1,7 +1,7 @@
 using Mono.CSharp;
 using UnityEngine;
 
-public class PositionFromMagnitude : MonoBehaviour
+public class PositionFromMagnitude : DXMonoBehaviour
 {
     [SerializeField]
     Space space = Space.Self;

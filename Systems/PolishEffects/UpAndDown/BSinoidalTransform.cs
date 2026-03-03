@@ -15,6 +15,11 @@ public class BSinoidalTransform : BOffsetBasedTransformer<float>
 
     float currentAngle;
 
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     void Update()
     {
         if (timeMode.IsSmooth()) UpdatePosition(timeMode.DeltaTime());

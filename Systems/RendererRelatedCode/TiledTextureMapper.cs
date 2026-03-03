@@ -3,7 +3,7 @@ using UnityEngine;
 
 [ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
-public class TiledTextureMapper : MonoBehaviour
+public class TiledTextureMapper : DXMonoBehaviour
 {
     MeshFilter filter;
 

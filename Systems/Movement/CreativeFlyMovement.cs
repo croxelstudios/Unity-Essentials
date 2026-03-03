@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CreativeFlyMovement : MonoBehaviour
+public class CreativeFlyMovement : DXMonoBehaviour
 {
     [SerializeField]
     Transform referenceTransform = null;

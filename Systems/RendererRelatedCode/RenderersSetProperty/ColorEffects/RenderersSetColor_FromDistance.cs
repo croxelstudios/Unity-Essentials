@@ -16,6 +16,7 @@ public class RenderersSetColor_FromDistance : RenderersSetColor
     bool updateTransforms = false;
 
     Transform target;
+
     protected override void Init()
     {
 #if UNITY_EDITOR

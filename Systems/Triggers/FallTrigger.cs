@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FallTrigger : MonoBehaviour
+public class FallTrigger : DXMonoBehaviour
 {
     [SerializeField]
     Vector3 direction = Vector3.down;

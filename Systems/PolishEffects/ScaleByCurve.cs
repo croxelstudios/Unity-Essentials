@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class ScaleByCurve : MonoBehaviour
+public class ScaleByCurve : DXMonoBehaviour
 {
     [SerializeField]
     float time = 1f;

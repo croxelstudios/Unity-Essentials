@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System;
 
 [DefaultExecutionOrder(1000)]
-public class DiscreteRenderer : MonoBehaviour
+public class DiscreteRenderer : DXMonoBehaviour
 {
     [SerializeField]
     MovementScaleProperties movement = new MovementScaleProperties();

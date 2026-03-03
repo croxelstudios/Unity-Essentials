@@ -791,7 +791,7 @@ public class RavioliButton : RavioliButton_Button
     }
 }
 
-public class RavioliButton_Button : MonoBehaviour
+public class RavioliButton_Button : DXMonoBehaviour
 {
     [SizedFoldoutGroup("Button options", Expanded = true)]
     public bool selected = true;

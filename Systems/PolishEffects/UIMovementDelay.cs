@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIMovementDelay : MonoBehaviour
+public class UIMovementDelay : DXMonoBehaviour
 {
     [SerializeField]
     float maxDistance = 1f;

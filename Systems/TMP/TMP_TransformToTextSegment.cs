@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [ExecuteAlways]
-public class TMP_TransformToTextSegment : MonoBehaviour
+public class TMP_TransformToTextSegment : DXMonoBehaviour
 {
     [SerializeField]
     string textSegment = "·";
@@ -37,7 +37,7 @@ public class TMP_TransformToTextSegment : MonoBehaviour
         UpdatePosition(new ScriptableRenderContext(), null);
     }
 
-    public void UpdatePosition(ScriptableRenderContext con, List<Camera> cams)
+    void UpdatePosition(ScriptableRenderContext con, List<Camera> cams)
     {
         string t = text.text;
         t = Regex.Replace(t, "<.*?>", string.Empty, RegexOptions.Singleline | RegexOptions.Compiled);

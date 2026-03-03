@@ -5,7 +5,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using Sirenix.OdinInspector;
 
-public class PrefabInstancer : MonoBehaviour
+public class PrefabInstancer : DXMonoBehaviour
 {
     [SerializeField]
     [Tooltip("These are also counted in the weighted calculation and count as weight 1")]

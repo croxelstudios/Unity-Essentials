@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class BounceAnimation : MonoBehaviour
+public class BounceAnimation : DXMonoBehaviour
 {
     [SerializeField]
     float bounceHeight = 0.1f;

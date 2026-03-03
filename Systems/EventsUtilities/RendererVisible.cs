@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class RenderersVisible : MonoBehaviour
+public class RenderersVisible : DXMonoBehaviour
 {
     [SerializeField]
     ObjectRef<Camera> cam = new ObjectRef<Camera>("Camera", "MainCamera");
@@ -11,7 +11,6 @@ public class RenderersVisible : MonoBehaviour
 
     Renderer[] renderers;
     CullingGroup cullingGroup;
-    Transform tr;
     Vector3 pos;
     Vector3 scale;
     BoundingSphere sphere;
@@ -19,9 +18,8 @@ public class RenderersVisible : MonoBehaviour
 
     void OnEnable()
     {
-        tr = transform;
-        pos = tr.position;
-        scale = tr.lossyScale;
+        pos = transform.position;
+        scale = transform.lossyScale;
         Renderer[] rends = GetComponentsInChildren<Renderer>();
         Camera c = cam; 
         if (c != null)
@@ -43,16 +41,16 @@ public class RenderersVisible : MonoBehaviour
     {
         if (cullingGroup != null)
         {
-            if (tr.hasChanged)
+            if (transform.hasChanged)
             {
-                if ((tr.position != pos) || (tr.lossyScale != scale))
+                if ((transform.position != pos) || (transform.lossyScale != scale))
                 {
-                    sphere.position += tr.position - pos;
-                    pos = tr.position;
+                    sphere.position += transform.position - pos;
+                    pos = transform.position;
 
                     sphere.radius *= Mathf.Max(
-                        tr.lossyScale.x / scale.x, tr.lossyScale.y / scale.y, tr.lossyScale.z / scale.z);
-                    scale = tr.lossyScale;
+                        transform.lossyScale.x / scale.x, transform.lossyScale.y / scale.y, transform.lossyScale.z / scale.z);
+                    scale = transform.lossyScale;
 
                     cullingGroup.SetBoundingSpheres(new BoundingSphere[] { sphere });
                 }
@@ -89,7 +87,7 @@ public class RenderersVisible : MonoBehaviour
     void LateUpdate()
     {
         if (cullingGroup != null)
-            tr.hasChanged = false;
+            transform.hasChanged = false;
     }
 
     void OnStateChanged(CullingGroupEvent ev)

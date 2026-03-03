@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class SlightTilting2D : MonoBehaviour
+public class SlightTilting2D : DXMonoBehaviour
     // TO DO: Add present extra functionality to BSinoidalTransform and implement base class here
 {
     [SerializeField]

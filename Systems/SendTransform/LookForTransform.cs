@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class LookForTransform : MonoBehaviour
+public class LookForTransform : DXMonoBehaviour
 {
     [SerializeField]
     [TagSelector]
