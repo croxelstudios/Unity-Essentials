@@ -43,7 +43,8 @@ public class MaterialsReplacer : MonoBehaviour
         Renderer[] r = parent.GetComponentsInChildren<Renderer>(true);
         rend = new RendererData[r.Length];
         for (int i = 0; i < rend.Length; i++)
-            rend[i] = new RendererData(r[i]);
+            if (!r[i].gameObject.hideFlags.Contains(HideFlags.HideAndDontSave))
+                rend[i] = new RendererData(r[i]);
     }
 
     void OnEnable()
