@@ -3,7 +3,6 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 using Sirenix.OdinInspector;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -25,6 +24,8 @@ public class MaterialsReplacer : MonoBehaviour
     bool isChanged;
 
     Renderer[] instanced;
+    bool updateInstances = false;
+    bool additionWasTracked = false;
 
     void UpdateMaterials()
     {
@@ -53,10 +54,11 @@ public class MaterialsReplacer : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
-            Reinstantiate();
+            updateInstances = true;
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
             Undo.postprocessModifications += OnPostprocess;
+            SceneView.duringSceneGui += OnSceneGUI;
         }
         else
 #endif
@@ -71,6 +73,7 @@ public class MaterialsReplacer : MonoBehaviour
             RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
             Undo.postprocessModifications -= OnPostprocess;
+            SceneView.duringSceneGui -= OnSceneGUI;
 
             EditorApplication.delayCall += () => RemoveInstances();
         }
@@ -84,17 +87,17 @@ public class MaterialsReplacer : MonoBehaviour
     {
         if (!Application.isPlaying)
         {
-            bool updateInstances = false;
-            for (int i = 0; i < rend.Length; i++)
-            {
-                if (rend[i].IsNull())
+            if (!updateInstances)
+                for (int i = 0; i < rend.Length; i++)
                 {
-                    UpdateRenderers();
-                    updateInstances = true;
-                    break;
+                    if (rend[i].IsNull())
+                    {
+                        UpdateRenderers();
+                        updateInstances = true;
+                        break;
+                    }
+                    rend[i].UpdateActiveState();
                 }
-                rend[i].UpdateActiveState();
-            }
 
             if ((!updateInstances) && (instanced.IsNullOrEmpty() || (instanced.Length != rend.Length)))
                 updateInstances = true;
@@ -113,11 +116,21 @@ public class MaterialsReplacer : MonoBehaviour
                 Reinstantiate();
         }
     }
+    void OnSceneGUI(SceneView sv)
+    {
+        if (!additionWasTracked)
+        {
+            Event e = Event.current;
+            if (e.type == EventType.DragPerform)
+            {
+                updateInstances = true;
+                additionWasTracked = true;
+            }
+        }
+    }
 
     UndoPropertyModification[] OnPostprocess(UndoPropertyModification[] modifications)
     {
-        bool updateInstances = false;
-
         foreach (UndoPropertyModification m in modifications)
         {
             if (m.currentValue.target is Renderer ren)
@@ -146,10 +159,20 @@ public class MaterialsReplacer : MonoBehaviour
                         else updateInstances = true;
                     }
             }
+            else if (m.currentValue.target is Transform tr)
+            {
+                for (int i = 0; i < rend.Length; i++)
+                    if (rend[i].transform.IsChildOf(tr))
+                    {
+                        if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
+                        {
+                            instanced[i].GetCopyOf(rend[i].rend);
+                            ReplaceMaterials(instanced[i], false);
+                        }
+                        else updateInstances = true;
+                    }
+            }
         }
-
-        if (updateInstances)
-            Reinstantiate();
 
         return modifications;
     }
@@ -218,6 +241,7 @@ public class MaterialsReplacer : MonoBehaviour
     {
         RemoveInstances();
         InstanceRenderersCopy();
+        updateInstances = false;
     }
 
     void InstanceRenderersCopy()
@@ -280,12 +304,14 @@ public class MaterialsReplacer : MonoBehaviour
     {
         public Renderer rend;
         public GameObject gameObject;
+        public Transform transform;
         public bool enabled;
 
         public RendererData(Renderer rend)
         {
             this.rend = rend;
             gameObject = rend.gameObject;
+            transform = gameObject.transform;
             enabled = rend.enabled;
         }
 
