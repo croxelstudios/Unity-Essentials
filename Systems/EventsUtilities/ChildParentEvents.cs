@@ -4,10 +4,6 @@ using Random = UnityEngine.Random;
 using System.Linq;
 using Sirenix.OdinInspector;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 public class ChildParentEvents : MonoBehaviour
 {
     public bool propagateToChildren = false;
@@ -15,9 +11,9 @@ public class ChildParentEvents : MonoBehaviour
     public bool ignoreFromChildren = false;
     public bool ignoreFromParents = false;
     [ListDrawerSettings(ShowFoldout = false)]
-    //TO DO: Doesn't work because I'm using GenericNamedEvents_Inspector.
-    //The GenericNamedEvents_Inspector class should be remade into an Attribute.
     public string[] notedTargetEventNames = null;
+    [NamedList("eventNames")]
+    [SerializeField] byte _foo = 0;
     [HideInInspector]
     public DXEvent[] events = null;
     [HideInInspector]
@@ -365,21 +361,5 @@ public class ChildParentEvents : MonoBehaviour
             }
         }
     }
-
-    public void SyncNames(bool priorizeLocal = false)
-    {
-    }
 #endif
 }
-
-#if UNITY_EDITOR
-[CustomEditor(typeof(ChildParentEvents))]
-public class ChildParentEvents_Inspector : GenericNamedEvents_Inspector
-{
-    protected override void NameArrayChanged(bool priorizeLocal = true)
-    {
-        base.NameArrayChanged();
-        ((ChildParentEvents)target).SyncNames(priorizeLocal);
-    }
-}
-#endif

@@ -7,38 +7,21 @@ using System.Linq;
 using Object = UnityEngine.Object;
 #endif
 
-/// <summary>
-/// Mark a method with an integer argument with this to display the argument as an enum popup in the UnityEvent
-/// drawer. Use: [EnumAction(typeof(SomeEnumType))]
-/// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-public class StringPopupAttribute : PropertyAttribute
+public class StringPopupAttribute : BasePropertyRefAttribute
 {
     public string serializedPopupDataArray;
-    public string[] optionsArrayPath;
 
-    public StringPopupAttribute(string optionsArrayName)
-    {
-        optionsArrayPath = new string[] { optionsArrayName };
-        serializedPopupDataArray = "";
-    }
-
-    public StringPopupAttribute(string[] optionsArrayPath)
+    public StringPopupAttribute(string optionsArrayName) : base(optionsArrayName)
     {
         serializedPopupDataArray = "";
-        this.optionsArrayPath = optionsArrayPath;
     }
 
-    public StringPopupAttribute(string optionsArrayName, string serializedPopupDataArray)
-    {
-        optionsArrayPath = new string[] { optionsArrayName };
-        this.serializedPopupDataArray = serializedPopupDataArray;
-    }
-
-    public StringPopupAttribute(string[] optionsArrayPath, string serializedPopupDataArray)
+    //TO DO: This (and everything related) is here to implement compatibility with the
+    //UnityEvent drawer but it doesn't seem to work. Needs to be analyzed and fixed.
+    public StringPopupAttribute(string optionsArrayName, string serializedPopupDataArray) : base(optionsArrayName)
     {
         this.serializedPopupDataArray = serializedPopupDataArray;
-        this.optionsArrayPath = optionsArrayPath;
     }
 
 #if UNITY_EDITOR
@@ -64,19 +47,27 @@ public class StringPopupAttribute : PropertyAttribute
         else return result;
     }
 
-    public bool DrawIntOrStringProperty(object targetObj, SerializedProperty property, Rect argRect, bool drawWithLabel = false, GUIContent label = null)
+    public bool DrawIntOrStringProperty(SerializedProperty property,
+        Rect argRect, bool drawWithLabel = false, GUIContent label = null)
+    {
+        object obj = GetSubObject(property.serializedObject.targetObject, property);
+        return DrawIntOrStringProperty(obj, property, argRect, drawWithLabel, label);
+    }
+
+    public bool DrawIntOrStringProperty(object targetObj, SerializedProperty property,
+        Rect argRect, bool drawWithLabel = false, GUIContent label = null)
     {
         string[] optionsArray = GetStringArray(targetObj);
 
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier(property.serializedObject.targetObject, property.propertyPath);
         //Won't work with paths now
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, serializedPopupDataArray, optionsArrayPath[0], ref sipIndex);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, serializedPopupDataArray, propPath, ref sipIndex);
 
         if (PropertyIsValidForPopup(property, optionsArray))
         {
             //PrefabOverride rendering
-            GUIStyle labelStyle = PrefabOverrideRendering(argRect, property);
+            GUIStyle labelStyle = property.PrefabOverrideRendering(argRect);
 
             //Get intValue
             int intValue;
@@ -139,7 +130,7 @@ public class StringPopupAttribute : PropertyAttribute
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier(property.serializedObject.targetObject, property.propertyPath);
         //Won't work with paths now
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, popupDataArrayName, optionsArrayPath[0], ref sipIndex);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, popupDataArrayName, propPath, ref sipIndex);
 
         if (PropertyIsValidForPopup(property, optionsArray) && (popupDataArray != null))
         {
@@ -169,22 +160,6 @@ public class StringPopupAttribute : PropertyAttribute
         }
     }
 
-    public object GetSubObject(Object targetObj, SerializedProperty property)
-    {
-        string[] pathSegments = property.propertyPath.Split(".");
-        string path = "";
-        int stop;
-        if ((pathSegments.Length > 1) && (pathSegments[pathSegments.Length - 2] == "Array"))
-            stop = pathSegments.Length - 3;
-        else stop = pathSegments.Length - 1;
-        for (int i = 0; i < stop; i++)
-        {
-            if (i != 0) path += ".";
-            path += pathSegments[i];
-        }
-        return (path != "") ? ReflectionTools.GetFieldValue(targetObj, path) : targetObj;
-    }
-
     public static int IntPopup(int current, object targetObj, StringPopupAttribute attr,
         string label, Rect argRect, SerializedProperty propertyPrefabOverrideData = null)
     {
@@ -193,7 +168,7 @@ public class StringPopupAttribute : PropertyAttribute
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier((Object)targetObj, label);
         //Won't work with paths now
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.optionsArrayPath[0], ref sipIndex);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
 
         if ((optionsArray != null) && (optionsArray.Length > 0) && (current >= 0) && (current < optionsArray.Length))
         {
@@ -203,7 +178,7 @@ public class StringPopupAttribute : PropertyAttribute
             //DropDown
             if (label != "")
             {
-                GUIStyle labelStyle = PrefabOverrideRendering(argRect, propertyPrefabOverrideData);
+                GUIStyle labelStyle = propertyPrefabOverrideData.PrefabOverrideRendering(argRect);
                 Rect labelPosition = new Rect(argRect.x + EditorGUI.indentLevel, argRect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, argRect.height);
                 Rect fieldPosition = new Rect(argRect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
                     argRect.y, argRect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, argRect.height);
@@ -235,7 +210,7 @@ public class StringPopupAttribute : PropertyAttribute
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier((Object)targetObj, label);
         //Won't work with paths now
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.optionsArrayPath[0], ref sipIndex);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
 
         if ((optionsArray != null) && (optionsArray.Length > 0) && optionsArray.Contains(current))
         {
@@ -245,7 +220,7 @@ public class StringPopupAttribute : PropertyAttribute
             //DropDown
             if (label != "")
             {
-                GUIStyle labelStyle = PrefabOverrideRendering(argRect, propertyPrefabOverrideData);
+                GUIStyle labelStyle = propertyPrefabOverrideData.PrefabOverrideRendering(argRect);
                 Rect labelPosition = new Rect(argRect.x + EditorGUI.indentLevel, argRect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, argRect.height);
                 Rect fieldPosition = new Rect(argRect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
                     argRect.y, argRect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, argRect.height);
@@ -271,18 +246,7 @@ public class StringPopupAttribute : PropertyAttribute
 
     public string[] GetStringArray(object targetObj)
     {
-        if (optionsArrayPath != null)
-        {
-            object obj = targetObj;
-            for (int i = 0; i < optionsArrayPath.Length; i++)
-            {
-                if (obj != null) obj = ReflectionTools.GetFieldValue(obj, optionsArrayPath[i]);
-                else break;
-            }
-            string[] result = obj as string[];
-            return result;
-        }
-        else return null;
+        return GetValue<string[]>(targetObj);
     }
 
     #region Private utilities
@@ -322,34 +286,6 @@ public class StringPopupAttribute : PropertyAttribute
         return ((optionsArray != null) && (optionsArray.Length > 0)) &&
                    (((property.propertyType == SerializedPropertyType.String) && (optionsArray.Contains(property.stringValue) || (property.stringValue == ""))) ||
                    ((property.propertyType == SerializedPropertyType.Integer) && ((property.intValue >= 0) && (property.intValue < optionsArray.Length))));
-    }
-
-    static GUIStyle PrefabOverrideRendering(Rect argRect, SerializedProperty property)
-    {
-        GUIStyle labelStyle = EditorStyles.label;
-        if (property != null)
-        {
-            Object[] objs = property.serializedObject.targetObjects;
-            if (objs.Length == 1) //Prefab override rendering
-            {
-                bool hasPrefabOverride = property.prefabOverride;
-                //if (!linkedProperties || hasPrefabOverride)
-                //    EditorGUIUtility.SetBoldDefaultFont(hasPrefabOverride);
-                if (hasPrefabOverride && !property.isDefaultOverride/* && !property.isDrivenRectTransformProperty*/)
-                {
-                    Rect highlightRect = argRect;
-                    highlightRect.xMin += EditorGUI.indentLevel;
-
-                    highlightRect.x = 0f;
-                    highlightRect.width = 2;
-                    Graphics.DrawTexture(highlightRect, EditorGUIUtility.whiteTexture,
-                        new Rect(), 0, 0, 0, 0, GUIInternalConstants.prefabOverrideColor,
-                        new Material(EditorGUIUtility.LoadRequired(GUIInternalConstants.prefabOverrideShaderPath) as Shader));
-                    labelStyle = EditorStyles.boldLabel;
-                }
-            }
-        }
-        return labelStyle;
     }
     #endregion
 #endif
@@ -450,9 +386,9 @@ public class StringPopupAttribute_Drawer : PropertyDrawer
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         StringPopupAttribute field = attribute as StringPopupAttribute;
-        object obj = field.GetSubObject(property.serializedObject.targetObject, property);
-        bool popupWasDrawn = field.DrawIntOrStringProperty(obj, property, position, true, label);
-        if (!popupWasDrawn) EditorGUI.PropertyField(position, property, new GUIContent(label.text + " *sp"));
+        bool popupWasDrawn = field.DrawIntOrStringProperty(property, position, true, label);
+        if (!popupWasDrawn) EditorGUI.PropertyField(position, property,
+            new GUIContent(label.text + " *sp"));
     }
 }
 #endif

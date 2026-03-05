@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Linq;
 using System;
 using Sirenix.OdinInspector;
-using UnityEngine.Rendering;
 
 [DefaultExecutionOrder(-9999)]
 public class CustomTag : MonoBehaviour
@@ -95,7 +94,7 @@ public class CustomTag : MonoBehaviour
         return list;
     }
 
-    [StringPopup(new string[] { "item", "tagList", "tags" })]
+    [StringPopup("item.tagList.tags")]
     public virtual void SwitchTag(int newTag)
     {
         item.customTag = newTag;
@@ -185,7 +184,7 @@ public static class CustomTagExtension_Contains
 public struct CustomTagItem : IEquatable<CustomTagItem>
 {
     public StringList tagList;
-    [StringPopup(new string[] { "tagList", "tags" })]
+    [StringPopup("tagList.tags")]
     public int customTag;
 
     public CustomTagItem(StringList tagList, int customTag)
@@ -249,7 +248,7 @@ public struct CustomTagItem : IEquatable<CustomTagItem>
         return hasTag;
     }
 
-    [StringPopup(new string[] { "tagList", "tags" })]
+    [StringPopup("tagList.tags")]
     public void SetCustomTag(int id)
     {
         customTag = id;
@@ -267,7 +266,7 @@ public struct CustomTagItem : IEquatable<CustomTagItem>
 public struct CustomTagItems
 {
     public StringList tagList;
-    [StringPopup(new string[] { "tagList", "tags" })]
+    [StringPopup("tagList.tags")]
     public int[] customTags;
 
     public CustomTagItem GetCustomTag(int id)
@@ -328,7 +327,7 @@ public struct CustomTagItems
         return hasTag;
     }
 
-    [StringPopup(new string[] { "tagList", "tags" })]
+    [StringPopup("tagList.tags")]
     public void SetFirstCustomTag(int id)
     {
         if ((customTags == null) || (customTags.Length <= 0))

@@ -29,6 +29,12 @@ public static class ReflectionTools
         {
             return (fieldInfo == null) && (propInfo == null);
         }
+
+        public MemberInfo MemberInfo()
+        {
+            if (fieldInfo != null) return fieldInfo;
+            else return propInfo;
+        }
     }
 
     public static T GetValue<T>(object inObj, string fieldPath, bool cacheObjectInfo = true)
@@ -85,6 +91,8 @@ public static class ReflectionTools
             string txt = fieldStructure[i].BreakDownArrayVariableName(out int ind);
             if (ind >= 0) inObj = GetFieldValueWithIndex(txt, inObj, ind);
             else inObj = GetFieldValue(txt, inObj);
+            if (inObj == null)
+                return new ObjectInfo();
         }
 
         string fieldName = fieldStructure.Last();
@@ -112,7 +120,8 @@ public static class ReflectionTools
             || (objectInfo.fieldInfo == null))
         {
             objectInfo = GetObjectInfo(inObj, fieldPath);
-            dict.Add(fieldPath, objectInfo);
+            if (!objectInfo.IsNull())
+                dict.Add(fieldPath, objectInfo);
         }
         return objectInfo;
     }
@@ -133,6 +142,17 @@ public static class ReflectionTools
             }
         }
         return type;
+    }
+
+    public static MemberInfo GetMemberInfo(object inObj, string fieldPath, bool cacheObjectInfo = true,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+    {
+        ObjectInfo objectInfo;
+        if (!cacheObjectInfo)
+            objectInfo = GetObjectInfo(inObj, fieldPath);
+        else
+            objectInfo = GetCachedInfo(inObj, fieldPath);
+        return objectInfo.MemberInfo();
     }
 
     private static FieldInfo GetField(string fieldName, object obj,

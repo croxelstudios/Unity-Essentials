@@ -34,7 +34,7 @@ public class CustomTag_Colored : CustomTag
         launchColor?.Invoke(coloredTagList.coloredTags[item.customTag].color);
     }
 
-    [StringPopup(new string[] { "tagList", "tags" })]
+    [StringPopup("tagList.tags")]
     public override void SwitchTag(int newTag)
     {
         base.SwitchTag(newTag);

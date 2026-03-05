@@ -606,4 +606,13 @@ public static class CollectionExtensions
             dict.Add(key, value);
         else dict[key] = value;
     }
+
+    public static void SmartInsert<T>(this List<T> list, int index, T element)
+    {
+        if (index < 0)
+            list.Insert(0, element);
+        else if (index > list.Count)
+            list.Add(element);
+        else list.Insert(index, element);
+    }
 }

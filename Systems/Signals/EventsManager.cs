@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using Random = UnityEngine.Random;
 
 public class EventsManager : BBaseSignalListener
 {
     //string[] eventNames { get { return signalActions.Select(i => i.name).ToArray(); } }
     //[ChangeCheck("UpdateSignals")]
+    [NamedList("eventNames")]
+    [SerializeField] byte _foo = 0;
     [HideInInspector]
     public Action[] events = null;
 #if UNITY_EDITOR
@@ -46,10 +45,6 @@ public class EventsManager : BBaseSignalListener
                 if (events[i].signal != null) eventNames[i] = "(S) " + events[i].signal.name;
                 else if (!string.IsNullOrEmpty(eventNames[i]) && eventNames[i].Contains("(S) ")) eventNames[i] = eventNames[i].Replace("(S) ", "S? ");
         }
-    }
-
-    public void SyncNames(bool priorizeLocal = false)
-    {
     }
 #endif
 
@@ -94,15 +89,3 @@ public class EventsManager : BBaseSignalListener
         }
     }
 }
-
-#if UNITY_EDITOR
-[CustomEditor(typeof(EventsManager))]
-public class EventsManager_Inspector : GenericNamedEvents_Inspector
-{
-    protected override void NameArrayChanged(bool priorizeLocal = true)
-    {
-        base.NameArrayChanged();
-        ((EventsManager)target).SyncNames(priorizeLocal);
-    }
-}
-#endif

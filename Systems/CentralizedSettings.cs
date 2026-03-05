@@ -1,22 +1,21 @@
 using UnityEngine;
-using UnityEditor;
 using System;
-using System.Linq;
-using System.Text.RegularExpressions;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class CentralizedSettings : MonoBehaviour
 {
+#if UNITY_EDITOR
     [SerializeField]
     VariableReference[] variables = new VariableReference[1];
     [SerializeField]
     Holder holder = new Holder(new VariableReference[1]);
 
-#if UNITY_EDITOR
     void OnValidate()
     {
         holder.variables = variables;
     }
-#endif
 
     [Serializable]
     public struct VariableReference
@@ -43,6 +42,7 @@ public class CentralizedSettings : MonoBehaviour
             this.variables = variables;
         }
     }
+#endif
 }
 
 #if UNITY_EDITOR
@@ -129,21 +129,7 @@ public class CentralizedSettingsDrawer : PropertyDrawer
             return null;
         }
 
-        SerializedObject obj = new SerializedObject(comp);
-        string[] propStructure = propName.Split('.');
-        SerializedProperty prop = null;
-
-        for (int i = 0; i < propStructure.Length; i++)
-        {
-            string text = propStructure[i].BreakDownArrayVariableName(out int index);
-
-            if (prop == null) prop = obj.FindProperty(text);
-            else prop = prop.FindPropertyRelative(text);
-
-            if (index >= 0) prop = prop.GetArrayElementAtIndex(index);
-        }
-
-        return prop;
+        return comp.GetSerializedProperty(propName);
     }
 }
 #endif
