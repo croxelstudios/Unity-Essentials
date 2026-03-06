@@ -11,8 +11,29 @@ using UnityEditorInternal;
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class NamedListAttribute : BasePropertyRefAttribute
 {
-    public NamedListAttribute(string propArrayName) : base(propArrayName)
+    public bool draggable;
+    public bool hideHeader;
+    public string[] sizeChangedMethodNames;
+
+    public NamedListAttribute(string propArrayName, params string[] sizeChangedMethodName) : base(propArrayName)
     {
+        draggable = true;
+        hideHeader = false;
+        sizeChangedMethodNames = sizeChangedMethodName;
+    }
+
+    public NamedListAttribute(string propArrayName, bool draggable, params string[] sizeChangedMethodName) : base(propArrayName)
+    {
+        this.draggable = draggable;
+        hideHeader = false;
+        sizeChangedMethodNames = sizeChangedMethodName;
+    }
+
+    public NamedListAttribute(string propArrayName, bool draggable, bool hideHeader, params string[] sizeChangedMethodName) : base(propArrayName)
+    {
+        this.draggable = draggable;
+        this.hideHeader = hideHeader;
+        sizeChangedMethodNames = sizeChangedMethodName;
     }
 }
 
@@ -26,7 +47,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        property.Next(false);
+        property.Next(true);
 
         if ((property == null) || !property.isArray)
             return 0;
@@ -72,7 +93,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
     public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
     {
-        property.Next(false);
+        property.Next(true);
 
         if ((property == null) || !property.isArray)
             return;
@@ -170,18 +191,6 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         return true;
     }
 
-    SerializedProperty GetNamesProp(SerializedProperty property)
-    {
-        NamedListAttribute att = attribute as NamedListAttribute;
-        return GetNamesProp(property, att.propPath);
-    }
-
-    static SerializedProperty GetNamesProp(SerializedProperty property, string propPath)
-    {
-        SerializedObject obj = property.serializedObject;
-        return obj.GetSerializedProperty(propPath);
-    }
-
     ReorderableOperation GetReorderableList(SerializedProperty property)
     {
         reorderableLists = reorderableLists.CreateIfNull();
@@ -198,18 +207,47 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
         SerializedPropertyData propertyData = new SerializedPropertyData(property);
         SerializedObject serializedObject = property.serializedObject;
-        SerializedProperty names = GetNamesProp(property);
+
+        NamedListAttribute att = attribute as NamedListAttribute;
+        SerializedProperty names = GetNamesProp(property, att.propPath);
+        ReorderableOperation.ArraySizeChangeDelegate[] methods = 
+            GetMethodProp(serializedObject.targetObject, att.sizeChangedMethodNames);
+        bool draggable = att.draggable;
+        bool hideHeader = att.hideHeader;
 
         ReorderableOperation operation;
         if (!reorderableLists.TryGetValue(propertyData, out operation))
         {
-            operation = new ReorderableOperation(property, names);
+            operation = new ReorderableOperation(property, names, draggable, hideHeader, methods);
             reorderableLists.Add(propertyData, operation);
             serializedObject.ApplyModifiedProperties();
         }
         property.arraySize = names.arraySize;
         lastFrame.Set(propertyData, EditorTime.frameCount);
         return operation;
+    }
+
+    static ReorderableOperation.ArraySizeChangeDelegate[] GetMethodProp(
+        object target, string[] methodNames)
+    {
+        if (methodNames.IsNullOrEmpty())
+            return null;
+
+        ReorderableOperation.ArraySizeChangeDelegate[] result =
+            new ReorderableOperation.ArraySizeChangeDelegate[methodNames.Length];
+        for (int i = 0; i < methodNames.Length; i++)
+            if (!methodNames[i].IsNullOrEmpty())
+            {
+                result[i] = ReflectionTools.GetDelegate<ReorderableOperation.ArraySizeChangeDelegate>(
+                    methodNames[i], target);
+            }
+        return result;
+    }
+
+    static SerializedProperty GetNamesProp(SerializedProperty property, string propPath)
+    {
+        SerializedObject obj = property.serializedObject;
+        return obj.GetSerializedProperty(propPath);
     }
 
     public class ReorderableOperation
@@ -219,18 +257,23 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         SerializedProperty names;
         ReorderableList list;
         int lastIndex;
-        public event NameArrayChangeDelegate onNameArrayChange;
-        public delegate void NameArrayChangeDelegate(bool priorizeLocal = true);
+        public event ArraySizeChangeDelegate onArraySizeChange;
+        public delegate void ArraySizeChangeDelegate(int size);
 
-        public ReorderableOperation(SerializedProperty property, SerializedProperty names)
+        public ReorderableOperation(SerializedProperty property, SerializedProperty names,
+            bool draggable = true, bool hideHeader = false, ArraySizeChangeDelegate[] sizeChangeMethods = null)
         {
             array = property;
             serializedObject = property.serializedObject;
             this.names = names;
             list = null;
             lastIndex = 0;
-            onNameArrayChange = null;
-            list = new ReorderableList(serializedObject, array, true, true, true, true)
+            onArraySizeChange = null;
+            if (!sizeChangeMethods.IsNullOrEmpty())
+                for (int i = 0; i < sizeChangeMethods.Length; i++)
+                    if (sizeChangeMethods[i] != null)
+                        onArraySizeChange += sizeChangeMethods[i];
+            list = new ReorderableList(serializedObject, array, draggable, true, true, true)
             {
                 elementHeightCallback = ElementHeightCallback,
                 drawHeaderCallback = DrawListHeader,
@@ -240,11 +283,13 @@ public class NamedListAttribute_Drawer : PropertyDrawer
                 onAddCallback = OnAddElement,
                 onRemoveCallback = OnRemoveElement
             };
+            if (hideHeader)
+                list.headerHeight = 0f;
         }
 
-        void NameArrayChanged(bool priorizeLocal = true)
+        void NameArrayChanged()
         {
-            onNameArrayChange?.Invoke(priorizeLocal);
+            onArraySizeChange?.Invoke(array.arraySize);
         }
 
         public float GetHeight()
@@ -263,7 +308,8 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         #region ReorderableList callbacks
         void DrawListHeader(Rect rect)
         {
-            EditorGUI.LabelField(rect, array.displayName);
+            if (list.headerHeight > 0f)
+                EditorGUI.LabelField(rect, array.displayName);
         }
 
         private float ElementHeightCallback(int index)
@@ -309,7 +355,8 @@ public class NamedListAttribute_Drawer : PropertyDrawer
             float widthSum = -10f;
             float widthMult = 1f;
 
-            element.isExpanded = EditorGUI.Foldout(new Rect(rect.x + 10, rect.y,
+            float xoff = list.draggable ? 10f : -3f;
+            element.isExpanded = EditorGUI.Foldout(new Rect(rect.x + xoff, rect.y,
                 (rect.width * widthMult) + widthSum, EditorGUIUtility.singleLineHeight),
                 element.isExpanded, element.isExpanded ? "" : elementNumber);
 
@@ -385,7 +432,6 @@ public class NamedListAttribute_Drawer : PropertyDrawer
             lastIndex = list.index;
 
             serializedObject.ApplyModifiedProperties();
-            NameArrayChanged(false);
         }
 
         void OnAddElement(ReorderableList list)
@@ -396,7 +442,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
             lastIndex = list.index;
 
             serializedObject.ApplyModifiedProperties();
-            NameArrayChanged(false);
+            NameArrayChanged();
         }
 
         void OnRemoveElement(ReorderableList list)
@@ -409,7 +455,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
             serializedObject.ApplyModifiedProperties();
 
-            NameArrayChanged(false);
+            NameArrayChanged();
         }
         #endregion
     }

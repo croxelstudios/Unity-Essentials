@@ -31,7 +31,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
 
     protected MaterialPropertyBlock block;
     protected bool propertyIsReadOnly = false;
-    protected static Dictionary<RendMat, Material> originals;
+    protected static Dictionary<RendMat, Material> originalMaterials;
 
     protected virtual void OnEnable()
     {
@@ -155,14 +155,14 @@ public class BRenderersSetProperty : DXMonoBehaviour
         if ((!rendMat.IsNull()) && CheckPropertyName(rendMat.sharedMaterial, out string propName))
         {
             RendMatProp rendMatProp = new RendMatProp(rendMat, propName);
-            if (((!usePropertyBlock) || originals.NotNullContainsKey(rendMat))
+            if (((!usePropertyBlock) || originalMaterials.NotNullContainsKey(rendMat))
 #if UNITY_EDITOR
                 && Application.isPlaying
 #endif
                 )
             {
-                if (!originals.NotNullContainsKey(rendMat))
-                    originals = originals.CreateAdd(rendMat, rendMat.sharedMaterial);
+                if (!originalMaterials.NotNullContainsKey(rendMat))
+                    originalMaterials = originalMaterials.CreateAdd(rendMat, rendMat.sharedMaterial);
 
                 if (reset) VResetProperty(rendMatProp);
                 else VSetProperty(rendMatProp);
@@ -542,15 +542,15 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
     protected T GetProperty(RendMatProp rendMat)
     {
         bool fromOriginal = false;
-        if (originals.NotNullContainsKey(rendMat))
+        if (originalMaterials.NotNullContainsKey(rendMat))
         {
-            if (originals[rendMat] == null)
-                originals.Remove(rendMat);
+            if (originalMaterials[rendMat] == null)
+                originalMaterials.Remove(rendMat);
             else fromOriginal = true;
         }
 
         if (fromOriginal)
-            return GetProperty(originals[rendMat], rendMat.property);
+            return GetProperty(originalMaterials[rendMat], rendMat.property);
         else return GetProperty(rendMat.sharedMaterial, rendMat.property);
     }
 }

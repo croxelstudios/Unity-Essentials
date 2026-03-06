@@ -8,7 +8,7 @@ using UnityEditor;
 #endif
 
 [ExecuteAlways]
-[DefaultExecutionOrder(-1)]
+[DefaultExecutionOrder(5)]
 public class MaterialsReplacer : MonoBehaviour
 {
     [SerializeField]
@@ -24,6 +24,7 @@ public class MaterialsReplacer : MonoBehaviour
     bool isChanged;
 
     Renderer[] instanced;
+    MeshFilter[] instancedFilters;
     bool updateInstances = false;
     bool additionWasTracked = false;
 
@@ -58,6 +59,8 @@ public class MaterialsReplacer : MonoBehaviour
             updateInstances = true;
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
             Undo.postprocessModifications += OnPostprocess;
             SceneView.duringSceneGui += OnSceneGUI;
         }
@@ -73,6 +76,8 @@ public class MaterialsReplacer : MonoBehaviour
         {
             RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
             Undo.postprocessModifications -= OnPostprocess;
             SceneView.duringSceneGui -= OnSceneGUI;
 
@@ -141,7 +146,7 @@ public class MaterialsReplacer : MonoBehaviour
                     {
                         if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
                         {
-                            instanced[i].GetCopyOf(rend[i].rend);
+                            instanced[i].GetCopyOf(ren);
                             ReplaceMaterials(instanced[i], false);
                         }
                         else updateInstances = true;
@@ -150,13 +155,10 @@ public class MaterialsReplacer : MonoBehaviour
             else if (m.currentValue.target is MeshFilter filter)
             {
                 for (int i = 0; i < rend.Length; i++)
-                    if (rend[i].gameObject == filter.gameObject)
+                    if (rend[i].filter == filter)
                     {
-                        if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
-                        {
-                            MeshFilter fil = instanced[i].GetComponent<MeshFilter>();
-                            fil.GetCopyOf(filter);
-                        }
+                        if ((!instancedFilters.IsNullOrEmpty()) && (instancedFilters[i] != null))
+                            instancedFilters[i].GetCopyOf(filter);
                         else updateInstances = true;
                     }
             }
@@ -192,6 +194,20 @@ public class MaterialsReplacer : MonoBehaviour
             if (rend[i].enabled)
                 rend[i].rend.enabled = true;
         //ResetMaterials();
+    }
+
+    void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+    {
+        for (int i = 0; i < instancedFilters.Length; i++)
+            if (instancedFilters[i] != null)
+                instancedFilters[i].sharedMesh = rend[i].filter.sharedMesh;
+    }
+
+    void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
+    {
+        for (int i = 0; i < instancedFilters.Length; i++)
+            if (instancedFilters[i] != null)
+                instancedFilters[i].sharedMesh = rend[i].filter.sharedMesh;
     }
 #endif
 
@@ -248,6 +264,7 @@ public class MaterialsReplacer : MonoBehaviour
     void InstanceRenderersCopy()
     {
         instanced = new Renderer[rend.Length];
+        instancedFilters = new MeshFilter[rend.Length];
         for (int i = 0; i < rend.Length; i++)
             if (!rend[i].IsNull())
             {
@@ -261,8 +278,8 @@ public class MaterialsReplacer : MonoBehaviour
                 MeshFilter origFilter = orig.GetComponent<MeshFilter>();
                 if (origFilter != null)
                 {
-                    MeshFilter filter = go.AddComponent<MeshFilter>();
-                    filter.GetCopyOf(origFilter);
+                    instancedFilters[i] = go.AddComponent<MeshFilter>();
+                    instancedFilters[i].GetCopyOf(origFilter);
                 }
                 instanced[i] = go.AddComponent(rend[i].rend.GetType()) as Renderer;
                 instanced[i].GetCopyOf(rend[i].rend);
@@ -303,6 +320,7 @@ public class MaterialsReplacer : MonoBehaviour
     [Serializable]
     struct RendererData
     {
+        public MeshFilter filter;
         public Renderer rend;
         public GameObject gameObject;
         public Transform transform;
@@ -310,6 +328,7 @@ public class MaterialsReplacer : MonoBehaviour
 
         public RendererData(Renderer rend)
         {
+            filter = rend.GetComponent<MeshFilter>();
             this.rend = rend;
             gameObject = rend.gameObject;
             transform = gameObject.transform;

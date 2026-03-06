@@ -78,7 +78,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
     protected override void BlResetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
         if (originals.ContainsKey(rendMat))
-            block.SetVector(rendMat.property, originals[rendMat]);
+            block.SetVector(rendMat.property + "_ST", originals[rendMat]);
     }
 
     protected override void VSetProperty(RendMatProp rendMat)
@@ -98,7 +98,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
     protected override void VResetProperty(RendMatProp rendMat)
     {
         if (originals.ContainsKey(rendMat))
-            rendMat.material.SetVector(rendMat.property, originals[rendMat]);
+            rendMat.material.SetVector(rendMat.property + "_ST", originals[rendMat]);
         base.VResetProperty(rendMat);
     }
 

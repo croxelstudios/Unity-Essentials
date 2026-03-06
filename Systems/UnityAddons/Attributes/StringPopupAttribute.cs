@@ -10,6 +10,9 @@ using Object = UnityEngine.Object;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
 public class StringPopupAttribute : BasePropertyRefAttribute
 {
+    //TO DO: This (and everything related) is here to handle reordering of the string array.
+    //It is too complicated, doesn't work well and is not being used.
+    //I should find a better way to handle this or remove it.
     public string serializedPopupDataArray;
 
     public StringPopupAttribute(string optionsArrayName) : base(optionsArrayName)
@@ -17,8 +20,6 @@ public class StringPopupAttribute : BasePropertyRefAttribute
         serializedPopupDataArray = "";
     }
 
-    //TO DO: This (and everything related) is here to implement compatibility with the
-    //UnityEvent drawer but it doesn't seem to work. Needs to be analyzed and fixed.
     public StringPopupAttribute(string optionsArrayName, string serializedPopupDataArray) : base(optionsArrayName)
     {
         this.serializedPopupDataArray = serializedPopupDataArray;
@@ -29,7 +30,7 @@ public class StringPopupAttribute : BasePropertyRefAttribute
     {
         object[] stringPopupAttributes = null;
         if (method != null) stringPopupAttributes = method.GetCustomAttributes(typeof(StringPopupAttribute), true);
-        if ((stringPopupAttributes != null) && (stringPopupAttributes.Length > 0) &&
+        if ((!stringPopupAttributes.IsNullOrEmpty()) &&
             ((argument.propertyType == SerializedPropertyType.Integer) ||
             (argument.propertyType == SerializedPropertyType.String))) //String Array Attribute
         {
@@ -41,6 +42,9 @@ public class StringPopupAttribute : BasePropertyRefAttribute
 
     public static int ProccessStringIntPair(int intValue, string stringValue, string[] optionsArray)
     {
+        if (stringValue == null)
+            return intValue;
+
         int[] equallyNamedOptions = optionsArray.Select((s, i) => new { i, s }).Where(t => t.s == stringValue).Select(t => t.i).ToArray();
         int result = (equallyNamedOptions.Length > 0) ? equallyNamedOptions[0] : -1;
         if (result < 0) return intValue;
@@ -61,7 +65,6 @@ public class StringPopupAttribute : BasePropertyRefAttribute
 
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier(property.serializedObject.targetObject, property.propertyPath);
-        //Won't work with paths now
         StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, serializedPopupDataArray, propPath, ref sipIndex);
 
         if (PropertyIsValidForPopup(property, optionsArray))
@@ -79,7 +82,7 @@ public class StringPopupAttribute : BasePropertyRefAttribute
             }
             else
             {
-                string pastName = (popupDataArray != null) ? popupDataArray[sipIndex].text : "";
+                string pastName = (popupDataArray != null) ? popupDataArray[sipIndex].text : null;
                 intValue = ProccessStringIntPair(property.intValue, pastName, optionsArray);
             }
 
@@ -110,13 +113,8 @@ public class StringPopupAttribute : BasePropertyRefAttribute
                     property.intValue = Convert.ToInt32(intValue);
             }
 
-            if (popupDataArray != null)
-            {
-                popupDataArray[sipIndex].text = stringValue;
-                popupDataArray[sipIndex].value = intValue;
-                popupDataArray = popupDataArray.Where(x => x.sourceEventCall.sourceComponent != null).ToArray();
-                ReflectionTools.SetValue(targetObj, serializedPopupDataArray, popupDataArray);
-            }
+            SetNewValue(targetObj, serializedPopupDataArray,
+                popupDataArray, sipIndex, stringValue, intValue);
             return true;
         }
         else return false;
@@ -129,7 +127,6 @@ public class StringPopupAttribute : BasePropertyRefAttribute
         string popupDataArrayName = serializedPopupDataArray;
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier(property.serializedObject.targetObject, property.propertyPath);
-        //Won't work with paths now
         StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, popupDataArrayName, propPath, ref sipIndex);
 
         if (PropertyIsValidForPopup(property, optionsArray) && (popupDataArray != null))
@@ -167,36 +164,18 @@ public class StringPopupAttribute : BasePropertyRefAttribute
 
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier((Object)targetObj, label);
-        //Won't work with paths now
         StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
 
-        if ((optionsArray != null) && (optionsArray.Length > 0) && (current >= 0) && (current < optionsArray.Length))
+        if ((!optionsArray.IsNullOrEmpty()) && (current >= 0) && (current < optionsArray.Length))
         {
             string pastName = (popupDataArray != null) ? popupDataArray[sipIndex].text : "";
             int intValue = ProccessStringIntPair(current, pastName, optionsArray);
 
-            //DropDown
-            if (label != "")
-            {
-                GUIStyle labelStyle = propertyPrefabOverrideData.PrefabOverrideRendering(argRect);
-                Rect labelPosition = new Rect(argRect.x + EditorGUI.indentLevel, argRect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, argRect.height);
-                Rect fieldPosition = new Rect(argRect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
-                    argRect.y, argRect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, argRect.height);
-
-                EditorGUI.LabelField(labelPosition, label, labelStyle);
-                intValue = EditorGUI.Popup(fieldPosition, intValue, optionsArray);
-            }
-            else intValue = EditorGUI.Popup(argRect, intValue, optionsArray);
+            DrawPopup(argRect, optionsArray, intValue, label, propertyPrefabOverrideData);
             string stringValue = optionsArray[intValue];
 
-            //Set new value
-            if (popupDataArray != null)
-            {
-                popupDataArray[sipIndex].text = stringValue;
-                popupDataArray[sipIndex].value = intValue;
-                popupDataArray = popupDataArray.Where(x => x.sourceEventCall.sourceComponent != null).ToArray();
-                ReflectionTools.SetValue(targetObj, attr.serializedPopupDataArray, popupDataArray);
-            }
+            SetNewValue(targetObj, attr.serializedPopupDataArray,
+                popupDataArray, sipIndex, stringValue, intValue);
             return intValue;
         }
         else return EditorGUI.IntField(argRect, label, current);
@@ -209,39 +188,49 @@ public class StringPopupAttribute : BasePropertyRefAttribute
 
         int sipIndex = -1;
         UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier((Object)targetObj, label);
-        //Won't work with paths now
         StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
 
-        if ((optionsArray != null) && (optionsArray.Length > 0) && optionsArray.Contains(current))
+        if ((!optionsArray.IsNullOrEmpty()) && optionsArray.Contains(current))
         {
             int pastInt = (popupDataArray != null) ? popupDataArray[sipIndex].value : 0;
             int intValue = ProccessStringIntPair(pastInt, current, optionsArray);
 
-            //DropDown
-            if (label != "")
-            {
-                GUIStyle labelStyle = propertyPrefabOverrideData.PrefabOverrideRendering(argRect);
-                Rect labelPosition = new Rect(argRect.x + EditorGUI.indentLevel, argRect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, argRect.height);
-                Rect fieldPosition = new Rect(argRect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
-                    argRect.y, argRect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, argRect.height);
-
-                EditorGUI.LabelField(labelPosition, label, labelStyle);
-                intValue = EditorGUI.Popup(fieldPosition, intValue, optionsArray);
-            }
-            else intValue = EditorGUI.Popup(argRect, intValue, optionsArray);
+            DrawPopup(argRect, optionsArray, intValue, label, propertyPrefabOverrideData);
             string stringValue = optionsArray[intValue];
 
-            //Set new value
-            if (popupDataArray != null)
-            {
-                popupDataArray[sipIndex].text = stringValue;
-                popupDataArray[sipIndex].value = intValue;
-                popupDataArray = popupDataArray.Where(x => x.sourceEventCall.sourceComponent != null).ToArray();
-                ReflectionTools.SetValue(targetObj, attr.serializedPopupDataArray, popupDataArray);
-            }
+            SetNewValue(targetObj, attr.serializedPopupDataArray,
+                popupDataArray, sipIndex, stringValue, intValue);
             return stringValue;
         }
         else return EditorGUI.TextField(argRect, label, current);
+    }
+
+    static void SetNewValue(object targetObj, string serializedPopupDataArray, 
+        StringPopupData[] popupDataArray, int sipIndex, string stringValue, int intValue)
+    {
+        if (popupDataArray != null)
+        {
+            popupDataArray[sipIndex].text = stringValue;
+            popupDataArray[sipIndex].value = intValue;
+            popupDataArray = popupDataArray.Where(x => x.sourceEventCall.sourceComponent != null).ToArray();
+            ReflectionTools.SetValue(targetObj, serializedPopupDataArray, popupDataArray);
+        }
+    }
+
+    static void DrawPopup(Rect rect, string[] optionsArray, int intValue, string label,
+        SerializedProperty propertyPrefabOverrideData)
+    {
+        if (label != "")
+        {
+            GUIStyle labelStyle = propertyPrefabOverrideData.PrefabOverrideRendering(rect);
+            Rect labelPosition = new Rect(rect.x + EditorGUI.indentLevel, rect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, rect.height);
+            Rect fieldPosition = new Rect(rect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
+                rect.y, rect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, rect.height);
+
+            EditorGUI.LabelField(labelPosition, label, labelStyle);
+            intValue = EditorGUI.Popup(fieldPosition, intValue, optionsArray);
+        }
+        else intValue = EditorGUI.Popup(rect, intValue, optionsArray);
     }
 
     public string[] GetStringArray(object targetObj)

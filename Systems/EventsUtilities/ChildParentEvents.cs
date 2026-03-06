@@ -12,8 +12,10 @@ public class ChildParentEvents : MonoBehaviour
     public bool ignoreFromParents = false;
     [ListDrawerSettings(ShowFoldout = false)]
     public string[] notedTargetEventNames = null;
+#pragma warning disable CS0414
     [NamedList("eventNames")]
     [SerializeField] byte _foo = 0;
+#pragma warning disable CS0414
     [HideInInspector]
     public DXEvent[] events = null;
     [HideInInspector]

@@ -1,6 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 
+//TO DO: To update this while inactive, it could maybe subscribe to EditorApplication.Update
+//on the constructor?
 [ExecuteAlways]
 public class StateMachine_ByChildren : StateMachine
 {
@@ -29,7 +31,7 @@ public class StateMachine_ByChildren : StateMachine
                 for (int i = states.Length; i < transform.childCount; i++)
                 {
                     GameObject child = transform.GetChild(i).gameObject;
-                    newStates[i] = new State(child.name);
+                    newStates[i] = new State(child.name, this);
                 }
             states = newStates;
             SyncNames();
@@ -60,6 +62,7 @@ public class StateMachine_ByChildren : StateMachine
         transform.GetChild(newState).gameObject.SetActive(true);
     }
 }
+
 /*
 #if UNITY_EDITOR
 [CanEditMultipleObjects]

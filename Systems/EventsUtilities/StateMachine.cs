@@ -58,6 +58,8 @@ public class StateMachine : MonoBehaviour
     [HideInInspector]
     public string[] stateNames;
     int prevState = 0;
+    [HideInInspector]
+    public string[] eventNames;
 
 #if UNITY_EDITOR
     StateMachine prevConnectedSM;
@@ -73,12 +75,21 @@ public class StateMachine : MonoBehaviour
         for (int i = 0; i < states.Length; i++)
         {
             states[i].name = connectedStateMachine.states[i].name;
+            states[i].SetStateMachine(this);
             stateNames[i] = states[i].name;
         }
     }
 
     public virtual void OnValidate()
     {
+        if (states.IsNullOrEmpty())
+        {
+            states = new State[1];
+            states[0].name = "Default";
+            stateNames = new string[1] { states[0].name };
+            states[0].SetStateMachine(this);
+        }
+
         if (!wasprevStateUpdated)
         {
             prevState = _currentState;
@@ -99,6 +110,7 @@ public class StateMachine : MonoBehaviour
             for (int i = 0; i < states.Length; i++)
             {
                 newStates[i].name = states[i].name;
+                newStates[i].SetStateMachine(this);
                 if (i < connectedStateMachine.states.Length)
                 {
                     newStates[i].enter = connectedStateMachine.states[i].enter;
@@ -108,7 +120,6 @@ public class StateMachine : MonoBehaviour
             connectedStateMachine.states = newStates;
             connectedStateMachine.OnValidate();
         }
-        //StringPopupData.SyncArray(ref stringPairArray, this);
     }
 
     void RecordGameObjectModificationsFromPrefab()
@@ -120,21 +131,11 @@ public class StateMachine : MonoBehaviour
     }
 #endif
 
-    //#if UNITY_EDITOR
-    //[HideInInspector]
-    //public StringPopupData[] stringPairArray = null;
-    //#endif
-    [StringPopup("stateNames"/*, "stringPairArray"*/)]
+    [StringPopup("stateNames")]
     public virtual void SwitchState(int newState)
     {
         newState = Mathf.Clamp(newState, 0, states.Length - 1);
-        if (
-             //(this.IsActiveAndEnabled() ||
-             //#if UNITY_EDITOR
-             //            (!Application.isPlaying)
-             //#endif
-             //            ) &&
-             (_currentState != newState))
+        if (_currentState != newState)
         {
             ExitStateAction();
             StateSwitchActions(_currentState, newState);
@@ -143,6 +144,14 @@ public class StateMachine : MonoBehaviour
                 connectedStateMachine.SwitchState(newState);
             EnterStateAction();
         }
+    }
+
+    [StringPopup("stateNames")]
+    public void LaunchEvent(string name)
+    {
+        int index = Array.IndexOf(eventNames, name);
+        if (this.IsActiveAndEnabled())
+            states[currentState].events[index]?.Invoke();
     }
 
     void ExitStateAction()
@@ -193,12 +202,16 @@ public class StateMachine : MonoBehaviour
     {
         stateNames = new string[states.Length];
         for (int i = 0; i < states.Length; i++)
+        {
             stateNames[i] = states[i].name;
+            states[i].SetStateMachine(this);
+        }
     }
 
     public void ClampCurrentState()
     {
-        currentState = Math.Clamp(currentState, 0, states.Length - 1);
+        if (states.IsNullOrEmpty()) currentState = 0;
+        else currentState = Math.Clamp(currentState, 0, states.Length - 1);
     }
 
     public void UpdateState()
@@ -213,24 +226,51 @@ public class StateMachine : MonoBehaviour
     public struct State
     {
         public string name;
-        public GameObject[] linkedObjects; //TO DO: Add ReverseLinkedObjects property. This should be another struct with the object and the bool inside.
+        StateMachine parentMachine;
+        public GameObject[] linkedObjects;
+        //TO DO: Add bool array property to reverse objects activation.
+        //This should appear as a struct with the object and the bool
+        //inside with some trick Attribute similar to NamedList.
         [FoldoutGroup("$EventsFoldout")]
         public DXEvent enter;
         [FoldoutGroup("$EventsFoldout")]
         public DXEvent exit;
+        [FoldoutGroup("$ConditionalEventsFoldout")]
+#pragma warning disable CS0414
+        [NamedList("parentMachine.eventNames", false, true)]
+        [SerializeField] byte _foo;
+#pragma warning restore CS0414
+        [HideInInspector]
+        public DXEvent[] events;
 
-        public State(string name)
+        public State(string name, StateMachine parentMachine)
         {
             this.name = name;
+            this.parentMachine = parentMachine;
             linkedObjects = new GameObject[0];
             enter = null;
             exit = null;
+            events = null;
+            _foo = 0;
+        }
+
+        public void SetStateMachine(StateMachine parentMachine)
+        {
+            this.parentMachine = parentMachine;
         }
 
 #if UNITY_EDITOR
         public string EventsFoldout()
         {
-            return "Events" + ((enter.IsNull() && exit.IsNull()) ? "" : " ⚠");
+            return "Enter Exit Events" + ((enter.IsNull() && exit.IsNull()) ? "" : " ⚠");
+        }
+
+        public string ConditionalEventsFoldout()
+        {
+            if (events != null)
+                foreach (DXEvent ev in events)
+                    if (!ev.IsNull()) return "State-dependant Events ⚠";
+            return "State-dependant Events";
         }
 #endif
     }

@@ -192,6 +192,20 @@ public static class ReflectionTools
         return default;
     }
 
+    public static MethodInfo GetMethodInfo(string methodName, object obj,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+    {
+        return obj.GetType().GetMethod(methodName, bindings);
+    }
+
+    public static T GetDelegate<T>(string methodName, object obj,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+        where T : Delegate
+    {
+        MethodInfo methodInfo = GetMethodInfo(methodName, obj, bindings);
+        return methodInfo.CreateDelegate(typeof(T), obj) as T;
+    }
+
     private static object GetFieldValue(string fieldName, object obj,
         BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
     {

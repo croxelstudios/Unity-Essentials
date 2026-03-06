@@ -31,7 +31,7 @@ namespace Lowscope.SaveMaster.EditorTools
         [MenuItem("Saving/Open Save Settings")]
         public static void OpenSaveSystemSettings()
         {
-            Selection.activeInstanceID = SaveSettings.Get().GetInstanceID();
+            Selection.activeEntityId = SaveSettings.Get().GetInstanceID();
         }
 
         [MenuItem("Saving/Utility/Wipe Save Identifications (Active Scene)")]
