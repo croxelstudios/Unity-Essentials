@@ -7,10 +7,8 @@ public class EventsManager : BBaseSignalListener
 {
     //string[] eventNames { get { return signalActions.Select(i => i.name).ToArray(); } }
     //[ChangeCheck("UpdateSignals")]
-#pragma warning disable CS0414
     [NamedList("eventNames")]
-    [SerializeField] byte _foo = 0;
-#pragma warning disable CS0414
+    [SerializeField] protected byte _foo = 0;
     [HideInInspector]
     public Action[] events = null;
 #if UNITY_EDITOR
@@ -50,7 +48,7 @@ public class EventsManager : BBaseSignalListener
     }
 #endif
 
-    [StringPopup("eventNames")]
+    [StringSelector("eventNames")]
     public void LaunchActions(int index) //Change type here
     {
         if (this.IsActiveAndEnabled() || !checkActiveState)

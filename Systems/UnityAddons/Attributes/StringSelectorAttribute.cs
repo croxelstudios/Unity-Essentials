@@ -8,34 +8,31 @@ using Object = UnityEngine.Object;
 #endif
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-public class StringPopupAttribute : BasePropertyRefAttribute
+public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAttribute
 {
     //TO DO: This (and everything related) is here to handle reordering of the string array.
     //It is too complicated, doesn't work well and is not being used.
     //I should find a better way to handle this or remove it.
     public string serializedPopupDataArray;
 
-    public StringPopupAttribute(string optionsArrayName) : base(optionsArrayName)
+    public StringSelectorAttribute(string optionsArrayName) : base(optionsArrayName)
     {
         serializedPopupDataArray = "";
     }
 
-    public StringPopupAttribute(string optionsArrayName, string serializedPopupDataArray) : base(optionsArrayName)
+    public StringSelectorAttribute(string optionsArrayName, string serializedPopupDataArray) : base(optionsArrayName)
     {
         this.serializedPopupDataArray = serializedPopupDataArray;
     }
 
 #if UNITY_EDITOR
-    public static bool InterpretInEventsDrawer(MethodInfo method, SerializedProperty argument, Rect argRect, SerializedProperty listenerTarget)
+    public bool InterpretInEventsDrawer(Rect argRect,
+        SerializedProperty argument, SerializedProperty listenerTarget)
     {
-        object[] stringPopupAttributes = null;
-        if (method != null) stringPopupAttributes = method.GetCustomAttributes(typeof(StringPopupAttribute), true);
-        if ((!stringPopupAttributes.IsNullOrEmpty()) &&
-            ((argument.propertyType == SerializedPropertyType.Integer) ||
-            (argument.propertyType == SerializedPropertyType.String))) //String Array Attribute
+        if ((argument.propertyType == SerializedPropertyType.Integer) ||
+            (argument.propertyType == SerializedPropertyType.String)) //String Array Attribute
         {
-            StringPopupAttribute attrib = (StringPopupAttribute)stringPopupAttributes[0];
-            return attrib.DrawIntOrStringProperty(listenerTarget.objectReferenceValue, argument, argRect);
+            return DrawIntOrStringProperty(listenerTarget.objectReferenceValue, argument, argRect);
         }
         else return false;
     }
@@ -157,7 +154,7 @@ public class StringPopupAttribute : BasePropertyRefAttribute
         }
     }
 
-    public static int IntPopup(int current, object targetObj, StringPopupAttribute attr,
+    public static int IntPopup(int current, object targetObj, StringSelectorAttribute attr,
         string label, Rect argRect, SerializedProperty propertyPrefabOverrideData = null)
     {
         string[] optionsArray = attr.GetStringArray(targetObj);
@@ -181,7 +178,7 @@ public class StringPopupAttribute : BasePropertyRefAttribute
         else return EditorGUI.IntField(argRect, label, current);
     }
 
-    public static string StringPopup(string current, object targetObj, StringPopupAttribute attr,
+    public static string StringPopup(string current, object targetObj, StringSelectorAttribute attr,
         string label, Rect argRect, SerializedProperty propertyPrefabOverrideData = null)
     {
         string[] optionsArray = attr.GetStringArray(targetObj);
@@ -316,14 +313,14 @@ public struct StringPopupData
         {
             if (sp.propertyType == SerializedPropertyType.String)
             {
-                value = StringPopupAttribute.ProccessStringIntPair(value, sp.stringValue, stringArray);
+                value = StringSelectorAttribute.ProccessStringIntPair(value, sp.stringValue, stringArray);
                 if ((value >= 0f) && (value < stringArray.Length)) text = stringArray[value];
                 else text = sp.stringValue;
                 sp.stringValue = text;
             }
             else if (sp.propertyType == SerializedPropertyType.Integer)
             {
-                value = StringPopupAttribute.ProccessStringIntPair(sp.intValue, text, stringArray);
+                value = StringSelectorAttribute.ProccessStringIntPair(sp.intValue, text, stringArray);
                 if ((value >= 0f) && (value < stringArray.Length)) text = stringArray[value];
                 sp.intValue = value;
             }
@@ -369,12 +366,12 @@ public struct UnityEventPropertyIdentifier
     }
 }
 
-[CustomPropertyDrawer(typeof(StringPopupAttribute))]
+[CustomPropertyDrawer(typeof(StringSelectorAttribute))]
 public class StringPopupAttribute_Drawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        StringPopupAttribute field = attribute as StringPopupAttribute;
+        StringSelectorAttribute field = attribute as StringSelectorAttribute;
         bool popupWasDrawn = field.DrawIntOrStringProperty(property, position, true, label);
         if (!popupWasDrawn) EditorGUI.PropertyField(position, property,
             new GUIContent(label.text + " *sp"));

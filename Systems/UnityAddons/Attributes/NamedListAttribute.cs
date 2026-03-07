@@ -366,6 +366,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
                 elementName.PropertyField(rect, widthSum, widthMult);
 
                 //Draw event
+                EditorGUI.BeginChangeCheck();
                 float y = rect.y + EditorGUI.GetPropertyHeight(elementName) + 2;
                 if ((element.type == typeof(UnityEvent).Name) ||
                     (element.type == typeof(DXEvent).Name)) //TO DO: Very crappy
@@ -382,6 +383,8 @@ public class NamedListAttribute_Drawer : PropertyDrawer
                     if (count <= 0)
                         element.PropertyField(elementTitle, y, rect, widthSum, widthMult);
                 }
+                if (EditorGUI.EndChangeCheck())
+                    serializedObject.ApplyModifiedProperties();
             }
             else
             {

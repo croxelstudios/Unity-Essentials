@@ -11,8 +11,10 @@ public class DXIntEvent : DXTypedEvent<int>
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.Int };
     [SerializeField]
+    [EasyEvent]
     UnityEvent<int> absEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<int> negativeEvent = null;
 
     public DXIntEvent() { types = new EventType[] { EventType.Int }; }

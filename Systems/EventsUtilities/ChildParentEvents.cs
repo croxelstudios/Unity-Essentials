@@ -4,18 +4,26 @@ using Random = UnityEngine.Random;
 using System.Linq;
 using Sirenix.OdinInspector;
 
+[ExecuteAlways]
 public class ChildParentEvents : MonoBehaviour
 {
     public bool propagateToChildren = false;
     public bool propagateToParents = false;
     public bool ignoreFromChildren = false;
     public bool ignoreFromParents = false;
-    [ListDrawerSettings(ShowFoldout = false)]
-    public string[] notedTargetEventNames = null;
-#pragma warning disable CS0414
+    [ShowInInspector]
+    [OnValueChanged("UpdateTargetEventNames", true)]
+    [ListDrawerSettings(ShowFoldout = false, HideAddButton = true)]
+    [GUIColor("#bfbfbf")]
+    protected string[] parentEventNames = null;
+    [ShowInInspector]
+    [OnValueChanged("UpdateTargetEventNames", true)]
+    [ListDrawerSettings(ShowFoldout = false, HideAddButton = true)]
+    [GUIColor("#bfbfbf")]
+    protected string[] childEventNames = null;
+    [PropertyOrder(1)]
     [NamedList("eventNames")]
-    [SerializeField] byte _foo = 0;
-#pragma warning disable CS0414
+    [SerializeField] protected byte _foo = 0;
     [HideInInspector]
     public DXEvent[] events = null;
     [HideInInspector]
@@ -42,6 +50,11 @@ public class ChildParentEvents : MonoBehaviour
             SortChildren();
             init = true;
         }
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            UpdateTargetEventNames();
+#endif
     }
 
     void OnDisable()
@@ -54,7 +67,7 @@ public class ChildParentEvents : MonoBehaviour
     }
 
     #region Children Functions
-    [StringPopup("notedTargetEventNames")]
+    [StringSelector("notedTargetEventNames")]
     public void CallChildEvent(string name)
     {
         if (this.IsActiveAndEnabled())
@@ -177,7 +190,7 @@ public class ChildParentEvents : MonoBehaviour
     #endregion
 
     #region Parents Functions
-    [StringPopup("notedTargetEventNames")]
+    [StringSelector("notedTargetEventNames")]
     public void CallParentEvent(string name)
     {
         if (this.IsActiveAndEnabled())
@@ -349,6 +362,13 @@ public class ChildParentEvents : MonoBehaviour
     #endregion
 
 #if UNITY_EDITOR
+    [Button]
+    void UpdateTargetEventNames()
+    {
+        parentEventNames = parentEventsISubscribedAsChild.SelectMany(e => e.eventNames).Distinct().ToArray();
+        childEventNames = childrenEventsISubscribedAsParent.SelectMany(e => e.eventNames).Distinct().ToArray();
+    }
+
     void OnValidate()
     {
         if (events != null)

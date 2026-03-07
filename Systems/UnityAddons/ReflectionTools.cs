@@ -121,7 +121,7 @@ public static class ReflectionTools
         {
             objectInfo = GetObjectInfo(inObj, fieldPath);
             if (!objectInfo.IsNull())
-                dict.Add(fieldPath, objectInfo);
+                dict.Set(fieldPath, objectInfo);
         }
         return objectInfo;
     }

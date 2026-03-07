@@ -15,7 +15,7 @@ public class StateMachine : MonoBehaviour
     [SerializeField]
     bool lastLinkedObjectsRemain = false;
     [SerializeField]
-    [StringPopup("stateNames")]
+    [StringSelector("stateNames")]
     [OnValueChanged("UpdateState")]
     int _currentState = 0;
 
@@ -106,16 +106,13 @@ public class StateMachine : MonoBehaviour
 
             State[] newStates = new State[states.Length];
             if (connectedStateMachine.states == null)
-                connectedStateMachine.states = new State[states.Length];
+                connectedStateMachine.states = new State[0];
             for (int i = 0; i < states.Length; i++)
             {
-                newStates[i].name = states[i].name;
-                newStates[i].SetStateMachine(this);
                 if (i < connectedStateMachine.states.Length)
-                {
-                    newStates[i].enter = connectedStateMachine.states[i].enter;
-                    newStates[i].exit = connectedStateMachine.states[i].exit;
-                }
+                    newStates[i] = connectedStateMachine.states[i];
+                newStates[i].name = states[i].name;
+                newStates[i].SetStateMachine(connectedStateMachine);
             }
             connectedStateMachine.states = newStates;
             connectedStateMachine.OnValidate();
@@ -131,7 +128,7 @@ public class StateMachine : MonoBehaviour
     }
 #endif
 
-    [StringPopup("stateNames")]
+    [StringSelector("stateNames")]
     public virtual void SwitchState(int newState)
     {
         newState = Mathf.Clamp(newState, 0, states.Length - 1);
@@ -146,7 +143,7 @@ public class StateMachine : MonoBehaviour
         }
     }
 
-    [StringPopup("stateNames")]
+    [StringSelector("eventNames")]
     public void LaunchEvent(string name)
     {
         int index = Array.IndexOf(eventNames, name);
@@ -236,10 +233,8 @@ public class StateMachine : MonoBehaviour
         [FoldoutGroup("$EventsFoldout")]
         public DXEvent exit;
         [FoldoutGroup("$ConditionalEventsFoldout")]
-#pragma warning disable CS0414
         [NamedList("parentMachine.eventNames", false, true)]
-        [SerializeField] byte _foo;
-#pragma warning restore CS0414
+        [SerializeField] public byte _foo;
         [HideInInspector]
         public DXEvent[] events;
 

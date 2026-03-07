@@ -185,32 +185,36 @@ public class MaterialsReplacer : MonoBehaviour
 
     void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
     {
-        for (int i = 0; i < rend.Length; i++)
-            if (rend[i].enabled)
-                rend[i].rend.enabled = false;
+        if (rend != null)
+            for (int i = 0; i < rend.Length; i++)
+                if (rend[i].enabled)
+                    rend[i].rend.enabled = false;
         //ReplaceMaterials();
     }
 
     void OnEndContextRendering(ScriptableRenderContext context, List<Camera> cameras)
     {
-        for (int i = 0; i < rend.Length; i++)
-            if (rend[i].enabled)
-                rend[i].rend.enabled = true;
+        if (rend != null)
+            for (int i = 0; i < rend.Length; i++)
+                if (rend[i].enabled)
+                    rend[i].rend.enabled = true;
         //ResetMaterials();
     }
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
-        for (int i = 0; i < instancedFilters.Length; i++)
-            if (instancedFilters[i] != null)
-                instancedFilters[i].sharedMesh = rend[i].filter.sharedMesh;
+        if (instancedFilters != null)
+            for (int i = 0; i < instancedFilters.Length; i++)
+                if (instancedFilters[i] != null)
+                    instancedFilters[i].sharedMesh = rend[i].filter.sharedMesh;
     }
 
     void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
     {
-        for (int i = 0; i < instancedFilters.Length; i++)
-            if (instancedFilters[i] != null)
-                instancedFilters[i].sharedMesh = rend[i].filter.sharedMesh;
+        if (instancedFilters != null)
+            for (int i = 0; i < instancedFilters.Length; i++)
+                if (instancedFilters[i] != null)
+                    instancedFilters[i].sharedMesh = rend[i].filter.sharedMesh;
     }
 #endif
 

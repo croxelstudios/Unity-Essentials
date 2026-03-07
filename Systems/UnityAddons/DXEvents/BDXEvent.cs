@@ -4,6 +4,7 @@ using UnityEngine.Events;
 public class BDXEvent<T> where T : UnityEventBase
 {
     [SerializeField]
+    [EasyEvent]
     protected T unityEvent = null;
 
     public virtual bool IsNull()

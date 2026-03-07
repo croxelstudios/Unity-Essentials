@@ -4,20 +4,19 @@ using UnityEditorInternal;
 #endif
 using UnityEngine;
 
-public class RenderingLayerMaskAttribute : PropertyAttribute { }
-
+public class RenderingLayerMaskAttribute : PropertyAttribute, IEventActionAttribute
+{
 #if UNITY_EDITOR
-[CustomPropertyDrawer(typeof(RenderingLayerMaskAttribute))]
-public class RenderingLayerMaskAttributeDrawer : PropertyDrawer
-{
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    public bool InterpretInEventsDrawer(Rect argRect,
+        SerializedProperty argument, SerializedProperty listenerTarget)
     {
-        property.intValue = RenderingLayerMaskDrawer.LayerMaskField(position, label.text, property.intValue);
+        if (argument.propertyType == SerializedPropertyType.Integer)
+        {
+            argument.intValue = LayerMaskField(argRect, argument.displayName, argument.intValue);
+            return true;
+        }
+        else return false;
     }
-}
-
-public static class RenderingLayerMaskDrawer
-{
 
     public static int LayerMaskField(string label, int layermask)
     {
@@ -75,6 +74,17 @@ public static class RenderingLayerMaskDrawer
         }
 
         return field;
+    }
+#endif
+}
+
+#if UNITY_EDITOR
+[CustomPropertyDrawer(typeof(RenderingLayerMaskAttribute))]
+public class RenderingLayerMaskAttributeDrawer : PropertyDrawer
+{
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        property.intValue = RenderingLayerMaskAttribute.LayerMaskField(position, label.text, property.intValue);
     }
 }
 #endif

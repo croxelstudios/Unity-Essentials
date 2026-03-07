@@ -100,7 +100,7 @@ public class ConstantSpeed : DXMonoBehaviour
     public enum Direction { Up, Right, Down, Left, Forward, Backwards }
 
 #if UNITY_EDITOR
-    [EnumPopup(typeof(Direction))]
+    [EnumSelector(typeof(Direction))]
 #endif
     public void SetCardinalDirection(int direction)
     {

@@ -11,8 +11,10 @@ public class DXStringEvent : DXTypedEvent<string>
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.String };
     [SerializeField]
+    [EasyEvent]
     UnityEvent isEmpty = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent isNotEmpty = null;
 
     public DXStringEvent() { types = new EventType[] { EventType.String }; }

@@ -11,24 +11,34 @@ public class DXVectorEvent : DXTypedEvent<Vector3>
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.Vector3 };
     [SerializeField]
+    [EasyEvent]
     UnityEvent<Vector2> vector2Event = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<Vector2> vector2XZEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> magnitude = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<Vector3> unityEventNormal = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<Vector2>  vector2EventNormal = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> xEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> yEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> zEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> magnitudeNonZero = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent magnitudeZero = null;
 
     public DXVectorEvent() { types = new EventType[] { EventType.Vector3 }; }

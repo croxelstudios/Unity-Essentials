@@ -11,16 +11,22 @@ public class DXRotationEvent : DXTypedEvent<Vector3>
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.EulerAngles };
     [SerializeField]
+    [EasyEvent]
     UnityEvent<Quaternion> quaternionEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> angleEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<Vector3> axisEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> xEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> yEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> zEvent = null;
 
     public DXRotationEvent() { types = new EventType[] { EventType.EulerAngles }; }

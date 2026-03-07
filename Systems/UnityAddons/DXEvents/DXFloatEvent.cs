@@ -11,10 +11,13 @@ public class DXFloatEvent : DXTypedEvent<float>
     [SerializeField]
     protected EventType[] types = new EventType[] { EventType.Float };
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> absEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> negativeEvent = null;
     [SerializeField]
+    [EasyEvent]
     UnityEvent<float> oneMinusEvent = null;
 
     public DXFloatEvent() { types = new EventType[] { EventType.Float }; }

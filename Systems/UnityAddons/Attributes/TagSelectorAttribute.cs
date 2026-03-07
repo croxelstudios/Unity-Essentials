@@ -7,7 +7,7 @@ using UnityEditor;
 using System.Collections.Generic;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-public class TagSelectorAttribute : PropertyAttribute
+public class TagSelectorAttribute : PropertyAttribute, IEventActionAttribute
 {
 #if UNITY_EDITOR
     public bool UseDefaultTagFieldDrawer = false;
@@ -18,23 +18,21 @@ public class TagSelectorAttribute : PropertyAttribute
         this.noTagName = noTagName;
     }
 
-    public static bool InterpretInEventsDrawer(MethodInfo method, SerializedProperty argument, Rect argRect)
+    public bool InterpretInEventsDrawer(Rect argRect,
+        SerializedProperty argument, SerializedProperty listenerTarget)
     {
-        object[] tagSelectorAttributes = null;
-        if (method != null) tagSelectorAttributes = method.GetCustomAttributes(typeof(TagSelectorAttribute), true);
-        if ((tagSelectorAttributes != null) && (tagSelectorAttributes.Length > 0) &&
-            (argument.propertyType == SerializedPropertyType.String))
+        if (argument.propertyType == SerializedPropertyType.String)
         {
-            TagSelectorAttribute attrib = (TagSelectorAttribute)tagSelectorAttributes[0];
-            DrawTagField(attrib, argument, argRect);
+            DrawTagField(argument, argRect);
             return true;
         }
         else return false;
     }
 
-    public static void DrawTagField(TagSelectorAttribute attrib, SerializedProperty property, Rect argRect, bool drawWithLabel = false, GUIContent label = null)
+    public void DrawTagField(
+        SerializedProperty property, Rect argRect, bool drawWithLabel = false, GUIContent label = null)
     {
-        if (attrib.UseDefaultTagFieldDrawer)
+        if (UseDefaultTagFieldDrawer)
         {
             if (drawWithLabel)
                 property.stringValue = EditorGUI.TagField(argRect, property.displayName, property.stringValue);
@@ -44,8 +42,8 @@ public class TagSelectorAttribute : PropertyAttribute
         {
             //generate the taglist + custom tags
             List<string> tagList = new List<string>();
-            if (attrib.noTagName == "") tagList.Add("<NoTag>");
-            else tagList.Add("<" + attrib.noTagName + ">");
+            if (noTagName == "") tagList.Add("<NoTag>");
+            else tagList.Add("<" + noTagName + ">");
             tagList.AddRange(UnityEditorInternal.InternalEditorUtility.tags);
             string propertyString = property.stringValue;
             int index = -1;
@@ -110,7 +108,7 @@ public class TagSelectorAttributeDrawer : PropertyDrawer
 
             var attrib = attribute as TagSelectorAttribute;
 
-            TagSelectorAttribute.DrawTagField(attrib, property, position, true, label);
+            attrib.DrawTagField(property, position, true, label);
 
             EditorGUI.EndProperty();
         }

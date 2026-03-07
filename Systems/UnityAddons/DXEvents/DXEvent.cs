@@ -18,6 +18,7 @@ public class DXEvent : BDXEvent<UnityEvent>
 #endif
 
     [SerializeField]
+    [EasyEvent]
     UnityEvent[] overrideEvents = null;
 
     public void Invoke()

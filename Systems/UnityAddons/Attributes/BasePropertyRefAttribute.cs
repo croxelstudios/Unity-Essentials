@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-//TO DO: A bunch of things can be optimized here now that I have StringExtension_GetSerializedPropertyIn.
-//Also need to check StringPopupAttribute.
+//TO DO: A bunch of things can be optimized here now that I have ObjectExtension_GetSerializedProperty.
+//Also need to check StringSelectorAttribute.
 public class BasePropertyRefAttribute : PropertyAttribute
 {
     public string propPath;
