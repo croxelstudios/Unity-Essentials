@@ -27,6 +27,7 @@ public class MaterialsReplacer : MonoBehaviour
     MeshFilter[] instancedFilters;
     bool updateInstances = false;
     bool additionWasTracked = false;
+    List<RendererData> tmpList;
 
     void UpdateMaterials()
     {
@@ -42,10 +43,12 @@ public class MaterialsReplacer : MonoBehaviour
         for (int i = 0; i < parentSearch; i++)
             parent = parent.parent;
         Renderer[] r = parent.GetComponentsInChildren<Renderer>(true);
-        rend = new RendererData[r.Length];
-        for (int i = 0; i < rend.Length; i++)
+        tmpList = tmpList.CreateIfNull();
+        for (int i = 0; i < r.Length; i++)
             if (!r[i].gameObject.hideFlags.Contains(HideFlags.HideAndDontSave))
-                rend[i] = new RendererData(r[i]);
+                tmpList.Add(new RendererData(r[i]));
+        rend = tmpList.ToArray();
+        tmpList.Clear();
     }
 
     void OnEnable()
