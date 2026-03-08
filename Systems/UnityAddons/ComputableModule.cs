@@ -26,6 +26,18 @@ public static class ComputableModule
     }
 
     /// <summary>
+    /// Gets the ComputableMesh or ComputableMeshes associated with the specified Component.
+    /// If the Rendering Agent is a MeshFilter, automatically sets up the mesh replacement on rendering.
+    /// </summary>
+    /// <param name="comp"></param>
+    /// <param name="nameSufix"></param>
+    /// <returns></returns>
+    public static ComputableMesh[] Get(Component comp, bool reinitialize, string nameSufix = "_Computable")
+    {
+        return Get(comp, comp.gameObject, reinitialize, nameSufix);
+    }
+
+    /// <summary>
     /// Gets the ComputableMesh or ComputableMeshes associated with the specified Component and GameObject.
     /// If the Rendering Agent is a MeshFilter, automatically sets up the mesh replacement on rendering.
     /// </summary>
