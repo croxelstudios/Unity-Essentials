@@ -8,7 +8,7 @@ using UnityEditor;
 #endif
 
 [ExecuteAlways]
-[DefaultExecutionOrder(5)]
+[DefaultExecutionOrder(-1)]
 public class MaterialsReplacer : MonoBehaviour
 {
     [SerializeField]

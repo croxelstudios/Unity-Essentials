@@ -189,6 +189,35 @@ public class ArbitraryProperty
         textureObject = texture;
     }
 
+    public void SetAlpha(float value, bool useBlackValue)
+    {
+        switch (type)
+        {
+            case PropertyType.Float:
+                floatValue = value;
+                break;
+            case PropertyType.Int:
+                intValue = Mathf.FloorToInt(value * 100f);
+                break;
+            case PropertyType.Color:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV(colorValue, out float h, out float s, out float v);
+                    colorValue = Color.HSVToRGB(h, s, value);
+                }
+                else colorValue.a = value;
+                break;
+            case PropertyType.Vector:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV((Color)vectorValue, out float h, out float s, out float v);
+                    vectorValue = (Vector4)Color.HSVToRGB(h, s, value);
+                }
+                else vectorValue.w = value;
+                break;
+        }
+    }
+
     public float GetFloat()
     {
         return floatValue;
@@ -212,6 +241,33 @@ public class ArbitraryProperty
     public Texture GetTexture()
     {
         return textureObject;
+    }
+
+    public float GetAlpha(bool useBlackValue = false)
+    {
+        switch (type)
+        {
+            case PropertyType.Float:
+                return floatValue;
+            case PropertyType.Int:
+                return intValue / 100f;
+            case PropertyType.Color:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV(colorValue, out float h, out float s, out float v);
+                    return v;
+                }
+                else return colorValue.a;
+            case PropertyType.Vector:
+                if (useBlackValue)
+                {
+                    Color.RGBToHSV((Color)vectorValue, out float h, out float s, out float v);
+                    return v;
+                }
+                else return vectorValue.w;
+            default:
+                return 1f;
+        }
     }
 
     public void SaveOriginal(Material material)
@@ -312,6 +368,11 @@ public class ArbitraryProperty
     Texture SavedTexture(Material material)
     {
         return otObject.NotNullContainsKey(material) ? otObject[material] : null;
+    }
+
+    public bool CanBlend()
+    {
+        return type != PropertyType.Texture;
     }
 }
 

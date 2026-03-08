@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Random = UnityEngine.Random;
 using System.Linq;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [ExecuteAlways]
 public class ChildParentEvents : MonoBehaviour
@@ -13,12 +16,12 @@ public class ChildParentEvents : MonoBehaviour
     public bool ignoreFromParents = false;
     [ShowInInspector]
     [OnValueChanged("UpdateTargetEventNames", true)]
-    [ListDrawerSettings(ShowFoldout = false, HideAddButton = true)]
+    [ListDrawerSettings(ShowFoldout = false, HideAddButton = true, DraggableItems = false)]
     [GUIColor("#bfbfbf")]
     protected string[] parentEventNames = null;
     [ShowInInspector]
     [OnValueChanged("UpdateTargetEventNames", true)]
-    [ListDrawerSettings(ShowFoldout = false, HideAddButton = true)]
+    [ListDrawerSettings(ShowFoldout = false, HideAddButton = true, DraggableItems = false)]
     [GUIColor("#bfbfbf")]
     protected string[] childEventNames = null;
     [PropertyOrder(1)]
@@ -51,7 +54,7 @@ public class ChildParentEvents : MonoBehaviour
 
 #if UNITY_EDITOR
         if (!Application.isPlaying)
-            UpdateTargetEventNames();
+            EditorApplication.delayCall += UpdateTargetEventNames;
 #endif
     }
 
@@ -298,9 +301,12 @@ public class ChildParentEvents : MonoBehaviour
 
     void RemoveFromChildrenEvents()
     {
-        for (int i = 0; i < childrenEventsISubscribedAsParent.Count; i++)
-            childrenEventsISubscribedAsParent[i].RemoveParent(this);
-        childrenEventsISubscribedAsParent.SmartClear();
+        if (!childrenEventsISubscribedAsParent.IsNullOrEmpty())
+        {
+            for (int i = 0; i < childrenEventsISubscribedAsParent.Count; i++)
+                childrenEventsISubscribedAsParent[i].RemoveParent(this);
+            childrenEventsISubscribedAsParent.SmartClear();
+        }
     }
 
     public void RemoveChild(ChildParentEvents child)
@@ -348,9 +354,12 @@ public class ChildParentEvents : MonoBehaviour
 
     void RemoveFromParentEvents()
     {
-        for (int i = 0; i < parentEventsISubscribedAsChild.Count; i++)
-            parentEventsISubscribedAsChild[i].RemoveChild(this);
-        parentEventsISubscribedAsChild.SmartClear();
+        if (!parentEventsISubscribedAsChild.IsNullOrEmpty())
+        {
+            for (int i = 0; i < parentEventsISubscribedAsChild.Count; i++)
+                parentEventsISubscribedAsChild[i].RemoveChild(this);
+            parentEventsISubscribedAsChild.SmartClear();
+        }
     }
 
     public void RemoveParent(ChildParentEvents parent)
@@ -363,8 +372,15 @@ public class ChildParentEvents : MonoBehaviour
     [Button]
     void UpdateTargetEventNames()
     {
-        parentEventNames = parentEventsISubscribedAsChild.SelectMany(e => e.eventNames).Distinct().ToArray();
-        childEventNames = childrenEventsISubscribedAsParent.SelectMany(e => e.eventNames).Distinct().ToArray();
+        if (parentEventsISubscribedAsChild.IsNullOrEmpty())
+            parentEventNames = new string[0];
+        else parentEventNames =
+                parentEventsISubscribedAsChild.SelectMany(e => e.eventNames).Distinct().ToArray();
+
+        if (childrenEventsISubscribedAsParent.IsNullOrEmpty())
+            childEventNames = new string[0];
+        else childEventNames =
+                childrenEventsISubscribedAsParent.SelectMany(e => e.eventNames).Distinct().ToArray();
     }
 
     void OnValidate()

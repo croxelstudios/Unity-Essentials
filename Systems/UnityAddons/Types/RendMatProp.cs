@@ -107,3 +107,42 @@ public struct RendMat : IEquatable<RendMat>
         return !o1.Equals(o2);
     }
 }
+
+public struct SharedMatProp : IEquatable<SharedMatProp>
+{
+    Material material;
+    string property;
+
+    public SharedMatProp(Material material, string property)
+    {
+        this.material = material;
+        this.property = property;
+    }
+
+    public override bool Equals(object other)
+    {
+        if (!(other is SharedMatProp)) return false;
+        return Equals((SharedMatProp)other);
+    }
+
+    public bool Equals(SharedMatProp other)
+    {
+        return (material == other.material)
+            && (property == other.property);
+    }
+
+    public override int GetHashCode()
+    {
+        return material.GetHashCode() * 31 + property.GetHashCode();
+    }
+
+    public static bool operator ==(SharedMatProp o1, SharedMatProp o2)
+    {
+        return o1.Equals(o2);
+    }
+
+    public static bool operator !=(SharedMatProp o1, SharedMatProp o2)
+    {
+        return !o1.Equals(o2);
+    }
+}

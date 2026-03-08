@@ -332,8 +332,6 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
     [OnValueChanged("UpdateBehaviour")]
     public bool blendWithOriginal = false;
 
-    public enum BlendMode { Multiply, Average, Add, Subtract }
-
     protected override void Init()
     {
         stackDictionary = stackDictionary.CreateIfNull();
@@ -443,7 +441,7 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         return current;
     }
 
-    public void SetNeutral(ref T current)
+    void SetNeutral(ref T current)
     {
         switch (blendMode)
         {
@@ -462,12 +460,12 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         }
     }
 
-    public void CombineValueIn(ref T current, int count)
+    void CombineValueIn(ref T current, int count)
     {
         CombineValueIn(ref current, tValue, count);
     }
 
-    public void CombineValueIn(ref T current, T value, int count)
+    void CombineValueIn(ref T current, T value, int count)
     {
         switch (blendMode)
         {

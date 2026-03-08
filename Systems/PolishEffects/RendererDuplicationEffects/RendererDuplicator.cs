@@ -55,7 +55,7 @@ public class RendererDuplicator : BRendererDuplicator
     string colorPropertyName = "_BaseColor";
     [FoldoutGroup(foldoutName)]
     [SerializeField]
-    RenderersSetColor.BlendMode blendMode = RenderersSetColor.BlendMode.Multiply;
+    BlendMode blendMode = BlendMode.Multiply;
     [FoldoutGroup(foldoutName)]
     [SerializeField]
     protected bool useAlongGradient = true;
