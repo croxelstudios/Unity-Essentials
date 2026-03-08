@@ -17,6 +17,8 @@ public class MaterialPropertyTweaker : MonoBehaviour
     [SerializeField]
     bool update = true;
     [SerializeField]
+    ArbitraryProperty property = new ArbitraryProperty("_Color", Color.white);
+    [SerializeField]
     [OnValueChanged("ProcessPriority")]
     string propertyName = "_Color";
     [SerializeField]

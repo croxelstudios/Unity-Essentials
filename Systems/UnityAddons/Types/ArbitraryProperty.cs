@@ -372,7 +372,7 @@ public class ArbitraryProperty_Drawer : PropertyDrawer
                 EditorGUI.PropertyField(pos, cValue, new GUIContent("Color"));
                 break;
             case 3:
-                EditorGUI.PropertyField(pos, vValue, new GUIContent("Vector"));
+                vValue.vector4Value = EditorGUI.Vector4Field(pos, new GUIContent("Vector"), vValue.vector4Value);
                 break;
             case 4:
                 EditorGUI.PropertyField(pos, tObject, new GUIContent("Texture"));
@@ -392,7 +392,7 @@ public class ArbitraryProperty_Drawer : PropertyDrawer
             case 2:
                 return EditorGUI.GetPropertyHeight(cValue, new GUIContent("Color"));
             case 3:
-                return EditorGUI.GetPropertyHeight(vValue, new GUIContent("Vector"));
+                return EditorGUIUtility.singleLineHeight;
             case 4:
                 return EditorGUI.GetPropertyHeight(tObject, new GUIContent("Texture"));
             default:
