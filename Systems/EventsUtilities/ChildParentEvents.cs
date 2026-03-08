@@ -30,11 +30,9 @@ public class ChildParentEvents : MonoBehaviour
     public string[] eventNames = null;
 
     List<ChildParentEvents> parentEvents;
-    [HideInInspector]
-    public List<ChildParentEvents> parentEventsISubscribedAsChild;
+    List<ChildParentEvents> parentEventsISubscribedAsChild;
     List<ChildParentEvents> childEvents;
-    [HideInInspector]
-    public List<ChildParentEvents> childrenEventsISubscribedAsParent;
+    List<ChildParentEvents> childrenEventsISubscribedAsParent;
     int currentChild = 0;
 
     static List<ChildParentEvents> auxEvents;
