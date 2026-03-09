@@ -1083,6 +1083,9 @@ public class EasyEventDrawer : PropertyDrawer
                     hasBeenDrawn = true;
                 }
             }
+
+            if (!hasBeenDrawn)
+                EditorGUI.PropertyField(argRect, argument, GUIContent.none);
         }
         #endregion
 
