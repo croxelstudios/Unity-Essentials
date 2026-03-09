@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 //TO DO: Add support for MaterialSource as in MaterialPerCameraTweaker
 [ExecuteAlways]
@@ -39,11 +42,16 @@ public class MaterialPropertyTweaker : MonoBehaviour
 
     void SetProperty()
     {
-        ResetProperty();
-        priorityHandler = priorityHandler.CreateRegister(
-            new SharedMatProp(material, property.propertyName), priority, SetProperty);
-        if (priorityHandler.CanAct())
-            property.SetProperty(material, blendMode, blendWithOriginal);
+#if UNITY_EDITOR
+        if (PrefabStageUtility.GetPrefabStage(gameObject) == null)
+#endif
+        {
+            ResetProperty();
+            priorityHandler = priorityHandler.CreateRegister(
+                new SharedMatProp(material, property.propertyName), priority, SetProperty);
+            if (priorityHandler.CanAct())
+                property.SetProperty(material, blendMode, blendWithOriginal);
+        }
     }
 
     public void ResetProperty()

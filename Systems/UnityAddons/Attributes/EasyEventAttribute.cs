@@ -1012,11 +1012,72 @@ public class EasyEventDrawer : PropertyDrawer
             }
         }
 
+        string argTypeName = serializedArgs.
+            FindPropertyRelative("m_ObjectArgumentAssemblyTypeName").stringValue;
+        Type argType = typeof(Object);
+        if (!string.IsNullOrEmpty(argTypeName))
+            argType = FindTypeInAllAssemblies(argTypeName) ?? typeof(Object);
+
         PersistentListenerMode mode = (PersistentListenerMode)serializedMode.enumValueIndex;
 
-        SerializedProperty argument;
-        if (serializedTarget.objectReferenceValue == null || string.IsNullOrEmpty(serializedMethod.stringValue))
+        if (serializedTarget.objectReferenceValue == null ||
+            string.IsNullOrEmpty(serializedMethod.stringValue))
             mode = PersistentListenerMode.Void;
+
+        DrawParameterType(argRect, mode, argType, 
+            serializedMode, serializedArgs, serializedTarget, serializedMethod);
+
+        EditorGUI.BeginDisabledGroup(serializedTarget.objectReferenceValue == null);
+        {
+            EditorGUI.BeginProperty(functionRect, GUIContent.none, serializedMethod);
+
+            GUIContent buttonContent;
+
+            if (EditorGUI.showMixedValue)
+            {
+                buttonContent = new GUIContent("\u2014", "Mixed Values");
+            }
+            else
+            {
+                if (serializedTarget.objectReferenceValue == null ||
+                    string.IsNullOrEmpty(serializedMethod.stringValue))
+                {
+                    buttonContent = new GUIContent("No Function");
+                }
+                else
+                {
+                    buttonContent = new GUIContent(
+                        GetFunctionDisplayName(serializedTarget, serializedMethod, mode, argType,
+                        cachedSettings.displayArgumentType));
+                }
+            }
+
+            if (GUI.Button(functionRect, buttonContent, EditorStyles.popup))
+            {
+                BuildPopupMenu(serializedTarget.objectReferenceValue, element, argType).
+                    DropDown(functionRect);
+            }
+
+            EditorGUI.EndProperty();
+        }
+        EditorGUI.EndDisabledGroup();
+    }
+
+    void SelectCallback(ReorderableList list)
+    {
+        currentState.lastSelectedIndex = list.index;
+    }
+
+    void ReorderCallback(ReorderableList list)
+    {
+        currentState.lastSelectedIndex = list.index;
+    }
+
+    void DrawParameterType(Rect argRect, PersistentListenerMode mode, Type argType,
+        SerializedProperty serializedMode, SerializedProperty serializedArgs,
+        SerializedProperty serializedTarget, SerializedProperty serializedMethod)
+    {
+        SerializedProperty argument;
 
         switch (mode)
         {
@@ -1031,21 +1092,6 @@ public class EasyEventDrawer : PropertyDrawer
                 argument = serializedArgs.FindPropertyRelative("m_IntArgument");
                 break;
         }
-
-        string argTypeName = serializedArgs.FindPropertyRelative("m_ObjectArgumentAssemblyTypeName").stringValue;
-        Type argType = typeof(Object);
-        if (!string.IsNullOrEmpty(argTypeName))
-            argType = FindTypeInAllAssemblies(argTypeName) ?? typeof(Object);
-
-        //if (mode == PersistentListenerMode.Object)
-        //{
-        //    EditorGUI.BeginChangeCheck();
-        //    Object result = EditorGUI.ObjectField(argRect, GUIContent.none, argument.objectReferenceValue, argType, true);
-        //    if (EditorGUI.EndChangeCheck())
-        //        argument.objectReferenceValue = result;
-        //}
-        //else if (mode != PersistentListenerMode.Void && mode != PersistentListenerMode.EventDefined)
-        //    EditorGUI.PropertyField(argRect, argument, GUIContent.none);
 
         //ADDITION
         #region Proccess parameter type
@@ -1088,98 +1134,6 @@ public class EasyEventDrawer : PropertyDrawer
                 EditorGUI.PropertyField(argRect, argument, GUIContent.none);
         }
         #endregion
-
-        EditorGUI.BeginDisabledGroup(serializedTarget.objectReferenceValue == null);
-        {
-            EditorGUI.BeginProperty(functionRect, GUIContent.none, serializedMethod);
-
-            GUIContent buttonContent;
-
-            if (EditorGUI.showMixedValue)
-            {
-                buttonContent = new GUIContent("\u2014", "Mixed Values");
-            }
-            else
-            {
-                if (serializedTarget.objectReferenceValue == null || string.IsNullOrEmpty(serializedMethod.stringValue))
-                {
-                    buttonContent = new GUIContent("No Function");
-                }
-                else
-                {
-                    buttonContent = new GUIContent(GetFunctionDisplayName(serializedTarget, serializedMethod, mode, argType, cachedSettings.displayArgumentType));
-                }
-            }
-
-            if (GUI.Button(functionRect, buttonContent, EditorStyles.popup))
-            {
-                BuildPopupMenu(serializedTarget.objectReferenceValue, element, argType).DropDown(functionRect);
-            }
-
-            EditorGUI.EndProperty();
-        }
-        EditorGUI.EndDisabledGroup();
-    }
-
-    void SelectCallback(ReorderableList list)
-    {
-        currentState.lastSelectedIndex = list.index;
-    }
-
-    void ReorderCallback(ReorderableList list)
-    {
-        currentState.lastSelectedIndex = list.index;
-        // ADDITION
-        for (int i = 0; i < list.count; i++)
-        {
-            SerializedProperty element = listenerArray.GetArrayElementAtIndex(i);
-
-            SerializedProperty serializedMode = element.FindPropertyRelative("m_Mode");
-            SerializedProperty serializedArgs = element.FindPropertyRelative("m_Arguments");
-            SerializedProperty serializedTarget = element.FindPropertyRelative("m_Target");
-            SerializedProperty serializedMethod = element.FindPropertyRelative("m_MethodName");
-
-            PersistentListenerMode mode = (PersistentListenerMode)serializedMode.enumValueIndex;
-
-            SerializedProperty argument;
-            if (serializedTarget.objectReferenceValue == null || string.IsNullOrEmpty(serializedMethod.stringValue))
-                mode = PersistentListenerMode.Void;
-
-            switch (mode)
-            {
-                case PersistentListenerMode.Object:
-                case PersistentListenerMode.String:
-                case PersistentListenerMode.Bool:
-                case PersistentListenerMode.Float:
-                    argument = serializedArgs.FindPropertyRelative("m_" + Enum.GetName(typeof(PersistentListenerMode), mode) + "Argument");
-                    break;
-                default:
-                    argument = serializedArgs.FindPropertyRelative("m_IntArgument");
-                    break;
-            }
-
-            string argTypeName = serializedArgs.FindPropertyRelative("m_ObjectArgumentAssemblyTypeName").stringValue;
-            Type argType = typeof(Object);
-            if (!string.IsNullOrEmpty(argTypeName))
-                argType = FindTypeInAllAssemblies(argTypeName) ?? typeof(Object);
-
-            if (mode != PersistentListenerMode.Void && mode != PersistentListenerMode.EventDefined)
-            {
-                // Try to find the Attributes
-                MethodInfo method = InvokeFindMethod(serializedMethod.stringValue,
-                    serializedTarget.objectReferenceValue.GetType(), dummyEvent, mode, argType);
-
-                object[] stringPopupAttributes = null;
-                if (method != null) stringPopupAttributes = method.GetCustomAttributes(typeof(StringSelectorAttribute), true);
-                if ((stringPopupAttributes != null) && (stringPopupAttributes.Length > 0) &&
-                    ((argument.propertyType == SerializedPropertyType.Integer) ||
-                    (argument.propertyType == SerializedPropertyType.String))) //String Array Attribute
-                {
-                    StringSelectorAttribute attrib = (StringSelectorAttribute)stringPopupAttributes[0];
-                    attrib.UpdateStringPopupData(serializedTarget.objectReferenceValue, argument);
-                }
-            }
-        }
     }
 
     void AddEventListener(ReorderableList list)
