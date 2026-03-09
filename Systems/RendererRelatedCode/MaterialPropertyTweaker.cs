@@ -24,7 +24,6 @@ public class MaterialPropertyTweaker : MonoBehaviour
     int priority = 0;
 
     PriorityHandler<SharedMatProp> priorityHandler;
-    bool canAct = false;
 
     void OnEnable()
     {
