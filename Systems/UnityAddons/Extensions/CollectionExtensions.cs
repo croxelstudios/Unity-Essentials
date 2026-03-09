@@ -278,6 +278,53 @@ public static class CollectionExtensions
         if (dict.SmartGetValue(key, out D d))
             d.SmartRemove(key2, element);
     }
+
+    public static void SmartRemoveClear<L, T, Y>(this IDictionary<T, L> dict, T key, Y element) where L : IList<Y>
+    {
+        if (dict.SmartGetValue(key, out L list))
+        {
+            list.Remove(element);
+            if (list.IsNullOrEmpty())
+                dict.Remove(key);
+        }
+    }
+
+    public static void SmartRemoveClear<T, Y, U>(this IDictionary<T, Dictionary<Y, U>> dict, T key, Y key2)
+    {
+        SmartRemoveClear<Dictionary<Y, U>, T, Y, U>(dict, key, key2);
+    }
+
+    public static void SmartRemoveClear<T, Y, U>(this IDictionary<T, SortedDictionary<Y, U>> dict, T key, Y key2)
+    {
+        SmartRemoveClear<SortedDictionary<Y, U>, T, Y, U>(dict, key, key2);
+    }
+
+    public static void SmartRemoveClear<T, Y, U>(this IDictionary<T, SortedList<Y, U>> dict, T key, Y key2)
+    {
+        SmartRemoveClear<SortedList<Y, U>, T, Y, U>(dict, key, key2);
+    }
+
+    public static void SmartRemoveClear<D, T, Y, U>(this IDictionary<T, D> dict, T key, Y key2)
+        where D : IDictionary<Y, U>
+    {
+        if (dict.SmartGetValue(key, out D d))
+        {
+            d.SmartRemove(key2);
+            if (d.IsNullOrEmpty())
+                dict.Remove(key);
+        }
+    }
+
+    public static void SmartRemoveClear<D, L, T, Y, U>(this IDictionary<T, D> dict,
+        T key, Y key2, U element) where D : IDictionary<Y, L> where L : IList<U>
+    {
+        if (dict.SmartGetValue(key, out D d))
+        {
+            d.SmartRemoveClear(key2, element);
+            if (d.IsNullOrEmpty())
+                dict.Remove(key);
+        }
+    }
     #endregion
 
     #region Smart GetValue

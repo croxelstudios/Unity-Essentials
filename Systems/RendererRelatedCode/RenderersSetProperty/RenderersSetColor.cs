@@ -26,45 +26,6 @@ public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
         mat.SetColor(propertyName, value);
     }
 
-    protected override Color NeutralAdd()
-    {
-        return Color.black;
-    }
-
-    protected override Color NeutralMult()
-    {
-        return Color.white;
-    }
-
-    protected override Color Combine_Average(Color current, Color next, int count)
-    {
-        float alpha = current.a;
-        current += (next / count);
-        current.a = alpha * next.a;
-        return current;
-    }
-
-    protected override Color Combine_Multiply(Color current, Color next)
-    {
-        return current * next;
-    }
-
-    protected override Color Combine_Add(Color current, Color next)
-    {
-        float alpha = current.a;
-        current += next;
-        current.a = alpha * next.a;
-        return current;
-    }
-
-    protected override Color Combine_Subtract(Color current, Color next)
-    {
-        float alpha = current.a;
-        current -= next;
-        current.a = alpha * next.a;
-        return current;
-    }
-
     public virtual void SetColor(Color color)
     {
         _color = color;

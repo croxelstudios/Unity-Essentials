@@ -5,23 +5,25 @@ using UnityEngine;
 public static class Generics
 {
     public delegate T SmoothDampImpl<T>(T current, T target, ref T currentVelocity,
-        float smoothTime, float maxSpeed, float deltaTime) where T : unmanaged;
-    public delegate bool IsZeroImpl<T>(T value) where T : unmanaged;
-    public delegate T AddImpl<T>(T A, T B) where T : unmanaged;
-    public delegate T SubtractImpl<T>(T A, T B) where T : unmanaged;
-    public delegate T ScaleImpl<T>(T value, float scale) where T : unmanaged;
-    public delegate bool HasMagnitudeImpl<T>(T value, float epsilon) where T : unmanaged;
-    public delegate float MagnitudeImpl<T>(T value) where T : unmanaged;
-    public delegate T NegateImpl<T>(T value) where T : unmanaged;
+        float smoothTime, float maxSpeed, float deltaTime);
+    public delegate bool IsZeroImpl<T>(T value);
+    public delegate T AddImpl<T>(T A, T B);
+    public delegate T SubtractImpl<T>(T A, T B);
+    public delegate T ScaleImpl<T>(T value, float scale);
+    public delegate T MultiplyImpl<T>(T A, T B);
+    public delegate bool HasMagnitudeImpl<T>(T value, float epsilon);
+    public delegate float MagnitudeImpl<T>(T value);
+    public delegate T NegateImpl<T>(T value);
 
-    private static readonly Dictionary<Type, object> table_SmoothDamp;
-    private static readonly Dictionary<Type, object> table_IsZero;
-    private static readonly Dictionary<Type, object> table_Add;
-    private static readonly Dictionary<Type, object> table_Subtract;
-    private static readonly Dictionary<Type, object> table_Scale;
-    private static readonly Dictionary<Type, object> table_HasMagnitude;
-    private static readonly Dictionary<Type, object> table_Magnitude;
-    private static readonly Dictionary<Type, object> table_Negate;
+    static readonly Dictionary<Type, object> table_SmoothDamp;
+    static readonly Dictionary<Type, object> table_IsZero;
+    static readonly Dictionary<Type, object> table_Add;
+    static readonly Dictionary<Type, object> table_Subtract;
+    static readonly Dictionary<Type, object> table_Scale;
+    static readonly Dictionary<Type, object> table_Multiply;
+    static readonly Dictionary<Type, object> table_HasMagnitude;
+    static readonly Dictionary<Type, object> table_Magnitude;
+    static readonly Dictionary<Type, object> table_Negate;
 
     static Generics()
     {
@@ -30,6 +32,7 @@ public static class Generics
         table_Add = new Dictionary<Type, object>(5);
         table_Subtract = new Dictionary<Type, object>(5);
         table_Scale= new Dictionary<Type, object>(5);
+        table_Multiply = new Dictionary<Type, object>(5);
         table_HasMagnitude = new Dictionary<Type, object>(5);
         table_Magnitude = new Dictionary<Type, object>(5);
         table_Negate = new Dictionary<Type, object>(5);
@@ -39,6 +42,7 @@ public static class Generics
         table_SmoothDamp[typeof(Vector2)] = new SmoothDampImpl<Vector2>(SmoothDamp_Vector2);
         table_SmoothDamp[typeof(Vector3)] = new SmoothDampImpl<Vector3>(SmoothDamp_Vector3);
         table_SmoothDamp[typeof(Vector4)] = new SmoothDampImpl<Vector4>(SmoothDamp_Vector4);
+        table_SmoothDamp[typeof(Color)] = new SmoothDampImpl<Color>(SmoothDamp_Color);
         table_SmoothDamp[typeof(Quaternion)] = new SmoothDampImpl<Quaternion>(SmoothDamp_Quaternion);
 
         // IsZero
@@ -46,27 +50,39 @@ public static class Generics
         table_IsZero[typeof(Vector2)] = new IsZeroImpl<Vector2>(IsZero_Vector2);
         table_IsZero[typeof(Vector3)] = new IsZeroImpl<Vector3>(IsZero_Vector3);
         table_IsZero[typeof(Vector4)] = new IsZeroImpl<Vector4>(IsZero_Vector4);
+        table_IsZero[typeof(Color)] = new IsZeroImpl<Color>(IsZero_Color);
         table_IsZero[typeof(Quaternion)] = new IsZeroImpl<Quaternion>(IsZero_Quaternion);
 
-        // Subtract
+        // Add
         table_Add[typeof(float)] = new AddImpl<float>(Add_Float);
         table_Add[typeof(Vector2)] = new AddImpl<Vector2>(Add_Vector2);
         table_Add[typeof(Vector3)] = new AddImpl<Vector3>(Add_Vector3);
         table_Add[typeof(Vector4)] = new AddImpl<Vector4>(Add_Vector4);
+        table_Add[typeof(Color)] = new AddImpl<Color>(Add_Color);
         table_Add[typeof(Quaternion)] = new AddImpl<Quaternion>(Add_Quaternion);
 
-        // Subtract
+        // Scale
         table_Scale[typeof(float)] = new ScaleImpl<float>(Scale_Float);
         table_Scale[typeof(Vector2)] = new ScaleImpl<Vector2>(Scale_Vector2);
         table_Scale[typeof(Vector3)] = new ScaleImpl<Vector3>(Scale_Vector3);
         table_Scale[typeof(Vector4)] = new ScaleImpl<Vector4>(Scale_Vector4);
+        table_Scale[typeof(Color)] = new ScaleImpl<Color>(Scale_Color);
         table_Scale[typeof(Quaternion)] = new ScaleImpl<Quaternion>(Scale_Quaternion);
+
+        // Multiply
+        table_Multiply[typeof(float)] = new MultiplyImpl<float>(Multiply_Float);
+        table_Multiply[typeof(Vector2)] = new MultiplyImpl<Vector2>(Multiply_Vector2);
+        table_Multiply[typeof(Vector3)] = new MultiplyImpl<Vector3>(Multiply_Vector3);
+        table_Multiply[typeof(Vector4)] = new MultiplyImpl<Vector4>(Multiply_Vector4);
+        table_Multiply[typeof(Color)] = new MultiplyImpl<Color>(Multiply_Color);
+        table_Multiply[typeof(Quaternion)] = new MultiplyImpl<Quaternion>(Multiply_Quaternion);
 
         // Subtract
         table_Subtract[typeof(float)] = new SubtractImpl<float>(Subtract_Float);
         table_Subtract[typeof(Vector2)] = new SubtractImpl<Vector2>(Subtract_Vector2);
         table_Subtract[typeof(Vector3)] = new SubtractImpl<Vector3>(Subtract_Vector3);
         table_Subtract[typeof(Vector4)] = new SubtractImpl<Vector4>(Subtract_Vector4);
+        table_Subtract[typeof(Color)] = new SubtractImpl<Color>(Subtract_Color);
         table_Subtract[typeof(Quaternion)] = new SubtractImpl<Quaternion>(Subtract_Quaternion);
 
         // HasMagnitude
@@ -74,6 +90,7 @@ public static class Generics
         table_HasMagnitude[typeof(Vector2)] = new HasMagnitudeImpl<Vector2>(HasMagnitude_Vector2);
         table_HasMagnitude[typeof(Vector3)] = new HasMagnitudeImpl<Vector3>(HasMagnitude_Vector3);
         table_HasMagnitude[typeof(Vector4)] = new HasMagnitudeImpl<Vector4>(HasMagnitude_Vector4);
+        table_HasMagnitude[typeof(Color)] = new HasMagnitudeImpl<Color>(HasMagnitude_Color);
         table_HasMagnitude[typeof(Quaternion)] = new HasMagnitudeImpl<Quaternion>(HasMagnitude_Quaternion);
 
         // Magnitude
@@ -81,6 +98,7 @@ public static class Generics
         table_Magnitude[typeof(Vector2)] = new MagnitudeImpl<Vector2>(Magnitude_Vector2);
         table_Magnitude[typeof(Vector3)] = new MagnitudeImpl<Vector3>(Magnitude_Vector3);
         table_Magnitude[typeof(Vector4)] = new MagnitudeImpl<Vector4>(Magnitude_Vector4);
+        table_Magnitude[typeof(Color)] = new MagnitudeImpl<Color>(Magnitude_Color);
         table_Magnitude[typeof(Quaternion)] = new MagnitudeImpl<Quaternion>(Magnitude_Quaternion);
 
         // Negate
@@ -88,53 +106,54 @@ public static class Generics
         table_Negate[typeof(Vector2)] = new NegateImpl<Vector2>(Negate_Vector2);
         table_Negate[typeof(Vector3)] = new NegateImpl<Vector3>(Negate_Vector3);
         table_Negate[typeof(Vector4)] = new NegateImpl<Vector4>(Negate_Vector4);
+        table_Negate[typeof(Color)] = new NegateImpl<Color>(Negate_Color);
         table_Negate[typeof(Quaternion)] = new NegateImpl<Quaternion>(Negate_Quaternion);
     }
 
     #region Register functions
-    public static void Register_SmoothDamp<T>(SmoothDampImpl<T> impl) where T : unmanaged
+    public static void Register_SmoothDamp<T>(SmoothDampImpl<T> impl)
     {
         table_SmoothDamp[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_IsZero<T>(IsZeroImpl<T> impl) where T : unmanaged
+    public static void Register_IsZero<T>(IsZeroImpl<T> impl)
     {
         table_IsZero[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_Add<T>(AddImpl<T> impl) where T : unmanaged
+    public static void Register_Add<T>(AddImpl<T> impl)
     {
         table_Add[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_Subtract<T>(SubtractImpl<T> impl) where T : unmanaged
+    public static void Register_Subtract<T>(SubtractImpl<T> impl)
     {
         table_Subtract[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_Scale<T>(ScaleImpl<T> impl) where T : unmanaged
+    public static void Register_Scale<T>(ScaleImpl<T> impl)
     {
         table_Scale[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_HasMagnitude<T>(HasMagnitudeImpl<T> impl) where T : unmanaged
+    public static void Register_HasMagnitude<T>(HasMagnitudeImpl<T> impl)
     {
         table_HasMagnitude[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_Magnitude<T>(MagnitudeImpl<T> impl) where T : unmanaged
+    public static void Register_Magnitude<T>(MagnitudeImpl<T> impl)
     {
         table_Magnitude[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_Negate<T>(NegateImpl<T> impl) where T : unmanaged
+    public static void Register_Negate<T>(NegateImpl<T> impl)
     {
         table_Negate[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
     #endregion
 
     public static T SmoothDamp<T>(T current, T target, ref T currentVelocity,
-        float smoothTime, float maxSpeed, float deltaTime) where T : unmanaged
+        float smoothTime, float maxSpeed, float deltaTime)
     {
         if (deltaTime <= 0f) return current;
         if (smoothTime <= 0f) return target;
@@ -148,7 +167,7 @@ public static class Generics
         return impl(current, target, ref currentVelocity, smoothTime, maxSpeed, deltaTime);
     }
 
-    public static bool IsZero<T>(T value) where T : unmanaged
+    public static bool IsZero<T>(T value)
     {
         if (!table_IsZero.TryGetValue(typeof(T), out object o))
             throw new NotSupportedException($"Type {typeof(T)} not supported by" +
@@ -159,7 +178,7 @@ public static class Generics
         return impl(value);
     }
 
-    public static T Add<T>(T A, T B) where T : unmanaged
+    public static T Add<T>(T A, T B)
     {
         if (!table_Add.TryGetValue(typeof(T), out object o))
             throw new NotSupportedException($"Type {typeof(T)} not supported by" +
@@ -170,7 +189,7 @@ public static class Generics
         return impl(A, B);
     }
 
-    public static T Subtract<T>(T A, T B) where T : unmanaged
+    public static T Subtract<T>(T A, T B)
     {
         if (!table_Subtract.TryGetValue(typeof(T), out object o))
             throw new NotSupportedException($"Type {typeof(T)} not supported by" +
@@ -181,7 +200,7 @@ public static class Generics
         return impl(A, B);
     }
 
-    public static T Scale<T>(T value, float scale) where T : unmanaged
+    public static T Scale<T>(T value, float scale)
     {
         if (!table_Scale.TryGetValue(typeof(T), out object o))
             throw new NotSupportedException($"Type {typeof(T)} not supported by" +
@@ -192,7 +211,18 @@ public static class Generics
         return impl(value, scale);
     }
 
-    public static bool HasMagnitude<T>(T value, float epsilon = 0f) where T : unmanaged
+    public static T Multiply<T>(T A, T B)
+    {
+        if (!table_Multiply.TryGetValue(typeof(T), out object o))
+            throw new NotSupportedException($"Type {typeof(T)} not supported by" +
+                $"Generics.Scale(). Register an implementation using" +
+                $"Generics.Register_Scale<{typeof(T).Name}>(...) if necessary.");
+
+        MultiplyImpl<T> impl = (MultiplyImpl<T>)o;
+        return impl(A, B);
+    }
+
+    public static bool HasMagnitude<T>(T value, float epsilon = 0f)
     {
         if (!table_HasMagnitude.TryGetValue(typeof(T), out object o))
             throw new NotSupportedException($"Type {typeof(T)} not supported by" +
@@ -203,7 +233,7 @@ public static class Generics
         return impl(value, epsilon);
     }
 
-    public static float Magnitude<T>(T value) where T : unmanaged
+    public static float Magnitude<T>(T value)
     {
         if (!table_Magnitude.TryGetValue(typeof(T), out object o))
             throw new NotSupportedException($"Type {typeof(T)} not supported by" +
@@ -214,7 +244,7 @@ public static class Generics
         return impl(value);
     }
 
-    public static T Negate<T>(T value) where T : unmanaged
+    public static T Negate<T>(T value)
     {
         if (!table_Negate.TryGetValue(typeof(T), out object o))
             throw new NotSupportedException($"Type {typeof(T)} not supported by" +
@@ -252,6 +282,17 @@ public static class Generics
         currentVelocity = new Vector4(vx, vy, vz, vw);
         return new Vector4(x, y, z, w);
     }
+    
+    private static Color SmoothDamp_Color(Color current, Color target, ref Color currentVelocity, float smoothTime, float maxSpeed, float deltaTime)
+    {
+        float vx = currentVelocity.r, vy = currentVelocity.g, vz = currentVelocity.b, vw = currentVelocity.a;
+        float x = Mathf.SmoothDamp(current.r, target.r, ref vx, smoothTime, maxSpeed, deltaTime);
+        float y = Mathf.SmoothDamp(current.g, target.g, ref vy, smoothTime, maxSpeed, deltaTime);
+        float z = Mathf.SmoothDamp(current.b, target.b, ref vz, smoothTime, maxSpeed, deltaTime);
+        float w = Mathf.SmoothDamp(current.a, target.a, ref vw, smoothTime, maxSpeed, deltaTime);
+        currentVelocity = new Vector4(vx, vy, vz, vw);
+        return new Vector4(x, y, z, w);
+    }
 
     private static Quaternion SmoothDamp_Quaternion(Quaternion current, Quaternion target, ref Quaternion currentVelocity, float smoothTime, float maxSpeed, float deltaTime)
     {
@@ -283,6 +324,11 @@ public static class Generics
         return value == Vector4.zero;
     }
 
+    public static bool IsZero_Color(Color value)
+    {
+        return value == Color.clear;
+    }
+
     public static bool IsZero_Quaternion(Quaternion value)
     {
         return value == Quaternion.identity;
@@ -306,6 +352,11 @@ public static class Generics
     }
 
     public static Vector4 Add_Vector4(Vector4 A, Vector4 B)
+    {
+        return A + B;
+    }
+
+    public static Color Add_Color(Color A, Color B)
     {
         return A + B;
     }
@@ -337,6 +388,11 @@ public static class Generics
         return A - B;
     }
 
+    public static Color Subtract_Color(Color A, Color B)
+    {
+        return A - B;
+    }
+
     public static Quaternion Subtract_Quaternion(Quaternion A, Quaternion B)
     {
         return A.Subtract(B);
@@ -364,9 +420,46 @@ public static class Generics
         return value * scale;
     }
 
+    public static Color Scale_Color(Color value, float scale)
+    {
+        return value * scale;
+    }
+
     public static Quaternion Scale_Quaternion(Quaternion value, float scale)
     {
         return value.Scale(scale);
+    }
+    #endregion
+
+    #region Multiply
+    public static float Multiply_Float(float A, float B)
+    {
+        return A * B;
+    }
+
+    public static Vector2 Multiply_Vector2(Vector2 A, Vector2 B)
+    {
+        return Vector2.Scale(A, B);
+    }
+
+    public static Vector3 Multiply_Vector3(Vector3 A, Vector3 B)
+    {
+        return Vector3.Scale(A, B);
+    }
+
+    public static Vector4 Multiply_Vector4(Vector4 A, Vector4 B)
+    {
+        return Vector4.Scale(A, B);
+    }
+
+    public static Color Multiply_Color(Color A, Color B)
+    {
+        return new Color(A.r * B.r, A.g * B.g, A.b * B.b, A.a * B.a);
+    }
+
+    public static Quaternion Multiply_Quaternion(Quaternion A, Quaternion B)
+    {
+        return new Quaternion(A.x * B.x, A.y * B.y, A.z * B.z, A.w * B.w);
     }
     #endregion
 
@@ -389,6 +482,11 @@ public static class Generics
     public static bool HasMagnitude_Vector4(Vector4 value, float epsilon)
     {
         return value.sqrMagnitude > epsilon;
+    }
+
+    public static bool HasMagnitude_Color(Color value, float epsilon)
+    {
+        return value.grayscale > epsilon;
     }
 
     public static bool HasMagnitude_Quaternion(Quaternion value, float epsilon)
@@ -418,6 +516,11 @@ public static class Generics
         return value.magnitude;
     }
 
+    public static float Magnitude_Color(Color value)
+    {
+        return value.grayscale;
+    }
+
     public static float Magnitude_Quaternion(Quaternion value)
     {
         return value.Angle();
@@ -443,6 +546,11 @@ public static class Generics
     public static Vector4 Negate_Vector4(Vector4 value)
     {
         return -value;
+    }
+
+    public static Color Negate_Color(Color value)
+    {
+        return Color.white - value;
     }
 
     public static Quaternion Negate_Quaternion(Quaternion value)

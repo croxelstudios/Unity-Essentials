@@ -1024,6 +1024,7 @@ public class EasyEventDrawer : PropertyDrawer
             case PersistentListenerMode.String:
             case PersistentListenerMode.Bool:
             case PersistentListenerMode.Float:
+            case PersistentListenerMode.Int:
                 argument = serializedArgs.FindPropertyRelative("m_" + Enum.GetName(typeof(PersistentListenerMode), mode) + "Argument");
                 break;
             default:
@@ -1048,43 +1049,40 @@ public class EasyEventDrawer : PropertyDrawer
 
         //ADDITION
         #region Proccess parameter type
-        if (mode != PersistentListenerMode.Void)
+        if ((mode != PersistentListenerMode.Void) && (mode != PersistentListenerMode.EventDefined))
         {
             MethodInfo method = InvokeFindMethod(serializedMethod.stringValue,
                 serializedTarget.objectReferenceValue, dummyEvent, mode, argType);
 
             bool hasBeenDrawn = false;
-            if ((mode != PersistentListenerMode.Void) && (mode != PersistentListenerMode.EventDefined))
-            {
-                object[] att = null;
-                if (method != null) att = method.GetCustomAttributes(true);
-                if (!att.IsNullOrEmpty())
-                    foreach (object a in att)
-                        if (a is IEventActionAttribute customAtt)
-                        {
-                            if (customAtt.InterpretInEventsDrawer(argRect, argument, serializedTarget))
-                            {
-                                hasBeenDrawn = true;
-                                break;
-                            }
-                        }
-                if ((!hasBeenDrawn) && (mode == PersistentListenerMode.Object))
-                {
-                    Object result;
-                    ParameterInfo parameter = method.GetParameters()?[0];
-                    if (parameter.ParameterType.BaseType == typeof(BaseSignal))
+
+            object[] att = null;
+            if (method != null) att = method.GetCustomAttributes(true);
+            if (!att.IsNullOrEmpty())
+                foreach (object a in att)
+                    if (a is IEventActionAttribute customAtt)
                     {
-                        EditorGUI.BeginChangeCheck();
-                        result = BaseSignalManager.DrawSignalNames(
-                            parameter.ParameterType, argument.objectReferenceValue, argRect, null, false);
-                        if (EditorGUI.EndChangeCheck())
-                            argument.objectReferenceValue = result;
-                        hasBeenDrawn = true;
+                        if (customAtt.InterpretInEventsDrawer(argRect, argument, serializedTarget))
+                        {
+                            hasBeenDrawn = true;
+                            break;
+                        }
                     }
+
+            if ((!hasBeenDrawn) && (mode == PersistentListenerMode.Object))
+            {
+                Object result;
+                ParameterInfo parameter = method.GetParameters()?[0];
+                if (parameter.ParameterType.BaseType == typeof(BaseSignal))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    result = BaseSignalManager.DrawSignalNames(
+                        parameter.ParameterType, argument.objectReferenceValue, argRect, null, false);
+                    if (EditorGUI.EndChangeCheck())
+                        argument.objectReferenceValue = result;
+                    hasBeenDrawn = true;
                 }
             }
-            if (!hasBeenDrawn)
-                EditorGUI.PropertyField(argRect, argument, GUIContent.none);
         }
         #endregion
 

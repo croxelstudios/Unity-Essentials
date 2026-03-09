@@ -324,18 +324,20 @@ public class BRenderersSetProperty<T> : BRenderersSetProperty where T : IEquatab
 [ExecuteAlways]
 public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T : IEquatable<T>
 {
-    static Dictionary<RendMatProp, List<BRenderersSetBlendedProperty<T>>> stackDictionary;
-    //static bool dicWasCleared;
     [OnValueChanged("UpdateBehaviour")]
     public BlendMode blendMode = BlendMode.Multiply;
-    BlendMode oldBlendMode;
     [OnValueChanged("UpdateBehaviour")]
     public bool blendWithOriginal = false;
 
+    BlendMode oldBlendMode;
+    bool old_blendWithOriginal = false;
+    ValueBlender<T> blender;
+    ValueBlender<T> originalBlender;
+
     protected override void Init()
     {
-        stackDictionary = stackDictionary.CreateIfNull();
         oldBlendMode = blendMode;
+        old_blendWithOriginal = blendWithOriginal;
         base.Init();
     }
 
@@ -353,7 +355,8 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
                         {
                             CheckPropertyName(shM[i], out string propName);
                             RendMatProp renMat = new RendMatProp(ren, i, propName);
-                            stackDictionary.SmartRemove(renMat, this);
+                            if (blender != null) blender.Dispose();
+                            if (originalBlender != null) originalBlender.Dispose();
                         }
                 }
             base.OnDisable();
@@ -362,42 +365,48 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
 
     protected override bool ShouldUpdate()
     {
-        return (blendMode != oldBlendMode) || base.ShouldUpdate();
+        return (blendMode != oldBlendMode) || (blendWithOriginal != old_blendWithOriginal) ||
+            base.ShouldUpdate();
     }
 
     protected override void UpdateBehaviour()
     {
+        if (blender != null) blender.Dispose();
+        if (originalBlender != null) originalBlender.Dispose();
         base.UpdateBehaviour();
         oldBlendMode = blendMode;
-        //dicWasCleared = false;
-        //StartCoroutine(DictionaryCleanUp());
+        old_blendWithOriginal = blendWithOriginal;
     }
 
     protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
-
+        SetUpValueBlender(rendMat);
         ApplyFullStack(block, rendMat);
     }
 
     protected override void BlResetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
-            ApplyFullStack(block, rendMat);
+        ApplyFullStack(block, rendMat);
     }
 
     protected override void VSetProperty(RendMatProp rendMat)
     {
-        stackDictionary = stackDictionary.CreateAdd(rendMat, this);
-
+        SetUpValueBlender(rendMat);
         ApplyFullStack(rendMat);
     }
 
     protected override void VResetProperty(RendMatProp rendMat)
     {
-        if ((stackDictionary != null) && stackDictionary.ContainsKey(rendMat))
-            ApplyFullStack(rendMat);
+        ApplyFullStack(rendMat);
         base.VResetProperty(rendMat);
+    }
+
+    void SetUpValueBlender(RendMatProp rendMat)
+    {
+        blender = blender.CreateRegister(this, rendMat, tValue, blendMode);
+        if (blendWithOriginal)
+            originalBlender =
+                    originalBlender.CreateRegister(this, rendMat, GetProperty(rendMat), blendMode);
     }
 
     protected virtual void BlockSet(MaterialPropertyBlock block, T value, string propertyName)
@@ -412,124 +421,12 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
 
     void ApplyFullStack(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        BlockSet(block, GetFullStackColor(rendMat), rendMat.property);
+        BlockSet(block, blender.GetBlend(), rendMat.property);
     }
 
     void ApplyFullStack(RendMatProp rendMat)
     {
-        MaterialSet(rendMat.material, GetFullStackColor(rendMat), rendMat.property);
-    }
-
-    T GetFullStackColor(RendMatProp rendMat)
-    {
-        T current = NeutralAdd();
-        int count = stackDictionary[rendMat].Count;
-        foreach (BRenderersSetBlendedProperty<T> setter in stackDictionary[rendMat])
-            if (setter.blendWithOriginal) count++;
-        bool first = true;
-        foreach (BRenderersSetBlendedProperty<T> setter in stackDictionary[rendMat])
-        {
-            if (first)
-            {
-                setter.SetNeutral(ref current);
-                first = false;
-            }
-            setter.CombineValueIn(ref current, count);
-            if (setter.blendWithOriginal)
-                setter.CombineValueIn(ref current, GetProperty(rendMat), count);
-        }
-        return current;
-    }
-
-    void SetNeutral(ref T current)
-    {
-        switch (blendMode)
-        {
-            case BlendMode.Average:
-                current = NeutralAdd();
-                break;
-            case BlendMode.Add:
-                current = NeutralAdd();
-                break;
-            case BlendMode.Subtract:
-                current = NeutralMult();
-                break;
-            default:
-                current = NeutralMult();
-                break;
-        }
-    }
-
-    void CombineValueIn(ref T current, int count)
-    {
-        CombineValueIn(ref current, tValue, count);
-    }
-
-    void CombineValueIn(ref T current, T value, int count)
-    {
-        switch (blendMode)
-        {
-            case BlendMode.Average:
-                current = Combine_Average(current, value, count);
-                break;
-            case BlendMode.Add:
-                current = Combine_Add(current, value);
-                break;
-            case BlendMode.Subtract:
-                current = Combine_Subtract(current, value);
-                break;
-            default:
-                current = Combine_Multiply(current, value);
-                break;
-        }
-    }
-
-    //IEnumerator DictionaryCleanUp()
-    //{
-    //    yield return new WaitForEndOfFrame();
-    //    if (!dicWasCleared)
-    //    {
-    //        RendererMaterial[] keys = new RendererMaterial[stackDictionary.Keys.Count];
-    //        stackDictionary.Keys.CopyTo(keys, 0);
-    //        foreach (RendererMaterial renMat in keys)
-    //        {
-    //            Material[] shM = renMat.rend.sharedMaterials;
-    //            if ((renMat.rend == null) ||
-    //                (shM.Length <= renMat.mat) || shM[renMat.mat] == null)
-    //                stackDictionary.Remove(renMat);
-    //        }
-    //        dicWasCleared = true;
-    //    }
-    //}
-
-    protected virtual T NeutralAdd()
-    {
-        return default;
-    }
-
-    protected virtual T NeutralMult()
-    {
-        return default;
-    }
-
-    protected virtual T Combine_Average(T current, T next, int count)
-    {
-        return current;
-    }
-
-    protected virtual T Combine_Multiply(T current, T next)
-    {
-        return current;
-    }
-
-    protected virtual T Combine_Add(T current, T next)
-    {
-        return current;
-    }
-
-    protected virtual T Combine_Subtract(T current, T next)
-    {
-        return current;
+        MaterialSet(rendMat.material, blender.GetBlend(), rendMat.property);
     }
 
     protected virtual T GetProperty(Material mat, string propertyName)

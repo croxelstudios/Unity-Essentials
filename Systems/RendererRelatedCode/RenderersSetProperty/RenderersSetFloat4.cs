@@ -27,36 +27,6 @@ public class RenderersSetFloat4 : BRenderersSetBlendedProperty<Vector4>
         mat.SetVector(propertyName, value);
     }
 
-    protected override Vector4 NeutralAdd()
-    {
-        return Vector4.zero;
-    }
-
-    protected override Vector4 NeutralMult()
-    {
-        return Vector4.one;
-    }
-
-    protected override Vector4 Combine_Average(Vector4 current, Vector4 next, int count)
-    {
-        return current + (next / count);
-    }
-
-    protected override Vector4 Combine_Multiply(Vector4 current, Vector4 next)
-    {
-        return Vector4.Scale(current, next);
-    }
-
-    protected override Vector4 Combine_Add(Vector4 current, Vector4 next)
-    {
-        return current + next;
-    }
-
-    protected override Vector4 Combine_Subtract(Vector4 current, Vector4 next)
-    {
-        return current - next;
-    }
-
     public void SetX(float n)
     {
         Set(new Vector4(n, value.y, value.z, value.w));

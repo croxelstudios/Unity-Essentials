@@ -108,10 +108,7 @@ public class MaterialPerCameraTweaker : MonoBehaviour
             {
                 case Feature.ArbitraryProperties:
                     foreach (ArbitraryProperty property in properties)
-                    {
-                        property.SaveOriginal(mat);
                         property.SetProperty(mat);
-                    }
                     break;
                 case Feature.RenderQueue:
                     oldQueues = oldQueues.CreateAdd(mat, mat.renderQueue);

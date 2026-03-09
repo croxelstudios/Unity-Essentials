@@ -22,11 +22,23 @@ public class ArbitraryProperty
     [SerializeField]
     Texture textureObject = null;
 
-    Dictionary<Material, float> ofValue;
-    Dictionary<Material, int> oiValue;
-    Dictionary<Material, Color> ocValue;
-    Dictionary<Material, Vector4> ovValue;
-    Dictionary<Material, Texture> otObject;
+    static Dictionary<SharedMatProp, List<ArbitraryProperty>> affectingProperties;
+
+    Dictionary<SharedMatProp, float> ofValue;
+    Dictionary<SharedMatProp, int> oiValue;
+    Dictionary<SharedMatProp, Color> ocValue;
+    Dictionary<SharedMatProp, Vector4> ovValue;
+    Dictionary<SharedMatProp, Texture> otObject;
+
+    ValueBlender<float> fBlender;
+    ValueBlender<int> iBlender;
+    ValueBlender<Color> cBlender;
+    ValueBlender<Vector4> vBlender;
+
+    ValueBlender<float> ofBlender;
+    ValueBlender<int> oiBlender;
+    ValueBlender<Color> ocBlender;
+    ValueBlender<Vector4> ovBlender;
 
     public enum PropertyType { Float, Int, Color, Vector, Texture };
 
@@ -270,48 +282,84 @@ public class ArbitraryProperty
         }
     }
 
-    public void SaveOriginal(Material material)
+    void SaveOriginal(Material material)
     {
+        SharedMatProp matProp = new SharedMatProp(material, propertyName);
+
         if ((material != null) && material.HasProperty(propertyName))
         {
             switch (type)
             {
                 case PropertyType.Float:
-                    ofValue = ofValue.CreateAdd(material, material.GetFloat(propertyName));
+                    ofValue = ofValue.CreateAdd(matProp, material.GetFloat(propertyName));
                     break;
                 case PropertyType.Int:
-                    oiValue = oiValue.CreateAdd(material, material.GetInt(propertyName));
+                    oiValue = oiValue.CreateAdd(matProp, material.GetInt(propertyName));
                     break;
                 case PropertyType.Color:
-                    ocValue = ocValue.CreateAdd(material, material.GetColor(propertyName));
+                    ocValue = ocValue.CreateAdd(matProp, material.GetColor(propertyName));
                     break;
                 case PropertyType.Vector:
-                    ovValue = ovValue.CreateAdd(material, material.GetVector(propertyName));
+                    ovValue = ovValue.CreateAdd(matProp, material.GetVector(propertyName));
                     break;
                 case PropertyType.Texture:
-                    otObject = otObject.CreateAdd(material, material.GetTexture(propertyName));
+                    otObject = otObject.CreateAdd(matProp, material.GetTexture(propertyName));
                     break;
             }
         }
     }
 
-    public void SetProperty(Material material)
+    public void SetProperty(Material material, BlendMode blendMode = BlendMode.Multiply, bool blendWithOriginal = false)
     {
         if ((material != null) && material.HasProperty(propertyName))
         {
+            SharedMatProp matProp = new SharedMatProp(material, propertyName);
+
+            switch (type)
+            {
+                case PropertyType.Texture:
+                    SaveOriginal(material);
+                    break;
+                default:
+                    affectingProperties = affectingProperties.CreateIfNull();
+                    if (!affectingProperties.ContainsKey(matProp))
+                    {
+                        SaveOriginal(material);
+                        affectingProperties = affectingProperties.CreateAdd(matProp, this);
+                    }
+                    else affectingProperties[matProp].TryAdd(this);
+                    break;
+            }
+
             switch (type)
             {
                 case PropertyType.Float:
-                    material.SetFloat(propertyName, floatValue);
+                    fBlender = fBlender.CreateRegister(this, matProp, floatValue, blendMode);
+                    if (blendWithOriginal)
+                        ofBlender =
+                            ofBlender.CreateRegister(this, matProp, SavedFloat(matProp), blendMode);
+                    material.SetFloat(propertyName, fBlender.GetBlend());
                     break;
                 case PropertyType.Int:
-                    material.SetInt(propertyName, intValue);
+                    iBlender = iBlender.CreateRegister(this, matProp, intValue, blendMode);
+                    if (blendWithOriginal)
+                        oiBlender =
+                            oiBlender.CreateRegister(this, matProp, SavedInt(matProp), blendMode);
+                    material.SetInt(propertyName, iBlender.GetBlend());
                     break;
                 case PropertyType.Color:
-                    material.SetColor(propertyName, colorValue);
+                    cBlender = cBlender.CreateRegister(this, matProp, colorValue, blendMode);
+                    if (blendWithOriginal)
+                        ocBlender =
+                            ocBlender.CreateRegister(this, matProp, SavedColor(matProp), blendMode);
+                    material.SetColor(propertyName, cBlender.GetBlend());
                     break;
                 case PropertyType.Vector:
-                    material.SetVector(propertyName, vectorValue);
+                    vBlender = vBlender.CreateRegister(this, matProp, vectorValue, blendMode);
+                    if (blendWithOriginal)
+                        ovBlender =
+                            ovBlender.CreateRegister(this, matProp, SavedVector(matProp), blendMode);
+                    material.SetVector(propertyName, vBlender.GetBlend());
                     break;
                 case PropertyType.Texture:
                     material.SetTexture(propertyName, textureObject);
@@ -327,47 +375,83 @@ public class ArbitraryProperty
             switch (type)
             {
                 case PropertyType.Float:
-                    material.SetFloat(propertyName, SavedFloat(material));
+                    if (fBlender != null) fBlender.Dispose();
+                    if (ofBlender != null) ofBlender.Dispose();
                     break;
                 case PropertyType.Int:
-                    material.SetInt(propertyName, SavedInt(material));
+                    if (iBlender != null) iBlender.Dispose();
+                    if (oiBlender != null) oiBlender.Dispose();
                     break;
                 case PropertyType.Color:
-                    material.SetColor(propertyName, SavedColor(material));
+                    if (cBlender != null) cBlender.Dispose();
+                    if (ocBlender != null) ocBlender.Dispose();
                     break;
                 case PropertyType.Vector:
-                    material.SetVector(propertyName, SavedVector(material));
-                    break;
-                case PropertyType.Texture:
-                    material.SetTexture(propertyName, SavedTexture(material));
+                    if (vBlender != null) vBlender.Dispose();
+                    if (ovBlender != null) ovBlender.Dispose();
                     break;
             }
+
+            SharedMatProp matProp = new SharedMatProp(material, propertyName);
+
+            bool shouldReset = false;
+            switch (type)
+            {
+                case PropertyType.Texture:
+                    shouldReset = true;
+                    break;
+                default:
+                    affectingProperties.SmartRemoveClear(matProp, this);
+                    if (!affectingProperties.NotNullContainsKey(matProp))
+                        shouldReset = true;
+                    break;
+            }
+
+            if (shouldReset)
+                switch (type)
+                {
+                    case PropertyType.Float:
+                        material.SetFloat(propertyName, SavedFloat(matProp));
+                        break;
+                    case PropertyType.Int:
+                        material.SetInt(propertyName, SavedInt(matProp));
+                        break;
+                    case PropertyType.Color:
+                        material.SetColor(propertyName, SavedColor(matProp));
+                        break;
+                    case PropertyType.Vector:
+                        material.SetVector(propertyName, SavedVector(matProp));
+                        break;
+                    case PropertyType.Texture:
+                        material.SetTexture(propertyName, SavedTexture(matProp));
+                        break;
+                }
         }
     }
 
-    float SavedFloat(Material material)
+    float SavedFloat(SharedMatProp matProp)
     {
-        return ofValue.NotNullContainsKey(material) ? ofValue[material] : 0f;
+        return ofValue.NotNullContainsKey(matProp) ? ofValue[matProp] : 0f;
     }
 
-    int SavedInt(Material material)
+    int SavedInt(SharedMatProp matProp)
     {
-        return oiValue.NotNullContainsKey(material) ? oiValue[material] : 0;
+        return oiValue.NotNullContainsKey(matProp) ? oiValue[matProp] : 0;
     }
 
-    Color SavedColor(Material material)
+    Color SavedColor(SharedMatProp matProp)
     {
-        return ocValue.NotNullContainsKey(material) ? ocValue[material] : Color.white;
+        return ocValue.NotNullContainsKey(matProp) ? ocValue[matProp] : Color.white;
     }
 
-    Vector4 SavedVector(Material material)
+    Vector4 SavedVector(SharedMatProp matProp)
     {
-        return ovValue.NotNullContainsKey(material) ? ovValue[material] : Vector4.zero;
+        return ovValue.NotNullContainsKey(matProp) ? ovValue[matProp] : Vector4.zero;
     }
 
-    Texture SavedTexture(Material material)
+    Texture SavedTexture(SharedMatProp matProp)
     {
-        return otObject.NotNullContainsKey(material) ? otObject[material] : null;
+        return otObject.NotNullContainsKey(matProp) ? otObject[matProp] : null;
     }
 
     public bool CanBlend()
@@ -411,7 +495,7 @@ public class ArbitraryProperty_Drawer : PropertyDrawer
         cValue = property.FindPropertyRelative("colorValue");
         vValue = property.FindPropertyRelative("vectorValue");
         tObject = property.FindPropertyRelative("textureObject");
-        
+
         position.height = EditorGUI.GetPropertyHeight(propertyName, new GUIContent("Property Name"));
         EditorGUI.PropertyField(position, propertyName, new GUIContent("Property Name"));
         position.y += EditorGUI.GetPropertyHeight(propertyName, new GUIContent("Property Name"));

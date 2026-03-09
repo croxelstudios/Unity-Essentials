@@ -6,47 +6,45 @@ using Sirenix.OdinInspector;
 public class MaterialPropertyTweaker : MonoBehaviour
 {
     [SerializeField]
-    [OnValueChanged("OnUpdate")]
+    [OnValueChanged("SetProperty")]
     Material material = null;
     [SerializeField]
-    [OnValueChanged("OnUpdate", true)]
+    [OnValueChanged("SetProperty", true)]
     ArbitraryProperty property = new ArbitraryProperty("_Color", Color.white);
-    //[Indent]
-    //[SerializeField]
-    //[OnValueChanged("OnUpdate")]
-    //[ShowIf("@property.CanBlend()")]
-    //BlendMode blendMode = BlendMode.Multiply;
-    //[OnValueChanged("OnUpdate")]
-    //[ShowIf("@property.CanBlend()")]
-    //bool blendWithOriginal = false;
+    [Indent]
     [SerializeField]
-    [OnValueChanged("OnUpdate")]
+    [OnValueChanged("SetProperty")]
+    [ShowIf("@property.CanBlend()")]
+    BlendMode blendMode = BlendMode.Multiply;
+    [OnValueChanged("SetProperty")]
+    [ShowIf("@property.CanBlend()")]
+    bool blendWithOriginal = false;
+    [SerializeField]
+    [OnValueChanged("SetProperty")]
     int priority = 0;
-    //BlendMode oldBlendMode;
 
-    MatPropModifier priorityHandler;
+    PriorityHandler<SharedMatProp> priorityHandler;
+    bool canAct = false;
 
     void OnEnable()
     {
-        priorityHandler = new MatPropModifier(material, property.propertyName, priority, OnUpdate);
-        property.SaveOriginal(material);
-        OnUpdate();
+        SetProperty();
     }
 
     void OnDisable()
     {
-        priorityHandler.Dispose();
+        if (priorityHandler != null)
+            priorityHandler.Dispose();
         ResetProperty();
     }
 
-    void OnUpdate()
+    void SetProperty()
     {
-        if (priorityHandler.CanAct()) SetProperty();
-    }
-
-    public void SetProperty()
-    {
-        property.SetProperty(material);
+        ResetProperty();
+        priorityHandler = priorityHandler.CreateRegister(
+            new SharedMatProp(material, property.propertyName), priority, SetProperty);
+        if (priorityHandler.CanAct())
+            property.SetProperty(material, blendMode, blendWithOriginal);
     }
 
     public void ResetProperty()
@@ -54,20 +52,11 @@ public class MaterialPropertyTweaker : MonoBehaviour
         property.ResetProperty(material);
     }
 
+    #region Setters
     public void SetColor(Color color)
     {
         property.SetColor(color);
         SetProperty();
-    }
-
-    public Color GetColor()
-    {
-        return property.GetColor();
-    }
-
-    public float GetAlpha(bool useBlackValue = false)
-    {
-        return property.GetAlpha(useBlackValue);
     }
 
     public void SetFloat(float value)
@@ -94,20 +83,10 @@ public class MaterialPropertyTweaker : MonoBehaviour
         SetProperty();
     }
 
-    public float GetFloat()
-    {
-        return property.GetFloat();
-    }
-
     public void SetVector(Vector4 value)
     {
         property.SetVector(value);
         SetProperty();
-    }
-
-    public Vector4 GetVector()
-    {
-        return property.GetVector();
     }
 
     public void SetVector(Vector3 value)
@@ -128,19 +107,42 @@ public class MaterialPropertyTweaker : MonoBehaviour
         SetProperty();
     }
 
-    public int GetInt()
-    {
-        return property.GetInt();
-    }
-
     public void SetTexture(Texture texture)
     {
         property.SetTexture(texture);
         SetProperty();
+    }
+    #endregion
+
+    #region Getters
+    public Color GetColor()
+    {
+        return property.GetColor();
+    }
+
+    public float GetAlpha(bool useBlackValue = false)
+    {
+        return property.GetAlpha(useBlackValue);
+    }
+
+    public float GetFloat()
+    {
+        return property.GetFloat();
+    }
+
+    public Vector4 GetVector()
+    {
+        return property.GetVector();
+    }
+
+    public int GetInt()
+    {
+        return property.GetInt();
     }
 
     public Texture GetTexture()
     {
         return property.GetTexture();
     }
+    #endregion
 }

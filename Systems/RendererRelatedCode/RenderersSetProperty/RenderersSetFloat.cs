@@ -27,36 +27,6 @@ public class RenderersSetFloat : BRenderersSetBlendedProperty<float>
         mat.SetFloat(propertyName, value);
     }
 
-    protected override float NeutralAdd()
-    {
-        return 0f;
-    }
-
-    protected override float NeutralMult()
-    {
-        return 1f;
-    }
-
-    protected override float Combine_Average(float current, float next, int count)
-    {
-        return current + (next / count);
-    }
-
-    protected override float Combine_Multiply(float current, float next)
-    {
-        return current * next;
-    }
-
-    protected override float Combine_Add(float current, float next)
-    {
-        return current + next;
-    }
-
-    protected override float Combine_Subtract(float current, float next)
-    {
-        return current - next;
-    }
-
     public virtual void SetFloat(float n)
     {
         value = n;

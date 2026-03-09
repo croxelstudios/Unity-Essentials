@@ -67,10 +67,7 @@ public struct ProceduralTexture
     public void Update(IEnumerable<ArbitraryProperty> propertyModifications, string name = "ProceduralTexture")
     {
         foreach (ArbitraryProperty property in propertyModifications)
-        {
-            property.SaveOriginal(material);
             property.SetProperty(material);
-        }
         Update(name);
         foreach (ArbitraryProperty property in propertyModifications)
             property.ResetProperty(material);
