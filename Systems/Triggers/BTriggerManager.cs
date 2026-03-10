@@ -14,7 +14,8 @@ public class BTriggerManager : MonoBehaviour
 
     int count;
     List<NDCollider> colliders;
-    NDCollider[] selfColliders;
+    protected NDCollider[] selfColliders;
+    protected NDCollider selfCollider { get { return selfColliders[0]; } }
 
     protected virtual void Awake()
     {

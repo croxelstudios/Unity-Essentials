@@ -265,7 +265,7 @@ public class ChildParentEvents : MonoBehaviour
     #region Add and remove CHILDREN
     void SearchChildEvents()
     {
-        ChildParentEvents[] arr = GetComponentsInChildren<ChildParentEvents>();
+        ChildParentEvents[] arr = GetComponentsInChildren<ChildParentEvents>(true);
         for (int i = 0; i < arr.Length; i++)
         {
             arr[i].TryAddParent(this);
@@ -318,7 +318,7 @@ public class ChildParentEvents : MonoBehaviour
     #region Add and remove PARENTS
     void SearchParentEvents()
     {
-        ChildParentEvents[] arr = GetComponentsInParent<ChildParentEvents>();
+        ChildParentEvents[] arr = GetComponentsInParent<ChildParentEvents>(true);
         for (int i = 0; i < arr.Length; i++)
         {
             TryAddParent(arr[i]);

@@ -36,7 +36,8 @@ public class UIPointerDetector : MonoBehaviour
     {
         if (!paused)
         {
-            Vector2 pos = rectTr.InverseTransformPoint(parent.PointerPosition());
+            Vector2 pos = rectTr.InverseTransformPoint(
+                parent.TransformPoint(parent.PointerPosition()));
             if (rectTr.rect.Contains(pos))
             {
                 if (!last)

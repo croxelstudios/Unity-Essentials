@@ -29,8 +29,8 @@ public class RenderersVisible : DXMonoBehaviour
             for (int i = 1; i < rends.Length; i++)
                 bounds.Encapsulate(rends[i].bounds);
             sphere = bounds.BoundingSphere();
-            cullingGroup.SetBoundingSphereCount(1);
             cullingGroup.SetBoundingSpheres(new BoundingSphere[] { sphere });
+            cullingGroup.SetBoundingSphereCount(1);
             cullingGroup.onStateChanged += OnStateChanged;
             cullingGroup.targetCamera = c;
         }
