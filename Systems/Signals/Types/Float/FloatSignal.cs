@@ -1,7 +1,5 @@
 using UnityEngine;
-using Sirenix.OdinInspector;
 using QFSW.QC;
-using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
