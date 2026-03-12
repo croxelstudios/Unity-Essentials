@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 [ExecuteAlways]
 public class ScaleByDifference : DXMonoBehaviour
@@ -15,6 +14,11 @@ public class ScaleByDifference : DXMonoBehaviour
     [SerializeField]
     bool runtime = false;
 
+    void OnEnable()
+    {
+        CorrectScale();
+    }
+
     void Update()
     {
         if (runtime
@@ -22,17 +26,20 @@ public class ScaleByDifference : DXMonoBehaviour
             || (!Application.isPlaying)
 #endif
             )
-        {
-            Vector3 target = ((other != null) ? other.lossyScale : Vector3.one)
-                - (byAxis * difference);
-            Vector3 scl = target.InverseScale(transform.lossyScale);
-            Vector3 res = transform.localScale;
-            res.Scale(scl);
-            res.x = useAxis.x ? Mathf.Max(res.x, 0.0001f) : transform.localScale.x;
-            res.y = useAxis.y ? Mathf.Max(res.y, 0.0001f) : transform.localScale.y;
-            res.z = useAxis.z ? Mathf.Max(res.z, 0.0001f) : transform.localScale.z;
-            if (scl.sqrMagnitude.IsBetween(float.NegativeInfinity, float.PositiveInfinity))
-                transform.localScale = res;
-        }
+            CorrectScale();
+    }
+
+    void CorrectScale()
+    {
+        Vector3 target = ((other != null) ? other.lossyScale : Vector3.one)
+            - (byAxis * difference);
+        Vector3 scl = target.InverseScale(transform.lossyScale);
+        Vector3 res = transform.localScale;
+        res.Scale(scl);
+        res.x = useAxis.x ? Mathf.Max(res.x, 0.0001f) : transform.localScale.x;
+        res.y = useAxis.y ? Mathf.Max(res.y, 0.0001f) : transform.localScale.y;
+        res.z = useAxis.z ? Mathf.Max(res.z, 0.0001f) : transform.localScale.z;
+        if (scl.sqrMagnitude.IsBetween(float.NegativeInfinity, float.PositiveInfinity))
+            transform.localScale = res;
     }
 }
