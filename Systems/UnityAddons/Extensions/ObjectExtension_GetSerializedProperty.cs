@@ -28,7 +28,7 @@ public static class ObjectExtension_GetSerializedProperty
                 prop = newProp;
             }
 
-            if (index >= 0) prop = prop.GetArrayElementAtIndex(index);
+            if ((index >= 0) && (prop != null)) prop = prop.GetArrayElementAtIndex(index);
         }
 
         return prop;

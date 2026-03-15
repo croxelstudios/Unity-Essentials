@@ -16,7 +16,9 @@ public static class StringExtension_ToDisplayName
         List<int> insertPos = new List<int>();
         string lower = name.ToLower();
         for (int i = 1; i < name.Length; i++)
-            if ((name[i] != lower[i]) ||
+            if (((name[i] != lower[i]) && 
+                ((name[i - 1] == lower[i - 1]) || ((i < (name.Length - 1)) && (name[i + 1] == lower[i + 1])))
+                ) ||
                 (char.IsLetter(name[i]) != char.IsLetter(name[i - 1])))
                 insertPos.Add(i);
 
