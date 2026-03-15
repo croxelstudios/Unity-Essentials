@@ -1119,14 +1119,20 @@ public class EasyEventDrawer : PropertyDrawer
             {
                 Object result;
                 ParameterInfo parameter = method.GetParameters()?[0];
-                if (parameter.ParameterType.BaseType == typeof(BaseSignal))
+                Type type = parameter.ParameterType;
+                if (type.BaseType == typeof(BaseSignal))
                 {
                     EditorGUI.BeginChangeCheck();
                     result = BaseSignalManager.DrawSignalNames(
-                        parameter.ParameterType, argument.objectReferenceValue, argRect, null, false);
+                        type, argument.objectReferenceValue, argRect, null, false);
                     if (EditorGUI.EndChangeCheck())
                         argument.objectReferenceValue = result;
                     hasBeenDrawn = true;
+                }
+                else
+                {
+                    argument.objectReferenceValue =
+                        EditorGUI.ObjectField(argRect, GUIContent.none, argument.objectReferenceValue, type, true);
                 }
             }
 

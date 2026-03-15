@@ -1,13 +1,12 @@
-using UnityEngine;
-using System;
 using Sirenix.OdinInspector;
+using System;
+using UnityEngine;
 using Object = UnityEngine.Object;
-using NUnit.Framework;
 
 [Serializable]
 [HideLabel]
 [InlineProperty]
-public struct ObjectRef<T> where T : Object
+public class ObjectRef<T> where T : Object
 {
     string name;
     bool objWasNull;
