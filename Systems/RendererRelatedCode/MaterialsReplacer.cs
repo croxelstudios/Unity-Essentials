@@ -63,7 +63,6 @@ public class MaterialsReplacer : MonoBehaviour
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
             Undo.postprocessModifications += OnPostprocess;
             SceneView.duringSceneGui += OnSceneGUI;
         }
@@ -80,7 +79,6 @@ public class MaterialsReplacer : MonoBehaviour
             RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
             Undo.postprocessModifications -= OnPostprocess;
             SceneView.duringSceneGui -= OnSceneGUI;
 
@@ -105,7 +103,8 @@ public class MaterialsReplacer : MonoBehaviour
                         updateInstances = true;
                         break;
                     }
-                    rend[i].UpdateActiveState();
+                    else if (rend[i].UpdateActiveState())
+                        updateInstances = true;
                 }
 
             if ((!updateInstances) && (instanced.IsNullOrEmpty() || (instanced.Length != rend.Length)))
@@ -142,12 +141,18 @@ public class MaterialsReplacer : MonoBehaviour
     {
         foreach (UndoPropertyModification m in modifications)
         {
-            if (m.currentValue.target is Renderer ren)
+            PropertyModification pm = m.currentValue;
+            if (pm.target is Renderer ren)
             {
                 for (int i = 0; i < rend.Length; i++)
                     if (rend[i].rend == ren)
                     {
-                        if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
+                        if (pm.propertyPath == "m_Enabled")
+                        {
+                            //rend[i].UpdateActiveState(pm.value.Parse<bool>());
+                            //updateInstances = true;
+                        }
+                        else if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
                         {
                             instanced[i].GetCopyOf(ren);
                             ReplaceMaterials(instanced[i], false);
@@ -155,7 +160,7 @@ public class MaterialsReplacer : MonoBehaviour
                         else updateInstances = true;
                     }
             }
-            else if (m.currentValue.target is MeshFilter filter)
+            else if (pm.target is MeshFilter filter)
             {
                 for (int i = 0; i < rend.Length; i++)
                     if (rend[i].filter == filter)
@@ -165,7 +170,7 @@ public class MaterialsReplacer : MonoBehaviour
                         else updateInstances = true;
                     }
             }
-            else if (m.currentValue.target is Transform tr)
+            else if (pm.target is Transform tr)
             {
                 for (int i = 0; i < rend.Length; i++)
                     if (rend[i].transform.IsChildOf(tr))
@@ -202,14 +207,6 @@ public class MaterialsReplacer : MonoBehaviour
     }
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
-    {
-        if (instancedFilters != null)
-            for (int i = 0; i < instancedFilters.Length; i++)
-                if (instancedFilters[i] != null)
-                    instancedFilters[i].sharedMesh = rend[i].filter.sharedMesh;
-    }
-
-    void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
     {
         if (instancedFilters != null)
             for (int i = 0; i < instancedFilters.Length; i++)
@@ -273,7 +270,7 @@ public class MaterialsReplacer : MonoBehaviour
         instanced = new Renderer[rend.Length];
         instancedFilters = new MeshFilter[rend.Length];
         for (int i = 0; i < rend.Length; i++)
-            if (!rend[i].IsNull())
+            if ((!rend[i].IsNull()) && rend[i].enabled)
             {
                 GameObject orig = rend[i].gameObject;
                 GameObject go = new GameObject(orig.name + "_InstancedCopy");

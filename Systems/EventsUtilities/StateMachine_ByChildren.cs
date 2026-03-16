@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,53 +8,55 @@ using UnityEngine;
 public class StateMachine_ByChildren : StateMachine
 {
 #if UNITY_EDITOR
-    public override void OnValidate()
+    protected override void OnEnable()
     {
-        base.OnValidate();
-        Update();
+        UpdateStates();
+        Undo.postprocessModifications += OnPostprocess;
+        EditorApplication.hierarchyChanged += OnHierarchyChanged;
+        base.OnEnable();
     }
 
-    void Update()
+    void OnDisable()
     {
-        if ((!Application.isPlaying) && DidChildrenChange())
+        Undo.postprocessModifications -= OnPostprocess;
+        EditorApplication.hierarchyChanged -= OnHierarchyChanged;
+    }
+
+    void UpdateStates()
+    {
+        if (states == null) states = new State[0];
+        states = states.Resize(transform.childCount);
+        for (int i = 0; i < states.Length; i++)
         {
-            if (states == null) states = new State[0];
-            State[] newStates = new State[transform.childCount];
-            for (int i = 0; i < Mathf.Min(states.Length, newStates.Length); i++)
-            {
-                GameObject child = transform.GetChild(i).gameObject;
-                newStates[i] = states[i];
-                newStates[i].name = child.name;
-                if (states[i].linkedObjects == null) newStates[i].linkedObjects = new GameObject[0];
-                else newStates[i].linkedObjects = states[i].linkedObjects;
-            }
-            if (states.Length < transform.childCount)
-                for (int i = states.Length; i < transform.childCount; i++)
-                {
-                    GameObject child = transform.GetChild(i).gameObject;
-                    newStates[i] = new State(child.name, this);
-                }
-            states = newStates;
-            SyncNames();
-            EditorUtility.SetDirty(this);
-            PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+            states[i].SetStateMachine(this);
+            states[i].name = transform.GetChild(i).name;
         }
+        SyncNames();
+        EditorUtility.SetDirty(this);
+        PrefabUtility.RecordPrefabInstancePropertyModifications(this);
     }
 
-    bool DidChildrenChange()
+    UndoPropertyModification[] OnPostprocess(UndoPropertyModification[] modifications)
     {
-        if ((states == null) || (states.Length != transform.childCount)) return true;
-        else
+        foreach (UndoPropertyModification m in modifications)
         {
-            for (int i = 0; i < transform.childCount; i++)
+            PropertyModification pm = m.currentValue;
+            if (pm.target is GameObject go)
             {
-                GameObject child = transform.GetChild(i).gameObject;
-                if (child.name != states[i].name) return true;
+                if ((go.transform.parent == transform) &&
+                    (pm.propertyPath == "m_Name"))
+                    UpdateStates();
             }
-            return false;
         }
+
+        return modifications;
     }
 
+    void OnHierarchyChanged()
+    {
+        if ((states == null) || (states.Length != transform.childCount))
+            UpdateStates();
+    }
 #endif
 
     protected override void StateSwitchActions(int oldState, int newState)
