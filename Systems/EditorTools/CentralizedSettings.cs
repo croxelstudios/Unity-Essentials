@@ -1,6 +1,5 @@
 using UnityEngine;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
@@ -101,12 +100,24 @@ public class CentralizedSettingsDrawer : PropertyDrawer
             if (prop != null)
             {
 #if ODIN_INSPECTOR
-                PropertyTree tree = GetTree(property, prop.serializedObject);
-                tree.BeginDraw(true);
-                InspectorProperty odinProp = tree.GetPropertyAtUnityPath(prop.propertyPath);
-                odinProp.Draw(lb);
-                tree.EndDraw();
-                tree.ApplyChanges();
+                RemoveAddAttributes.Remove(prop,
+                    typeof(LabelTextAttribute),
+                    typeof(HorizontalGroupAttribute),
+                    typeof(LabelWidthAttribute));
+                {
+                    PropertyTree tree = GetTree(property, prop.serializedObject);
+                    {
+                        tree.BeginDraw(true);
+                        {
+                            InspectorProperty odinProp = tree.GetPropertyAtUnityPath(prop.propertyPath);
+                            odinProp.Draw(lb);
+                        }
+                        tree.EndDraw();
+                    }
+                    tree.ApplyChanges();
+                }
+                RemoveAddAttributes.Restore(prop);
+
 #else
                 position.height = EditorGUI.GetPropertyHeight(prop, lb, true);
                 EditorGUI.PropertyField(position, prop, lb, true);

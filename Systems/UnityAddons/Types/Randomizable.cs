@@ -91,7 +91,7 @@ public struct Randomizable
 }
 
 #if UNITY_EDITOR
-public class MiClaseAttributeProcessor : OdinAttributeProcessor<Randomizable>
+public class RandomizableAttributeProcessor : OdinAttributeProcessor<Randomizable>
 {
     public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
     {

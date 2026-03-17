@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using TMPro;
+﻿using System;
 using System.Linq;
-using System;
+using TMPro;
+using UnityEngine;
 
 [RequireComponent(typeof(TMP_Text))]
 public class TMP_DisplayFloat : MonoBehaviour
@@ -43,6 +43,11 @@ public class TMP_DisplayFloat : MonoBehaviour
             text = GetComponent<TMP_Text>();
             SetValue(startValue);
         }
+    }
+
+    void OnValidate()
+    {
+        SetValue(startValue);
     }
 
     public void Add(float amount)

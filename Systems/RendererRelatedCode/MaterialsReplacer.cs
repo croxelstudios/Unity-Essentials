@@ -28,6 +28,7 @@ public class MaterialsReplacer : MonoBehaviour
     bool updateInstances = false;
     bool additionWasTracked = false;
     List<RendererData> tmpList;
+    bool preLoaded;
 
     void UpdateMaterials()
     {
@@ -53,8 +54,12 @@ public class MaterialsReplacer : MonoBehaviour
 
     void OnEnable()
     {
-        UpdateMaterials();
-        UpdateRenderers();
+        if (!preLoaded)
+        {
+            UpdateMaterials();
+            UpdateRenderers();
+        }
+        else preLoaded = false;
 
 #if UNITY_EDITOR
         if (!Application.isPlaying)
@@ -255,6 +260,19 @@ public class MaterialsReplacer : MonoBehaviour
                 tmpMaterials[i] = replacement;
             }
         renderer.sharedMaterials = tmpMaterials;
+    }
+
+    public void Load()
+    {
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+#endif
+        {
+            if (!this.IsActiveAndEnabled())
+                preLoaded = true;
+            UpdateMaterials();
+            UpdateRenderers();
+        }
     }
 
 #if UNITY_EDITOR
