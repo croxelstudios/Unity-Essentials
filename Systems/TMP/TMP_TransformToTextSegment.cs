@@ -17,7 +17,7 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
     [SerializeField]
     bool handleObjectActivation = true;
     [SerializeField]
-    bool inheritColor = true;
+    bool inheritColor = false;
 
     TMP_Text text;
     Graphic[] targetGraphics;
@@ -77,19 +77,22 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
                 if (((max - min).sqrMagnitude > Mathf.Epsilon) && ch.isVisible)
                     characterVisible = true;
 
-                for (byte k = 0; k < verticesPerChar; k++)
-                    color += ((Color)colors[ch.vertexIndex + k]) / colorDiv;
-                if (j == 0)
-                    minCol = colors[ch.vertexIndex];
-                if (j == (textSegment.Length - 1))
-                    maxCol = colors[ch.vertexIndex + 2];
-
-                if (turnSegmentTransparent)
+                if (!colors.IsNullOrEmpty())
                 {
                     for (byte k = 0; k < verticesPerChar; k++)
-                        colors[ch.vertexIndex + k].a = 0;
-                    textInfo.meshInfo[ch.materialReferenceIndex].colors32 = colors;
-                    text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+                        color += ((Color)colors[ch.vertexIndex + k]) / colorDiv;
+                    if (j == 0)
+                        minCol = colors[ch.vertexIndex];
+                    if (j == (textSegment.Length - 1))
+                        maxCol = colors[ch.vertexIndex + 2];
+
+                    if (turnSegmentTransparent)
+                    {
+                        for (byte k = 0; k < verticesPerChar; k++)
+                            colors[ch.vertexIndex + k].a = 0;
+                        textInfo.meshInfo[ch.materialReferenceIndex].colors32 = colors;
+                        text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+                    }
                 }
 
                 //TO DO: Scale the image as the character scale.
