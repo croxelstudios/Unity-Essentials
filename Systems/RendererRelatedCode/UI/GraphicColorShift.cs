@@ -68,7 +68,7 @@ public class GraphicColorShift : MonoBehaviour
                 if (pingPong)
                     time = Mathf.PingPong(time, 1f);
                 else
-                    time = Mathf.Repeat(time, 1f);
+                    time = time.Loop(1f);
                 switch (shiftMode)
                 {
                     case ShiftMode.gradient:

@@ -2,6 +2,21 @@ using UnityEngine;
 
 public static class VectorExtension_Clamp
 {
+    public static float Clamp(this float value, float min, float max)
+    {
+        return Mathf.Clamp(value, min, max);
+    }
+
+    public static float Clamp01(this float value)
+    {
+        return Mathf.Clamp01(value);
+    }
+
+    public static int Clamp(this int value, int min, int max)
+    {
+        return Mathf.Clamp(value, min, max);
+    }
+
     public static Vector2 Clamp(this Vector2 vector, Vector2 min, Vector2 max)
     {
         return new Vector2(

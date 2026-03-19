@@ -21,8 +21,10 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
 
     TMP_Text text;
     Graphic[] targetGraphics;
+    Vector3 scale = Vector3.one;
 
     const int verticesPerChar = 4;
+    const float minScale = 0.0001f;
 
     void OnEnable()
     {
@@ -55,6 +57,8 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
 
             Vector3 min = Vector3.one * Mathf.Infinity;
             Vector3 max = -min;
+            Vector3 oMin = min;
+            Vector3 oMax = max;
             text.ForceMeshUpdate();
             Color color = Color.clear;
             Color minCol = color;
@@ -67,16 +71,23 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
                 Color32[] colors = mesh.colors32;
                 Vector3[] vertices = mesh.vertices;
 
+                //Real min max
                 Vector3 bottomLeft = vertices[ch.vertexIndex];
                 Vector3 topRight = vertices[ch.vertexIndex + 2];
-                min = new Vector3(Mathf.Min(min.x, bottomLeft.x),
-                        Mathf.Min(min.y, bottomLeft.y), Mathf.Min(min.z, bottomLeft.z));
-                max = new Vector3(Mathf.Max(max.x, topRight.x),
-                    Mathf.Max(max.y, topRight.y), Mathf.Max(max.z, topRight.z));
+                min = min.Min(bottomLeft);
+                max = max.Max(topRight);
 
+                //Check scale 0
                 if (((max - min).sqrMagnitude > Mathf.Epsilon) && ch.isVisible)
                     characterVisible = true;
 
+                //Original min max, to do correct scaling
+                bottomLeft = ch.bottomLeft;
+                topRight = ch.topRight;
+                oMin = oMin.Min(bottomLeft);
+                oMax = oMax.Max(topRight);
+
+                //Manage color and alpha
                 if (!colors.IsNullOrEmpty())
                 {
                     for (byte k = 0; k < verticesPerChar; k++)
@@ -94,16 +105,21 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
                         text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
                     }
                 }
-
-                //TO DO: Scale the image as the character scale.
-                //Maybe comparing bottomLeft and topRight in the mesh
-                //with the data recorded by TMP in characterInfo
             }
 
+            //Position
             Vector3 center = Vector3.Lerp(min, max, 0.5f);
             Vector3 pos = transform.TransformPoint(center);
             transformToMove.position = pos;
 
+            //Scaling
+            Vector3 newScale = (max - min).InverseScale(oMax - oMin).Max(minScale);
+            Vector3 dif = newScale.InverseScale(scale);
+            transformToMove.localScale =
+                Vector3.Scale(transformToMove.localScale, dif);
+            scale = newScale;
+
+            //Color
             if (inheritColor && (!targetGraphics.IsNullOrEmpty()))
             {
                 //center = pos;

@@ -414,7 +414,7 @@ public static class ReflectionTools
             {
                 if (index < 0)
                 {
-                    try { Convert.ChangeType(value, property.PropertyType); } //WARNING: So ugly...
+                    try { value = Convert.ChangeType(value, property.PropertyType); } //WARNING: So ugly...
                     catch { return false; }
 
                     property.SetValue(obj, value);

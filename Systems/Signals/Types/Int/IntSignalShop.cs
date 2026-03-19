@@ -1,5 +1,8 @@
 using UnityEngine;
 
+//TO DO: Add a base signal class for int and float signals called NumericSignal.
+//Convert this class to use that and a float-based cost variable
+//so that it is more generically useful.
 public class IntSignalShop : MonoBehaviour
 {
     [SerializeField]
