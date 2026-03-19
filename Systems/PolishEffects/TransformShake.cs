@@ -101,8 +101,8 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
         Vector3 target = SetNewRandomTarget(amount);
         while (t > 0f)
         {
-            yield return timeMode.WaitFor();
             ShakeOp(ref target, ref t, ref tc, targetChangeFrecuency, amount, smooth);
+            yield return timeMode.WaitFor();
         }
         GoBackToDefault();
     }
@@ -114,8 +114,8 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
         Vector3 target = SetNewRandomTarget(amount);
         while (t > 0f)
         {
-            yield return timeMode.WaitFor();
             ShakeOp(ref target, ref t, ref tc, targetChangeTime, amount, smooth);
+            yield return timeMode.WaitFor();
         }
         GoBackToDefault();
     }
