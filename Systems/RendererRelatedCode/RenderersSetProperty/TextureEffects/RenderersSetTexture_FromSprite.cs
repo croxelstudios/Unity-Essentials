@@ -40,7 +40,7 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
             if (typeof(SpriteRenderer).IsAssignableFrom(rend[i].GetType()))
             {
                 Texture tex = ((SpriteRenderer)rend[i]).sprite.texture;
-                if (tex != oldTexs[j])
+                //if (tex != oldTexs[j])
                     //TO DO: This has a problem if you change any sprite to the last renderer's sprite, it won't update
                 {
                     oldTexs[j] = tex;
