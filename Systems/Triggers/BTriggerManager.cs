@@ -15,17 +15,25 @@ public class BTriggerManager : MonoBehaviour
     [Tooltip("Will fire on any collision if this array is empty")]
     string[] detectionTags = null;
     [SerializeField]
-    CustomTagItems customTags = new CustomTagItems();
+    CustomTagItems[] customTags = null;
 
     int count;
     List<NDCollider> colliders;
     protected NDCollider[] selfColliders;
     protected NDCollider selfCollider { get { return selfColliders[0]; } }
+    protected CustomTag senderCustomTag;
 
     protected virtual void Awake()
     {
         colliders = new List<NDCollider>();
         selfColliders = NDCollider.GetNDCollidersFrom(gameObject);
+        CustomTag[] selfCustomTags = GetComponents<CustomTag>();
+        foreach (CustomTag ct in selfCustomTags)
+            if (ct.item.tagList == null)
+            {
+                senderCustomTag = ct;
+                break;
+            }
     }
 
     void FixedUpdate()
@@ -140,7 +148,12 @@ public class BTriggerManager : MonoBehaviour
         //TO DO: This should work with this thing,
         //but unfortunately it causes issues when the object is deactivated in the same physics step
         //return customTag.Check(other);
-        return customTags.DirtyCheck(other);
+        if (customTags.IsNullOrEmpty())
+            return true;
+        else foreach (CustomTagItems customTag in customTags)
+                if (customTag.DirtyCheck(other))
+                    return true;
+        return false;
     }
 
     public virtual void OnTrigEnter()
