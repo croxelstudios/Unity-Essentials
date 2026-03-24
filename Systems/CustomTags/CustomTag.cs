@@ -317,7 +317,7 @@ public struct CustomTagItems
         foreach (CustomTag tagComponent in tagComponents)
         {
             if (tagComponent.enabled && (tagComponent.item.tagList == tagList) &&
-                customTags.Contains(tagComponent.item.customTag))
+                (customTags.IsNullOrEmpty() || customTags.Contains(tagComponent.item.customTag)))
             {
                 hasTag = true;
                 break;

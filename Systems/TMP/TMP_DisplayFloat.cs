@@ -57,16 +57,19 @@ public class TMP_DisplayFloat : MonoBehaviour
 
     void SetValue(float value)
     {
-        _value = value;
-        if (text == null) text = GetComponent<TMP_Text>();
-        TMP_DisplayFloat[] currentFloatToTMPs = GetComponents<TMP_DisplayFloat>();
-        currentFloatToTMPs = currentFloatToTMPs.OrderBy(x => x.priority).ToArray();
-        string resultingText = "";
-        for (int i = 0; i < currentFloatToTMPs.Length; i++)
-            if (currentFloatToTMPs[i].enabled)
-                resultingText += currentFloatToTMPs[i].
-                    GetResultingText().Replace("\\n", "\n").Replace("\\t", "\t");
-        text.SetText(resultingText);
+        if (this.IsActiveAndEnabled())
+        {
+            _value = value;
+            if (text == null) text = GetComponent<TMP_Text>();
+            TMP_DisplayFloat[] currentFloatToTMPs = GetComponents<TMP_DisplayFloat>();
+            currentFloatToTMPs = currentFloatToTMPs.OrderBy(x => x.priority).ToArray();
+            string resultingText = "";
+            for (int i = 0; i < currentFloatToTMPs.Length; i++)
+                if (currentFloatToTMPs[i].enabled)
+                    resultingText += currentFloatToTMPs[i].
+                        GetResultingText().Replace("\\n", "\n").Replace("\\t", "\t");
+            text.SetText(resultingText);
+        }
     }
 
     public string GetResultingText()

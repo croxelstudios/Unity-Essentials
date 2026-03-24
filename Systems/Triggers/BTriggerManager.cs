@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class BTriggerManager : MonoBehaviour
 {
@@ -11,6 +14,8 @@ public class BTriggerManager : MonoBehaviour
     [TagSelector]
     [Tooltip("Will fire on any collision if this array is empty")]
     string[] detectionTags = null;
+    [SerializeField]
+    CustomTagItems customTags = new CustomTagItems();
 
     int count;
     List<NDCollider> colliders;
@@ -112,6 +117,13 @@ public class BTriggerManager : MonoBehaviour
 
     protected virtual bool CheckCollision(GameObject other)
     {
+        if (CheckCollisionBase(other) && CheckCollisionCustom(other))
+            return true;
+        return false;
+    }
+
+    bool CheckCollisionBase(GameObject other)
+    {
         if (detectionTags == null || detectionTags.Contains(other.tag) || detectionTags.Length == 0)
             return true;
         else if (checkRigidbodyTag)
@@ -121,6 +133,14 @@ public class BTriggerManager : MonoBehaviour
                 return true;
         }
         return false;
+    }
+
+    bool CheckCollisionCustom(GameObject other)
+    {
+        //TO DO: This should work with this thing,
+        //but unfortunately it causes issues when the object is deactivated in the same physics step
+        //return customTag.Check(other);
+        return customTags.DirtyCheck(other);
     }
 
     public virtual void OnTrigEnter()
@@ -141,6 +161,14 @@ public class BTriggerManager : MonoBehaviour
     public virtual void OnTrigExit(NDCollider other)
     {
 
+    }
+
+    public void SetFirstCustomTag(int id)
+    {
+        customTags.SetFirstCustomTag(id);
+#if UNITY_EDITOR
+        if (!Application.isPlaying) EditorUtility.SetDirty(this);
+#endif
     }
 
     void OnDisable()
