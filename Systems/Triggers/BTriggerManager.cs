@@ -178,7 +178,8 @@ public class BTriggerManager : MonoBehaviour
 
     public void SetFirstCustomTag(int id)
     {
-        customTags.SetFirstCustomTag(id);
+        if (!customTags.IsNullOrEmpty())
+            customTags[0].SetFirstCustomTag(id);
 #if UNITY_EDITOR
         if (!Application.isPlaying) EditorUtility.SetDirty(this);
 #endif
