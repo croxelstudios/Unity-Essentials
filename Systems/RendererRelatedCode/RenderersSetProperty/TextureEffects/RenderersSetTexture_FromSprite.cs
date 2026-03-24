@@ -47,7 +47,7 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
                     _texture = tex;
                     break;
                 }
-                j++;
+                //j++;
             }
 
         base.UpdateBehaviour();

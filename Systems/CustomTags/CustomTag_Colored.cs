@@ -15,30 +15,24 @@ public class CustomTag_Colored : CustomTag
     [SerializeField]
     DXColorEvent launchColor = null;
 
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        if (launchOnEnable)
-            LaunchEvents();
-    }
-
     public void UpdateTagList()
     {
         item.tagList = coloredTagList;
-        LaunchEvents();
+        TagUpdateAction();
     }
 
-    public void LaunchEvents()
+    public override void LaunchEvents(CustomTagItem item)
     {
         launchTagID?.Invoke(item.customTag);
-        launchColor?.Invoke(coloredTagList.coloredTags[item.customTag].color);
+        StringList_Colored colored = item.tagList as StringList_Colored;
+        launchColor?.Invoke(colored.coloredTags[item.customTag].color);
     }
 
     [StringSelector("tagList.tags")]
     public override void SwitchTag(int newTag)
     {
         base.SwitchTag(newTag);
-        LaunchEvents();
+        TagUpdateAction();
     }
 }
 
@@ -75,7 +69,7 @@ public class CustomTag_Colored_Inspector : OdinEditor
         if (EditorGUI.EndChangeCheck()) shouldLaunchEvents = true;
         Tree.EndDraw();
         if (shouldLaunchEvents)
-            ((CustomTag_Colored)target).LaunchEvents();
+            ((CustomTag_Colored)target).TagUpdateAction();
     }
 }
 #endif

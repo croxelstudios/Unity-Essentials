@@ -1,13 +1,17 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class CollisionEvents : BCollisionManager
 {
     [SerializeField]
     float maxImpact = 3f;
+    [PropertyOrder(5)]
     [SerializeField]
     Transform[] toContactPoints = null;
+    [PropertyOrder(5)]
     [SerializeField]
     protected DXFloatEvent entered = null;
+    [PropertyOrder(5)]
     [SerializeField]
     protected DXEvent exited = null;
 

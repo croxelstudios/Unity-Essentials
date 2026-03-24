@@ -1,32 +1,36 @@
+using Sirenix.OdinInspector;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-public class BCollisionManager : MonoBehaviour
+public class BCollisionManager : BColliderInteractor
 {
-    //[SerializeField]
-    //[Tooltip("Determines if it should also check the tag of the attached rigidbody")]
-    bool checkRigidbodyTag = false;
-    [SerializeField]
-    [TagSelector]
-    [Tooltip("Will fire on any collision if this array is empty")]
-    string[] detectionTags = null;
-    [SerializeField]
-    LayerMask layerMask = -1;
     [SerializeField]
     protected float minImpact = 0f;
-    //TO DO: Only detect hits within a range of a Normal
+    [PropertyOrder(2)]
+    [SerializeField]
+    [Range(0f, 180f)]
+    float angleRange = 180f;
+    [Indent]
+    [PropertyOrder(2)]
+    [ShowIf("@angleRange < 180f")]
+    [SerializeField]
+    Vector3 centerNormal = Vector3.up;
+    [Indent]
+    [PropertyOrder(2)]
+    [ShowIf("@angleRange < 180f")]
+    [SerializeField]
+    Space normalSpace = Space.World;
+
+    List<NDCollision> collisions;
 
     NDRigidbody rigid;
     CollisionManager_Detector detector;
-    List<NDCollision> collisions;
-    NDCollider[] selfColliders;
     bool detectorEnabled;
 
-    protected virtual void Awake()
+    protected override void Awake()
     {
         collisions = new List<NDCollision>();
-        selfColliders = NDCollider.GetNDCollidersFrom(gameObject);
+        base.Awake();
 
         rigid = NDRigidbody.GetNDRigidbodyFrom(gameObject, NDRigidbody.Scope.inParents);
         if (rigid != null) SetUpDetector(rigid.gameObject);
@@ -52,7 +56,7 @@ public class BCollisionManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!HasEnabledColliderOrRigidbody())
+        if (!HasEnabledCollider())
             OnDisable();
         else EnableDetector();
 
@@ -69,25 +73,23 @@ public class BCollisionManager : MonoBehaviour
         }
     }
 
-    bool IsThisEnabled()
-    {
-        return this.IsActiveAndEnabled() && HasEnabledColliderOrRigidbody();
-    }
-
     public void CollisionStay(NDCollision collision)
     {
-        if (IsThisEnabled() && (minImpact > Mathf.Epsilon) && CheckCollision(collision.gameObject) &&
+        if (IsThisEnabled() && (minImpact > Mathf.Epsilon) &&
+            CheckCollision(collision.gameObject, out CustomTag otherTag) &&
             CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
             OnColEnter(collision);
             OnColEnter(points, impact);
+            LaunchCustomTag(otherTag);
         }
     }
 
     public void CollisionEnter(NDCollision collision)
     {
-        if (IsThisEnabled() && CheckCollision(collision.gameObject)
-            && CheckImpact(collision, out NDContactPoint[] points, out float impact))
+        if (IsThisEnabled() &&
+            CheckCollision(collision.gameObject, out CustomTag otherTag) &&
+            CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
             int prevCount = collisions.Count;
             if (!collisions.Contains(collision))
@@ -95,6 +97,7 @@ public class BCollisionManager : MonoBehaviour
             if (prevCount == 0) OnFirstColEnter();
             OnColEnter(collision);
             OnColEnter(points, impact);
+            LaunchCustomTag(otherTag);
         }
     }
 
@@ -115,7 +118,10 @@ public class BCollisionManager : MonoBehaviour
         Vector3 projectedVelocity = Vector3.Project(collision.relativeVelocity, normal);
         impact = projectedVelocity.magnitude * Mathf.Sign(Vector3.Dot(normal, projectedVelocity));
 
-        return impact > minImpact;
+        Vector3 compareNormal = (normalSpace == Space.World) ? centerNormal :
+            transform.TransformDirection(centerNormal);
+
+        return (impact > minImpact) && NormalIsInRange(normal);
     }
 
     protected virtual bool CheckImpact(NDCollision collision, out NDContactPoint[] points,
@@ -151,22 +157,19 @@ public class BCollisionManager : MonoBehaviour
             float sqrMag = projectedVelocity.sqrMagnitude * Mathf.Sign(Vector3.Dot(normal, projectedVelocity));
 
             points = collision.contacts;
-            return sqrMag > (minImpact * minImpact);
+            return (sqrMag > (minImpact * minImpact)) && NormalIsInRange(normal);
         }
     }
 
-    protected virtual bool CheckCollision(GameObject other)
+    bool NormalIsInRange(Vector3 normal)
     {
-        if ((detectionTags.IsNullOrEmpty() || detectionTags.Contains(other.tag))
-            && layerMask.ContainsLayer(other.layer))
+        if (angleRange >= 180f)
             return true;
-        else if (checkRigidbodyTag)
-        {
-            NDRigidbody rigid = NDRigidbody.GetNDRigidbodyFrom(other, NDRigidbody.Scope.inParents);
-            if ((rigid != null) && detectionTags.Contains(rigid.tag) && layerMask.ContainsLayer(rigid.layer))
-                return true;
-        }
-        return false;
+
+        Vector3 compareNormal = (normalSpace == Space.World) ? centerNormal :
+            transform.TransformDirection(centerNormal);
+
+        return Vector3.Angle(normal, compareNormal) < angleRange;
     }
 
     public virtual void OnFirstColEnter()
@@ -194,19 +197,12 @@ public class BCollisionManager : MonoBehaviour
 
     }
 
-    bool HasEnabledColliderOrRigidbody()
+    protected override bool HasEnabledCollider()
     {
         if ((rigid != null) && (rigid.gameObject == gameObject))
             return true;
 
-        if ((selfColliders == null) || (selfColliders.Length <= 0))
-            return false;
-
-        for (int i = 0; i < selfColliders.Length; i++)
-            if ((!selfColliders[i].IsNull()) && selfColliders[i].enabled)
-                return true;
-
-        return false;
+        return base.HasEnabledCollider();
     }
 
     void SetUpDetector(GameObject obj)

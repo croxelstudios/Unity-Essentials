@@ -22,7 +22,8 @@ public class CustomTag : MonoBehaviour
 
     public static void AddActiveTaggedObj(CustomTagItem item, CustomTag customTag)
     {
-        activeTagged = activeTagged.CreateAdd(item.tagList, item.customTag, customTag);
+        if (item.tagList != null)
+            activeTagged = activeTagged.CreateAdd(item.tagList, item.customTag, customTag);
     }
 
     public static void AddActiveTaggedObj(CustomTag customTag)
@@ -41,10 +42,18 @@ public class CustomTag : MonoBehaviour
         RemoveActiveTaggedObj(customTag.item, customTag);
     }
 
+    public static bool IsListActiveTagged(StringList tagList)
+    {
+        if (tagList == null)
+            return false;
+
+        return (activeTagged != null) &&
+            activeTagged.ContainsKey(tagList);
+    }
+
     public static bool IsItemActiveTagged(CustomTagItem item)
     {
-        return (activeTagged != null) &&
-            activeTagged.ContainsKey(item.tagList) &&
+        return IsListActiveTagged(item.tagList) &&
             activeTagged[item.tagList].ContainsKey(item.customTag);
     }
 
@@ -52,6 +61,18 @@ public class CustomTag : MonoBehaviour
     {
         if (!IsItemActiveTagged(item)) return new List<CustomTag>();
         else return activeTagged[item.tagList][item.customTag];
+    }
+
+    public static List<CustomTag> GetActiveTagged(StringList tagList)
+    {
+        if (!IsListActiveTagged(tagList)) return new List<CustomTag>();
+        else
+        {
+            List<CustomTag> result = new List<CustomTag>();
+            foreach (List<CustomTag> items in activeTagged[tagList].Values)
+                result.AddRange(items);
+            return result;
+        }
     }
     #endregion
 
@@ -80,6 +101,11 @@ public class CustomTag : MonoBehaviour
     }
 
     public void TagUpdateAction()
+    {
+        LaunchEvents(item);
+    }
+
+    public virtual void LaunchEvents(CustomTagItem item)
     {
         tagWasChanged?.Invoke(item.customTag);
     }
@@ -170,11 +196,11 @@ public class CustomTag : MonoBehaviour
 
 public static class CustomTagExtension_Contains
 {
-    public static bool Contains(this List<CustomTag> list, GameObject obj)
+    public static CustomTag Contains(this List<CustomTag> list, GameObject obj)
     {
         foreach (CustomTag ct in list)
-            if (ct.includedGameObjects.Contains(obj)) return true;
-        return false;
+            if (ct.includedGameObjects.Contains(obj)) return ct;
+        return null;
     }
 }
 
@@ -289,42 +315,61 @@ public struct CustomTagItems
         return hasTag;
     }
 
-    public bool Check(GameObject other)
+    public bool Check(GameObject other, out CustomTag customTag)
     {
+        customTag = null;
+
         if (tagList == null) return true;
 
-        bool hasTag = false;
+        if (customTags.IsNullOrEmpty())
+        {
+            customTag = CustomTag.GetActiveTagged(tagList).Contains(other);
+            return (customTag != null);
+        }
+
         foreach (int tag in customTags)
         {
             CustomTagItem item = GetCustomTag(tag);
-            if (CustomTag.IsItemActiveTagged(item) &&
-                CustomTag.GetActiveTagged(item).Contains(other))
+            if (CustomTag.IsItemActiveTagged(item))
             {
-                hasTag = true;
-                break;
+                customTag = CustomTag.GetActiveTagged(item).Contains(other);
+                if (customTag != null)
+                    return true;
             }
         }
 
-        return hasTag;
+        customTag = null;
+        return false;
     }
 
-    public bool DirtyCheck(GameObject other)
+    public bool Check(GameObject other)
     {
+        return Check(other, out CustomTag customTag);
+    }
+
+    public bool DirtyCheck(GameObject other, out CustomTag customTag)
+    {
+        customTag = null;
+
         if (tagList == null) return true;
 
-        bool hasTag = false;
         CustomTag[] tagComponents = other.GetComponentsInParent<CustomTag>(true);
         foreach (CustomTag tagComponent in tagComponents)
         {
             if (tagComponent.enabled && (tagComponent.item.tagList == tagList) &&
                 (customTags.IsNullOrEmpty() || customTags.Contains(tagComponent.item.customTag)))
             {
-                hasTag = true;
-                break;
+                customTag = tagComponent;
+                return true;
             }
         }
 
-        return hasTag;
+        return false;
+    }
+
+    public bool DirtyCheck(GameObject other)
+    {
+        return DirtyCheck(other, out CustomTag customTag);
     }
 
     [StringSelector("tagList.tags")]
