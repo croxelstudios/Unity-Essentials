@@ -128,6 +128,7 @@ public class RavioliButton : RavioliButton_Button
 
         base.OnDisable();
 
+        buttonsInitCount = 0;
         groupInitialized = false;
     }
 
@@ -647,17 +648,17 @@ public class RavioliButton : RavioliButton_Button
                 if (currentButton == null)
                 {
                     UpdateCurrentButton(button);
-                    InitializeMovementBehaviors(); 
+                    InitializeMovementBehaviors();
                     TrySelectCurrent();
                 }
                 else TrySelectCurrent();
             }
             else
-            //Handles spacific case where the group has just been activated and needs to preserve data from before the previous deactivation
             {
                 if (buttonsInitCount <= 0)
                 {
-                    RavioliButton_Button[] allChildren = buttonsParent.GetComponentsInChildren<RavioliButton_Button>();
+                    RavioliButton_Button[] allChildren =
+                        buttonsParent.GetComponentsInChildren<RavioliButton_Button>();
                     buttonsInitCount = 0;
                     for (int i = 0; i < allChildren.Length; i++)
                     {
