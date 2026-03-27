@@ -77,12 +77,17 @@
 //                     Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;
 //                     bindings.WorldSpaceNormal = WorldSpaceNormal;
 //                     bindings.WorldSpacePosition = Position;
-//                     SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,
-// 	                    Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, 
-// 	                    UseRampTexture, RampTexture, UseRampTexture,
-// 	                    ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,
-// 	                    light.direction, 1, light.color, 1, shadowAtten, 1,
-// 	                    light.distanceAttenuation, Position, 1, bindings,
+//                     bindings.NDCPosition = ScreenPosition;
+//                     SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(
+//                         Position, 1, Normal, 1, 
+//                         light.direction, 1, light.color, 1, light.distanceAttenuation,
+//                         shadowAtten, 1,
+//                         LightCurveFactor, Smoothness, RimLightAmount, BackRimLightAmount, 
+// 	                    Invert,
+//                         ToonSubdivisions, LightStepsCurveFactor, UseRampTexture, 
+// 	                    RampTexture, UseRampTexture, BinaryShadows, SmoothStep, DitherStep,
+	                    
+// 	                    bindings,
 //                         _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);
     
 //                     Diffuse.rgb += _Diffuse.rgb;
@@ -111,13 +116,18 @@
 //                 Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;
 //                 bindings.WorldSpaceNormal = WorldSpaceNormal;
 //                 bindings.WorldSpacePosition = Position;
-//                 SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,
-// 	                Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, 
-// 	                UseRampTexture, RampTexture, UseRampTexture,
-// 	                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,
-// 	                light.direction, 1, light.color, 1, shadowAtten, 1,
-// 	                light.distanceAttenuation, Position, 1, bindings,
-//                     _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);
+//                 bindings.NDCPosition = ScreenPosition;
+//                 SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(
+//                         Position, 1, Normal, 1, 
+//                         light.direction, 1, light.color, 1, light.distanceAttenuation,
+//                         shadowAtten, 1,
+//                         LightCurveFactor, Smoothness, RimLightAmount, BackRimLightAmount, 
+// 	                    Invert,
+//                         ToonSubdivisions, LightStepsCurveFactor, UseRampTexture, 
+// 	                    RampTexture, UseRampTexture, BinaryShadows, SmoothStep, DitherStep,
+	                    
+// 	                    bindings,
+//                         _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);
     
 //                 Diffuse.rgb += _Diffuse.rgb;
 //                 Diffuse.a *= _Diffuse.a;
@@ -129,46 +139,3 @@
 //         LIGHT_LOOP_END
 //     #endif
 // #endif
-
-#if defined(SHADERGRAPH_PREVIEW)
-	Direction = half3(0.5, 0.5, 0);
-	Color = float3(1, 0.898, 0.6);
-	ShaddowAtten = 1;
-#else
-    	float4 shadowCoord;
-	#ifdef _MAIN_LIGHT_SHADOWS_CASCADES
-		shadowCoord = TransformWorldToShadowCoord(Position);
-	#else
-		shadowCoord =
-			mul(_MainLightWorldToShadow[0], float4(Position, 1.0));
-	#endif
-    	Light light = GetMainLight(shadowCoord);
-
-
-	
-	Direction = half3(0, 0, 0);
-	Color = float3(0, 0, 0);
-	ShaddowAtten = 1;
-
-#ifdef _LIGHT_LAYERS
-	if (IsMatchingLightLayer(light.layerMask, GetMeshRenderingLayer()))
-#endif
-	{
-    		Direction = light.direction;
-		
-
-		Color = light.color;
-		ShaddowAtten = light.shadowAttenuation;
-	}
-#endif
-
-  //       float4 positionCS = TransformWorldToHClip(Position);
-		// float4 shadowCoord = TransformWorldToShadowCoord(Position);
-  //       InputData inputData = (InputData)0;
-  //       inputData.positionWS = Position;
-  //       inputData.positionCS = positionCS;
-  //       inputData.normalWS = Normal;
-  //       inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(Position); 
-  //       inputData.shadowCoord = shadowCoord;
-  //       inputData.normalizedScreenSpaceUV =
-  //           float2((positionCS.xy * rcp(positionCS.w)) * 0.5 + 0.5);

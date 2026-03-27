@@ -41,6 +41,12 @@
         },
         {
             "m_Id": "f65e69a840ef4736b5da470fe313c689"
+        },
+        {
+            "m_Id": "174bcb77f7fe442cbb77f98f2e49087e"
+        },
+        {
+            "m_Id": "29f2bfb8ed7a4b35a1dd5d3834a232a5"
         }
     ],
     "m_Keywords": [],
@@ -131,6 +137,15 @@
         },
         {
             "m_Id": "960d11acf75b4856b5ab1940484eab98"
+        },
+        {
+            "m_Id": "bd3c212fec1b464c92042f532b8c3e7e"
+        },
+        {
+            "m_Id": "579d8f0c963749be9b57d49a2c2c3b6d"
+        },
+        {
+            "m_Id": "b07c655a898e43c5b6a1cae5d03c830a"
         }
     ],
     "m_GroupDatas": [
@@ -312,6 +327,20 @@
                     "m_Id": "4c6525f7bf7c4631beaa719fea225555"
                 },
                 "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "579d8f0c963749be9b57d49a2c2c3b6d"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "63ece210f6c444248c646706c2fac019"
+                },
+                "m_SlotId": 24
             }
         },
         {
@@ -527,6 +556,34 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "b07c655a898e43c5b6a1cae5d03c830a"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "63ece210f6c444248c646706c2fac019"
+                },
+                "m_SlotId": 25
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "bd3c212fec1b464c92042f532b8c3e7e"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "63ece210f6c444248c646706c2fac019"
+                },
+                "m_SlotId": 23
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "bdac5f798069455a9b09690b5ed1f08e"
                 },
                 "m_SlotId": 0
@@ -615,6 +672,22 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "00d9456aea904459adc8de82d4befa27",
+    "m_Id": -1960024023,
+    "m_DisplayName": "SmoothStep",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_SmoothStep",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "010fcea1850341a5ba3fde9ea16ae4f6",
     "m_Id": 5,
     "m_DisplayName": "SpecularMask",
@@ -624,7 +697,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -662,9 +736,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1149.0,
-            "y": 1374.0,
-            "width": 119.0,
+            "x": -1149.0001220703125,
+            "y": 1419.0,
+            "width": 119.0001220703125,
             "height": 34.0001220703125
         }
     },
@@ -707,7 +781,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -722,7 +797,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.10000000149011612,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -746,7 +822,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -820,7 +897,52 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "174bcb77f7fe442cbb77f98f2e49087e",
+    "m_Guid": {
+        "m_GuidSerialized": "9fbb4897-cc4a-477a-a03d-e92aa4db044a"
+    },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
+    "m_Name": "SmoothStep",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "SmoothStep",
+    "m_DefaultReferenceName": "_SmoothStep",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
+    "m_Value": 0.0,
+    "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
+    },
+    "m_SliderType": 0,
+    "m_SliderPower": 3.0,
+    "m_EnumType": 0,
+    "m_CSharpEnumString": "",
+    "m_EnumNames": [
+        "Default"
+    ],
+    "m_EnumValues": [
+        0
+    ]
 }
 
 {
@@ -835,7 +957,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -864,7 +987,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -915,7 +1039,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.5,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -1003,7 +1128,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -1018,7 +1144,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -1058,12 +1185,43 @@
 }
 
 {
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.BooleanShaderProperty",
+    "m_ObjectId": "29f2bfb8ed7a4b35a1dd5d3834a232a5",
+    "m_Guid": {
+        "m_GuidSerialized": "ac5a835e-b29d-48eb-aba4-1da4a549a988"
+    },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
+    "m_Name": "DitherStep",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "DitherStep",
+    "m_DefaultReferenceName": "_DitherStep",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
+    "m_Value": false
+}
+
+{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
     "m_ObjectId": "2ca7b3eb321b4b1faec0ddbf6168c414",
     "m_Guid": {
         "m_GuidSerialized": "44a5972b-4e3e-454e-b4fa-8b116659271d"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "LightStepsCurveFactor",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "LightStepsCurveFactor",
@@ -1081,6 +1239,7 @@
     "m_customAttributes": [],
     "m_Value": 0.5,
     "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -1220,6 +1379,9 @@
     "m_Guid": {
         "m_GuidSerialized": "bfcae84f-155f-44cc-94c5-ff16ee2b3e27"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "LightCurveFactor",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "LightCurveFactor",
@@ -1237,6 +1399,7 @@
     "m_customAttributes": [],
     "m_Value": 0.5,
     "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -1407,7 +1570,7 @@
     "m_Title": "Position Input",
     "m_Position": {
         "x": -1264.0,
-        "y": 1274.9998779296875
+        "y": 1320.0
     }
 }
 
@@ -1420,6 +1583,20 @@
         "x": -1264.0,
         "y": 529.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "4b5f27e933f94bdda512537e6da429e5",
+    "m_Id": 2116200996,
+    "m_DisplayName": "DitheredSteps",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_DitheredSteps",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {
@@ -1443,7 +1620,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -1504,6 +1682,32 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "4e85bdc439e44c19a757de158ffec566",
+    "m_Id": 0,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
     "m_Labels": []
 }
 
@@ -1564,7 +1768,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -1606,7 +1811,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -1630,6 +1836,43 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    },
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "579d8f0c963749be9b57d49a2c2c3b6d",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -533.0000610351563,
+            "y": 962.0000610351563,
+            "width": 132.99996948242188,
+            "height": 34.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "fda4502ab8964e3bb053866eb0cadf64"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "29f2bfb8ed7a4b35a1dd5d3834a232a5"
     }
 }
 
@@ -1646,8 +1889,8 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": -1031.0,
-            "y": 1334.0,
-            "width": 208.0,
+            "y": 1379.0,
+            "width": 208.00006103515626,
             "height": 326.0
         }
     },
@@ -1682,6 +1925,9 @@
     "m_Guid": {
         "m_GuidSerialized": "e86ce13d-fbd4-4bae-9e57-66ec1acf6665"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Position",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Position",
@@ -1737,6 +1983,9 @@
     "m_Guid": {
         "m_GuidSerialized": "ec047692-63ee-4bd3-84a0-b199e4e594cb"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "RimLightAmount",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "RimLightAmount",
@@ -1754,6 +2003,7 @@
     "m_customAttributes": [],
     "m_Value": 0.0,
     "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -1837,7 +2087,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": true
 }
 
 {
@@ -1852,13 +2103,28 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -396.00006103515627,
-            "y": 494.0000305175781,
-            "width": 293.0000305175781,
-            "height": 614.0
+            "x": -396.0,
+            "y": 494.0,
+            "width": 294.0000305175781,
+            "height": 686.0
         }
     },
     "m_Slots": [
+        {
+            "m_Id": "838c1a3957244029bf364f97755c0d80"
+        },
+        {
+            "m_Id": "ec53512283d54847aca385a8c406e52a"
+        },
+        {
+            "m_Id": "f0fc911db17946e7bf7dbd919707b190"
+        },
+        {
+            "m_Id": "6a73ab54be3a4b91ae156de5ef8604e7"
+        },
+        {
+            "m_Id": "a993294e51bf4f47b5d5c63996f97259"
+        },
         {
             "m_Id": "46c39e21a33a448d9f08a8136a63b195"
         },
@@ -1902,22 +2168,16 @@
             "m_Id": "bb8f3d449ec14f07a8ee40feb1177164"
         },
         {
+            "m_Id": "743feb39307a478b80eaa849bf3b5edb"
+        },
+        {
             "m_Id": "25879a7fa6574ab08b4621507b881762"
         },
         {
-            "m_Id": "838c1a3957244029bf364f97755c0d80"
+            "m_Id": "898018eec73240c3aa8bb44c6a990c70"
         },
         {
-            "m_Id": "ec53512283d54847aca385a8c406e52a"
-        },
-        {
-            "m_Id": "f0fc911db17946e7bf7dbd919707b190"
-        },
-        {
-            "m_Id": "6a73ab54be3a4b91ae156de5ef8604e7"
-        },
-        {
-            "m_Id": "a993294e51bf4f47b5d5c63996f97259"
+            "m_Id": "ce1d1d34bca04f1f9ad1069b5e60a23a"
         }
     ],
     "synonyms": [
@@ -1935,7 +2195,7 @@
     "m_FunctionName": "AdditionalLightsLoop",
     "m_FunctionSource": "b37a938110fac254fbddbebad249da2d",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "Diffuse = float4(0, 0, 0, 1);\r\nSpecular = float3(0, 0, 0);\r\nRimLight = float3(0, 0, 0);\r\nBackRimLight = float3(0, 0, 0);\r\nSpecularMask = 0;\r\n\r\n#if !defined(SHADERGRAPH_PREVIEW)\r\n    #if defined(_ADDITIONAL_LIGHTS)\r\n        uint lightsCount = GetAdditionalLightsCount();\r\n        uint meshRenderingLayers = GetMeshRenderingLayer();\r\n\r\n        //InitializeInputData\r\n        float4 positionCS = TransformWorldToHClip(Position);\r\n        InputData inputData = (InputData)0;\r\n        #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)\r\n            inputData.positionWS = Position;\r\n        #endif\r\n        #if defined(DEBUG_DISPLAY)\r\n            inputData.positionCS = positionCS;\r\n        #endif\r\n        inputData.normalWS = Normal;\r\n        inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(Position);\r\n\r\n        float4 screenPos = ComputeScreenPos(positionCS);\r\n        #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)\r\n            #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)\r\n                inputData.shadowCoord = screenPos;\r\n            #else\r\n                inputData.shadowCoord = TransformWorldToShadowCoord(Position);\r\n            #endif\r\n        #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)\r\n            inputData.shadowCoord = TransformWorldToShadowCoord(Position);\r\n        #else\r\n            inputData.shadowCoord = float4(0, 0, 0, 0);\r\n        #endif\r\n        inputData.fogCoord = InitializeInputDataFog(float4(Position, 1.0),\r\n            ComputeFogFactor(positionCS.z));\r\n\r\n        float2 uv = (positionCS.xy / positionCS.w) * 0.5 + 0.5;\r\n        #if defined(UNITY_UV_STARTS_AT_TOP)\r\n            uv.y = 1.0 - uv.y;\r\n        #endif\r\n        inputData.normalizedScreenSpaceUV = uv;\r\n        \r\n        #if defined(DEBUG_DISPLAY)\r\n            #if defined(DYNAMICLIGHTMAP_ON)\r\n                inputData.dynamicLightmapUV =\r\n                    float2(0, 0) * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;\r\n            #endif\r\n            #if defined(LIGHTMAP_ON)\r\n                float2 staticLightmapUV;\r\n                OUTPUT_LIGHTMAP_UV(staticLightmapUV, unity_LightmapST, inputData.staticLightmapUV);\r\n            #endif\r\n            OUTPUT_SH4(Position, Normal.xyz,\r\n                GetWorldSpaceNormalizeViewDir(Position),\r\n                inputData.vertexSH, inputData.probeOcclusion);\r\n        #endif\r\n\r\n        #if USE_CLUSTER_LIGHT_LOOP\r\n            [loop] for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)\r\n            {\r\n                CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK\r\n                \r\n                Light light = GetAdditionalLight(lightIndex, inputData.positionWS, 1);\r\n\r\n                #ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n                #endif\r\n                {\r\n                    float4 _Diffuse = float4(0, 0, 0, 1);\r\n                    float3 _Specular = float3(0, 0, 0);\r\n                    float3 _RimLight = float3(0, 0, 0);\r\n                    float3 _BackRimLight = float3(0, 0, 0);\r\n                    float _SpecularMask = 0;\r\n\r\n                    float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                    Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                    bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                    bindings.WorldSpacePosition = Position;\r\n                    SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,\r\n\t                    Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \r\n\t                    UseRampTexture, RampTexture, UseRampTexture,\r\n\t                    ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,\r\n\t                    light.direction, 1, light.color, 1, shadowAtten, 1,\r\n\t                    light.distanceAttenuation, Position, 1, bindings,\r\n                        _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                    Diffuse.rgb += _Diffuse.rgb;\r\n                    Diffuse.a *= _Diffuse.a;\r\n\t                Specular += _Specular;\r\n                    RimLight += _RimLight;\r\n                    BackRimLight += _BackRimLight;\r\n                    SpecularMask += _SpecularMask;\r\n                }\r\n            }\r\n        #endif\r\n        LIGHT_LOOP_BEGIN(lightsCount)\r\n            Light light = GetAdditionalLight(lightIndex, inputData.positionWS, 1);\r\n\r\n            #ifdef _LIGHT_LAYERS\r\n                if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n            #endif\r\n            {\r\n                float4 _Diffuse = float4(0, 0, 0, 1);\r\n                float3 _Specular = float3(0, 0, 0);\r\n                float3 _RimLight = float3(0, 0, 0);\r\n                float3 _BackRimLight = float3(0, 0, 0);\r\n                float _SpecularMask = 0;\r\n\r\n                float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                bindings.WorldSpacePosition = Position;\r\n                SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(Normal, 1,\r\n\t                Smoothness, LightCurveFactor, RimLightAmount, BackRimLightAmount, \r\n\t                UseRampTexture, RampTexture, UseRampTexture,\r\n\t                ToonSubdivisions, LightStepsCurveFactor, BinaryShadows, Invert,\r\n\t                light.direction, 1, light.color, 1, shadowAtten, 1,\r\n\t                light.distanceAttenuation, Position, 1, bindings,\r\n                    _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                Diffuse.rgb += _Diffuse.rgb;\r\n                Diffuse.a *= _Diffuse.a;\r\n\t            Specular += _Specular;\r\n                RimLight += _RimLight;\r\n                BackRimLight += _BackRimLight;\r\n                SpecularMask += _SpecularMask;\r\n            }\r\n        LIGHT_LOOP_END\r\n    #endif\r\n#endif"
+    "m_FunctionBody": "Diffuse = float4(0, 0, 0, 1);\r\nSpecular = float3(0, 0, 0);\r\nRimLight = float3(0, 0, 0);\r\nBackRimLight = float3(0, 0, 0);\r\nSpecularMask = 0;\r\n\r\n#if !defined(SHADERGRAPH_PREVIEW)\r\n    #if defined(_ADDITIONAL_LIGHTS)\r\n        uint lightsCount = GetAdditionalLightsCount();\r\n        uint meshRenderingLayers = GetMeshRenderingLayer();\r\n\r\n        //InitializeInputData\r\n        float4 positionCS = TransformWorldToHClip(Position);\r\n        InputData inputData = (InputData)0;\r\n        #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)\r\n            inputData.positionWS = Position;\r\n        #endif\r\n        #if defined(DEBUG_DISPLAY)\r\n            inputData.positionCS = positionCS;\r\n        #endif\r\n        inputData.normalWS = Normal;\r\n        inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(Position);\r\n\r\n        float4 screenPos = ComputeScreenPos(positionCS);\r\n        #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)\r\n            #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)\r\n                inputData.shadowCoord = screenPos;\r\n            #else\r\n                inputData.shadowCoord = TransformWorldToShadowCoord(Position);\r\n            #endif\r\n        #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)\r\n            inputData.shadowCoord = TransformWorldToShadowCoord(Position);\r\n        #else\r\n            inputData.shadowCoord = float4(0, 0, 0, 0);\r\n        #endif\r\n        inputData.fogCoord = InitializeInputDataFog(float4(Position, 1.0),\r\n            ComputeFogFactor(positionCS.z));\r\n\r\n        float2 uv = (positionCS.xy / positionCS.w) * 0.5 + 0.5;\r\n        #if defined(UNITY_UV_STARTS_AT_TOP)\r\n            uv.y = 1.0 - uv.y;\r\n        #endif\r\n        inputData.normalizedScreenSpaceUV = uv;\r\n        \r\n        #if defined(DEBUG_DISPLAY)\r\n            #if defined(DYNAMICLIGHTMAP_ON)\r\n                inputData.dynamicLightmapUV =\r\n                    float2(0, 0) * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;\r\n            #endif\r\n            #if defined(LIGHTMAP_ON)\r\n                float2 staticLightmapUV;\r\n                OUTPUT_LIGHTMAP_UV(staticLightmapUV, unity_LightmapST, inputData.staticLightmapUV);\r\n            #endif\r\n            OUTPUT_SH4(Position, Normal.xyz,\r\n                GetWorldSpaceNormalizeViewDir(Position),\r\n                inputData.vertexSH, inputData.probeOcclusion);\r\n        #endif\r\n\r\n        #if USE_CLUSTER_LIGHT_LOOP\r\n            [loop] for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)\r\n            {\r\n                CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK\r\n                \r\n                Light light = GetAdditionalLight(lightIndex, inputData.positionWS, 1);\r\n\r\n                #ifdef _LIGHT_LAYERS\r\n                    if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n                #endif\r\n                {\r\n                    float4 _Diffuse = float4(0, 0, 0, 1);\r\n                    float3 _Specular = float3(0, 0, 0);\r\n                    float3 _RimLight = float3(0, 0, 0);\r\n                    float3 _BackRimLight = float3(0, 0, 0);\r\n                    float _SpecularMask = 0;\r\n\r\n                    float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                    Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                    bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                    bindings.WorldSpacePosition = Position;\r\n                    bindings.NDCPosition = ScreenPosition;\r\n                    SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(\r\n                        Position, 1, Normal, 1, \r\n                        light.direction, 1, light.color, 1, light.distanceAttenuation,\r\n                        shadowAtten, 1,\r\n                        LightCurveFactor, Smoothness, RimLightAmount, BackRimLightAmount, \r\n\t                    Invert,\r\n                        ToonSubdivisions, LightStepsCurveFactor, UseRampTexture, \r\n\t                    RampTexture, UseRampTexture, BinaryShadows, SmoothStep, DitherStep,\r\n\t                    \r\n\t                    bindings,\r\n                        _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                    Diffuse.rgb += _Diffuse.rgb;\r\n                    Diffuse.a *= _Diffuse.a;\r\n\t                Specular += _Specular;\r\n                    RimLight += _RimLight;\r\n                    BackRimLight += _BackRimLight;\r\n                    SpecularMask += _SpecularMask;\r\n                }\r\n            }\r\n        #endif\r\n        LIGHT_LOOP_BEGIN(lightsCount)\r\n            Light light = GetAdditionalLight(lightIndex, inputData.positionWS, 1);\r\n\r\n            #ifdef _LIGHT_LAYERS\r\n                if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))\r\n            #endif\r\n            {\r\n                float4 _Diffuse = float4(0, 0, 0, 1);\r\n                float3 _Specular = float3(0, 0, 0);\r\n                float3 _RimLight = float3(0, 0, 0);\r\n                float3 _BackRimLight = float3(0, 0, 0);\r\n                float _SpecularMask = 0;\r\n\r\n                float shadowAtten = ReceiveShadows ? light.shadowAttenuation : 1.0;\r\n                Bindings_LightProcessor_891721543fd22034bab66ea6db7b508c_half bindings;\r\n                bindings.WorldSpaceNormal = WorldSpaceNormal;\r\n                bindings.WorldSpacePosition = Position;\r\n                bindings.NDCPosition = ScreenPosition;\r\n                SG_LightProcessor_891721543fd22034bab66ea6db7b508c_half(\r\n                        Position, 1, Normal, 1, \r\n                        light.direction, 1, light.color, 1, light.distanceAttenuation,\r\n                        shadowAtten, 1,\r\n                        LightCurveFactor, Smoothness, RimLightAmount, BackRimLightAmount, \r\n\t                    Invert,\r\n                        ToonSubdivisions, LightStepsCurveFactor, UseRampTexture, \r\n\t                    RampTexture, UseRampTexture, BinaryShadows, SmoothStep, DitherStep,\r\n\t                    \r\n\t                    bindings,\r\n                        _Diffuse, _Specular, _RimLight, _BackRimLight, _SpecularMask);\r\n    \r\n                Diffuse.rgb += _Diffuse.rgb;\r\n                Diffuse.a *= _Diffuse.a;\r\n\t            Specular += _Specular;\r\n                RimLight += _RimLight;\r\n                BackRimLight += _BackRimLight;\r\n                SpecularMask += _SpecularMask;\r\n            }\r\n        LIGHT_LOOP_END\r\n    #endif\r\n#endif\r\n"
 }
 
 {
@@ -1984,7 +2244,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -2008,7 +2269,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -2137,6 +2399,31 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "743feb39307a478b80eaa849bf3b5edb",
+    "m_Id": 25,
+    "m_DisplayName": "ScreenPosition",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "ScreenPosition",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "750299553dba4e5397db1336121bbe79",
     "m_Group": {
@@ -2183,10 +2470,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1239.0,
-            "y": 1408.0001220703125,
-            "width": 206.0,
-            "height": 130.0
+            "x": -1239.0001220703125,
+            "y": 1453.0001220703125,
+            "width": 206.0001220703125,
+            "height": 129.9998779296875
         }
     },
     "m_Slots": [
@@ -2241,6 +2528,9 @@
     "m_Guid": {
         "m_GuidSerialized": "6d05a4eb-6763-4a7b-985f-d5837e1c30ee"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "RampTexture",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "RampTexture",
@@ -2263,6 +2553,7 @@
     "isMainTexture": false,
     "useTilingAndOffset": false,
     "useTexelSize": true,
+    "isHDR": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -2287,37 +2578,10 @@
     },
     "m_Slots": [
         {
+            "m_Id": "5fed7d967e344cf5a5ac5bd036eb4800"
+        },
+        {
             "m_Id": "b040f349813a49dea65d49931815a3d9"
-        },
-        {
-            "m_Id": "85e3fc2455d2438f80f69f9cf1b7b4db"
-        },
-        {
-            "m_Id": "ff86a94f3c4a403997722aa302bcfaeb"
-        },
-        {
-            "m_Id": "06d9778ed2d0441ab0c6c7038f3126f8"
-        },
-        {
-            "m_Id": "cf4af494f39448168a76bdad5945d066"
-        },
-        {
-            "m_Id": "6f60bac5233143c3860860b90efbcad3"
-        },
-        {
-            "m_Id": "559794fc06d844408b1985654a5ae98d"
-        },
-        {
-            "m_Id": "27b09c2acdc640d1a331d8d9e11619ec"
-        },
-        {
-            "m_Id": "1ff38cb7f18a4fe4a0c5fa048ab61efa"
-        },
-        {
-            "m_Id": "8f7c34307af940829d4ef72b242a0fa8"
-        },
-        {
-            "m_Id": "1ae46b167bcd4bd5b934b9d5c89bcba9"
         },
         {
             "m_Id": "ae506f2dd4184e2ca8d2edb917adb388"
@@ -2326,13 +2590,46 @@
             "m_Id": "8f54d987f93941bfa46a4d3a7fc121b2"
         },
         {
-            "m_Id": "84c11b4f09e440b59dab7106a5f55350"
-        },
-        {
             "m_Id": "c7b0db96c9d14eeab6e33e9e44b9cf91"
         },
         {
-            "m_Id": "5fed7d967e344cf5a5ac5bd036eb4800"
+            "m_Id": "84c11b4f09e440b59dab7106a5f55350"
+        },
+        {
+            "m_Id": "ff86a94f3c4a403997722aa302bcfaeb"
+        },
+        {
+            "m_Id": "85e3fc2455d2438f80f69f9cf1b7b4db"
+        },
+        {
+            "m_Id": "06d9778ed2d0441ab0c6c7038f3126f8"
+        },
+        {
+            "m_Id": "cf4af494f39448168a76bdad5945d066"
+        },
+        {
+            "m_Id": "1ae46b167bcd4bd5b934b9d5c89bcba9"
+        },
+        {
+            "m_Id": "27b09c2acdc640d1a331d8d9e11619ec"
+        },
+        {
+            "m_Id": "1ff38cb7f18a4fe4a0c5fa048ab61efa"
+        },
+        {
+            "m_Id": "6f60bac5233143c3860860b90efbcad3"
+        },
+        {
+            "m_Id": "559794fc06d844408b1985654a5ae98d"
+        },
+        {
+            "m_Id": "8f7c34307af940829d4ef72b242a0fa8"
+        },
+        {
+            "m_Id": "00d9456aea904459adc8de82d4befa27"
+        },
+        {
+            "m_Id": "4b5f27e933f94bdda512537e6da429e5"
         },
         {
             "m_Id": "5c684672b8e5451fb14542a43f8ee6b6"
@@ -2375,7 +2672,9 @@
         "b630337e-e9fe-43f2-8f7e-99abda415359",
         "b7954fec-f2d9-4946-9c28-0ee8b3357cc3",
         "574d9098-0e84-42c9-8a53-7ba9ac442d55",
-        "e01f08ed-fa20-43ea-8f3b-b010f91b51be"
+        "e01f08ed-fa20-43ea-8f3b-b010f91b51be",
+        "68e33a9e-762c-4dd3-8bf4-465f10d05af1",
+        "3f4ef3cd-b058-4abe-aa3c-b8c81bd56ac3"
     ],
     "m_PropertyIds": [
         -2011810163,
@@ -2393,7 +2692,9 @@
         118023637,
         -710828006,
         -372078278,
-        219468475
+        219468475,
+        -1960024023,
+        2116200996
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -2473,7 +2774,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2488,7 +2790,8 @@
     "m_StageCapability": 3,
     "m_Value": 1.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2503,7 +2806,24 @@
     "m_StageCapability": 3,
     "m_Value": 0.5,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "898018eec73240c3aa8bb44c6a990c70",
+    "m_Id": 23,
+    "m_DisplayName": "SmoothStep",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "SmoothStep",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2636,7 +2956,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -2651,9 +2972,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -748.0,
-            "y": 1333.9998779296875,
-            "width": 203.0,
+            "x": -748.0000610351563,
+            "y": 1379.0,
+            "width": 202.0,
             "height": 95.0
         }
     },
@@ -2755,7 +3076,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2779,7 +3101,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -2817,7 +3140,24 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "ace6552c0aa04fb79858bddc52b8b2db",
+    "m_Id": 0,
+    "m_DisplayName": "SmoothStep",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2904,6 +3244,40 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.ScreenPositionNode",
+    "m_ObjectId": "b07c655a898e43c5b6a1cae5d03c830a",
+    "m_Group": {
+        "m_Id": "4b07317a75cd46718637cfbfbecd4134"
+    },
+    "m_Name": "Screen Position",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -884.0000610351563,
+            "y": 889.0,
+            "width": 145.00006103515626,
+            "height": 127.99993896484375
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "4e85bdc439e44c19a757de158ffec566"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_ScreenSpaceType": 0
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "b3880db5e7b74d7dbdb9eda77bfb81b4",
     "m_Id": 15,
@@ -2914,7 +3288,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2961,6 +3336,12 @@
         },
         {
             "m_Id": "d8eb2274e56a41a392f796caf79528e5"
+        },
+        {
+            "m_Id": "174bcb77f7fe442cbb77f98f2e49087e"
+        },
+        {
+            "m_Id": "29f2bfb8ed7a4b35a1dd5d3834a232a5"
         }
     ]
 }
@@ -2977,7 +3358,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -3010,6 +3392,9 @@
     "m_Guid": {
         "m_GuidSerialized": "15e1aab9-67ca-4b93-8c7a-62dc2542f757"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Smoothness",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Smoothness",
@@ -3027,6 +3412,7 @@
     "m_customAttributes": [],
     "m_Value": 0.0,
     "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -3050,6 +3436,9 @@
     "m_Guid": {
         "m_GuidSerialized": "6acdf363-ac39-4c7d-8836-7bb1890b2d19"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "ToonSubdivisions",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "ToonSubdivisions",
@@ -3067,6 +3456,7 @@
     "m_customAttributes": [],
     "m_Value": 0.0,
     "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -3099,6 +3489,42 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "bd3c212fec1b464c92042f532b8c3e7e",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -540.0001220703125,
+            "y": 928.0000610351563,
+            "width": 140.00003051757813,
+            "height": 34.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "ace6552c0aa04fb79858bddc52b8b2db"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "174bcb77f7fe442cbb77f98f2e49087e"
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.NormalVectorNode",
     "m_ObjectId": "bdac5f798069455a9b09690b5ed1f08e",
     "m_Group": {
@@ -3109,9 +3535,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -945.0000610351563,
-            "y": 762.0000610351563,
-            "width": 206.00006103515626,
+            "x": -944.9999389648438,
+            "y": 759.0,
+            "width": 206.0,
             "height": 130.0
         }
     },
@@ -3140,6 +3566,9 @@
     "m_Guid": {
         "m_GuidSerialized": "3302e06f-3385-4d4b-9b34-f8a73140e39a"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "BackRimLightAmount",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "BackRimLightAmount",
@@ -3157,6 +3586,7 @@
     "m_customAttributes": [],
     "m_Value": 0.0,
     "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -3194,7 +3624,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -3268,6 +3699,9 @@
     "m_Guid": {
         "m_GuidSerialized": "49d8816f-bf17-4749-b2a4-397ba89e8b9f"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "UseRampTexture",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "UseRampTexture",
@@ -3312,7 +3746,8 @@
     "m_StageCapability": 3,
     "m_Value": 1.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -3413,6 +3848,20 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "ce1d1d34bca04f1f9ad1069b5e60a23a",
+    "m_Id": 24,
+    "m_DisplayName": "DitherStep",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "DitherStep",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "cf4af494f39448168a76bdad5945d066",
     "m_Id": 450365384,
@@ -3423,7 +3872,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.10000000149011612,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -3438,7 +3888,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -3448,6 +3899,9 @@
     "m_Guid": {
         "m_GuidSerialized": "ff5bd5be-2a4f-49e4-9963-e230e235002a"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Invert",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Invert",
@@ -3473,6 +3927,9 @@
     "m_Guid": {
         "m_GuidSerialized": "e76e93ab-f317-4618-9d2c-1536fd5e74ce"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "ReceiveShadows",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "ReceiveShadows",
@@ -3524,7 +3981,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -3548,7 +4006,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": true
 }
 
 {
@@ -3563,7 +4022,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -3587,7 +4047,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -3661,7 +4122,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -3676,7 +4138,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -3686,6 +4149,9 @@
     "m_Guid": {
         "m_GuidSerialized": "5e663eb2-f821-408c-8477-784ecd9061d8"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Normal",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Normal",
@@ -3821,6 +4287,9 @@
     "m_Guid": {
         "m_GuidSerialized": "108e9006-0ccd-4f0c-b298-0a6abe3b0a33"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "BinaryShadows",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "BinaryShadows",
@@ -3860,7 +4329,8 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
 }
 
 {
@@ -3884,7 +4354,22 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
-    }
+    },
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "fda4502ab8964e3bb053866eb0cadf64",
+    "m_Id": 0,
+    "m_DisplayName": "DitherStep",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {
@@ -3910,6 +4395,7 @@
     "m_StageCapability": 3,
     "m_Value": 0.5,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
