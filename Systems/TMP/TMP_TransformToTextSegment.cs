@@ -36,15 +36,9 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
     void OnDisable()
     {
         Canvas.willRenderCanvases -= UpdatePosition;
-        StopAllCoroutines();
     }
 
     void UpdatePosition()
-    {
-        UpdatePosition(new ScriptableRenderContext(), null);
-    }
-
-    void UpdatePosition(ScriptableRenderContext con, List<Camera> cams)
     {
         string t = text.text;
         t = Regex.Replace(t, "<.*?>", string.Empty, RegexOptions.Singleline | RegexOptions.Compiled);

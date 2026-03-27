@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 
+[ExecuteAlways]
 [RequireComponent(typeof(TMP_Text))]
-public class TMP_DisplayFloat : MonoBehaviour
+public class TMP_DisplayFloat : TMP_BTextPreprocessor
 {
-    TMP_Text text;
-
     [SerializeField]
     float startValue = 0f;
     [SerializeField]
@@ -15,9 +15,7 @@ public class TMP_DisplayFloat : MonoBehaviour
     [SerializeField]
     float offset = 0f;
     [SerializeField]
-    string preText = "";
-    [SerializeField]
-    string postText = "%";
+    string replaceText = "{0}";
     [SerializeField]
     string mode = "F0";
     [SerializeField]
@@ -36,13 +34,21 @@ public class TMP_DisplayFloat : MonoBehaviour
         set { SetValue(value); }
     }
 
-    void Awake()
+    protected override string ProcessText(string text)
     {
-        if (text == null)
-        {
-            text = GetComponent<TMP_Text>();
-            SetValue(startValue);
-        }
+        return text.Replace(replaceText,
+            GetResultingText().Replace("\\n", "\n").Replace("\\t", "\t"));
+    }
+
+    string GetResultingText()
+    {
+        float finalValue = (value * scale) + offset;
+
+        string valueText;
+        if (mode == "Time") valueText = TimeSpan.FromSeconds(finalValue).ToString("c");
+        else valueText = finalValue.ToString(mode);
+
+        return valueText;
     }
 
     void OnValidate()
@@ -57,29 +63,11 @@ public class TMP_DisplayFloat : MonoBehaviour
 
     void SetValue(float value)
     {
-        if (this.IsActiveAndEnabled())
-        {
-            _value = value;
-            if (text == null) text = GetComponent<TMP_Text>();
-            TMP_DisplayFloat[] currentFloatToTMPs = GetComponents<TMP_DisplayFloat>();
-            currentFloatToTMPs = currentFloatToTMPs.OrderBy(x => x.priority).ToArray();
-            string resultingText = "";
-            for (int i = 0; i < currentFloatToTMPs.Length; i++)
-                if (currentFloatToTMPs[i].enabled)
-                    resultingText += currentFloatToTMPs[i].
-                        GetResultingText().Replace("\\n", "\n").Replace("\\t", "\t");
-            text.SetText(resultingText);
-        }
+        _value = value;
     }
 
-    public string GetResultingText()
+    void Reset()
     {
-        float finalValue = (value * scale) + offset;
-
-        string valueText;
-        if (mode == "Time") valueText = TimeSpan.FromSeconds(finalValue).ToString("c");
-        else valueText = finalValue.ToString(mode);
-
-        return preText + valueText + postText;
+        replaceText = "{" + Count() + "}";
     }
 }
