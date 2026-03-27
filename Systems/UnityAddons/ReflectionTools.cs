@@ -277,7 +277,8 @@ public static class ReflectionTools
                 //else
                 if (list is IEnumerable)
                 {
-                    return ((IList)list)[index];
+                    IList l = ((IList)list);
+                    return (l.Count <= index) ? null : l[index];
                 }
             }
         }
