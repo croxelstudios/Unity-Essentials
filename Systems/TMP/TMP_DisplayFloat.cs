@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 
 [ExecuteAlways]
 [RequireComponent(typeof(TMP_Text))]
-public class TMP_DisplayFloat : TMP_BTextPreprocessor
+public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
 {
     [SerializeField]
     float startValue = 0f;
@@ -53,6 +51,7 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor
 
     void OnValidate()
     {
+        if (replaceText == "") Reset();
         SetValue(startValue);
     }
 
@@ -68,6 +67,6 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor
 
     void Reset()
     {
-        replaceText = "{" + Count() + "}";
+        replaceText = ITextReplacer.DefaultReplaceText(gameObject);
     }
 }

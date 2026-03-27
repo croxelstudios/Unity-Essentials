@@ -6,10 +6,10 @@ using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 [ExecuteAlways]
-public class TMP_TransformToTextSegment : DXMonoBehaviour
+public class TMP_TransformToTextSegment : DXMonoBehaviour, ITextReplacer
 {
     [SerializeField]
-    string textSegment = "·";
+    string textSegment = "{0}";
     [SerializeField]
     Transform transformToMove = null;
     [SerializeField]
@@ -160,5 +160,15 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour
             else
                 transformToMove.gameObject.SetActive(false);
         }
+    }
+
+    void OnValidate()
+    {
+        if (textSegment == "") Reset();
+    }
+
+    void Reset()
+    {
+        textSegment = ITextReplacer.DefaultReplaceText(gameObject);
     }
 }
