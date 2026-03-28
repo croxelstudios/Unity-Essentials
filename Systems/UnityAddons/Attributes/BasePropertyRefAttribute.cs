@@ -27,14 +27,14 @@ public class BasePropertyRefAttribute : PropertyAttribute
             if (i != 0) path += ".";
             path += pathSegments[i];
         }
-        return (path != "") ? ReflectionTools.GetFieldValue(targetObj, path) : targetObj;
+        return (path != "") ? ReflectionTools.GetFieldValue(targetObj, path, false) : targetObj;
     }
 
     public T GetValue<T>(object targetObj) where T : class
     {
         if (!propPath.IsNullOrEmpty())
         {
-            object obj = ReflectionTools.GetFieldValue(targetObj, propPath);
+            object obj = ReflectionTools.GetFieldValue(targetObj, propPath, false);
             T result = obj as T;
             return result;
         }
