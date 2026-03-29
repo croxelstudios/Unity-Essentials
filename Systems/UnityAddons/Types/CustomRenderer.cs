@@ -33,7 +33,12 @@ public class CustomRenderer : MonoBehaviour
         return transform.worldToLocalMatrix;
     }
 
-    public virtual bool IsVisible(int id = -1)
+    public virtual bool IsVisible(bool excludeShadowCasters)
+    {
+        return IsVisible(-1, excludeShadowCasters);
+    }
+
+    public virtual bool IsVisible(int id = -1, bool excludeShadowCasters = false)
     {
         return enabled;
     }

@@ -3,31 +3,52 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.U2D;
 using UnityEngine.Rendering;
+using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
-public class ComputableMesh : IDisposable
+public class ComputableBase<T> : IDisposable where T : Object
+{
+    public GraphicsBuffer vertexBuffer
+    { get { return VertexBuffer(); } }
+    public GraphicsBuffer indexBuffer
+    { get { return IndexBuffer(); } }
+
+    public virtual GraphicsBuffer VertexBuffer()
+    {
+        return null;
+    }
+
+    public virtual GraphicsBuffer IndexBuffer()
+    {
+        return null;
+    }
+
+    public virtual T GetValue()
+    {
+        return null;
+    }
+
+    public virtual T GetOriginal()
+    {
+        return null;
+    }
+
+    public virtual bool IsNull()
+    {
+        return false;
+    }
+
+    public virtual void Dispose()
+    {
+        GC.SuppressFinalize(this);
+    }
+}
+
+public class ComputableMesh : ComputableBase<Mesh>
 {
     public Mesh original { get; private set; }
     public Mesh mesh { get; private set; }
-    public GraphicsBuffer vertexBuffer
-    {
-        get
-        {
-            vertexBuf ??= mesh.GetVertexBuffer(0);
-            return vertexBuf;
-        }
-    }
-    public GraphicsBuffer indexBuffer
-    {
-        get
-        {
-            indexBuf ??= mesh.GetIndexBuffer();
-            return indexBuf;
-        }
-    }
 
     NativeArray<VertexData> vertexData;
     NativeArray<uint>[] triangleData;
@@ -84,6 +105,18 @@ public class ComputableMesh : IDisposable
     const string clearMaskKernel = "ClearMask";
     const string fillMaskKernel = "FillMask";
     const string getSubmeshMaskKernel = "GetSubmeshMask";
+
+    public override GraphicsBuffer VertexBuffer()
+    {
+        vertexBuf ??= mesh.GetVertexBuffer(0);
+        return vertexBuf;
+    }
+
+    public override GraphicsBuffer IndexBuffer()
+    {
+        indexBuf ??= mesh.GetIndexBuffer();
+        return indexBuf;
+    }
 
     #region Initialize
     public ComputableMesh(string name, int vCount, int tCount)
@@ -1136,7 +1169,22 @@ public class ComputableMesh : IDisposable
     }
     #endregion
 
-    public void Dispose()
+    public override Mesh GetValue()
+    {
+        return mesh;
+    }
+
+    public override Mesh GetOriginal()
+    {
+        return original;
+    }
+
+    public override bool IsNull()
+    {
+        return mesh == null;
+    }
+
+    public override void Dispose()
     {
         vertexData.Dispose();
         if (!triangleData.IsNullOrEmpty())
@@ -1162,15 +1210,13 @@ public class ComputableMesh : IDisposable
     }
 }
 
-public class ComputableSprite
+public class ComputableSprite : ComputableBase<Sprite>
 {
     const string MESHSUFFIX = "_m";
 
     Sprite sprite;
     public ComputableMesh mesh;
     public Sprite original;
-    public GraphicsBuffer vertexBuffer { get { return mesh.vertexBuffer; } }
-    public GraphicsBuffer indexBuffer { get { return mesh.indexBuffer; } }
     public Bounds bounds { get { return mesh.bounds; } }
     public int indexCount { get { return (int)mesh.indexCount; } }
     public int totalIndexCount { get { return (int)mesh.totalIndexCount; } }
@@ -1216,6 +1262,16 @@ public class ComputableSprite
     public ComputableSprite(Sprite spriteToCopy, string name)
     {
         Initialize(spriteToCopy, name);
+    }
+
+    public override GraphicsBuffer VertexBuffer()
+    {
+        return mesh.vertexBuffer;
+    }
+
+    public override GraphicsBuffer IndexBuffer()
+    {
+        return mesh.indexBuffer;
     }
 
     public void Initialize(Sprite spriteToCopy, string name)
@@ -1408,7 +1464,22 @@ public class ComputableSprite
             vertexCount / Numthreads_Small), 1, 1);
     }
 
-    public void Dispose()
+    public override Sprite GetValue()
+    {
+        return GetSprite();
+    }
+
+    public override Sprite GetOriginal()
+    {
+        return original;
+    }
+
+    public override bool IsNull()
+    {
+        return sprite == null;
+    }
+
+    public override void Dispose()
     {
         mesh.Dispose();
         Object.DestroyImmediate(sprite);

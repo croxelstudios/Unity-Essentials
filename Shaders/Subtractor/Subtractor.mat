@@ -25,24 +25,10 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-  - LIGHTMAP
-  - REQUIRE_DEPTH_TEXTURE
   - _3DBOOLEANS_IGNORE
-  - _ADDITIONAL_LIGHTS
-  - _ADDITIONAL_LIGHT_SHADOWS
   - _ALPHATEST_ON
-  - _CLUSTER_LIGHT_LOOP
-  - _LIGHT_COOKIES
-  - _LIGHT_LAYERS
-  - _MAIN_LIGHT_CALCULATE_SHADOWS
-  - _MAIN_LIGHT_SHADOWS
-  - _MAIN_LIGHT_SHADOWS_CASCADE
-  - _MAIN_LIGHT_SHADOWS_CASCADES
   - _NORMALSHANDLER_MESH
-  - _SHADOWS_SOFT
-  m_InvalidKeywords:
-  - _3DBOOLEANS_DEFAULT
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -151,6 +137,9 @@ Material:
     - _Cull: 2
     - _Cutout: 0.1
     - _DepthThreshold: 0.01
+    - _Dirt: 0
+    - _DirtScale: 3
+    - _DitherStep: 0
     - _DitheredAlpha: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
@@ -184,6 +173,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RainbowEffect: 0
+    - _RealtimeLight: 1
     - _ReceiveShadows: 1
     - _RimLightAmount: 0.15
     - _Rotation: 0
@@ -192,7 +182,9 @@ Material:
     - _ScreenMapIsNormals: 0
     - _ScreenMapThreshold: 1
     - _Screen_Thickness: 0.0042
+    - _SmoothStep: 0
     - _Smoothness: 0.5
+    - _SnappingSize: 0
     - _SpecularOverAlpha: 0
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
@@ -226,6 +218,8 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
     - _CubemapColor: {r: 1, g: 1, b: 1, a: 0}
+    - _DirtColor1: {r: 0.19999996, g: 0.10980386, b: 0, a: 1}
+    - _DirtColor2: {r: 0.058823504, g: 0.058823504, b: 0.058823504, a: 1}
     - _EmissiveColor: {r: 1, g: 0, b: 0, a: 0}
     - _GeneralOffset: {r: 0, g: 0, b: 0, a: 0}
     - _GeneralTiling: {r: 1, g: 1, b: 0, a: 0}
