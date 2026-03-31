@@ -261,7 +261,7 @@ public class WeightedListDrawer<WL, T> : OdinValueDrawer<WL> where WL : Weighted
     protected override void DrawPropertyLayout(GUIContent label)
     {
         WeightedObjectDrawerHelper.WLProperty = ValueEntry.Property;
-        elementsProp.Draw();
+        elementsProp.Draw(label);
     }
 }
 
