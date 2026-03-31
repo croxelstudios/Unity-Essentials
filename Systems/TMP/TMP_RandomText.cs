@@ -6,6 +6,7 @@ public class TMP_RandomText : MonoBehaviour
 {
     TMP_Text text;
 
+    [Localizable]
     [SerializeField]
     [TextArea(0, 10)]
     string[] texts = null;
