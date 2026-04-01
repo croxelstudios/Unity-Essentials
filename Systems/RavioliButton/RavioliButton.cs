@@ -535,7 +535,7 @@ public class RavioliButton : RavioliButton_Button
     {
         selector.SetVirtualParent(null);
         MovementBehaviour SB = SBOfButton(currentButton);
-        while (!MoveSelector(currentButton.transform.position, SB, timeMode.DeltaTime(), ref tmpSpd))
+        while (!MoveSelector(currentButton.SelectorAnchorPosition(), SB, timeMode.DeltaTime(), ref tmpSpd))
             yield return timeMode.WaitFor();
         StopSelectorAtTarget();
     }
@@ -549,11 +549,11 @@ public class RavioliButton : RavioliButton_Button
         }
         if (currentButton != null)
         {
-            selector.position = currentButton.transform.position;
+            selector.position = currentButton.SelectorAnchorPosition();
             SBOfButton(currentButton).stopMoving?.Invoke();
             currentButton.TrySelect();
         }
-        selector.SetVirtualParent(currentButton.transform);
+        selector.SetVirtualParent(currentButton.SelectorAnchor());
     }
     #endregion
 
@@ -802,6 +802,10 @@ public class RavioliButton_Button : DXMonoBehaviour
     public DXEvent onDeselect = null;
     [SizedFoldoutGroup("Button options")]
     public DXEvent[] buttonActions = null;
+    [Tooltip("Default is this transform")]
+    [SizedFoldoutGroup("Button options")]
+    [SerializeField]
+    Transform selectorAnchor = null;
     [SizedFoldoutGroup("Button options")]
     public bool overrideSelectorBehaviour = false;
     [SizedFoldoutGroup("Button options")]
@@ -940,6 +944,16 @@ public class RavioliButton_Button : DXMonoBehaviour
         PressButtonWith(0);
     }
     #endregion
+
+    public Transform SelectorAnchor()
+    {
+        return (selectorAnchor != null) ? selectorAnchor : transform;
+    }
+
+    public Vector3 SelectorAnchorPosition()
+    {
+        return SelectorAnchor().position;
+    }
 
     public bool MoveToTarget(Vector3 target, MovementBehaviour CB, float deltaTime)
     {

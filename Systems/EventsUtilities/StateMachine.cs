@@ -146,9 +146,11 @@ public class StateMachine : MonoBehaviour
     [StringSelector("eventNames")]
     public void LaunchEvent(string name)
     {
-        int index = Array.IndexOf(eventNames, name);
         if (this.IsActiveAndEnabled())
+        {
+            int index = Array.IndexOf(eventNames, name);
             states[currentState].events[index]?.Invoke();
+        }
     }
 
     void ExitStateAction()
