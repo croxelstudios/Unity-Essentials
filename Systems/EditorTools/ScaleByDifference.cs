@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [ExecuteAlways]
 public class ScaleByDifference : DXMonoBehaviour
@@ -27,6 +30,15 @@ public class ScaleByDifference : DXMonoBehaviour
 #endif
             )
             CorrectScale();
+    }
+
+    public void SetDifference(float dif)
+    {
+        difference = dif;
+        CorrectScale();
+#if UNITY_EDITOR
+        PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+#endif
     }
 
     void CorrectScale()

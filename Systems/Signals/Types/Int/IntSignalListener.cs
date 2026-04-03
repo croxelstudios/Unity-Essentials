@@ -21,14 +21,11 @@ public class IntSignalListener : BBaseSignalListener<int>
         }
     }
     [SerializeField]
-    bool launchOnEnable = true;
-    [SerializeField]
     bool launchOnMultiplierChange = true;
 
-    protected override void OnEnable()
+    protected override void LaunchActions_OnEnable()
     {
-        base.OnEnable();
-        if (launchOnEnable) LaunchActions(true);
+        LaunchActions(true);
     }
 
     public override void UpdateSignals()

@@ -7,6 +7,8 @@ public class BBaseSignalListener : MonoBehaviour
     [SerializeField]
     [Tooltip("Disabling this only takes effect when the signal is dynamic")]
     protected bool checkActiveState = true;
+    [SerializeField]
+    public int priority = 0;
     public bool CheckActiveState { get { return checkActiveState; } set { checkActiveState = value; } }
 
     protected virtual void OnEnable()
@@ -34,6 +36,21 @@ public class BBaseSignalListener : MonoBehaviour
 
 public class BBaseSignalListener<T> : BBaseSignalListener
 {
+    [SerializeField]
+    bool launchOnEnable = true;
+    public bool launchOnEnable_ { get { return launchOnEnable; } set { value = launchOnEnable; } }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        if (launchOnEnable) LaunchActions_OnEnable();
+    }
+
+    protected virtual void LaunchActions_OnEnable()
+    {
+        LaunchActions();
+    }
+
     public virtual void LaunchActions()
     {
         Debug.LogError("LaunchActions not implemented for this Listener");

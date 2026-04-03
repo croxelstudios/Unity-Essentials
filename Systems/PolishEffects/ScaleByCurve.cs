@@ -66,9 +66,9 @@ public class ScaleByCurve : DXMonoBehaviour
     {
         if (currentTime > 0f)
         {
-            ScaleAtTime(currentTime);
-
             currentTime -= deltaTime;
+
+            ScaleAtTime(currentTime);
 
             if (currentTime <= 0f)
             {

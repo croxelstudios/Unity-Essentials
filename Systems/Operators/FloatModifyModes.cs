@@ -1,9 +1,13 @@
-﻿using System;
+﻿using Sirenix.OdinInspector;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class FloatModifyModes : MonoBehaviour
 {
+    [SerializeField]
+    [OnValueChanged("Apply")]
+    float currentValue = 0f;
     [SerializeField]
     int mode = 0;
     [SerializeField]
@@ -17,8 +21,6 @@ public class FloatModifyModes : MonoBehaviour
 
     enum RoundMode { Floor, Ceil, Round }
 
-    float value;
-
     public void ModifyValue(int value)
     {
         ModifyValue((float)value);
@@ -26,7 +28,7 @@ public class FloatModifyModes : MonoBehaviour
 
     public void ModifyValue(float value)
     {
-        this.value = value;
+        this.currentValue = value;
         Apply();
     }
 
@@ -45,7 +47,7 @@ public class FloatModifyModes : MonoBehaviour
 
     void Apply()
     {
-        float newValue = (value + scaleModes[mode].preAddition) * scaleModes[mode].scale;
+        float newValue = (currentValue + scaleModes[mode].preAddition) * scaleModes[mode].scale;
         if (scaleModes[mode].oneMinus) newValue = 1f - newValue;
         newValue += scaleModes[mode].postAddition;
         modifiedValue?.Invoke(newValue);

@@ -20,15 +20,7 @@ public class FloatSignalListener : BBaseSignalListener<float>
         }
     }
     [SerializeField]
-    bool launchOnEnable = true;
-    [SerializeField]
     bool launchOnMultiplierChange = true;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        if (launchOnEnable) LaunchActions();
-    }
 
     public override void UpdateSignals()
     {

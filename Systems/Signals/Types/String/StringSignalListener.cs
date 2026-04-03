@@ -7,16 +7,8 @@ public class StringSignalListener : BBaseSignalListener<string>
 {
     //[ChangeCheck("UpdateSignals")]
     public SignalAction[] signalActions;
-    [SerializeField]
-    bool launchOnEnable = true;
     //[SerializeField]
     //bool launchOnMultiplierChange = true;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        if (launchOnEnable) LaunchActions();
-    }
 
     public override void UpdateSignals()
     {

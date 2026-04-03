@@ -94,7 +94,8 @@ public class RavioliButton : RavioliButton_Button
     ProgrammedSelectButtonAction programmedSelection;
     int buttonsInitCount = -1;
     List<RavioliButton_Button> buttons;
-    static List<RavioliButton_Button> auxButtonList;
+    static Dictionary<RavioliButton, List<RavioliButton_Button>> oldButtons;
+    static List<RavioliButton_Button> auxButtonsList;
     Vector3 tmpSpd;
     RavioliButton_Button currentButton;
     RavioliButton_Button prevButton;
@@ -108,8 +109,8 @@ public class RavioliButton : RavioliButton_Button
     {
         base.OnEnable();
 
-        if (!auxButtonList.IsNullOrEmpty())
-            foreach (RavioliButton_Button button in auxButtonList)
+        if (oldButtons.NotNullContainsKey(this))
+            foreach (RavioliButton_Button button in oldButtons[this])
                 if (button.IsInGroup(this))
                     AddButton(button);
 
@@ -120,9 +121,10 @@ public class RavioliButton : RavioliButton_Button
     {
         if (!buttons.IsNullOrEmpty())
         {
-            auxButtonList = auxButtonList.ClearOrCreate();
-            auxButtonList.AddRange(buttons);
-            foreach (RavioliButton_Button button in auxButtonList)
+            if (oldButtons.NotNullContainsKey(this))
+                oldButtons[this].Clear();
+            oldButtons = oldButtons.CreateAddRange(this, buttons);
+            foreach (RavioliButton_Button button in oldButtons[this])
                 RemoveButton(button);
         }
 
@@ -409,12 +411,12 @@ public class RavioliButton : RavioliButton_Button
 
                 if (loopButtons)
                 {
-                    auxButtonList = auxButtonList.ClearOrCreate(); //Opposite buttons
-                    auxButtonList.AddRange(buttons);
+                    auxButtonsList = auxButtonsList.ClearOrCreate(); //Opposite buttons
+                    auxButtonsList.AddRange(buttons);
                     for (int i = 0; i < buttons.Count; i++)
                     {
                         if (buttons[i] == currentButton)
-                            auxButtonList.Remove(buttons[i]);
+                            auxButtonsList.Remove(buttons[i]);
                         else
                             for (int j = 0; j < buttons.Count; j++)
                             {
@@ -424,7 +426,7 @@ public class RavioliButton : RavioliButton_Button
                                 Vector3 dir = buttons[j].position - buttons[i].position;
                                 if (Vector3.Angle(-direction, dir) < directionSelectMaxAngle)
                                 {
-                                    auxButtonList.Remove(buttons[i]);
+                                    auxButtonsList.Remove(buttons[i]);
                                     break;
                                 }
                             }
@@ -432,9 +434,9 @@ public class RavioliButton : RavioliButton_Button
 
                     float ang = 180f;
                     int opId = -1;
-                    for (int i = 0; i < auxButtonList.Count; i++)
+                    for (int i = 0; i < auxButtonsList.Count; i++)
                     {
-                        Vector3 dir = auxButtonList[i].position - currentButton.position;
+                        Vector3 dir = auxButtonsList[i].position - currentButton.position;
                         float angle = Vector3.Angle(-direction, dir);
                         if (angle < ang)
                         {
@@ -442,7 +444,7 @@ public class RavioliButton : RavioliButton_Button
                             opId = i;
                         }
                     }
-                    if (opId >= 0) id = buttons.IndexOf(auxButtonList[opId]);
+                    if (opId >= 0) id = buttons.IndexOf(auxButtonsList[opId]);
                 }
             }
 
@@ -821,6 +823,7 @@ public class RavioliButton_Button : DXMonoBehaviour
     [ShowIf("overrideCarouselBehaviour")]
     public MovementBehaviour carouselBehaviourOverride = new MovementBehaviour(0f, 0.01f);
 
+    Transform parent;
     protected RavioliButton[] groups;
     bool imAddedToGroups;
     Vector3 cTmpSpd;
@@ -842,8 +845,12 @@ public class RavioliButton_Button : DXMonoBehaviour
     #region Internal functions
     protected void AddMyselfToParentGroups()
     {
+        if (transform.parent != parent)
+            groups = null;
+
         if (groups == null)
         {
+            parent = transform.parent;
             RavioliButton[] grs = FindObjectsByType<RavioliButton>(FindObjectsSortMode.None);
             List<RavioliButton> lGrs = new List<RavioliButton>();
             foreach (RavioliButton gr in grs)

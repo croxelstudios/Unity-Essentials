@@ -15,7 +15,7 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
     [SerializeField]
     string replaceText = "{0}";
     [SerializeField]
-    string mode = "F0";
+    string format = "F0";
     [SerializeField]
     int priority = 0;
 
@@ -43,8 +43,11 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
         float finalValue = (value * scale) + offset;
 
         string valueText;
-        if (mode == "Time") valueText = TimeSpan.FromSeconds(finalValue).ToString("c");
-        else valueText = finalValue.ToString(mode);
+        if (format == "Time") valueText = TimeSpan.FromSeconds(finalValue).ToString("c");
+        else if (format.Contains('D', StringComparison.CurrentCultureIgnoreCase) ||
+            format.Contains('X', StringComparison.CurrentCultureIgnoreCase))
+            valueText = ((int)finalValue).ToString(format);
+        else valueText = finalValue.ToString(format);
 
         return valueText;
     }

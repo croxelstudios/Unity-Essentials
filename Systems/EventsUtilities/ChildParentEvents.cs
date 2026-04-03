@@ -10,8 +10,8 @@ using UnityEditor;
 [ExecuteAlways]
 public class ChildParentEvents : MonoBehaviour
 {
-    public bool propagateToChildren = false;
-    public bool propagateToParents = false;
+    public bool propagateToChildren = true;
+    public bool propagateToParents = true;
     public bool ignoreFromChildren = false;
     public bool ignoreFromParents = false;
     [ShowInInspector]

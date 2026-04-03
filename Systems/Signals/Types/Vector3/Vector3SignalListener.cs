@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class Vector3SignalListener : BBaseSignalListener<Vector3>
 {
@@ -20,15 +19,7 @@ public class Vector3SignalListener : BBaseSignalListener<Vector3>
         }
     }
     [SerializeField]
-    bool launchOnEnable = true;
-    [SerializeField]
     bool launchOnMultiplierChange = true;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        if (launchOnEnable) LaunchActions();
-    }
 
     public override void UpdateSignals()
     {

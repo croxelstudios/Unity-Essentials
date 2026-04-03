@@ -9,14 +9,6 @@ public class ColorSignalListener : BBaseSignalListener<Color>
     public SignalAction[] signalActions;
     [SerializeField]
     Color multiplier = Color.white;
-    [SerializeField]
-    bool launchOnEnable = true;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        if (launchOnEnable) LaunchActions();
-    }
 
     public override void UpdateSignals()
     {

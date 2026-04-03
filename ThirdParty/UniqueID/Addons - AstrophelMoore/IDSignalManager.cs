@@ -8,17 +8,9 @@ public class IDSignalManager : BBaseSignalListener<string>
     [SerializeField]
     StringSignal signal = null;
     [SerializeField]
-    bool launchOnEnable = true;
-    [SerializeField]
     DXEvent isThisID = null;
     [SerializeField]
     DXEvent isNotThisID = null;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        if (launchOnEnable) LaunchActions();
-    }
 
     public override void UpdateSignals()
     {

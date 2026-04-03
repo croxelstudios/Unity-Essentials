@@ -6,14 +6,10 @@ public class FlagChecker : BBaseSignalListener<bool>
 {
     //[ChangeCheck("UpdateSignals")]
     public FlagAction[] flags;
-    [SerializeField]
-    bool launchOnEnable = true;
-    public bool launchOnEnable_ { get { return launchOnEnable; } set { value = launchOnEnable; } }
 
-    protected override void OnEnable()
+    protected override void LaunchActions_OnEnable()
     {
-        base.OnEnable();
-        if (launchOnEnable) CheckFlags(true);
+        CheckFlags(true);
     }
 
     public override void UpdateSignals()

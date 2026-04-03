@@ -6,6 +6,12 @@ public class UIPointerDetector : MonoBehaviour
     DXEvent pointerEnter = null;
     [SerializeField]
     DXEvent pointerExit = null;
+    [SerializeField]
+    CallMoment callMoment = CallMoment.Update;
+    [SerializeField]
+    DXVectorEvent pointerPosition = null;
+
+    enum CallMoment { Update, OnEnable, WhenCalled }
 
     bool last;
     RectTransform rectTr;
@@ -21,13 +27,16 @@ public class UIPointerDetector : MonoBehaviour
             next = parent.parent as RectTransform;
         }
         while (next != null);
+
+        if (callMoment == CallMoment.OnEnable)
+            pointerPosition?.Invoke(LerpPosition());
     }
 
     void OnDisable()
     {
         if (last)
         {
-            pointerExit.Invoke();
+            pointerExit?.Invoke();
             last = false;
         }
     }
@@ -36,13 +45,14 @@ public class UIPointerDetector : MonoBehaviour
     {
         if (!paused)
         {
-            Vector2 pos = rectTr.InverseTransformPoint(
-                parent.TransformPoint(parent.PointerPosition()));
+            Vector2 pos = PointerPosition();
+            if (callMoment == CallMoment.Update)
+                pointerPosition?.Invoke(LerpPosition(pos));
             if (rectTr.rect.Contains(pos))
             {
                 if (!last)
                 {
-                    pointerEnter.Invoke();
+                    pointerEnter?.Invoke();
                     last = true;
                 }
             }
@@ -50,11 +60,32 @@ public class UIPointerDetector : MonoBehaviour
             {
                 if (last)
                 {
-                    pointerExit.Invoke();
+                    pointerExit?.Invoke();
                     last = false;
                 }
             }
         }
+    }
+
+    public void SendPosition()
+    {
+        pointerPosition?.Invoke(LerpPosition());
+    }
+
+    Vector2 PointerPosition()
+    {
+        return rectTr.InverseTransformPoint(
+                parent.TransformPoint(parent.PointerPosition()));
+    }
+
+    Vector2 LerpPosition(Vector2 pos)
+    {
+        return (pos - rectTr.rect.center) / rectTr.rect.size;
+    }
+
+    Vector2 LerpPosition()
+    {
+        return (PointerPosition() - rectTr.rect.center) / rectTr.rect.size;
     }
 
     public void Pause()

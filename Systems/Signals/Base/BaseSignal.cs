@@ -81,7 +81,7 @@ public class BaseSignal : ScriptableObject
     /// Looks for every listener in the scene and updates the actions list
     /// </summary>
     /// <param name="type">Subtype of BaseSignalListener to account for</param>
-    protected void DynamicSearch(Type type)
+    protected void DynamicSearch(Type type, bool prioritize = true)
     {
         listeners = new List<Action>();
         BBaseSignalListener[] allListeners =
@@ -93,6 +93,7 @@ public class BaseSignal : ScriptableObject
                 if (listener.signals[i] == this)
                     listeners.Add(new Action(listener, i));
         }
+        PrioritizeListeners();
     }
 
     protected void DynamicSearch<T>() where T : BBaseSignalListener
@@ -107,11 +108,18 @@ public class BaseSignal : ScriptableObject
                 if (listener.signals[i] == this)
                     listeners.Add(new Action(listener, i));
         }
+        PrioritizeListeners();
+    }
+
+    protected void PrioritizeListeners()
+    {
+        listeners = listeners.OrderBy(x => -x.receiver.priority).ToList();
     }
 
     public void AddAction(BBaseSignalListener listener, int index)
     {
         listeners = listeners.CreateAdd(new Action(listener, index));
+        PrioritizeListeners();
     }
 
     public void RemoveAction(BBaseSignalListener receiver, int index)
@@ -120,6 +128,7 @@ public class BaseSignal : ScriptableObject
         {
             Action toRemove = new Action(receiver, index);
             listeners.Remove(toRemove);
+            PrioritizeListeners();
         }
     }
 
@@ -252,10 +261,11 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
             if (listeners != null)
             {
                 T finalValue = Calculate();
-                for (int i = (listeners.Count - 1); i >= 0; i--)
+                for (int i = listeners.Count - 1; i >= 0; i--)
                 {
                     if ((tag == "") || (tag == listeners[i].receiver.tag))
-                        LaunchActions(((BBaseSignalListener<T>)listeners[i].receiver), listeners[i].index, finalValue);
+                        LaunchActions(((BBaseSignalListener<T>)listeners[i].receiver),
+                            listeners[i].index, finalValue);
                 }
             }
             if (dynamicSearch) listeners = null;

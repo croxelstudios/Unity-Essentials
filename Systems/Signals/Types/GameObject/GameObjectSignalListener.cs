@@ -7,14 +7,6 @@ public class GameObjectSignalListener : BBaseSignalListener<GameObject>
 {
     //[ChangeCheck("UpdateSignals")]
     public SignalAction[] signalActions;
-    [SerializeField]
-    bool launchOnEnable = true;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        if (launchOnEnable) LaunchActions();
-    }
 
     public override void UpdateSignals()
     {
