@@ -19,14 +19,16 @@ public static class CameraExtension_IsObjectInFrustrum
 
         Camera.GetAllCameras(cameras);
 
-        foreach (Camera cam in cameras)
-            if (cam.enabled &&
-                ((LayerMask)cam.cullingMask).ContainsLayer(renderer.gameObject.layer) &&
-                cam.IsObjectInFrustrum(renderer)) return true;
+        if (!cameras.IsNullOrEmpty())
+            foreach (Camera cam in cameras)
+                if ((cam != null) && cam.enabled &&
+                    ((LayerMask)cam.cullingMask).ContainsLayer(renderer.gameObject.layer) &&
+                    cam.IsObjectInFrustrum(renderer)) return true;
 
 #if UNITY_EDITOR
-        foreach (SceneView view in SceneView.sceneViews)
-            if (view.camera.IsObjectInFrustrum(renderer)) return true;
+        if (SceneView.sceneViews != null)
+            foreach (SceneView view in SceneView.sceneViews)
+                if (view.camera.IsObjectInFrustrum(renderer)) return true;
 #endif
 
         return false;
@@ -42,7 +44,7 @@ public static class CameraExtension_IsObjectInFrustrum
         foreach (Camera cam in cams) if (cam.IsObjectInFrustrum(renderer)) return true;
         return false;
     }
-    
+
     public static bool IsObjectInFrustrum(this Camera cam, Bounds bounds)
     {
         return GeometryUtility.TestPlanesAABB(GetFrustrumPlanes(cam), bounds);

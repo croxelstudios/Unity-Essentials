@@ -4,25 +4,30 @@ using static SpeedBehaviour;
 
 public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
 {
+    [PropertyOrder(-3)]
     [SerializeField]
     bool leftOrWidth = true;
+    [PropertyOrder(-3)]
     [SerializeField]
     bool topOrHeight = true;
+    [PropertyOrder(-3)]
     [SerializeField]
     bool right = true;
+    [PropertyOrder(-3)]
     [SerializeField]
     bool bottom = true;
-    [SerializeField]
+
     [ShowIf("leftOrWidth")]
+    [SerializeField]
     DXFloatEvent leftOrWidthValue = null;
-    [SerializeField]
     [ShowIf("topOrHeight")]
+    [SerializeField]
     DXFloatEvent topOrHeightValue = null;
-    [SerializeField]
     [ShowIf("right")]
-    DXFloatEvent rightValue = null;
     [SerializeField]
+    DXFloatEvent rightValue = null;
     [ShowIf("bottom")]
+    [SerializeField]
     DXFloatEvent bottomValue = null;
     [SerializeField]
     DXFloatEvent speedPercent = null;

@@ -25,7 +25,13 @@ public class TMP_BTextPreprocessor : MonoBehaviour, ITextPreprocessor
     protected void Disable()
     {
         if (text != null)
+        {
             processors.SmartRemove(text, this);
+            if (!processors[text].IsNullOrEmpty())
+                text.textPreprocessor = processors[text][0];
+            else text.textPreprocessor = null;
+            text.ForceMeshUpdate(true, true);
+        }
     }
 
     protected virtual void OnEnable()
@@ -60,5 +66,11 @@ public class TMP_BTextPreprocessor : MonoBehaviour, ITextPreprocessor
         if (processors.NotNullContainsKey(text))
             return processors[text].Where(p => p.GetType() == type).Count();
         return 0;
+    }
+
+    public void UpdateText()
+    {
+        if (text != null)
+            text.ForceMeshUpdate(true, true);
     }
 }

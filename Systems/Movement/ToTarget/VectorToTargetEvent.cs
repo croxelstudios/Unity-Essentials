@@ -5,28 +5,33 @@ using static SpeedBehaviour;
 
 public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, INavMeshAgentTypeContainer
 {
+    [PropertyOrder(-5)]
+    [SerializeField]
+    bool reorientTransform = false;
+    [PropertyOrder(-3)]
     [SerializeField]
     Vector3 vectorMultiplier = Vector3.one;
-    [SerializeField]
+    [PropertyOrder(-3)]
     [Tooltip("Use NavMesh system to calculate the direction")]
-    bool useNavMesh = false;
     [SerializeField]
+    bool useNavMesh = false;
+    [PropertyOrder(-3)]
     [ShowIf("useNavMesh")]
     [Indent]
     [Tooltip("NavMesh agent type to consider")]
+    [SerializeField]
     [NavMeshAgentTypeSelector]
     int navMeshAgentType = 0;
-    [SerializeField]
+    [PropertyOrder(-3)]
     [ShowIf("useNavMesh")]
     [Indent]
     [Tooltip("NavMesh area to use")]
+    [SerializeField]
     NavMeshAreas navMeshAreaMask = NavMeshAreas.Walkable;
     //[SerializeField]
     //[Tooltip("If this is set to true this code will keep the object in a straight path to the target instead of overshooting")]
     //[ShowIf("@useNavMesh && (speedBehaviour.speedMode == SpeedMode.Accelerated || speedMode == SpeedMode.SmoothDamp)")]
     //bool keepInStraightPath = false;
-    [SerializeField]
-    bool reorientTransform = false;
     #region Events
     [SerializeField]
     [Tooltip("Resulting movement vector in units per second")]

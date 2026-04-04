@@ -52,6 +52,7 @@ public class GamepadSwitch : MonoBehaviour
         {
             if ((slotData != null) && (inputData != null))
             {
+                controllersData.UpdateData();
                 UpdateController();
                 slotData.gamepadSwitch.AddListener(UpdateController);
             }

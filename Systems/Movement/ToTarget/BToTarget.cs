@@ -6,65 +6,88 @@ using static SpeedBehaviour;
 //TO DO: General Path class that implements ITransformationSequence and generalized common methods
 public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSequence, new()
 {
+    [PropertyOrder(-5)]
+    [Tooltip("Wether this code should apply transformations to the 'origin' or if " +
+        "it should just send the events elsewhere")]
     [SerializeField]
-    [Tooltip("Wether this code should apply transformations to the 'origin' or it should just send the events elsewhere")]
     protected bool applyInTransform = false;
 
-    [Header("Target")]
     #region Target
-    [SerializeField]
+    [Header("Target")]
     [HideLabel]
     [InlineProperty]
+    [PropertyOrder(-4)]
+    [SerializeField]
     protected OriginTarget originTarget = new OriginTarget("Player");
     public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
     public Transform origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
-    [Space]
-    [SerializeField]
-    [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
-    protected bool projectOnPlane = false;
-    [SerializeField]
-    [ShowIf("projectOnPlane")]
-    [Tooltip("Wether or not the projection plane should be calculated in origin's local space")]
-    protected bool projectLocally = false;
-    [SerializeField]
-    [ShowIf("projectOnPlane")]
-    [Tooltip("Projection plane normal")]
-    protected Vector3 planeNormal = Vector3.back;
     #endregion
 
-    [Header("Speed behaviour")]
+    #region Transformation
+    [Header("Transformation")]
+    [PropertyOrder(-3)]
+    [Tooltip("Wether or not the resulting action should be projected onto a 2D plane")]
     [SerializeField]
-    [InlineProperty]
+    protected bool projectOnPlane = false;
+    [PropertyOrder(-3)]
+    [ShowIf("projectOnPlane")]
+    [Tooltip("Wether or not the projection plane should be calculated in origin's local space")]
+    [SerializeField]
+    protected bool projectLocally = false;
+    [PropertyOrder(-3)]
+    [ShowIf("projectOnPlane")]
+    [Tooltip("Projection plane normal")]
+    [SerializeField]
+    protected Vector3 planeNormal = Vector3.back;
+    [PropertyOrder(-3)]
+    [SerializeField]
+    bool local = false;
+    public bool locally { get { return local; } }
+    #endregion
+
+    #region Speed
+    [Header("Speed behaviour")]
     [HideLabel]
+    [InlineProperty]
+    [PropertyOrder(-2)]
+    [SerializeField]
     protected SpeedBehaviour speedBehaviour = new SpeedBehaviour(SpeedMode.Linear);
     public bool doAccelerate
     {
         get { return speedBehaviour.doAccelerate; }
         set { speedBehaviour.doAccelerate = value; }
     }
-
-    [SerializeField]
-    bool local = false;
-    public bool locally { get { return local; } }
-    [SerializeField]
-    protected bool sendWhenZeroToo = false;
+    [PropertyOrder(-2)]
     [SerializeField]
     protected TargetMode targetMode = TargetMode.ToExactPoint;
-    [SerializeField]
+    [PropertyOrder(-2)]
     [ShowIf("@((int)targetMode) == (int)TargetMode.StopAtMargin")]
     [Tooltip("Minimum distance to the target before the result becomes zero.")]
+    [SerializeField]
     [Min(0.0000001f)]
     protected float margin = 0.01f;
-    [SerializeField]
+    [PropertyOrder(-2)]
     [Tooltip("When is this code executed")]
+    [SerializeField]
     protected TimeModeOrOnEnable timeMode = TimeModeOrOnEnable.Update;
-    [Indent]
+    [PropertyOrder(-2)]
     [HideIf("@(timeMode == TimeModeOrOnEnable.FixedUpdate) ||" +
         "(timeMode == TimeModeOrOnEnable.OnEnable)")]
+    [Indent]
     [SerializeField]
     bool afterAnimations = false;
+    #endregion
+
+    #region Event info
+    [Space]
+    [PropertyOrder(-1)]
+    [SerializeField]
+    protected bool sendWhenZeroToo = false;
+    [PropertyOrder(-1)]
     [SerializeField]
     protected bool sendFrameMovement = false;
+    #endregion
+
     #region Events
     [SerializeField]
     [PropertyOrder(10)]

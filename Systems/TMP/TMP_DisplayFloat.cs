@@ -66,6 +66,7 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
     void SetValue(float value)
     {
         _value = value;
+        UpdateText();
     }
 
     void Reset()
