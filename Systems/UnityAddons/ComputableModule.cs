@@ -61,6 +61,12 @@ public static class ComputableModule
     public static ComputableMesh[] Get(Component comp, GameObject gameObject,
         bool reinitialize, string nameSufix = SUFFIX)
     {
+        return Get(comp, null, gameObject, reinitialize, nameSufix);
+    }
+
+    public static ComputableMesh[] Get(Component comp, string reusableKey, GameObject gameObject,
+        bool reinitialize, string nameSufix = SUFFIX)
+    {
         if (comp == null)
             return null;
 
@@ -72,9 +78,9 @@ public static class ComputableModule
         switch (filter.renType)
         {
             case RenType.Filter:
-                return new ComputableMesh[] { Get(filter.filter, comp) };
+                return new ComputableMesh[] { Get(filter.filter, reusableKey, comp) };
             case RenType.Sprite:
-                return new ComputableMesh[] { Get(filter.renderer as SpriteRenderer, comp).mesh };
+                return new ComputableMesh[] { Get(filter.renderer as SpriteRenderer, reusableKey, comp).mesh };
             case RenType.Custom:
                 return filter.customRenderer.enabled ?
                     filter.customRenderer.GetComputables(comp) : new ComputableMesh[0];
@@ -87,7 +93,7 @@ public static class ComputableModule
     {
         StopUsing(comp, comp.gameObject);
     }
-    
+
     public static void StopUsing(Component comp, GameObject gameObject)
     {
         ComputableElement filter = ComputableElement.Get(gameObject);
@@ -247,6 +253,12 @@ public static class ComputableModule
         }
     }
 
+    public static bool IsVisible(GameObject obj, float maxFar)
+    {
+        ComputableElement filter = ComputableElement.Get(obj);
+        return filter.IsVisible(maxFar);
+    }
+
     public static bool IsVisible(GameObject obj, bool excludeShadowCasters = false)
     {
         ComputableElement filter = ComputableElement.Get(obj);
@@ -275,7 +287,17 @@ public static class ComputableModule
         return Get(filter, comp, false, nameSuffix);
     }
 
+    static ComputableMesh Get(MeshFilter filter, string reusableKey, Component comp, string nameSuffix = SUFFIX)
+    {
+        return Get(filter, reusableKey, comp, false, nameSuffix);
+    }
+
     static ComputableMesh Get(MeshFilter filter, Component comp, bool reinitialize, string nameSuffix = SUFFIX)
+    {
+        return Get(filter, null, comp, reinitialize, nameSuffix);
+    }
+
+    static ComputableMesh Get(MeshFilter filter, string reusableKey, Component comp, bool reinitialize, string nameSuffix = SUFFIX)
     {
         if (!initialized)
         {
@@ -310,7 +332,7 @@ public static class ComputableModule
             if (filter.sharedMesh != null)
             {
                 return filtersProcessor.Create(filter, comp,
-                    filter.sharedMesh, filter.name + nameSuffix);
+                    filter.sharedMesh, filter.name + nameSuffix, reusableKey);
             }
             else return null;
         }
@@ -321,7 +343,17 @@ public static class ComputableModule
         return Get(sprRenderer, comp, false, nameSuffix);
     }
 
+    static ComputableSprite Get(SpriteRenderer sprRenderer, string reusableKey, Component comp, string nameSuffix = SUFFIX)
+    {
+        return Get(sprRenderer, reusableKey, comp, false, nameSuffix);
+    }
+
     static ComputableSprite Get(SpriteRenderer sprRenderer, Component comp, bool reinitialize, string nameSuffix = SUFFIX)
+    {
+        return Get(sprRenderer, null, comp, reinitialize, nameSuffix);
+    }
+
+    static ComputableSprite Get(SpriteRenderer sprRenderer, string reusableKey, Component comp, bool reinitialize, string nameSuffix = SUFFIX)
     {
         if (!initialized)
         {
@@ -356,7 +388,7 @@ public static class ComputableModule
             if (sprRenderer.sprite != null)
             {
                 return spritesProcessor.Create(sprRenderer, comp,
-                    sprRenderer.sprite, sprRenderer.name + nameSuffix);
+                    sprRenderer.sprite, sprRenderer.name + nameSuffix, reusableKey);
             }
             else return null;
         }
@@ -414,11 +446,30 @@ public static class ComputableModule
         public int count { get { return (elements != null) ? elements.Count : 0; } }
         bool wasCleaned;
 
+        //Reusables
+        Dictionary<Holder, ValueKey> keys;
+        Dictionary<ValueKey, Computable> reusable;
+        Dictionary<ValueKey, int> uses;
+
         static List<Holder> auxElementList;
 
-        public Computable Create(Holder element, Component comp, Value value, string name)
+        public Computable Create(Holder element, Component comp, Value value, string name, string reusableKey = null)
         {
-            Computable computable = New(value, name);
+            Computable computable = null;
+            if (!reusableKey.IsNullOrEmpty())
+            {
+                ValueKey key = new ValueKey(value, reusableKey);
+                if (!reusable.SmartGetValue(key, out computable))
+                {
+                    computable = New(value, name);
+                    keys = keys.CreateIfNull();
+                    reusable = reusable.CreateAdd(key, computable);
+                    uses = uses.CreateAdd(key, 1);
+                }
+                else uses[key]++;
+                keys.Set(element, key);
+            }
+            else computable = New(value, name);
             Create(element, comp, computable);
             return computable;
         }
@@ -473,6 +524,16 @@ public static class ComputableModule
                 usedBy.SmartRemove(element);
                 elements.SmartRemove(element);
                 last.SmartRemove(element);
+                if (keys.SmartGetValue(element, out ValueKey key))
+                {
+                    uses[key]--;
+                    if (uses[key] <= 0)
+                    {
+                        reusable.Remove(key);
+                        uses.Remove(key);
+                    }
+                    keys.Remove(element);
+                }
             }
         }
 
@@ -589,6 +650,45 @@ public static class ComputableModule
             if (this.visible.NotNullContainsKey(element))
                 this.visible[element] = visible;
         }
+
+        struct ValueKey : IEquatable<ValueKey>
+        {
+            public Value reference;
+            public string key;
+
+            public ValueKey(Value reference, string key)
+            {
+                this.reference = reference;
+                this.key = key;
+            }
+
+            public override bool Equals(object other)
+            {
+                if (!(other is ValueKey)) return false;
+                return Equals((ValueKey)other);
+            }
+
+            public bool Equals(ValueKey other)
+            {
+                return (reference == other.reference)
+                    && (key == other.key);
+            }
+
+            public override int GetHashCode()
+            {
+                return ((reference == null) ? 0 : reference.GetHashCode()) * 31 + key.GetHashCode();
+            }
+
+            public static bool operator ==(ValueKey o1, ValueKey o2)
+            {
+                return o1.Equals(o2);
+            }
+
+            public static bool operator !=(ValueKey o1, ValueKey o2)
+            {
+                return !o1.Equals(o2);
+            }
+        }
     }
 
     class MeshFilterCollection : ReplaceElementCollection<MeshFilter, Mesh, ComputableMesh>
@@ -669,6 +769,17 @@ public static class ComputableModule
         {
             return (renType != RenType.Custom) ? transform.worldToLocalMatrix :
                 customRenderer.WorldToLocalMatrix(id);
+        }
+
+        public bool IsVisible(float maxFar)
+        {
+            switch (renType)
+            {
+                case RenType.Custom:
+                    return customRenderer.IsVisible(maxFar); //TO DO
+                default:
+                    return renderer.IsVisibleBySceneCameras(maxFar);
+            }
         }
 
         public bool IsVisible(bool excludeShadowCasters = false)
