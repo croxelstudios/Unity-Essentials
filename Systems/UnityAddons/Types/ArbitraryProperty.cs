@@ -334,31 +334,31 @@ public class ArbitraryProperty
             switch (type)
             {
                 case PropertyType.Float:
-                    fBlender = fBlender.CreateRegister(this, matProp, floatValue, blendMode);
+                    fBlender = fBlender.Set(this, matProp, floatValue, blendMode);
                     if (blendWithOriginal)
                         ofBlender =
-                            ofBlender.CreateRegister(this, matProp, SavedFloat(matProp), blendMode);
+                            ofBlender.Set(this, matProp, SavedFloat(matProp), blendMode);
                     material.SetFloat(propertyName, fBlender.GetBlend());
                     break;
                 case PropertyType.Int:
-                    iBlender = iBlender.CreateRegister(this, matProp, intValue, blendMode);
+                    iBlender = iBlender.Set(this, matProp, intValue, blendMode);
                     if (blendWithOriginal)
                         oiBlender =
-                            oiBlender.CreateRegister(this, matProp, SavedInt(matProp), blendMode);
+                            oiBlender.Set(this, matProp, SavedInt(matProp), blendMode);
                     material.SetInt(propertyName, iBlender.GetBlend());
                     break;
                 case PropertyType.Color:
-                    cBlender = cBlender.CreateRegister(this, matProp, colorValue, blendMode);
+                    cBlender = cBlender.Set(this, matProp, colorValue, blendMode);
                     if (blendWithOriginal)
                         ocBlender =
-                            ocBlender.CreateRegister(this, matProp, SavedColor(matProp), blendMode);
+                            ocBlender.Set(this, matProp, SavedColor(matProp), blendMode);
                     material.SetColor(propertyName, cBlender.GetBlend());
                     break;
                 case PropertyType.Vector:
-                    vBlender = vBlender.CreateRegister(this, matProp, vectorValue, blendMode);
+                    vBlender = vBlender.Set(this, matProp, vectorValue, blendMode);
                     if (blendWithOriginal)
                         ovBlender =
-                            ovBlender.CreateRegister(this, matProp, SavedVector(matProp), blendMode);
+                            ovBlender.Set(this, matProp, SavedVector(matProp), blendMode);
                     material.SetVector(propertyName, vBlender.GetBlend());
                     break;
                 case PropertyType.Texture:

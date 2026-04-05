@@ -4,6 +4,11 @@ using System.Collections.Generic;
 
 public class ValueBlender<T>
 {
+    public virtual int Count()
+    {
+        return 0;
+    }
+
     public virtual T GetBlend()
     {
         return default;
@@ -43,6 +48,13 @@ public class ValueBlender<C, K, T> : ValueBlender<T> where K : IEquatable<K>
     public override void Dispose()
     {
         stackDictionary.SmartRemoveClear(key, this);
+    }
+
+    public override int Count()
+    {
+        if (stackDictionary.TryGetValue(key, out List<ValueBlender<C, K, T>> list))
+            return list.Count;
+        else return 0;
     }
 
     public override T GetBlend()
@@ -174,12 +186,12 @@ public class ValueBlender_Color<C, K> : ValueBlender<C, K, Color> where K : IEqu
 
 public static class ValueBlender_Extension
 {
-    public static ValueBlender<T> CreateRegister<C, K, T>(this ValueBlender<T> blender,
+    public static ValueBlender<T> Set<C, K, T>(this ValueBlender<T> blender,
         C source, K key, T value, BlendMode blendMode) where K : IEquatable<K>
     {
         if (value is Color color)
             return (ValueBlender<T>)(object)(blender as ValueBlender<Color>).
-                CreateRegister(source, key, color, blendMode);
+                Set(source, key, color, blendMode);
 
         ValueBlender<C, K, T> bl;
         if (blender == null)
@@ -189,7 +201,7 @@ public static class ValueBlender_Extension
         return blender;
     }
 
-    static ValueBlender<Color> CreateRegister<C, K>(this ValueBlender<Color> blender,
+    static ValueBlender<Color> Set<C, K>(this ValueBlender<Color> blender,
         C source, K key, Color value, BlendMode blendMode) where K : IEquatable<K>
     {
         ValueBlender_Color<C, K> bl;

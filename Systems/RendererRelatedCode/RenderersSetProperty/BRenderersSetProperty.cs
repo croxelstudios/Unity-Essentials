@@ -373,11 +373,13 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
     {
         if (blender != null)
             foreach (RendMat renMat in blender.Keys)
-                blender[renMat].Dispose();
+                if (blender[renMat] != null)
+                    blender[renMat].Dispose();
 
         if (originalBlender != null)
             foreach (RendMat renMat in originalBlender.Keys)
-                originalBlender[renMat].Dispose();
+                if (originalBlender[renMat] != null)
+                    originalBlender[renMat].Dispose();
 
         base.UpdateBehaviour();
         oldBlendMode = blendMode;
@@ -410,13 +412,26 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
     void SetUpValueBlender(RendMatProp rendMat)
     {
         blender = blender.CreateAdd((RendMat)rendMat, (ValueBlender<T>)null);
-        blender[rendMat] = blender[rendMat].CreateRegister(this, rendMat, tValue, blendMode);
+        blender[rendMat] = blender[rendMat].Set(this, rendMat, PreprocessValue(rendMat, tValue), blendMode);
         if (blendWithOriginal)
         {
             originalBlender = originalBlender.CreateAdd((RendMat)rendMat, (ValueBlender<T>)null);
             originalBlender[rendMat] =
-                originalBlender[rendMat].CreateRegister(this, rendMat, GetProperty(rendMat), blendMode);
+                originalBlender[rendMat].Set(this, rendMat, GetProperty(rendMat), blendMode);
         }
+    }
+
+    protected int Count(RendMatProp rendMat)
+    {
+        if (blender.TryGetValue(rendMat, out ValueBlender<T> bl))
+            if (bl != null)
+                return bl.Count();
+        return 0;
+    }
+
+    protected virtual T PreprocessValue(RendMatProp rendMat, T value)
+    {
+        return value;
     }
 
     protected virtual void BlockSet(MaterialPropertyBlock block, T value, string propertyName)
