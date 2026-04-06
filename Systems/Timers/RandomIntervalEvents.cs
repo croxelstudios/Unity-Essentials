@@ -6,7 +6,7 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
     [SerializeField]
     Randomizable timeBetweenIntervals = new Randomizable("Time Between Intervals", 0.02f, 0.3f, 1f);
     [SerializeField]
-    Randomizable intervalsDuration = new Randomizable("intervalsDuration", 0.02f, 0.02f, 0.1f);
+    Randomizable intervalsDuration = new Randomizable("Intervals Duration", 0.02f, 0.02f, 0.1f);
     [SerializeField]
     float _speed = 1f;
     public float speed
