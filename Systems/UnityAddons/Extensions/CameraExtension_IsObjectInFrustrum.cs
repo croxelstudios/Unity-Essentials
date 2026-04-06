@@ -50,10 +50,10 @@ public static class CameraExtension_IsObjectInFrustrum
         Plane[] planes = cam.GetFrustrumPlanes();
         if (maxFar > 0)
         {
-            float dif = Mathf.Abs(planes[5].distance - planes[4].distance);
+            float dif = cam.farClipPlane;
             if (dif > maxFar)
-                planes[5].Translate(planes[5].normal * (dif - maxFar));
-        } //TO DO: Why does it not work?
+                planes[5].Translate(-planes[5].normal * (dif - maxFar));
+        }
         return GeometryUtility.TestPlanesAABB(planes, bounds);
     }
 
