@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
-using System.Linq;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [DefaultExecutionOrder(-1000)]

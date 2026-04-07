@@ -6,6 +6,8 @@ using UnityEditor;
 
 public interface IEventActionAttribute
 {
+#if UNITY_EDITOR
     public bool InterpretInEventsDrawer(Rect argRect,
         SerializedProperty argument, SerializedProperty listenerTarget);
+#endif
 }

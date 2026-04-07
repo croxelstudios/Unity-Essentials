@@ -42,6 +42,7 @@ public class CompletionCalculator : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         completion = Calculate();
+        current?.Invoke(completion);
         if (checkCompletionOnEnable)
             CheckCompletion();
         if (checkDepletionOnEnable)
@@ -61,6 +62,7 @@ public class CompletionCalculator : MonoBehaviour
     {
         float last = completion;
         completion = Calculate();
+        current?.Invoke(completion);
         if (last < 1f)
             CheckCompletion();
         if (last > 0f)

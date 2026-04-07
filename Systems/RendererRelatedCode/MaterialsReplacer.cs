@@ -25,10 +25,12 @@ public class MaterialsReplacer : MonoBehaviour
 
     Renderer[] instanced;
     MeshFilter[] instancedFilters;
-    bool updateInstances = false;
-    bool additionWasTracked = false;
     List<RendererData> tmpList;
     bool preLoaded;
+#if UNITY_EDITOR
+    bool updateInstances = false;
+    bool additionWasTracked = false;
+#endif
 
     void UpdateMaterials()
     {
@@ -39,7 +41,9 @@ public class MaterialsReplacer : MonoBehaviour
 
     public void UpdateRenderers()
     {
+#if UNITY_EDITOR
         RemoveInstances();
+#endif
         Transform parent = transform;
         for (int i = 0; i < parentSearch; i++)
             parent = parent.parent;

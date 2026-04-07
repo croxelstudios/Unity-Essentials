@@ -11,7 +11,6 @@ using UnityEditor;
 [AttributeUsage(AttributeTargets.Method)]
 public class EnumSelectorAttribute : PropertyAttribute, IEventActionAttribute
 {
-#if UNITY_EDITOR
     public Type enumType;
 
     public EnumSelectorAttribute(Type enumType)
@@ -19,6 +18,7 @@ public class EnumSelectorAttribute : PropertyAttribute, IEventActionAttribute
         this.enumType = enumType;
     }
 
+#if UNITY_EDITOR
     public bool InterpretInEventsDrawer(Rect argRect,
         SerializedProperty argument, SerializedProperty listenerTarget)
     {

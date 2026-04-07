@@ -14,6 +14,7 @@ public class BasePropertyRefAttribute : PropertyAttribute
         this.propPath = propPath;
     }
 
+#if UNITY_EDITOR
     public object GetSubObject(Object targetObj, SerializedProperty property)
     {
         string[] pathSegments = property.propertyPath.Split(".");
@@ -30,6 +31,12 @@ public class BasePropertyRefAttribute : PropertyAttribute
         return (path != "") ? ReflectionTools.GetFieldValue(targetObj, path, false) : targetObj;
     }
 
+    public T GetValue<T>(Object targetObj, SerializedProperty property) where T : class
+    {
+        return GetValue<T>(GetSubObject(targetObj, property));
+    }
+#endif
+
     public T GetValue<T>(object targetObj) where T : class
     {
         if (!propPath.IsNullOrEmpty())
@@ -39,10 +46,5 @@ public class BasePropertyRefAttribute : PropertyAttribute
             return result;
         }
         else return null;
-    }
-
-    public T GetValue<T>(Object targetObj, SerializedProperty property) where T : class
-    {
-        return GetValue<T>(GetSubObject(targetObj, property));
     }
 }

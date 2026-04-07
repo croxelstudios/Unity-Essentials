@@ -7,7 +7,7 @@ using UnityEngine;
 public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
 {
     [SerializeField]
-    float startValue = 0f;
+    float _value = 0f;
     [SerializeField]
     float scale = 1f;
     [SerializeField]
@@ -16,10 +16,7 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
     string replaceText = "{0}";
     [SerializeField]
     string format = "F0";
-    [SerializeField]
-    int priority = 0;
 
-    float _value;
     public float value
     {
         get { return _value; }
@@ -55,7 +52,7 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
     void OnValidate()
     {
         if (replaceText == "") Reset();
-        SetValue(startValue);
+        SetValue(value);
     }
 
     public void Add(float amount)
