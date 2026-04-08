@@ -14,6 +14,11 @@ public class IDRegisterManager : MonoBehaviour
     [SerializeField]
     DXEvent idExitsRegister = null;
 
+    public StringList IdList
+    {
+        get => idList;
+        set { idList = value; CheckIDs(); }
+    }
     IUniqueId idHolder;
 
     void Awake()
