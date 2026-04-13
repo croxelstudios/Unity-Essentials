@@ -73,6 +73,8 @@ public class BCollisionManager : BColliderInteractor
         }
     }
 
+    //TO DO: Something here is making the collison trigger even when impact is greater than maxImpact.
+    //Probably CollisionStay is being called after the impact force has been reduced.
     public void CollisionStay(NDCollision collision)
     {
         if (IsThisEnabled() && (minImpact > Mathf.Epsilon) &&
