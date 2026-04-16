@@ -47,25 +47,30 @@ public class DiscreteRenderer : DXMonoBehaviour
             {
                 Renderer[] rends = GetComponentsInChildren<Renderer>(true);
                 Graphic[] grs = GetComponentsInChildren<Graphic>(true);
-                childRenderers = new DiscreteRenderer[rends.Length + grs.Length];
-                for (int i = 0; i < rends.Length; i++)
+                int rLength = rends.Length;
+                int gLength = grs.Length;
+                childRenderers = new DiscreteRenderer[rLength + gLength];
+                for (int i = 0; i < rLength; i++)
                 {
                     childRenderers[i] = rends[i].GetComponent<DiscreteRenderer>();
                     if (childRenderers[i] == null)
                     {
-                        childRenderers[i] = rends[i].gameObject.AddComponent<DiscreteRenderer>();
-                        childRenderers[i].Settings(movement, rotation, scale);
-                        childRenderers[i].lookForChilds = false;
+                        DiscreteRenderer r = childRenderers[i] =
+                            rends[i].gameObject.AddComponent<DiscreteRenderer>();
+                        r.Settings(movement, rotation, scale);
+                        r.lookForChilds = false;
                     }
                 }
-                for (int i = 0; i < grs.Length; i++)
+                for (int i = 0; i < gLength; i++)
                 {
-                    childRenderers[i] = grs[i].GetComponent<DiscreteRenderer>();
-                    if (childRenderers[i] == null)
+                    int gi = rLength + i;
+                    childRenderers[gi] = grs[i].GetComponent<DiscreteRenderer>();
+                    if (childRenderers[gi] == null)
                     {
-                        childRenderers[grs.Length + i] = grs[i].gameObject.AddComponent<DiscreteRenderer>();
-                        childRenderers[grs.Length + i].Settings(movement, rotation, scale);
-                        childRenderers[grs.Length + i].lookForChilds = false;
+                        DiscreteRenderer r = childRenderers[gi] =
+                            grs[i].gameObject.AddComponent<DiscreteRenderer>();
+                        r.Settings(movement, rotation, scale);
+                        r.lookForChilds = false;
                     }
                 }
                 childRenderersFilled = true;

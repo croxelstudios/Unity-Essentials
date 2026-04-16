@@ -131,13 +131,11 @@ public class MaterialPerCameraTweaker : MonoBehaviour
                     break;
                 case Feature.RenderQueue:
                     if (oldQueues.NotNullContainsKey(mat))
-                    {
                         mat.renderQueue = oldQueues[mat];
-                        oldQueues.Clear();
-                    }
                     break;
             }
         }
+        oldQueues.Clear();
     }
 
     public void Set(bool affectsChildren, int materialIndex, bool updateRenderers)

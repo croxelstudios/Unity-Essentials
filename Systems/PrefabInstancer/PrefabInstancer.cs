@@ -42,6 +42,7 @@ public class PrefabInstancer : DXMonoBehaviour
     bool wPrefabsFilled = false;
     Vector3 prevPos;
     Vector3 momentum;
+    Coroutine co;
 
     protected virtual void OnEnable()
     {
@@ -51,6 +52,7 @@ public class PrefabInstancer : DXMonoBehaviour
     protected virtual void OnDisable()
     {
         StopAllCoroutines();
+        co = null;
     }
 
     void Update()
@@ -62,20 +64,31 @@ public class PrefabInstancer : DXMonoBehaviour
     void FixedUpdate()
     {
         if (momentumTimeMode.IsFixed())
+        {
             OnUpdate(momentumTimeMode.DeltaTime());
+            if (co == null)
+                co = StartCoroutine(LateFixedUpdate());
+        }
+        else if (co != null)
+        {
+            StopCoroutine(co);
+            co = null;
+        }
     }
 
     void LateUpdate()
     {
         if (momentumTimeMode.IsSmooth())
             OnLateUpdate(momentumTimeMode.DeltaTime());
-        else StartCoroutine(LateFixedUpdate());
     }
 
     IEnumerator LateFixedUpdate()
     {
-        yield return new WaitForFixedUpdate();
-        OnLateUpdate(momentumTimeMode.DeltaTime());
+        while (true)
+        {
+            yield return new WaitForFixedUpdate();
+            OnLateUpdate(momentumTimeMode.DeltaTime());
+        }
     }
 
     protected virtual void OnUpdate(float deltaTime)
@@ -105,6 +118,7 @@ public class PrefabInstancer : DXMonoBehaviour
             if (i < prefabs.Length) wPrefabs[i] = new WeightedPrefab(prefabs[i], 1f);
             else wPrefabs[i] = weightedPrefabs[i - prefabs.Length];
         }
+        wPrefabsFilled = true;
     }
 
     #region Public functions
