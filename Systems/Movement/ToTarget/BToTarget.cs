@@ -83,6 +83,7 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
     [PropertyOrder(-1)]
     [SerializeField]
     protected bool sendWhenZeroToo = false;
+    [LabelText("Per Frame Value")]
     [PropertyOrder(-1)]
     [SerializeField]
     protected bool sendFrameMovement = false;

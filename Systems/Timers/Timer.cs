@@ -4,7 +4,7 @@ using UnityEngine;
 public class Timer : MonoBehaviour
 {
     [SerializeField]
-    Randomizable secs = new Randomizable("Seconds", 0.02f, 1f);
+    Randomizable secs = new Randomizable(0f, "Seconds", 1f);
     public float seconds
     {
         get { return secs.GetValue(); }
@@ -42,7 +42,10 @@ public class Timer : MonoBehaviour
     public virtual void StartTimer()
     {
         if (this.IsActiveAndEnabled() && gameObject.activeInHierarchy)
-            StartCoroutine(Alarm());
+        {
+            if (secs.Max <= 0f) actions?.Invoke();
+            else StartCoroutine(Alarm());
+        }
     }
 
     public void ForceInstantAction()

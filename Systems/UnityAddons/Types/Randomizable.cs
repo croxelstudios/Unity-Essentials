@@ -17,12 +17,12 @@ public struct Randomizable
     public string name;
     float randomizedValue;
     bool wasRandomized;
-    [HideInInspector]
+    [HideIf("@true")]
     public float min;
     [SerializeField]
     [HorizontalGroup]
     [LabelText("@GetValueLabel()")]
-    [OnValueChanged("ApplyMin")]
+    [OnValueChanged("ApplyMin")] //TO DO: Remove min variable and detect Min attributes in root object
     float value;
     [SerializeField]
     [HorizontalGroup(LabelWidth = 30f)]
@@ -32,7 +32,21 @@ public struct Randomizable
     [HorizontalGroup(LabelWidth = 70f, Width = 90f)]
     public bool randomize;
 
-    public Randomizable(string name, float minAtr, float value)
+    public float Max => GetMax();
+    public float Min => value;
+
+    public Randomizable(string name, float value)
+    {
+        this.name = name;
+        randomizedValue = value;
+        wasRandomized = false;
+        min = -Mathf.Infinity;
+        this.value = value;
+        randomize = false;
+        max = value;
+    }
+
+    public Randomizable(float minAtr, string name, float value)
     {
         this.name = name;
         randomizedValue = value;
@@ -43,7 +57,18 @@ public struct Randomizable
         max = value;
     }
 
-    public Randomizable(string name, float minAtr, float min, float max)
+    public Randomizable(string name, float min, float max)
+    {
+        this.name = name;
+        randomizedValue = min;
+        wasRandomized = false;
+        this.min = -Mathf.Infinity;
+        value = min;
+        randomize = true;
+        this.max = max;
+    }
+
+    public Randomizable(float minAtr, string name, float min, float max)
     {
         this.name = name;
         randomizedValue = min;
@@ -78,6 +103,12 @@ public struct Randomizable
             }
             return randomizedValue;
         }
+        else return value;
+    }
+
+    float GetMax()
+    {
+        if (randomize) return max;
         else return value;
     }
 

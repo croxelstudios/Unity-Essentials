@@ -11,6 +11,12 @@ public class BDXEvent<T> where T : UnityEventBase
     {
         return unityEvent == null || unityEvent.GetPersistentEventCount() <= 0;
     }
+
+    public void Clear()
+    {
+        if (unityEvent != null)
+            unityEvent.RemoveAllListeners();
+    }
 }
 
 public class DXTypedEvent<T> : BDXEvent<UnityEvent<T>>

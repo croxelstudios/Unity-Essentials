@@ -4,7 +4,7 @@ using UnityEngine;
 public class BTriggerManager : BColliderInteractor
 {
     int count;
-    List<NDCollider> colliders;
+    protected List<NDCollider> colliders;
 
     protected override void Awake()
     {

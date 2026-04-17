@@ -122,7 +122,7 @@ public class CompletionCalculator : MonoBehaviour
         [SerializeField]
         [HorizontalGroup]
         float max;
-        public float current { get { return count.Count; } }
+        public float current { get { return Mathf.Min(count.Count, Max); } }
         public float Max { get { return max; } }
         DXEvent change;
 
@@ -161,7 +161,7 @@ public class CompletionCalculator : MonoBehaviour
         [SerializeField]
         [HorizontalGroup]
         FloatVariable max;
-        public float current { get { return count.currentValue; } }
+        public float current { get { return Mathf.Min(count.currentValue, Max); } }
         public float Max { get { return max.Value; } }
 
         public FloatCompletion(FloatSignal count, FloatVariable max)
@@ -188,7 +188,7 @@ public class CompletionCalculator : MonoBehaviour
         [SerializeField]
         [HorizontalGroup]
         IntVariable max;
-        public float current { get { return count.currentValue; } }
+        public float current { get { return Mathf.Min(count.currentValue, Max); } }
         public float Max { get { return max.Value; } }
 
         public IntCompletion(IntSignal count, IntVariable max)

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BCollisionManager : BColliderInteractor
 {
+    [MinValue(0f)]
     [SerializeField]
     protected float minImpact = 0f;
     [PropertyOrder(2)]
@@ -123,7 +124,7 @@ public class BCollisionManager : BColliderInteractor
         Vector3 compareNormal = (normalSpace == Space.World) ? centerNormal :
             transform.TransformDirection(centerNormal);
 
-        return (impact > minImpact) && NormalIsInRange(normal);
+        return (impact >= minImpact) && NormalIsInRange(normal);
     }
 
     protected virtual bool CheckImpact(NDCollision collision, out NDContactPoint[] points,

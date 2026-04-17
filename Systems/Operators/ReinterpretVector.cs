@@ -18,9 +18,11 @@ public class ReinterpretVector : DXMonoBehaviour
     [SerializeField]
     bool projectOnPlane = true;
     [SerializeField]
+    [Indent]
     [ShowIf("projectOnPlane")]
     Vector3 planeNormal = Vector3.up;
     [SerializeField]
+    [Indent]
     [ShowIf("projectOnPlane")]
     bool local = false;
     [SerializeField]

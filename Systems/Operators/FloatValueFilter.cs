@@ -13,6 +13,15 @@ public class FloatValueFilter : MonoBehaviour
 
     bool state;
 
+    void OnDisable()
+    {
+        if (state)
+        {
+            events.Released?.Invoke();
+            state = false;
+        }
+    }
+
     public void FilterValue(int value)
     {
         FilterValue((float)value);

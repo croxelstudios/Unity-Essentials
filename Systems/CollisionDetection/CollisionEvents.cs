@@ -3,8 +3,11 @@ using UnityEngine;
 
 public class CollisionEvents : BCollisionManager
 {
+    [MinValue(0f)]
     [SerializeField]
     float maxImpact = 3f;
+    //TO DO: Change how this works to really limit events to impact range and
+    //add a different system to handle percent
     [PropertyOrder(5)]
     [SerializeField]
     Transform[] toContactPoints = null;

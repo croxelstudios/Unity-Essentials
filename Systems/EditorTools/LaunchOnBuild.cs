@@ -9,6 +9,8 @@ public class LaunchOnBuild : MonoBehaviour
     {
 #if !UNITY_EDITOR
         isBuild?.Invoke();
+#else
+        isBuild.Clear();
 #endif
     }
 }
