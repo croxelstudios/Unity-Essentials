@@ -45,9 +45,18 @@ public class TriggerEvents : BTriggerManager
             if (colliders.Count >= maxCollisions)
             {
                 NDCollider toRecover = colliders[colliders.Count - maxCollisions];
-                CheckCollision(toRecover.gameObject, out CustomTag otherTag);
-                entered?.Invoke();
-                LaunchCustomTag(otherTag);
+                while ((toRecover == null) && (colliders.Count >= maxCollisions))
+                {
+                    colliders.RemoveAt(colliders.Count - maxCollisions);
+                    toRecover = colliders[colliders.Count - maxCollisions];
+                }
+
+                if (colliders.Count >= maxCollisions)
+                {
+                    CheckCollision(toRecover.gameObject, out CustomTag otherTag);
+                    entered?.Invoke();
+                    LaunchCustomTag(otherTag);
+                }
             }
         }
     }
