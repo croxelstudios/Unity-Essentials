@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Sirenix.OdinInspector;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -11,12 +13,13 @@ public class BColliderInteractor : MonoBehaviour
     //[Tooltip("Determines if it should also check the tag of the attached rigidbody")]
     bool checkRigidbodyTag = false;
     [SerializeField]
+    LayerMask layerMask = -1;
+    [SerializeField]
     [TagSelector]
     [Tooltip("Will fire on any collision if this array is empty")]
     string[] detectionTags = null;
     [SerializeField]
-    LayerMask layerMask = -1;
-    [SerializeField]
+    [PropertySpace(0f, 10f)]
     CustomTagItems[] customTags = null;
 
     protected NDCollider[] selfColliders;

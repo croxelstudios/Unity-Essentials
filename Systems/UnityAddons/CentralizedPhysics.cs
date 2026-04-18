@@ -544,7 +544,7 @@ public class NDCollider
             if (_gameObject == null)
             {
                 if (IsNull()) _gameObject = null;
-                if (is2D)
+                else if (is2D)
                 {
                     if (col2.gameObject != null)
                         _gameObject = col2.gameObject;

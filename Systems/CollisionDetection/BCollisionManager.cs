@@ -120,6 +120,7 @@ public class BCollisionManager : BColliderInteractor
 
         Vector3 projectedVelocity = Vector3.Project(collision.relativeVelocity, normal);
         impact = projectedVelocity.magnitude * Mathf.Sign(Vector3.Dot(normal, projectedVelocity));
+        impact = Mathf.Max(impact, 0f);
 
         Vector3 compareNormal = (normalSpace == Space.World) ? centerNormal :
             transform.TransformDirection(centerNormal);
