@@ -486,14 +486,12 @@ public class ComputableMesh : ComputableBase<Mesh>
 
     public void ResetVertexBuffer()
     {
-        vertexBuf?.Dispose();
-        vertexBuf = null;
+        vertexBuf = vertexBuf.ReleaseToNull();
     }
 
     public void ResetIndexBuffer()
     {
-        indexBuf?.Dispose();
-        indexBuf = null;
+        indexBuf = indexBuf.ReleaseToNull();
     }
 
     public void ResetVertexColors()
@@ -1198,7 +1196,12 @@ public class ComputableMesh : ComputableBase<Mesh>
         triangleData = null;
         ResetVertexBuffer();
         ResetIndexBuffer();
-        Object.DestroyImmediate(mesh);
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            Object.DestroyImmediate(mesh);
+        else
+#endif
+            Object.Destroy(mesh);
         GC.SuppressFinalize(this);
     }
 
