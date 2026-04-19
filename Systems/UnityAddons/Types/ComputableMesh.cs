@@ -267,12 +267,17 @@ public class ComputableMesh : ComputableBase<Mesh>
     public void Prepare_CopyAllVertexData(Mesh meshToCopy, int vOffset, int indexOffset)
     {
         uint vCount = (uint)meshToCopy.vertexCount;
+        Vector3[] vertices = meshToCopy.vertices;
+        Vector3[] normals = meshToCopy.normals;
+        Vector4[] tangents = meshToCopy.tangents;
+        Color[] colors = meshToCopy.colors;
+        Vector2[] uv = meshToCopy.uv;
         for (uint i = 0; i < vCount; i++)
-            VData_SetData((int)(vOffset + i), meshToCopy.vertices[i],
-                meshToCopy.normals.Length > i ? meshToCopy.normals[i] : Vector3.zero,
-                meshToCopy.tangents.Length > i ? meshToCopy.tangents[i] : Vector3.zero,
-                meshToCopy.colors.Length > i ? meshToCopy.colors[i] : Color.white,
-                meshToCopy.uv.Length > i ? meshToCopy.uv[i] : Vector2.zero);
+            VData_SetData((int)(vOffset + i), vertices[i],
+                normals.Length > i ? normals[i] : Vector3.zero,
+                tangents.Length > i ? tangents[i] : Vector3.zero,
+                colors.Length > i ? colors[i] : Color.white,
+                uv.Length > i ? uv[i] : Vector2.zero);
     }
 
     public void Prepare_SetVertexColor(int index, Color color)
