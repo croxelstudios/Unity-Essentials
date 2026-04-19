@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class BTriggerManager : BColliderInteractor
 {
-    int count;
-    protected List<NDCollider> colliders;
+    protected int count;
+    List<NDCollider> colliders;
 
     protected override void Awake()
     {
@@ -25,8 +25,7 @@ public class BTriggerManager : BColliderInteractor
                     (!colliders[i].enabled) ||
                     (!colliders[i].gameObject.activeInHierarchy))
                 {
-                    colliders.RemoveAt(i);
-                    count--;
+                    RemoveAt(i);
                     if (count == 0) OnTrigExit();
                     OnTrigExit(null);
                 }
@@ -40,8 +39,7 @@ public class BTriggerManager : BColliderInteractor
         {
             NDCollider enterCol = other.ND();
             int prevCount = count;
-            colliders.Add(enterCol);
-            count++;
+            Add(enterCol);
             if (prevCount == 0) OnTrigEnter();
             OnTrigEnter(enterCol);
             LaunchCustomTag(otherTag);
@@ -54,8 +52,7 @@ public class BTriggerManager : BColliderInteractor
         {
             NDCollider enterCol = other.ND();
             int prevCount = count;
-            colliders.Add(enterCol);
-            count++;
+            Add(enterCol);
             if (prevCount == 0) OnTrigEnter();
             OnTrigEnter(enterCol);
             LaunchCustomTag(otherTag);
@@ -70,8 +67,7 @@ public class BTriggerManager : BColliderInteractor
             for (int i = count - 1; i >= 0; i--)
                 if (colliders[i] == exitCol)
                 {
-                    colliders.RemoveAt(i);
-                    count--;
+                    RemoveAt(i);
                     break;
                 }
             if (count == 0) OnTrigExit();
@@ -87,8 +83,7 @@ public class BTriggerManager : BColliderInteractor
             for (int i = count - 1; i >= 0; i--)
                 if (colliders[i] == exitCol)
                 {
-                    colliders.RemoveAt(i);
-                    count--;
+                    RemoveAt(i);
                     break;
                 }
             if (count == 0) OnTrigExit();
@@ -124,10 +119,43 @@ public class BTriggerManager : BColliderInteractor
 
     void Disable()
     {
+        CleanNulls();
+
         foreach (NDCollider col in colliders)
             OnTrigExit(col);
+
         colliders.Clear();
         count = 0;
         OnTrigExit();
+    }
+
+    protected void Add(NDCollider collider)
+    {
+        colliders.Add(collider);
+        count++;
+    }
+
+    protected void Remove(NDCollider collider)
+    {
+        colliders.Remove(collider);
+        count--;
+    }
+
+    protected void RemoveAt(int id)
+    {
+        colliders.RemoveAt(id);
+        count--;
+    }
+
+    protected NDCollider Get(int id)
+    {
+        return colliders[id];
+    }
+
+    protected void CleanNulls()
+    {
+        for (int i = count - 1; i >= 0; i--)
+            if (colliders[i].IsNull())
+                RemoveAt(i);
     }
 }

@@ -31,7 +31,7 @@ public class TriggerEvents : BTriggerManager
     {
         if (!fuseColliders)
         {
-            if (colliders.Count > maxCollisions)
+            if (count > maxCollisions)
                 exited?.Invoke();
             entered?.Invoke();
         }
@@ -42,21 +42,25 @@ public class TriggerEvents : BTriggerManager
         if (!fuseColliders)
         {
             exited?.Invoke();
-            if (colliders.Count >= maxCollisions)
-            {
-                NDCollider toRecover = colliders[colliders.Count - maxCollisions];
-                while ((toRecover == null) && (colliders.Count >= maxCollisions))
-                {
-                    colliders.RemoveAt(colliders.Count - maxCollisions);
-                    toRecover = colliders[colliders.Count - maxCollisions];
-                }
 
-                if (colliders.Count >= maxCollisions)
+            int i = count - maxCollisions;
+            NDCollider toRecover = null;
+            while (count >= maxCollisions)
+            {
+                toRecover = Get(i);
+                if (toRecover.IsNull())
                 {
-                    CheckCollision(toRecover.gameObject, out CustomTag otherTag);
-                    entered?.Invoke();
-                    LaunchCustomTag(otherTag);
+                    RemoveAt(i);
+                    i--;
                 }
+                else break;
+            }
+
+            if (count >= maxCollisions)
+            {
+                CheckCollision(toRecover.gameObject, out CustomTag otherTag);
+                entered?.Invoke();
+                LaunchCustomTag(otherTag);
             }
         }
     }
