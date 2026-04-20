@@ -41,7 +41,7 @@ public class ComputableBase<T> : IDisposable where T : Object
 
     public virtual void Dispose()
     {
-        GC.SuppressFinalize(this);
+        //GC.SuppressFinalize(this);
     }
 }
 
@@ -1189,10 +1189,12 @@ public class ComputableMesh : ComputableBase<Mesh>
 
     public override void Dispose()
     {
-        vertexData.Dispose();
+        if (vertexData.IsCreated)
+            vertexData.Dispose();
         if (!triangleData.IsNullOrEmpty())
             for (int i = 0; i < triangleData.Length; i++)
-                triangleData[i].Dispose();
+                if (triangleData[i].IsCreated)
+                    triangleData[i].Dispose();
         triangleData = null;
         ResetVertexBuffer();
         ResetIndexBuffer();
@@ -1202,7 +1204,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         else
 #endif
             Object.Destroy(mesh);
-        GC.SuppressFinalize(this);
+        //GC.SuppressFinalize(this);
     }
 
     public ComputableMesh Destroy()
@@ -1211,11 +1213,11 @@ public class ComputableMesh : ComputableBase<Mesh>
         return null;
     }
 
-    ~ComputableMesh()
-    {
-        //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
-        Dispose();
-    }
+    //~ComputableMesh()
+    //{
+    //    //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
+    //    Dispose();
+    //}
 }
 
 public class ComputableSprite : ComputableBase<Sprite>
@@ -1490,8 +1492,13 @@ public class ComputableSprite : ComputableBase<Sprite>
     public override void Dispose()
     {
         mesh.Dispose();
-        Object.DestroyImmediate(sprite);
-        GC.SuppressFinalize(this);
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            Object.DestroyImmediate(sprite);
+        else
+#endif
+            Object.Destroy(sprite);
+        //GC.SuppressFinalize(this);
     }
 
     public ComputableSprite Destroy()
@@ -1500,9 +1507,9 @@ public class ComputableSprite : ComputableBase<Sprite>
         return null;
     }
 
-    ~ComputableSprite()
-    {
-        //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
-        Dispose();
-    }
+    //~ComputableSprite()
+    //{
+    //    //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
+    //    Dispose();
+    //}
 }
