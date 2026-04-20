@@ -41,7 +41,6 @@ public class ComputableBase<T> : IDisposable where T : Object
 
     public virtual void Dispose()
     {
-        //GC.SuppressFinalize(this);
     }
 }
 
@@ -1204,7 +1203,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         else
 #endif
             Object.Destroy(mesh);
-        //GC.SuppressFinalize(this);
+        GC.SuppressFinalize(this);
     }
 
     public ComputableMesh Destroy()
@@ -1213,11 +1212,11 @@ public class ComputableMesh : ComputableBase<Mesh>
         return null;
     }
 
-    //~ComputableMesh()
-    //{
-    //    //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
-    //    Dispose();
-    //}
+    ~ComputableMesh()
+    {
+        //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
+        Dispose();
+    }
 }
 
 public class ComputableSprite : ComputableBase<Sprite>
@@ -1498,7 +1497,7 @@ public class ComputableSprite : ComputableBase<Sprite>
         else
 #endif
             Object.Destroy(sprite);
-        //GC.SuppressFinalize(this);
+        GC.SuppressFinalize(this);
     }
 
     public ComputableSprite Destroy()
@@ -1507,9 +1506,9 @@ public class ComputableSprite : ComputableBase<Sprite>
         return null;
     }
 
-    //~ComputableSprite()
-    //{
-    //    //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
-    //    Dispose();
-    //}
+    ~ComputableSprite()
+    {
+        //Debug.LogWarning("ComputableMesh was not disposed properly, calling Dispose() in finalizer.");
+        Dispose();
+    }
 }

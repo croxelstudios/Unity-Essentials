@@ -453,7 +453,7 @@ public static class ComputableModule
 
         static List<Holder> auxElementList;
 
-        public Computable Create(Holder element, Component comp, Value value, string name, string reusableKey = null)
+        public Computable Create(Holder holder, Component comp, Value value, string name, string reusableKey = null)
         {
             Computable computable = null;
             if (!reusableKey.IsNullOrEmpty())
@@ -467,28 +467,28 @@ public static class ComputableModule
                     uses = uses.CreateAdd(key, 1);
                 }
                 else uses[key]++;
-                keys.Set(element, key);
+                keys.Set(holder, key);
             }
             else computable = New(value, name);
-            Create(element, comp, computable);
+            Create(holder, comp, computable);
             return computable;
         }
 
-        protected void Create(Holder filter, Component comp, Computable mesh)
+        protected void Create(Holder holder, Component comp, Computable element)
         {
-            visible = visible.CreateAdd(filter, false);
-            originals = originals.CreateAdd(filter, GetCurrent(filter));
-            elements = elements.CreateAdd(filter, mesh);
-            SetUseByComponent(filter, comp);
+            visible = visible.CreateAdd(holder, false);
+            originals = originals.CreateAdd(holder, GetCurrent(holder));
+            elements = elements.CreateAdd(holder, element);
+            SetUseByComponent(holder, comp);
             isInitialized = true;
         }
 
-        protected virtual Value GetCurrent(Holder element)
+        protected virtual Value GetCurrent(Holder holder)
         {
             return null;
         }
 
-        protected virtual void SetValue(Holder element, Value value)
+        protected virtual void SetValue(Holder holder, Value value)
         {
         }
 
@@ -497,34 +497,38 @@ public static class ComputableModule
             return null;
         }
 
-        public bool ElementChanged(Holder element)
+        public bool ElementChanged(Holder holder)
         {
-            if (!originals.NotNullContainsKey(element))
+            if (!originals.NotNullContainsKey(holder))
                 return true;
 
-            if (last.NotNullContainsKey(element))
+            if (last.NotNullContainsKey(holder))
             {
-                if (originals[element] != last[element])
+                if (originals[holder] != last[holder])
                     return true;
             }
-            else if (GetCurrent(element) != originals[element])
+            else if (GetCurrent(holder) != originals[holder])
                 return true;
 
             return false;
         }
 
-        public void SmartRemove(Holder element)
+        public void SmartRemove(Holder holder)
         {
-            if (last.NotNullContainsKey(element))
-                SetValue(element, last[element]);
+            bool hasElements = !elements.IsNullOrEmpty();
+            Computable computable = null;
+            if (hasElements) elements.TryGetValue(holder, out computable);
 
-            if (originals.SmartGetValue(element, out Value original))
+            if (last.NotNullContainsKey(holder))
+                SetValue(holder, last[holder]);
+
+            if (originals.SmartGetValue(holder, out Value original))
             {
-                originals.Remove(element);
-                usedBy.SmartRemove(element);
-                elements.SmartRemove(element);
-                last.SmartRemove(element);
-                if (keys.SmartGetValue(element, out ValueKey key))
+                originals.Remove(holder);
+                usedBy.SmartRemove(holder);
+                elements.SmartRemove(holder);
+                last.SmartRemove(holder);
+                if (keys.SmartGetValue(holder, out ValueKey key))
                 {
                     uses[key]--;
                     if (uses[key] <= 0)
@@ -532,9 +536,12 @@ public static class ComputableModule
                         reusable.Remove(key);
                         uses.Remove(key);
                     }
-                    keys.Remove(element);
+                    keys.Remove(holder);
                 }
             }
+
+            if (hasElements && (computable != null) && (!elements.Values.Contains(computable)))
+                computable.Dispose();
         }
 
         public void CleanNullValues()
@@ -580,29 +587,29 @@ public static class ComputableModule
             Application.onBeforeRender -= ResetCleaner;
         }
 
-        public Computable GetComputable(Holder element)
+        public Computable GetComputable(Holder holder)
         {
-            if (!originals.NotNullContainsKey(element))
+            if (!originals.NotNullContainsKey(holder))
                 return null;
 
-            if (!elements.NotNullContainsKey(element))
+            if (!elements.NotNullContainsKey(holder))
                 return null;
 
-            return elements[element];
+            return elements[holder];
         }
 
-        public void SetUseByComponent(Holder filter, Component comp)
+        public void SetUseByComponent(Holder holder, Component comp)
         {
-            usedBy = usedBy.CreateAdd(filter, comp);
+            usedBy = usedBy.CreateAdd(holder, comp);
         }
 
-        public void StopUsing(Holder filter, Component comp)
+        public void StopUsing(Holder holder, Component comp)
         {
-            if (usedBy.SmartGetValue(filter, out List<Component> list))
+            if (usedBy.SmartGetValue(holder, out List<Component> list))
             {
                 list.SmartRemove(comp);
                 if (list.Count <= 0)
-                    SmartRemove(filter);
+                    SmartRemove(holder);
             }
         }
 
@@ -638,17 +645,17 @@ public static class ComputableModule
                 }
         }
 
-        public Value OriginalMesh(Holder element)
+        public Value OriginalMesh(Holder holder)
         {
-            if (!originals.NotNullContainsKey(element))
+            if (!originals.NotNullContainsKey(holder))
                 return null;
-            return originals[element];
+            return originals[holder];
         }
 
-        public void SetVisible(Holder element, bool visible)
+        public void SetVisible(Holder holder, bool visible)
         {
-            if (this.visible.NotNullContainsKey(element))
-                this.visible[element] = visible;
+            if (this.visible.NotNullContainsKey(holder))
+                this.visible[holder] = visible;
         }
 
         struct ValueKey : IEquatable<ValueKey>
@@ -868,8 +875,7 @@ public static class ComputableModule
                 filter = new ComputableElement(gameObject);
                 filters = filters.CreateAdd(gameObject, filter);
             }
-            else
-                if (filter.isNull)
+            else if (filter.isNull)
             {
                 filters.Remove(gameObject);
                 filter = new ComputableElement(gameObject);

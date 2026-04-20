@@ -11,6 +11,7 @@ public static class BufferCollectionExtension_TryRelease
                 bufferCollection[i] = bufferCollection[i].ReleaseToNull();
         return null;
     }
+
     public static IList<GraphicsBuffer> TryRelease(this IList<GraphicsBuffer> bufferCollection)
     {
         if (!bufferCollection.IsNullOrEmpty())
