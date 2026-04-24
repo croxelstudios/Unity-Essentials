@@ -49,11 +49,24 @@ public class StringSignal : ValueSignal<string> //Change type here
         }
     }
 
+    public void CallSignal(GoToScene sceneHolder)
+    {
+        if (sceneHolder != null)
+            CallSignal(sceneHolder.Scene);
+        else CallSignal("");
+    }
+
+    public void CallSignal(GoToScene_Launcher sceneHolder)
+    {
+        if (sceneHolder != null)
+            CallSignal(sceneHolder.Scene);
+        else CallSignal("");
+    }
+
     static void SetSceneRef(ref SceneReference scRef, string value)
     {
         if (scRef == null)
-            scRef = new SceneReference();
-        scRef.ScenePath = value;
+            scRef = new SceneReference(value);
     }
 
     [Command("set-string")]

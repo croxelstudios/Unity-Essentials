@@ -12,7 +12,8 @@ public static class GameObjectExtension_AddComponentCopy
     {
         Type type = toAdd.GetType();
         Component comp = go.AddComponent(type);
-        return comp.GetCopyOf(toAdd, exclusions, copyBaseValues);
+        comp.GetCopyOf(toAdd, exclusions, copyBaseValues);
+        return comp as T;
     }
 
     public static T AddComponentCopy<T>(this GameObject go, T toAdd, bool copyBaseValues = true) where T : Component
@@ -20,20 +21,18 @@ public static class GameObjectExtension_AddComponentCopy
         return go.AddComponentCopy(toAdd, null, copyBaseValues);
     }
 
-    public static T GetCopyOf<T>(this Component comp, T other,
+    public static void GetCopyOf<T>(this Component comp, T other,
         string[] exclusions, bool copyBaseValues = true) where T : Component
     {
         //try
         //{
         Type type = comp.GetType();
-        if (type != other.GetType()) return null; // type mis-match
+        if (type != other.GetType()) return; // type mis-match
 
         Action<T, T> copier =
             MemberCopier<T>.GetCopier(
                 new MemberCopier<T>.CopyOptions(type, exclusions, copyBaseValues));
         copier((T)comp, other);
-
-        return comp as T;
         //}
         //catch
         //{
@@ -41,17 +40,17 @@ public static class GameObjectExtension_AddComponentCopy
         //}
     }
 
-    public static T GetCopyOf<T>(this Component comp, T other,
+    public static void GetCopyOf<T>(this Component comp, T other,
         bool copyBaseValues = true) where T : Component
     {
-        return comp.GetCopyOf(other, null, copyBaseValues);
+        comp.GetCopyOf(other, null, copyBaseValues);
     }
 
-    public static T GetSingleCopyOf<T>(this Component comp, T other,
-        string[] exclusions, bool copyBaseValues = true) where T : Component
+    public static void GetSingleCopyOf(this Component comp, Component other,
+        string[] exclusions, bool copyBaseValues = true)
     {
         Type type = comp.GetType();
-        if (type != other.GetType()) return null; // type mis-match
+        if (type != other.GetType()) return; // type mis-match
 
         MemberInfo[] infos = type.GetPropFields(copyBaseValues);
 
@@ -81,8 +80,6 @@ public static class GameObjectExtension_AddComponentCopy
                 }
                 else info.CopyPropFieldValue(comp, other);
             }
-
-        return comp as T;
     }
 
     public static class MemberCopier<T> where T : Component

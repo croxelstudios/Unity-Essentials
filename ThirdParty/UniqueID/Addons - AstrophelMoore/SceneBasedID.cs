@@ -18,13 +18,16 @@ public class SceneBasedID : MonoBehaviour, IUniqueId
         get
         {
             string id = "";
+            string next = "";
             switch (sceneSource)
             {
                 default:
-                    id = CurrentScene() + SEPARATOR + SceneHolders();
+                    next = SceneHolders();
+                    id = CurrentScene() + (next.IsNullOrEmpty() ? "" : (SEPARATOR + SceneHolders()));
                     break;
                 case SceneSource.HoldersThenCurrent:
-                    id = SceneHolders() + SEPARATOR + CurrentScene();
+                    next = SceneHolders();
+                    id = (next.IsNullOrEmpty() ? "" : (SceneHolders() + SEPARATOR)) + CurrentScene();
                     break;
                 case SceneSource.CurrentScene:
                     id = CurrentScene();

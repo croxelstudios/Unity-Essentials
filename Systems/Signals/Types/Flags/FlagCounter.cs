@@ -92,9 +92,10 @@ public class FlagCounter : MonoBehaviour
         }
         */
 
-        for (int i = 0; i < activeFlags.Count; i++)
-            if ((!checkFlagIsTrue) || activeFlags[i].currentValue)
-                count++;
+        if (!activeFlags.IsNullOrEmpty())
+            for (int i = 0; i < activeFlags.Count; i++)
+                if ((!checkFlagIsTrue) || activeFlags[i].currentValue)
+                    count++;
 
         this.count = count;
 

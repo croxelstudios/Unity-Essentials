@@ -76,7 +76,7 @@ public class TiledTextureMapper : DXMonoBehaviour
             if (applyScale) vertexPosition = Vector3.Scale(vertexPosition, transform.lossyScale);
             if (applyRotation) vertexPosition = transform.rotation * vertexPosition;
             if (applyWorldPosition) vertexPosition += transform.position;
-            uv[i] = (quat * vertexPosition);
+            uv[i] = quat * vertexPosition;
             uv[i] = new Vector2(uv[i].x, -uv[i].y);
             //Y is reversed due to unity's weird reference system
         }

@@ -8,6 +8,7 @@ using UnityEditor;
 #endif
 
 [ExecuteAlways]
+[DefaultExecutionOrder(-100)]
 public class ChildParentEvents : MonoBehaviour
 {
     public bool propagateToChildren = true;

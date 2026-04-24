@@ -19,6 +19,7 @@ public class MaterialsReplacer : MonoBehaviour
 
     RendererData[] rend;
     Material[] tmpMaterials;
+    Dictionary<RendMat, Material> originalMaterials;
     Dictionary<RendMat, Material> changedMaterials;
     Dictionary<Material, Material> replacements;
     bool isChanged;
@@ -256,13 +257,25 @@ public class MaterialsReplacer : MonoBehaviour
     {
         tmpMaterials = renderer.sharedMaterials;
         for (int i = 0; i < tmpMaterials.Length; i++)
+        {
+            RendMat rendMat = new RendMat(renderer, i);
+
+            if (tmpMaterials[i].name.Contains(" (Instance)") &&
+                originalMaterials.SmartGetValue(rendMat, out Material m))
+                tmpMaterials[i] = m;
+
             if ((tmpMaterials[i] != null) &&
                 replacements.TryGetValue(tmpMaterials[i], out Material replacement))
             {
                 if (register)
-                    changedMaterials.Add(new RendMat(renderer, i), tmpMaterials[i]);
+                {
+                    changedMaterials.Add(rendMat, tmpMaterials[i]);
+                    if (!originalMaterials.NotNullContainsKey(rendMat))
+                        originalMaterials = originalMaterials.CreateAdd(rendMat, tmpMaterials[i]);
+                }
                 tmpMaterials[i] = replacement;
             }
+        }
         renderer.sharedMaterials = tmpMaterials;
     }
 
@@ -303,12 +316,8 @@ public class MaterialsReplacer : MonoBehaviour
                 go.isStatic = orig.isStatic;
                 MeshFilter origFilter = orig.GetComponent<MeshFilter>();
                 if (origFilter != null)
-                {
-                    instancedFilters[i] = go.AddComponent<MeshFilter>();
-                    instancedFilters[i].GetCopyOf(origFilter);
-                }
-                instanced[i] = go.AddComponent(rend[i].rend.GetType()) as Renderer;
-                instanced[i].GetCopyOf(rend[i].rend);
+                    instancedFilters[i] = go.AddComponentCopy(origFilter);
+                instanced[i] = go.AddComponentCopy(rend[i].rend);
                 ReplaceMaterials(instanced[i], false);
             }
     }

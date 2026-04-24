@@ -112,7 +112,7 @@ public class IntHolder : MonoBehaviour
 
     public void ResetHolder()
     {
-        current = 0;
+        Subtract(current);
     }
 
     void ManageIntAddition(int prev, int current)
