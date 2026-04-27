@@ -32,18 +32,18 @@ using UnityEditor;
 [System.Serializable]
 public class SceneReference : ISerializationCallbackReceiver
 {
-    public SceneReference(Object sceneAsset)
-    {
-        this.sceneAsset = sceneAsset;
-        scenePath = GetScenePathFromAsset();
-    }
-
     public SceneReference(string scenePath)
     {
         ScenePath = scenePath;
     }
 
 #if UNITY_EDITOR
+    public SceneReference(Object sceneAsset)
+    {
+        this.sceneAsset = sceneAsset;
+        scenePath = GetScenePathFromAsset();
+    }
+
     // What we use in editor to select the scene
     [SerializeField] private Object sceneAsset = null;
     bool IsValidSceneAsset
