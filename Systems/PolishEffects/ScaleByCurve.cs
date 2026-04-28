@@ -69,13 +69,7 @@ public class ScaleByCurve : DXMonoBehaviour
             currentTime -= deltaTime;
 
             ScaleAtTime(currentTime);
-
-            if (currentTime <= 0f)
-            {
-                currentTime = 0f;
-                if (negative) finishedReverseScale?.Invoke();
-                else finishedScale?.Invoke();
-            }
+            CheckFinished();
         }
     }
 
@@ -98,6 +92,16 @@ public class ScaleByCurve : DXMonoBehaviour
         transform.localScale = transform.localScale * currentMult;
 
         lastScaleModifier = current;
+    }
+
+    void CheckFinished()
+    {
+        if (currentTime <= 0f)
+        {
+            currentTime = 0f;
+            if (negative) finishedReverseScale?.Invoke();
+            else finishedScale?.Invoke();
+        }
     }
 
     void Init()
@@ -127,6 +131,7 @@ public class ScaleByCurve : DXMonoBehaviour
             negative = false;
 
             ScaleAtTime(currentTime);
+            CheckFinished();
         }
     }
 
@@ -145,10 +150,11 @@ public class ScaleByCurve : DXMonoBehaviour
             if (currentTime <= 0)
                 currentTime = t;
             else if (!negative)
-                currentTime = Mathf.Clamp(t - currentTime, 0f, t);
+                currentTime = Mathf.Clamp(t - (reverseScaleTimeModifier * currentTime), 0f, t);
             negative = true;
 
             ScaleAtTime(currentTime);
+            CheckFinished();
         }
     }
 }

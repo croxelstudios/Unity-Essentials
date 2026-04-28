@@ -1,7 +1,6 @@
 ﻿using Sirenix.OdinInspector;
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class FloatModifyModes : MonoBehaviour
 {
@@ -28,7 +27,7 @@ public class FloatModifyModes : MonoBehaviour
 
     public void ModifyValue(float value)
     {
-        this.currentValue = value;
+        currentValue = value;
         Apply();
     }
 
@@ -47,9 +46,7 @@ public class FloatModifyModes : MonoBehaviour
 
     void Apply()
     {
-        float newValue = (currentValue + scaleModes[mode].preAddition) * scaleModes[mode].scale;
-        if (scaleModes[mode].oneMinus) newValue = 1f - newValue;
-        newValue += scaleModes[mode].postAddition;
+        float newValue = scaleModes[mode].Apply(currentValue);
         modifiedValue?.Invoke(newValue);
         int iValue;
         switch (roundMode)
@@ -76,18 +73,54 @@ public class FloatModifyModes : MonoBehaviour
     public struct ScaleMode
     {
         public float scale;
-        public float preAddition;
-        public float postAddition;
-        public bool abs;
-        public bool oneMinus;
+        [SerializeField]
+        float preAddition;
+        [SerializeField]
+        float postAddition;
+        [SerializeField]
+        bool abs;
+        [SerializeField]
+        bool oneMinus;
+        [SerializeField]
+        bool clamp;
+        [Indent]
+        [ShowIf("clamp")]
+        [SerializeField]
+        Vector2 between;
 
-        public ScaleMode(float scale, float preAddition, float postAddition, bool abs, bool oneMinus)
+        public ScaleMode(float scale, float preAddition, float postAddition,
+            bool abs, bool oneMinus)
         {
             this.scale = scale;
             this.preAddition = preAddition;
             this.postAddition = postAddition;
             this.abs = abs;
             this.oneMinus = oneMinus;
+            clamp = false;
+            between = new Vector2(0f, 1f);
+        }
+
+        public ScaleMode(float scale, float preAddition, float postAddition,
+            bool abs, bool oneMinus, Vector2 between)
+        {
+            this.scale = scale;
+            this.preAddition = preAddition;
+            this.postAddition = postAddition;
+            this.abs = abs;
+            this.oneMinus = oneMinus;
+            clamp = true;
+            this.between = between;
+        }
+
+        public float Apply(float value)
+        {
+            if (abs) value = Mathf.Abs(value);
+            value += preAddition;
+            value *= scale;
+            if (oneMinus) value = 1f - value;
+            value += postAddition;
+            if (clamp) value = Mathf.Clamp(value, between.x, between.y);
+            return value;
         }
     }
 }

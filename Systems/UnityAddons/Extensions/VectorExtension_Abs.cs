@@ -6,4 +6,9 @@ public static class VectorExtension_Abs
     {
         return new Vector3(Mathf.Abs(input.x), Mathf.Abs(input.y), Mathf.Abs(input.z));
     }
+
+    public static Vector2 Abs(this Vector2 input)
+    {
+        return new Vector2(Mathf.Abs(input.x), Mathf.Abs(input.y));
+    }
 }

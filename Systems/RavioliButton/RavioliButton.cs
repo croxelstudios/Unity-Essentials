@@ -470,7 +470,7 @@ public class RavioliButton : RavioliButton_Button
 
     public void SelectButton(int id, bool doMovement)
     {
-        if (this.IsActiveAndEnabled())
+        if (this.IsActiveAndEnabled() && id.IsBetween(0, buttons.Count))
         {
             if (!groupInitialized)
                 programmedSelection.ProgramSelection(this, id, doMovement);
