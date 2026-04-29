@@ -48,6 +48,12 @@ public class Timer : MonoBehaviour
         }
     }
 
+    public virtual void RestartTimer()
+    {
+        StopTimer();
+        StartTimer();
+    }
+
     public void ForceInstantAction()
     {
         if (this.IsActiveAndEnabled() && gameObject.activeInHierarchy)
