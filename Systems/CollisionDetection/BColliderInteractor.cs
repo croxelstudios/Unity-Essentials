@@ -50,7 +50,7 @@ public class BColliderInteractor : MonoBehaviour
 
     protected virtual bool CheckCollision(GameObject other, out CustomTag otherTag)
     {
-        if (CheckCollisionBase(other) && CheckCollisionCustom(other, out otherTag))
+        if (CheckCollisionBase(other) && CheckCollisionCustomTag(other, out otherTag))
             return true;
 
         otherTag = null;
@@ -72,7 +72,7 @@ public class BColliderInteractor : MonoBehaviour
         return false;
     }
 
-    bool CheckCollisionCustom(GameObject other, out CustomTag otherTag)
+    bool CheckCollisionCustomTag(GameObject other, out CustomTag otherTag)
     {
         otherTag = null;
         if (customTagsNullOrEmpty)

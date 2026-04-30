@@ -1,6 +1,7 @@
-using System;
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 //TO DO: To update this while inactive, it could maybe subscribe to EditorApplication.Update
 //on the constructor?

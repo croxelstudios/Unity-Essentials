@@ -1,8 +1,10 @@
 void ParallaxOcclusionLoop_float(
 	Texture2D Heightmap, float Amplitude, SamplerState _SamplerState, float Channel, 
-	float2 UV, float3 ViewDirUVs, int Steps, float Lod, float LodThreshold,
+	float2 UV, float3 ViewDirTS, float2 PrimitiveSize, int Steps, float Lod, float LodThreshold,
 	out float2 NewUVs, out float Depth)
 {
+    float3 ViewDirUVs = normalize(float3((ViewDirTS.xy * Amplitude) / PrimitiveSize, ViewDirTS.z));
+
 	float stepSize = 1.0 / Steps;
 	float2 maxOffset = ViewDirUVs.xy / -ViewDirUVs.z;
 	float2 stepOffset = maxOffset * stepSize;
@@ -65,5 +67,5 @@ void ParallaxOcclusionLoop_float(
     finalOffset *= (1.0 - saturate(Lod - LodThreshold));
 
     NewUVs = UV + finalOffset;
-    Depth = (Amplitude - (currHeight * Amplitude))/max(ViewDirUVs.z, 0.0001);
+    Depth = (Amplitude * (1.0 - currHeight))/max(ViewDirUVs.z, 0.0001);
 }
