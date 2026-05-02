@@ -2227,6 +2227,27 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
+    "m_ObjectId": "8594ce587b354ca486b40e3b56178c22",
+    "m_Id": -1739605436,
+    "m_DisplayName": "UV",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_UV",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
     "m_ObjectId": "8603e1fac7bf40acbac2694113ac995f",
     "m_Id": 0,
     "m_DisplayName": "TextureOffset",
@@ -2773,6 +2794,9 @@
     },
     "m_Slots": [
         {
+            "m_Id": "8594ce587b354ca486b40e3b56178c22"
+        },
+        {
             "m_Id": "8687a66faa014bb485d286511048cdc7"
         },
         {
@@ -2879,7 +2903,8 @@
         "f402ce4a-30de-4b85-ac14-2edfadabbc52",
         "6d2b1533-e424-42ed-8007-787bbe0d9298",
         "6b0de76e-d5a7-4cbf-a8d7-51346125cdfe",
-        "299b8e66-fab5-4d30-adbd-6c3fc3beed29"
+        "299b8e66-fab5-4d30-adbd-6c3fc3beed29",
+        "abff9340-b401-4a29-aab0-7dd5af2de4ac"
     ],
     "m_PropertyIds": [
         1473462455,
@@ -2903,7 +2928,8 @@
         840253845,
         -869467351,
         -315703296,
-        1915385789
+        1915385789,
+        -1739605436
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []

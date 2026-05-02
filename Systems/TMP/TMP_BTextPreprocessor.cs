@@ -5,6 +5,7 @@ using TMPro;
 using System;
 
 [ExecuteAlways]
+[DefaultExecutionOrder(-10)]
 public class TMP_BTextPreprocessor : MonoBehaviour, ITextPreprocessor
 {
     static Dictionary<TMP_Text, List<TMP_BTextPreprocessor>> processors;
@@ -18,7 +19,7 @@ public class TMP_BTextPreprocessor : MonoBehaviour, ITextPreprocessor
         {
             text.textPreprocessor = this;
             processors = processors.CreateAdd(text, this);
-            text.ForceMeshUpdate(true, true);
+            RefreshText();
         }
     }
 
@@ -30,7 +31,7 @@ public class TMP_BTextPreprocessor : MonoBehaviour, ITextPreprocessor
             if (!processors[text].IsNullOrEmpty())
                 text.textPreprocessor = processors[text][0];
             else text.textPreprocessor = null;
-            text.ForceMeshUpdate(true, true);
+            RefreshText();
         }
     }
 
@@ -68,7 +69,7 @@ public class TMP_BTextPreprocessor : MonoBehaviour, ITextPreprocessor
         return 0;
     }
 
-    public void UpdateText()
+    public void RefreshText()
     {
         if (text != null)
             text.ForceMeshUpdate(true, true);

@@ -9,6 +9,11 @@ using UnityEditor;
 public class StateMachine_ByChildren : StateMachine
 {
 #if UNITY_EDITOR
+    private void Reset()
+    {
+        UpdateStates();
+    }
+
     protected override void OnEnable()
     {
         UpdateStates();
