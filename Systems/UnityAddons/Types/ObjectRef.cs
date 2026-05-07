@@ -12,6 +12,7 @@ public class ObjectRef<T> where T : Object
     bool objWasNull;
     [SerializeField]
     [TagSelector]
+    [LabelText("@TagLabel()")]
     [HideIf("obj")]
     string tag;
     [SerializeField]
