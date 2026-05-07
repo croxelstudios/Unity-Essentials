@@ -23,8 +23,6 @@ public class BRenderersSetProperty : DXMonoBehaviour
     [OnValueChanged("UpdateBehaviour")]
     protected string[] propertyNameAlts = null;
     [SerializeField]
-    protected bool updateRenderers = false;
-    [SerializeField]
     protected bool usePropertyBlock = false;
     [SerializeField]
     bool waitOneFrameForInit = false;
@@ -32,6 +30,8 @@ public class BRenderersSetProperty : DXMonoBehaviour
     protected MaterialPropertyBlock block;
     protected bool propertyIsReadOnly = false;
     protected static Dictionary<RendMat, Material> originalMaterials;
+
+    bool isInitialized = false;
 
     protected virtual void OnEnable()
     {
@@ -48,14 +48,19 @@ public class BRenderersSetProperty : DXMonoBehaviour
 
     protected virtual void Init()
     {
-        block = new MaterialPropertyBlock();
-        UpdateRenderersInternal();
-        if (IsInitialized()) SetBlocksProperty();
-    }
-
-    protected bool IsInitialized()
-    {
-        return (!rend.IsNullOrEmpty()) && (block != null);
+        if (!isInitialized)
+        {
+            if ((usePropertyBlock && (block == null))
+#if UNITY_EDITOR
+                    || !Application.isPlaying
+#endif
+                    )
+                block = new MaterialPropertyBlock();
+            if (ShouldUpdateRenderersOnEnable())
+                UpdateRenderersInternal();
+            SetBlocksProperty();
+            isInitialized = true;
+        }
     }
 
     protected virtual void UpdateRenderersInternal()
@@ -95,6 +100,15 @@ public class BRenderersSetProperty : DXMonoBehaviour
         }
     }
 
+    bool ShouldUpdateRenderersOnEnable()
+    {
+        return rend.IsNullOrEmpty()
+#if UNITY_EDITOR
+                || !Application.isPlaying
+#endif
+                ;
+    }
+
     public virtual void UpdateRenderers()
     {
         if (this.IsActiveAndEnabled())
@@ -104,10 +118,33 @@ public class BRenderersSetProperty : DXMonoBehaviour
         }
     }
 
-    protected virtual void OnDisable()
+    void OnDisable()
     {
-        if (IsInitialized())
-            SetBlocksProperty(true);
+        if (gameObject.activeInHierarchy
+#if UNITY_EDITOR
+                || !Application.isPlaying
+#endif
+            )
+            TryDisable();
+        else ActivationTracker.TrackActivation(gameObject, TryDisable);
+    }
+
+    void OnDestroy()
+    {
+        if (isInitialized)
+            Disable();
+    }
+
+    void TryDisable()
+    {
+        if (isInitialized && (!enabled))
+            Disable();
+    }
+
+    protected virtual void Disable()
+    {
+        SetBlocksProperty(true);
+        isInitialized = false;
     }
 
     protected virtual bool ShouldUpdate()
@@ -123,8 +160,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
 
     protected virtual void UpdateBehaviour()
     {
-        if (updateRenderers) UpdateRenderersInternal();
-        if (IsInitialized()) SetBlocksProperty();
+        if (isInitialized) SetBlocksProperty();
     }
 
     void SetBlocksProperty(bool reset = false)
@@ -167,7 +203,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
                 if (reset) VResetProperty(rendMatProp);
                 else VSetProperty(rendMatProp);
             }
-            else
+            else if (block != null)
             {
                 rendMat.GetPropertyBlock(block);
                 CheckRendererBlocks(rendMat.rend);
@@ -264,21 +300,19 @@ public class BRenderersSetProperty : DXMonoBehaviour
             }
     }
 
-    public void Set(bool affectsChildren, int materialIndex, string propertyName, bool updateRenderers)
+    public void Set(bool affectsChildren, int materialIndex, string propertyName)
     {
         this.affectsChildren = affectsChildren;
         this.materialIndex = materialIndex;
         this.propertyName = propertyName;
-        this.updateRenderers = updateRenderers;
     }
 
-    public void Set(bool affectsChildren, int materialIndex, string propertyName, string[] propertyNameAlts, bool updateRenderers)
+    public void Set(bool affectsChildren, int materialIndex, string propertyName, string[] propertyNameAlts)
     {
         this.affectsChildren = affectsChildren;
         this.materialIndex = materialIndex;
         this.propertyName = propertyName;
         this.propertyNameAlts = propertyNameAlts;
-        this.updateRenderers = updateRenderers;
     }
 
     protected Material GetSharedMaterial()
@@ -341,7 +375,7 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         base.Init();
     }
 
-    protected override void OnDisable()
+    protected override void Disable()
     {
         StopAllCoroutines(); //TO DO??
         if (rend != null)
@@ -359,7 +393,7 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
                             if (originalBlender.NotNullContainsKey(renMat)) originalBlender[renMat].Dispose();
                         }
                 }
-            base.OnDisable();
+            base.Disable();
         }
     }
 

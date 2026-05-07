@@ -25,10 +25,7 @@ public class RenderersSetColor_Blink : RenderersSetColor
 
     protected override void UpdateBehaviour()
     {
-        bool ur = updateRenderers;
-        updateRenderers = false;
         base.UpdateBehaviour();
-        updateRenderers = ur;
     }
 
 #if UNITY_EDITOR
@@ -38,10 +35,10 @@ public class RenderersSetColor_Blink : RenderersSetColor
     }
 #endif
 
-    protected override void OnDisable()
+    protected override void Disable()
     {
         color = defaultColor;
-        base.OnDisable();
+        base.Disable();
     }
 
     public void SetDuration(float duration)
@@ -53,7 +50,6 @@ public class RenderersSetColor_Blink : RenderersSetColor
     {
         if (this.IsActiveAndEnabled())
         {
-            if (updateRenderers) UpdateRenderersInternal();
             if (co != null)
             {
                 StopCoroutine(co);

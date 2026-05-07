@@ -34,9 +34,9 @@ public class RenderersSetTexture_FromMaterial : RenderersSetTexture
         base.OnEnable();
     }
 
-    protected override void OnDisable()
+    protected override void Disable()
     {
-        base.OnDisable();
+        base.Disable();
         for (int i = 0; i < preProcessors.Length; i++)
             preProcessors[i].Release();
         proceduralTexture.Release();

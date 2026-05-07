@@ -7,8 +7,10 @@ public class FadeInOut : MonoBehaviour
 {
     AlphaHolder alphaHolder;
 
+    [MinValue(0f)]
     [SerializeField]
     float timeFadeOut = 0.5f;
+    [MinValue(0f)]
     [SerializeField]
     float timeFadeIn = 0.5f;
     [SerializeField]
@@ -198,8 +200,9 @@ public class FadeInOut : MonoBehaviour
             if (deltaTime > fadeTime) deltaTime = 0f; //Don't progress if lag spike
             currentAlpha = alphaHolder.alpha;
 
-            if (fadingIn) currentAlpha = Mathf.Min(1f, currentAlpha + (deltaTime / fadeTime));
-            else currentAlpha = Mathf.Max(0f, currentAlpha - (deltaTime / fadeTime));
+            float div = (fadeTime <= 0f) ? Mathf.Infinity : deltaTime / fadeTime;
+            if (fadingIn) currentAlpha = Mathf.Min(1f, currentAlpha + div);
+            else currentAlpha = Mathf.Max(0f, currentAlpha - div);
             fadeAmount?.Invoke(currentAlpha);
 
             if ((currentAlpha >= 1f) && (alphaHolder.alpha < 1f))

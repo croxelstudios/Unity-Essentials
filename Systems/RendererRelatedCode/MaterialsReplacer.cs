@@ -33,6 +33,8 @@ public class MaterialsReplacer : MonoBehaviour
     bool additionWasTracked = false;
 #endif
 
+    Transform parent;
+
     void UpdateMaterials()
     {
         replacements = replacements.ClearOrCreate();
@@ -45,7 +47,7 @@ public class MaterialsReplacer : MonoBehaviour
 #if UNITY_EDITOR
         RemoveInstances();
 #endif
-        Transform parent = transform;
+        parent = transform;
         for (int i = 0; i < parentSearch; i++)
             parent = parent.parent;
         Renderer[] r = parent.GetComponentsInChildren<Renderer>(true);
@@ -78,7 +80,10 @@ public class MaterialsReplacer : MonoBehaviour
         }
         else
 #endif
-            ReplaceMaterials();
+        {
+            if (!isChanged)
+                ReplaceMaterials();
+        }
     }
 
     void OnDisable()
@@ -96,6 +101,22 @@ public class MaterialsReplacer : MonoBehaviour
         }
         else
 #endif
+        {
+            if (parent.gameObject.activeInHierarchy)
+                TryDisable();
+            else ActivationTracker.TrackActivation(parent, TryDisable);
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (isChanged)
+            ResetMaterials();
+    }
+
+    void TryDisable()
+    {
+        if (isChanged && (!enabled))
             ResetMaterials();
     }
 

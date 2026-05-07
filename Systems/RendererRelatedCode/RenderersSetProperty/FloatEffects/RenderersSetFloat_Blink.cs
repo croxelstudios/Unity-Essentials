@@ -33,17 +33,13 @@ public class RenderersSetFloat_Blink : RenderersSetFloat
 
     protected override void UpdateBehaviour()
     {
-        bool ur = updateRenderers;
-        updateRenderers = false;
         base.UpdateBehaviour();
-        updateRenderers = ur;
     }
 
     public void Blink()
     {
         if (this.IsActiveAndEnabled())
         {
-            if (updateRenderers) UpdateRenderersInternal();
             if (co != null)
             {
                 StopCoroutine(co);
