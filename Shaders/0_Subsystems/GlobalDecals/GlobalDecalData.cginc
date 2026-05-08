@@ -11,6 +11,7 @@ float4x4 _GlobalDecalMatrix_0;
 float3 _GlobalDecalDirection_0;
 float _GlobalDecalDepth_0;
 float _GlobalDecalDepthFade_0;
+float _GlobalDecalStartFade_0;
 float _GlobalDecalAngleRange_0;
 float _GlobalDecalAngleFade_0;
 
@@ -98,4 +99,5 @@ void GetDecalColor_half(float3 WorldPosition, float3 WorldNormal, out float4 Dec
         _GlobalDecalAngleRange_0 - _GlobalDecalAngleFade_0, angle), 0.0, 1.0);
     DecalColor.a *= clamp(InverseLerp(_GlobalDecalDepth_0,
         _GlobalDecalDepth_0 - _GlobalDecalDepthFade_0, depth), 0.0, 1.0);
+    DecalColor.a *= clamp(InverseLerp(0, _GlobalDecalStartFade_0, depth), 0.0, 1.0);
 }
