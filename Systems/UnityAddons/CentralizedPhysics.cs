@@ -1052,17 +1052,25 @@ public static class NDPhysics
     }
 
     public static bool RadiusCast(Vector3 origin, Vector3 direction, float radius,
-        float distance, out NDRaycastHit hit, LayerMask mask, bool is2D)
+        float distance, out NDRaycastHit hit, LayerMask mask, bool is2D,
+        QueryTriggerInteraction queryTriggers = QueryTriggerInteraction.UseGlobal)
     {
         if (is2D)
         {
+            bool queryTrig = Physics2D.queriesHitTriggers;
+            if (queryTriggers != QueryTriggerInteraction.UseGlobal)
+                Physics2D.queriesHitTriggers = (queryTriggers == QueryTriggerInteraction.Ignore) ? false : true;
+
             RaycastHit2D hit2 = Physics2D.CircleCast(origin, radius, direction, distance, mask);
+
+            Physics2D.queriesHitTriggers = queryTrig;
+
             hit = new NDRaycastHit(hit2);
             return hit2;
         }
         else
         {
-            bool didHit = Physics.SphereCast(origin, radius, direction, out RaycastHit hit3, distance, mask);
+            bool didHit = Physics.SphereCast(origin, radius, direction, out RaycastHit hit3, distance, mask, queryTriggers);
             hit = new NDRaycastHit(hit3, distance);
             return didHit;
         }
