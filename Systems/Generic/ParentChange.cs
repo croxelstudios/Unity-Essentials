@@ -76,7 +76,7 @@ public class ParentChange : MonoBehaviour
                 Destroy(gameObject);
                 break;
             case DestroyBehaviour.DestroyWithOldParentWhenParentless:
-                if ((hadParent) && (transform.parent == null))
+                if (hadParent && (transform.parent == null))
                     Destroy(gameObject);
                 break;
             default:
@@ -108,6 +108,12 @@ public class ParentChange : MonoBehaviour
             transform.SetParent(targetParent);
             ApplyLocalTransformChanges();
         }
+    }
+
+    public void ResetParent()
+    {
+        if (this.IsActiveAndEnabled() || !checkActiveState)
+            transform.SetParent(oldParent.transform);
     }
 
     void ApplyLocalTransformChanges()

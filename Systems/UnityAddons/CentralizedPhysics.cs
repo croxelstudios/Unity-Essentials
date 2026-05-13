@@ -161,6 +161,14 @@ public class NDRigidbody
             else rigid3.useGravity = (value > 0.5f) ? true : false;
         }
     }
+    public Vector3 gravity
+    {
+        get
+        {
+            if (is2D) return Physics2D.gravity * gravityScale;
+            else return Physics.gravity * gravityScale;
+        }
+    }
     public RigidbodyConstraints constraints
     {
         get
@@ -209,6 +217,11 @@ public class NDRigidbody
         {
             if (is2D) return rigid2.position;
             else return rigid3.position;
+        }
+        set
+        {
+            if (is2D) rigid2.position = value;
+            else rigid3.position = value;
         }
     }
     public Quaternion rotation

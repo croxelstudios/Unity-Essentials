@@ -17,14 +17,14 @@ public class StateMachine_ByChildren : StateMachine
     protected override void OnEnable()
     {
         UpdateStates();
-        Undo.postprocessModifications += OnPostprocess;
+        OnEditorChange.PropertyModification_In(PropertyModification);
         EditorApplication.hierarchyChanged += OnHierarchyChanged;
         base.OnEnable();
     }
 
     void OnDisable()
     {
-        Undo.postprocessModifications -= OnPostprocess;
+        OnEditorChange.PropertyModification_Out(PropertyModification);
         EditorApplication.hierarchyChanged -= OnHierarchyChanged;
     }
 
@@ -42,20 +42,14 @@ public class StateMachine_ByChildren : StateMachine
         PrefabUtility.RecordPrefabInstancePropertyModifications(this);
     }
 
-    UndoPropertyModification[] OnPostprocess(UndoPropertyModification[] modifications)
+    void PropertyModification(PropertyModification pm)
     {
-        foreach (UndoPropertyModification m in modifications)
+        if (pm.target is GameObject go)
         {
-            PropertyModification pm = m.currentValue;
-            if (pm.target is GameObject go)
-            {
-                if ((go.transform.parent == transform) &&
-                    (pm.propertyPath == "m_Name"))
-                    UpdateStates();
-            }
+            if ((go.transform.parent == transform) &&
+                (pm.propertyPath == "m_Name"))
+                UpdateStates();
         }
-
-        return modifications;
     }
 
     void OnHierarchyChanged()

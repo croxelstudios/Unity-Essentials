@@ -34,8 +34,9 @@ public class CopyPropertyValue : MonoBehaviour
 #endif
 
 #if UNITY_EDITOR
-            if (!Application.isPlaying)
-                Undo.postprocessModifications += OnPostprocess;
+            this.OnEditorChange_In("sourceComponent", Copy, ".sourcePropertyName");
+            this.OnEditorChange_In("targetComponent", Copy, ".targetPropertyName");
+            this.OnEditorChange_In(Copy);
 #endif
         }
     }
@@ -43,7 +44,9 @@ public class CopyPropertyValue : MonoBehaviour
     void OnDisable()
     {
 #if UNITY_EDITOR
-        Undo.postprocessModifications -= OnPostprocess;
+        this.OnEditorChange_Out("sourceComponent", Copy, ".sourcePropertyName");
+        this.OnEditorChange_Out("targetComponent", Copy, ".targetPropertyName");
+        this.OnEditorChange_Out(Copy);
 #endif
         StopAllCoroutines();
     }
@@ -71,28 +74,4 @@ public class CopyPropertyValue : MonoBehaviour
         return (sourceComponent != null) && (targetComponent != null) &&
             (!sourcePropertyName.IsNullOrEmpty()) && (!targetPropertyName.IsNullOrEmpty());
     }
-
-#if UNITY_EDITOR
-    UndoPropertyModification[] OnPostprocess(UndoPropertyModification[] modifications)
-    {
-        foreach (UndoPropertyModification m in modifications)
-        {
-            PropertyModification pm = m.currentValue;
-            if (((pm.target == sourceComponent) && PathContainsProp(pm.propertyPath, sourcePropertyName)) ||
-                ((pm.target == targetComponent) && PathContainsProp(pm.propertyPath, targetPropertyName)) ||
-                (pm.target == this))
-                Copy();
-        }
-
-        return modifications;
-    }
-
-    bool PathContainsProp(string a, string b)
-    {
-        a = a.ToLower().Replace("m_", "");
-        b = b.ToLower().Replace("m_", "");
-        if (a.Contains(b)) return true;
-        else return false;
-    }
-#endif
 }

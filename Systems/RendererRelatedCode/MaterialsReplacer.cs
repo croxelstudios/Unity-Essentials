@@ -75,7 +75,7 @@ public class MaterialsReplacer : MonoBehaviour
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            Undo.postprocessModifications += OnPostprocess;
+            OnEditorChange.PropertyModification_In(PropertyModification);
             SceneView.duringSceneGui += OnSceneGUI;
         }
         else
@@ -94,7 +94,7 @@ public class MaterialsReplacer : MonoBehaviour
             RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            Undo.postprocessModifications -= OnPostprocess;
+            OnEditorChange.PropertyModification_Out(PropertyModification);
             SceneView.duringSceneGui -= OnSceneGUI;
 
             EditorApplication.delayCall += () => RemoveInstances();
@@ -168,55 +168,49 @@ public class MaterialsReplacer : MonoBehaviour
         }
     }
 
-    UndoPropertyModification[] OnPostprocess(UndoPropertyModification[] modifications)
+    void PropertyModification(PropertyModification pm)
     {
-        foreach (UndoPropertyModification m in modifications)
+        if (pm.target is Renderer ren)
         {
-            PropertyModification pm = m.currentValue;
-            if (pm.target is Renderer ren)
-            {
-                for (int i = 0; i < rend.Length; i++)
-                    if (rend[i].rend == ren)
+            for (int i = 0; i < rend.Length; i++)
+                if (rend[i].rend == ren)
+                {
+                    if (pm.propertyPath == "m_Enabled")
                     {
-                        if (pm.propertyPath == "m_Enabled")
-                        {
-                            //rend[i].UpdateActiveState(pm.value.Parse<bool>());
-                            //updateInstances = true;
-                        }
-                        else if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
-                        {
-                            instanced[i].GetCopyOf(ren);
-                            ReplaceMaterials(instanced[i], false);
-                        }
-                        else updateInstances = true;
+                        //rend[i].UpdateActiveState(pm.value.Parse<bool>());
+                        //updateInstances = true;
                     }
-            }
-            else if (pm.target is MeshFilter filter)
-            {
-                for (int i = 0; i < rend.Length; i++)
-                    if (rend[i].filter == filter)
+                    else if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
                     {
-                        if ((!instancedFilters.IsNullOrEmpty()) && (instancedFilters[i] != null))
-                            instancedFilters[i].GetCopyOf(filter);
-                        else updateInstances = true;
+                        instanced[i].GetCopyOf(ren);
+                        ReplaceMaterials(instanced[i], false);
                     }
-            }
-            else if (pm.target is Transform tr)
-            {
-                for (int i = 0; i < rend.Length; i++)
-                    if (rend[i].transform.IsChildOf(tr))
-                    {
-                        if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
-                        {
-                            instanced[i].GetCopyOf(rend[i].rend);
-                            ReplaceMaterials(instanced[i], false);
-                        }
-                        else updateInstances = true;
-                    }
-            }
+                    else updateInstances = true;
+                }
         }
-
-        return modifications;
+        else if (pm.target is MeshFilter filter)
+        {
+            for (int i = 0; i < rend.Length; i++)
+                if (rend[i].filter == filter)
+                {
+                    if ((!instancedFilters.IsNullOrEmpty()) && (instancedFilters[i] != null))
+                        instancedFilters[i].GetCopyOf(filter);
+                    else updateInstances = true;
+                }
+        }
+        else if (pm.target is Transform tr)
+        {
+            for (int i = 0; i < rend.Length; i++)
+                if (rend[i].transform.IsChildOf(tr))
+                {
+                    if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
+                    {
+                        instanced[i].GetCopyOf(rend[i].rend);
+                        ReplaceMaterials(instanced[i], false);
+                    }
+                    else updateInstances = true;
+                }
+        }
     }
 
     void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
