@@ -96,6 +96,11 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
     protected virtual void Transformation(T value)
     {
     }
+
+    protected T CurrentOffset()
+    {
+        return Generics.Add(Generics.Scale(current, amountMult), metaCurrent);
+    }
 }
 
 public class BOffsetBasedTransformer : MonoBehaviour
