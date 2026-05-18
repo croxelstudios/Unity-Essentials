@@ -103,6 +103,7 @@ public class CentralizedSettingsDrawer : PropertyDrawer
                 RemoveAddAttributes.Remove(prop,
                     typeof(LabelTextAttribute),
                     typeof(HorizontalGroupAttribute),
+                    typeof(IndentAttribute),
                     typeof(LabelWidthAttribute));
                 {
                     PropertyTree tree = GetTree(property, prop.serializedObject);

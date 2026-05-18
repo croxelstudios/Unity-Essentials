@@ -497,7 +497,8 @@ public class RavioliButton : RavioliButton_Button
 
     public void TryReselectChild()
     {
-        currentButton.TrySelect();
+        if (this.IsActiveAndEnabled() && selected)
+            currentButton.TrySelect();
     }
 
     public void TryDeselectChild()

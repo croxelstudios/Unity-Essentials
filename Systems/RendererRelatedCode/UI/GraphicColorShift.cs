@@ -18,6 +18,8 @@ public class GraphicColorShift : MonoBehaviour
     [Header("Shift Behaviour")]
     [SerializeField]
     ShiftMode shiftMode;
+    [SerializeField]
+    Interaction interaction;
 
     Graphic[] graphics;
 
@@ -54,6 +56,19 @@ public class GraphicColorShift : MonoBehaviour
 
     Color[] originals;
 
+    enum ShiftMode
+    {
+        gradient,
+        multipleGradient,
+        colorBand
+    }
+
+    enum Interaction
+    {
+        Multiply,
+        Replace
+    }
+
     void UpdateBehaviour()
     {
 #if UNITY_EDITOR
@@ -72,15 +87,18 @@ public class GraphicColorShift : MonoBehaviour
                 switch (shiftMode)
                 {
                     case ShiftMode.gradient:
-                        graphic.color = gradient.Evaluate(time) * original;
+                        graphic.color = gradient.Evaluate(time);
                         break;
                     case ShiftMode.multipleGradient:
-                        graphic.color = gradientsWrapper.Evaluate(time) * original;
+                        graphic.color = gradientsWrapper.Evaluate(time);
                         break;
                     case ShiftMode.colorBand:
-                        graphic.color = colorBand.Evaluate(time) * original;
+                        graphic.color = colorBand.Evaluate(time);
                         break;
                 }
+
+                if (interaction == Interaction.Multiply)
+                    graphic.color *= original;
             }
         }
     }
@@ -126,13 +144,6 @@ public class GraphicColorShift : MonoBehaviour
     public void ChangeTimeMode(int timeMode)
     {
         this.timeMode = (RenderingTimeMode)timeMode;
-    }
-
-    enum ShiftMode
-    {
-        gradient,
-        multipleGradient,
-        colorBand
     }
 
     [Serializable]
