@@ -177,7 +177,10 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
 
             //Calculate and send euler angles with direction and amount of rotation
             Quaternion result = Quaternion.AngleAxis(degreesPerSecondSpeed, axis);
-            rotation?.Invoke(sendFrameMovement ? angleAxisPerThisFrame : result);
+            Quaternion r = sendFrameMovement ?
+                (angleAxisPerThisFrame * (addCurrent ? Current() : Quaternion.identity)) : result;
+
+            rotation?.Invoke(r);
             if (applyInTransform)
                 Apply(angleAxisPerThisFrame, locally);
         }

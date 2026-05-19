@@ -64,7 +64,7 @@ public class BColliderInteractor : MonoBehaviour
             return true;
         else if (checkRigidbodyTag)
         {
-            NDRigidbody rigid = NDRigidbody.GetNDRigidbodyFrom(other, NDRigidbody.Scope.inParents);
+            NDRigidbody rigid = NDRigidbody.GetNDRigidbodyFrom(other, Scope.inParents);
             if ((rigid != null) && detectionTags.Contains(rigid.tag) &&
                 layerMask.ContainsLayer(rigid.layer))
                 return true;

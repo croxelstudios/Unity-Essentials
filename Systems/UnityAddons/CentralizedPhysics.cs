@@ -357,8 +357,6 @@ public class NDRigidbody
         return result;
     }
 
-    public enum Scope { inThis, inParents, inChildren }
-
     public void AddForce(Vector2 force, ForceMode forceMode)
     {
         AddForce((Vector3)force, forceMode);
@@ -485,7 +483,23 @@ public class NDRigidbody
     }
 
     //TO DO: Full rigidbody casts.
+
+    public void Destroy()
+    {
+        if (is2D)
+        {
+            rigids2.Remove(rigid2);
+            GameObject.Destroy(rigid2);
+        }
+        else
+        {
+            rigids3.Remove(rigid3);
+            GameObject.Destroy(rigid3);
+        }
+    }
 }
+
+public enum Scope { inThis, inParents, inChildren }
 
 [Serializable]
 public class NDCollider

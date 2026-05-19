@@ -87,6 +87,11 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
     [PropertyOrder(-1)]
     [SerializeField]
     protected bool sendFrameMovement = false;
+    [Indent]
+    [ShowIf("sendFrameMovement")]
+    [PropertyOrder(-1)]
+    [SerializeField]
+    protected bool addCurrent = false;
     #endregion
 
     #region Events

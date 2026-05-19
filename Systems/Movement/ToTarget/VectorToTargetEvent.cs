@@ -198,7 +198,10 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
 
             //Calculate and send vector with direction and amount of speed
             Vector3 result = direction * unitsPerSecondSpeed;
-            vector?.Invoke(sendFrameMovement ? speedPerThisFrame : result);
+            Vector3 r = sendFrameMovement ?
+                (speedPerThisFrame + (addCurrent ? Current() : Vector3.zero)) : result;
+
+            vector?.Invoke(r);
             if (applyInTransform)
                 Apply(speedPerThisFrame, locally);
             else if (reorientTransform)

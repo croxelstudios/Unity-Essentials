@@ -33,7 +33,7 @@ public class BCollisionManager : BColliderInteractor
         collisions = new List<NDCollision>();
         base.Awake();
 
-        rigid = NDRigidbody.GetNDRigidbodyFrom(gameObject, NDRigidbody.Scope.inParents);
+        rigid = NDRigidbody.GetNDRigidbodyFrom(gameObject, Scope.inParents);
         if (rigid != null) SetUpDetector(rigid.gameObject);
         else SetUpDetector(gameObject);
     }

@@ -172,7 +172,8 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
 
             //Calculate and send vector with direction and amount of speed
             Vector4 result = direction * unitsPerSecondSpeed;
-            Vector4 r = sendFrameMovement ? speedPerThisFrame : result;
+            Vector4 r = sendFrameMovement ?
+                (speedPerThisFrame + (addCurrent ? Current() : Vector4.zero)) : result;
 
             if (leftOrWidth) leftOrWidthValue?.Invoke(r.x);
             if (topOrHeight) topOrHeightValue?.Invoke(r.y);

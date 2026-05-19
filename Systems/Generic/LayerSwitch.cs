@@ -5,6 +5,7 @@ public class LayerSwitch : MonoBehaviour
 {
     [SerializeField]
     Transform inObject = null;
+    //TO DO: [LayerSelector]
     [SerializeField]
     string newLayer = "";
 
@@ -18,37 +19,66 @@ public class LayerSwitch : MonoBehaviour
 
     public void SwitchLayer()
     {
-        if (oldLayers == null) oldLayers = new Dictionary<Transform, int>();
+        oldLayers = oldLayers.CreateIfNull();
         SwitchLayer(inObject, LayerMask.NameToLayer(newLayer));
+    }
+
+    public void SwitchLayer_ThisOnly()
+    {
+        oldLayers = oldLayers.CreateIfNull();
+        SwitchLayer_ThisOnly(inObject, LayerMask.NameToLayer(newLayer));
+    }
+
+    public void SwitchLayer(string layer)
+    {
+        oldLayers = oldLayers.CreateIfNull();
+        SwitchLayer(inObject, LayerMask.NameToLayer(layer));
+    }
+
+    public void SwitchLayer_ThisOnly(string layer)
+    {
+        oldLayers = oldLayers.CreateIfNull();
+        SwitchLayer_ThisOnly(inObject, LayerMask.NameToLayer(layer));
     }
 
     public void RevertLayer()
     {
-        SwitchLayer(inObject, ref oldLayers, 0);
+        SwitchLayer(inObject, ref oldLayers, -1);
     }
 
     void SwitchLayer(Transform tr, int layer)
     {
-        SwitchLayer(tr, ref oldLayers, layer, true);
+        SwitchLayer(tr, ref oldLayers, layer, IsNotEditor());
     }
 
-    void SwitchLayer(Transform tr, ref Dictionary<Transform, int> dic, int defaultLayer, bool registerDic = false)
+    void SwitchLayer_ThisOnly(Transform tr, int layer)
+    {
+        SwitchLayer_ThisOnly(tr, ref oldLayers, layer, IsNotEditor());
+    }
+
+    void SwitchLayer(Transform tr, ref Dictionary<Transform, int> dic, int newLayer, bool registerDic = false)
     {
         for (int i = 0; i < tr.childCount; i++)
-            SwitchLayer(tr.GetChild(i), ref dic, defaultLayer, registerDic);
+            SwitchLayer(tr.GetChild(i), ref dic, newLayer, registerDic);
+        SwitchLayer_ThisOnly(tr, ref dic, newLayer, registerDic);
+    }
+
+    void SwitchLayer_ThisOnly(Transform tr, ref Dictionary<Transform, int> dic, int newLayer, bool registerDic = false)
+    {
         if (registerDic)
         {
             int l = tr.gameObject.layer;
-            if (dic.ContainsKey(tr)) { if (l != defaultLayer) dic[tr] = l; }
+            if (dic.ContainsKey(tr)) { if (l != newLayer) dic[tr] = l; }
             else dic.Add(tr, l);
 
-            tr.gameObject.layer = defaultLayer;
+            tr.gameObject.layer = newLayer;
         }
         else
         {
             if ((dic != null) && dic.ContainsKey(tr))
                 tr.gameObject.layer = dic[tr];
-            else tr.gameObject.layer = defaultLayer;
+            else if (newLayer >= 0)
+                tr.gameObject.layer = newLayer;
         }
     }
 
@@ -60,5 +90,15 @@ public class LayerSwitch : MonoBehaviour
     public void ActivateObject()
     {
         inObject.gameObject.SetActive(true);
+    }
+
+    bool IsNotEditor()
+    {
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            return false;
+        else
+#endif
+            return true;
     }
 }
