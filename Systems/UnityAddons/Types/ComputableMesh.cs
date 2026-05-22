@@ -57,6 +57,8 @@ public class ComputableMesh : ComputableBase<Mesh>
     Vector3[] tmpParticleVert;
     Vector3[] tmpParticleNorm;
 
+    //public static implicit operator Mesh(ComputableMesh m) => m.mesh;
+
     public struct VertexData //TO DO: Posibility of using less data? ->
                              //Would require different versions of compute shaders
                              //or implementing custom stride reading by passing a

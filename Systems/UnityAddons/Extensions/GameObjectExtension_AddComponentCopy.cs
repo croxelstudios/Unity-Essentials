@@ -185,27 +185,14 @@ public static class GameObjectExtension_AddComponentCopy
                     return false;
                 if (copyBaseValues != other.copyBaseValues)
                     return false;
-                if (exclusions != null)
-                {
-                    if (exclusions.Length != other.exclusions.Length)
-                        return false;
-                    for (int i = 0; i < exclusions.Length; i++)
-                        if (exclusions[i] != other.exclusions[i])
-                            return false;
-                }
-                else if (other.exclusions != null)
+                if (!exclusions.IsEqual(other.exclusions))
                     return false;
                 return true;
             }
 
             public override int GetHashCode()
             {
-                int hash = type.GetHashCode();
-                if (exclusions != null)
-                    for (int i = 0; i < exclusions.Length; i++)
-                        hash = hash * 31 + exclusions[i].GetHashCode();
-                hash = hash * 31 + copyBaseValues.GetHashCode();
-                return hash;
+                return HashMaker.Elements(type, exclusions, copyBaseValues);
             }
 
             public static bool operator ==(CopyOptions o1, CopyOptions o2)

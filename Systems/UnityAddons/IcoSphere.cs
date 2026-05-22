@@ -411,7 +411,7 @@ public static class IcoSphere
 
         public override int GetHashCode()
         {
-            return (vertex0 + vertex1).GetHashCode() * 31 + (triangle0 + triangle1).GetHashCode();
+            return HashMaker.Elements(vertex0 + vertex1, triangle0 + triangle1);
         }
 
         public static bool operator ==(Edge o1, Edge o2)

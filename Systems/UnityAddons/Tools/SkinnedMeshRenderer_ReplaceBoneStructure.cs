@@ -14,7 +14,7 @@ public class SkinnedMeshRenderer_ReplaceBoneStructure : MonoBehaviour
 
     enum Mode { ByHierarchy, ByName };
 
-    [Button]
+    [Button(ButtonSizes.Large)]
     public void ReplaceBones()
     {
         GetMeshRenderer();

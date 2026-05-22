@@ -12,7 +12,6 @@ public static class FindWithTag
     public static T Any<T>(params string[] tags) where T : Object
     {
         const string name = "Component";
-        const string parameter = "string[]";
 
         if (typeof(T) == typeof(GameObject))
             return GameObject(tags) as T;
@@ -21,60 +20,26 @@ public static class FindWithTag
             return Transform(tags) as T;
 
         //Invoke Component method by reflection
-        MethodInfo baseMethod = typeof(FindWithTag)
-                .GetMethod(
-                    name,
-                    BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    new Type[] { typeof(string[]) },
-                    null
-                );
-        if (baseMethod == null)
-            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
-        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
-
-        object result = genericMethod.Invoke(
-                null,
-                new object[] { tags }
-            );
-        return (T)result;
+        return ReflectionTools.InvokeMethod<T>(typeof(FindWithTag), name, tags);
     }
 
-    public static T Anys<T>(params string[] tags) where T : Object
+    public static T[] Anys<T>(params string[] tags) where T : Object
     {
         const string name = "Components";
-        const string parameter = "string[]";
 
         if (typeof(T) == typeof(GameObject))
-            return GameObjects(tags) as T;
+            return GameObjects(tags) as T[];
 
         if (typeof(T) == typeof(Transform))
-            return Transforms(tags) as T;
+            return Transforms(tags) as T[];
 
         //Invoke Component method by reflection
-        MethodInfo baseMethod = typeof(FindWithTag)
-                .GetMethod(
-                    name,
-                    BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    new Type[] { typeof(string[]) },
-                    null
-                );
-        if (baseMethod == null)
-            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
-        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
-
-        object result = genericMethod.Invoke(
-                null,
-                new object[] { tags }
-            );
-        return (T)result;
+        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tags);
     }
 
     public static T Any<T>(params string[][] tags) where T : Object
     {
         const string name = "Component";
-        const string parameter = "string[][]";
 
         if (typeof(T) == typeof(GameObject))
             return GameObject(tags) as T;
@@ -83,60 +48,26 @@ public static class FindWithTag
             return Transform(tags) as T;
 
         //Invoke Component method by reflection
-        MethodInfo baseMethod = typeof(FindWithTag)
-                .GetMethod(
-                    name,
-                    BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    new Type[] { typeof(string[][]) },
-                    null
-                );
-        if (baseMethod == null)
-            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
-        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
-
-        object result = genericMethod.Invoke(
-                null,
-                new object[] { tags }
-            );
-        return (T)result;
+        return ReflectionTools.InvokeMethod<T>(typeof(FindWithTag), name, tags);
     }
 
-    public static T Anys<T>(params string[][] tags) where T : Object
+    public static T[] Anys<T>(params string[][] tags) where T : Object
     {
         const string name = "Components";
-        const string parameter = "string[][]";
 
         if (typeof(T) == typeof(GameObject))
-            return GameObjects(tags) as T;
+            return GameObjects(tags) as T[];
 
         if (typeof(T) == typeof(Transform))
-            return Transforms(tags) as T;
+            return Transforms(tags) as T[];
 
         //Invoke Component method by reflection
-        MethodInfo baseMethod = typeof(FindWithTag)
-                .GetMethod(
-                    name,
-                    BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    new Type[] { typeof(string[][]) },
-                    null
-                );
-        if (baseMethod == null)
-            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
-        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
-
-        object result = genericMethod.Invoke(
-                null,
-                new object[] { tags }
-            );
-        return (T)result;
+        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tags);
     }
 
     public static T Any<T>(string tag, params string[] extraTags) where T : Object
     {
         const string name = "Component";
-        const string parameter = "string, string[]";
 
         if (typeof(T) == typeof(GameObject))
             return GameObject(tag, extraTags) as T;
@@ -145,29 +76,12 @@ public static class FindWithTag
             return Transform(tag, extraTags) as T;
 
         //Invoke Component method by reflection
-        MethodInfo baseMethod = typeof(FindWithTag)
-                .GetMethod(
-                    name,
-                    BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    new Type[] { typeof(string), typeof(string[]) },
-                    null
-                );
-        if (baseMethod == null)
-            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
-        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T));
-
-        object result = genericMethod.Invoke(
-                null,
-                new object[] { tag, extraTags }
-            );
-        return (T)result;
+        return ReflectionTools.InvokeMethod<T>(typeof(FindWithTag), name, tag, extraTags);
     }
 
     public static T[] Anys<T>(string tag, params string[] extraTags) where T : Object
     {
         const string name = "Components";
-        const string parameter = "string, string[]";
 
         if (typeof(T) == typeof(GameObject))
             return GameObjects(tag, extraTags) as T[];
@@ -176,23 +90,7 @@ public static class FindWithTag
             return Transforms(tag, extraTags) as T[];
 
         //Invoke Component method by reflection
-        MethodInfo baseMethod = typeof(FindWithTag)
-                .GetMethod(
-                    name,
-                    BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    new Type[] { typeof(string), typeof(string[]) },
-                    null
-                );
-        if (baseMethod == null)
-            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + parameter + ") wasn't found.");
-        MethodInfo genericMethod = baseMethod.MakeGenericMethod(typeof(T[]));
-
-        object result = genericMethod.Invoke(
-                null,
-                new object[] { tag, extraTags }
-            );
-        return (T[])result;
+        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tag, extraTags);
     }
     #endregion
 
@@ -540,6 +438,34 @@ public static class FindWithTag
     #endregion
 
     #region In children
+    public static T AnyInChildren<T>(GameObject obj, params string[] tags) where T : Object
+    {
+        const string name = "ComponentInChildren";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObjectInChildren(obj, tags) as T;
+
+        if (typeof(T) == typeof(Transform))
+            return TransformInChildren(obj, tags) as T;
+
+        //Invoke Component method by reflection
+        return ReflectionTools.InvokeMethod<T>(typeof(FindWithTag), name, tags);
+    }
+
+    public static T[] AnysInChildren<T>(GameObject obj, params string[] tags) where T : Object
+    {
+        const string name = "ComponentsInChildren";
+
+        if (typeof(T) == typeof(GameObject))
+            return GameObjectsInChildren(obj, tags) as T[];
+
+        if (typeof(T) == typeof(Transform))
+            return TransformsInChildren(obj, tags) as T[];
+
+        //Invoke Component method by reflection
+        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tags);
+    }
+
     public static GameObject GameObjectInChildren(GameObject obj, params string[] tags)
     {
         return TransformInChildren(obj, tags).gameObject;

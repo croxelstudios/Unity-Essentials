@@ -38,7 +38,7 @@ public struct RendMatProp : IEquatable<RendMatProp>
 
     public override int GetHashCode()
     {
-        return rendMat.GetHashCode() * 31 + (property.IsNullOrEmpty() ? 0 : property.GetHashCode());
+        return HashMaker.Elements(rendMat, property);
     }
 
     public static bool operator ==(RendMatProp o1, RendMatProp o2)
@@ -94,7 +94,7 @@ public struct RendMat : IEquatable<RendMat>
 
     public override int GetHashCode()
     {
-        return (rend ? rend.GetHashCode() : 0) * 31 + mat.GetHashCode();
+        return HashMaker.Elements(rend, mat);
     }
 
     public static bool operator ==(RendMat o1, RendMat o2)
@@ -133,8 +133,7 @@ public struct SharedMatProp : IEquatable<SharedMatProp>
 
     public override int GetHashCode()
     {
-        return (material ? material.GetHashCode() : 0) * 31 +
-            (property.IsNullOrEmpty() ? 0 : property.GetHashCode());
+        return HashMaker.Elements(material, property);
     }
 
     public static bool operator ==(SharedMatProp o1, SharedMatProp o2)

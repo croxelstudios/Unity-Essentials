@@ -557,8 +557,7 @@ public struct TextureSettings : IEquatable<TextureSettings>
 
     public override int GetHashCode()
     {
-        return (((colorFormat.GetHashCode() * 31 + filterMode.GetHashCode()) * 31 +
-            wrapMode.GetHashCode()) * 31 + MSAA.GetHashCode()) * 31 + depthBufferBits.GetHashCode();
+        return HashMaker.Elements(colorFormat, filterMode, wrapMode, MSAA, depthBufferBits);
     }
 
     public static bool operator ==(TextureSettings o1, TextureSettings o2)

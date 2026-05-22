@@ -56,32 +56,32 @@ public class RenderersVisible : DXMonoBehaviour
                 }
             }
         }
-        else
-        {
-            bool currentVisible = false;
-            for (int i = 0; i < renderers.Length; i++)
-                if (renderers[i].isVisible)
-                {
-                    currentVisible = true;
-                    break;
-                }
-            if (currentVisible)
+        else if (renderers != null)
             {
-                if (!prevVisible)
+                bool currentVisible = false;
+                for (int i = 0; i < renderers.Length; i++)
+                    if (renderers[i].isVisible)
+                    {
+                        currentVisible = true;
+                        break;
+                    }
+                if (currentVisible)
                 {
-                    becameInvisible?.Invoke();
-                    prevVisible = true;
+                    if (!prevVisible)
+                    {
+                        becameInvisible?.Invoke();
+                        prevVisible = true;
+                    }
+                }
+                else
+                {
+                    if (prevVisible)
+                    {
+                        becameVisible?.Invoke();
+                        prevVisible = false;
+                    }
                 }
             }
-            else
-            {
-                if (prevVisible)
-                {
-                    becameVisible?.Invoke();
-                    prevVisible = false;
-                }
-            }
-        }
     }
 
     void LateUpdate()
@@ -100,6 +100,7 @@ public class RenderersVisible : DXMonoBehaviour
 
     void OnDisable()
     {
-        cullingGroup.Dispose();
+        if (cullingGroup != null)
+            cullingGroup.Dispose();
     }
 }

@@ -5,21 +5,25 @@ public static class ComponentExtension_GetTransform
 {
     public static Transform GetTransform(this Component comp)
     {
-        Transform tr = comp as Transform;
-        if (tr != null) return tr;
-        else
+        switch (comp)
         {
-            Behaviour behaviour = comp as Behaviour;
-            if (behaviour != null)
-                return behaviour.transform;
-            else return null;
+            case Transform c:
+                return c;
+            case Behaviour c:
+                return c.transform;
+            case Collider c:
+                return c.transform;
+            case Renderer c:
+                return c.transform;
+            default:
+                return null;
         }
     }
 
     public static Transform GetTransform(this Object obj)
     {
-        GameObject go = obj as GameObject;
-        if (go != null) return go.transform;
+        if (obj is GameObject go)
+            return go.transform;
         else
         {
             Component comp = obj as Component;

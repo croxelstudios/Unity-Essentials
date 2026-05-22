@@ -254,9 +254,9 @@ public class NDRigidbody
         }
     }
 
-    public bool IsNull()
+    public bool IsValid()
     {
-        return (rigid2 == null) && (rigid3 == null);
+        return (rigid2 != null) || (rigid3 != null);
     }
 
     NDRigidbody(Rigidbody2D rigid)
@@ -770,14 +770,7 @@ public class NDCollider
 
     public LayerMask GetLayerCollisionMask()
     {
-        if (is2D) return Physics2D.GetLayerCollisionMask(layer);
-        else
-        {
-            int finalMask = 0;
-            for (int i = 0; i < 32; i++)
-                if (!Physics.GetIgnoreLayerCollision(layer, i)) finalMask = finalMask | (1 << i);
-            return finalMask;
-        }
+        return NDPhysics.GetLayerCollisionMask(layer, is2D);
     }
 
     bool IsNull()
@@ -948,20 +941,15 @@ public static class NDPhysics
 
     public static LayerMask GetLayerCollisionMask(int layer, bool is2D)
     {
-        LayerMask layerMask = default;
-        if (is2D)
-        {
-            for (int i = 0; i < 32; i++)
-                if (!Physics2D.GetIgnoreLayerCollision(layer, i))
-                    layerMask = layerMask.AddLayer(i);
-        }
+        if (is2D) return Physics2D.GetLayerCollisionMask(layer);
         else
         {
+            LayerMask finalMask = 0;
             for (int i = 0; i < 32; i++)
                 if (!Physics.GetIgnoreLayerCollision(layer, i))
-                    layerMask = layerMask.AddLayer(i);
+                    finalMask = finalMask.AddLayer(i);
+            return finalMask;
         }
-        return layerMask;
     }
 
     public static NDRigidbody[] GetRigidbodies(this NDCollider[] colliders)
@@ -1188,6 +1176,11 @@ public static class NDPhysics
     public static bool IsNull(this NDCollider collider)
     {
         return (collider == null) || ((collider.col2 == null) && (collider.col3 == null));
+    }
+
+    public static bool IsNull(this NDRigidbody rigidbody)
+    {
+        return (rigidbody == null) || (!rigidbody.IsValid());
     }
 
     public static float DefaultContactOffset(bool is2D)

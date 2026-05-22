@@ -53,8 +53,7 @@ public struct SerializedPropertyData : IEquatable<SerializedPropertyData>
 
     public override int GetHashCode()
     {
-        return ((obj == null) ? 0 : obj.GetHashCode()) * 31
-            + ((path == null) ? 0 : path.GetHashCode());
+        return HashMaker.Elements(obj, path);
     }
 
     public static bool operator ==(SerializedPropertyData o1, SerializedPropertyData o2)

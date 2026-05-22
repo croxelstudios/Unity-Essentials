@@ -683,7 +683,7 @@ public static class ComputableModule
 
             public override int GetHashCode()
             {
-                return ((reference == null) ? 0 : reference.GetHashCode()) * 31 + key.GetHashCode();
+                return HashMaker.Elements(reference, key);
             }
 
             public static bool operator ==(ValueKey o1, ValueKey o2)

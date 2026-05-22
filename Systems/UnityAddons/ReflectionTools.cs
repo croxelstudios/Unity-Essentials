@@ -440,6 +440,80 @@ public static class ReflectionTools
         return false;
     }
 
+    public static T InvokePrivateMethod<T>(object instance, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(instance.GetType(), name, parameters, BindingFlags.NonPublic | BindingFlags.Instance);
+        if (method.IsGenericMethod)
+            method = method.MakeGenericMethod(typeof(T));
+
+        return (T)method.Invoke(instance, parameters);
+    }
+
+    public static T InvokePrivateMethod<T>(Type type, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(type, name, parameters, BindingFlags.NonPublic | BindingFlags.Static);
+        if (method.IsGenericMethod)
+            method = method.MakeGenericMethod(typeof(T));
+
+        return (T)method.Invoke(null, parameters);
+    }
+
+    public static T InvokeMethod<T>(object instance, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(instance.GetType(), name, parameters, BindingFlags.Public | BindingFlags.Instance);
+        if (method.IsGenericMethod)
+            method = method.MakeGenericMethod(typeof(T));
+
+        return (T)method.Invoke(instance, parameters);
+    }
+
+    public static T InvokeMethod<T>(Type type, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(type, name, parameters, BindingFlags.Public | BindingFlags.Static);
+        if (method.IsGenericMethod)
+            method = method.MakeGenericMethod(typeof(T));
+
+        return (T)method.Invoke(null, parameters);
+    }
+
+    public static void InvokePrivateMethod(object instance, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(instance.GetType(), name, parameters, BindingFlags.NonPublic | BindingFlags.Instance);
+        method.Invoke(instance, parameters);
+    }
+
+    public static void InvokePrivateMethod(Type type, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(type, name, parameters, BindingFlags.NonPublic | BindingFlags.Static);
+        method.Invoke(null, parameters);
+    }
+
+    public static void InvokeMethod(object instance, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(instance.GetType(), name, parameters, BindingFlags.Public | BindingFlags.Instance);
+        method.Invoke(instance, parameters);
+    }
+
+    public static void InvokeMethod(Type type, string name, params object[] parameters)
+    {
+        MethodInfo method = GetMethod(type, name, parameters, BindingFlags.Public | BindingFlags.Static);
+        method.Invoke(null, parameters);
+    }
+
+    static MethodInfo GetMethod(Type type, string name, object[] parameters, BindingFlags flags)
+    {
+        Type[] paramTypes = parameters.Select(p => p.GetType()).ToArray();
+        MethodInfo method = type.GetMethod(name, flags, null, paramTypes, null);
+
+        if (method == null)
+        {
+            string paramNames = string.Join(", ", paramTypes.Select(t => t.Name).ToArray());
+            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + paramNames + ") wasn't found.");
+        }
+
+        return method;
+    }
+
 #if UNITY_EDITOR
     public static T GetValue<T>(SerializedProperty property)
     {

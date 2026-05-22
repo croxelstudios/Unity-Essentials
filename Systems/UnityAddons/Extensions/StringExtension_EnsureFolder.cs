@@ -1,23 +1,36 @@
 #if UNITY_EDITOR
-using System.IO;
+using System;
 using UnityEditor;
+using UnityEngine;
 
 public static class StringExtension_EnsureFolder
 {
-    public static void EnsureAssetFolder(this string folderPath)
+    public static bool EnsureAssetFolder(this string folderPath)
     {
-        if (folderPath.IsNullOrEmpty() ||
-            folderPath == "Assets" ||
-            AssetDatabase.IsValidFolder(folderPath))
-            return;
+        if (string.IsNullOrWhiteSpace(folderPath))
+            return false;
 
-        string parent = Path.GetDirectoryName(folderPath)?.Replace("\\", "/");
-        string folderName = Path.GetFileName(folderPath);
+        if (AssetDatabase.IsValidFolder(folderPath))
+            return true;
 
-        EnsureAssetFolder(parent);
+        folderPath = folderPath.Replace("\\", "/");
+        if (!folderPath.StartsWith("Assets", StringComparison.Ordinal))
+        {
+            Debug.LogError($"Folder path must be inside Assets/. Current value: {folderPath}");
+            return false;
+        }
 
-        if (!AssetDatabase.IsValidFolder(folderPath))
-            AssetDatabase.CreateFolder(parent, folderName);
+        string[] parts = folderPath.Split('/');
+        string current = parts[0];
+        for (int i = 1; i < parts.Length; i++)
+        {
+            string next = $"{current}/{parts[i]}";
+            if (!AssetDatabase.IsValidFolder(next))
+                AssetDatabase.CreateFolder(current, parts[i]);
+            current = next;
+        }
+
+        return true;
     }
 }
 #endif

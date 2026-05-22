@@ -132,9 +132,7 @@ public static class OnEditorChange
 
         public override int GetHashCode()
         {
-            return (((target == null) ? 0 : target.GetHashCode())
-                * 31 + ((targetPath == null) ? 0 : targetPath.GetHashCode()))
-                 * 31 + ((propertyPath == null) ? 0 : propertyPath.GetHashCode());
+            return HashMaker.Elements(target, targetPath, propertyPath);
         }
 
         public static bool operator ==(ModificationData o1, ModificationData o2)

@@ -16,7 +16,7 @@ public class LocalizableAttribute : PropertyAttribute
 public struct StringField : IEquatable<StringField>
 {
     Component component;
-    int number;
+    int number; //TO DO: Is this an error?
     [SerializeField]
     string path;
     public string name;

@@ -301,8 +301,7 @@ public struct TransformData : IEquatable<TransformData>
 
     public override int GetHashCode()
     {
-        return new Vector3Int(position.GetHashCode(), 
-            eulerAngles.GetHashCode(), localScale.GetHashCode()).GetHashCode();
+        return HashMaker.Elements(position, eulerAngles, localScale);
     }
 
     public static bool operator ==(TransformData o1, TransformData o2)
