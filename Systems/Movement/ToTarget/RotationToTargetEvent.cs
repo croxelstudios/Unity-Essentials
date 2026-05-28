@@ -200,7 +200,9 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
 
     public override void Apply(Quaternion speed, bool isLocal = false)
     {
-        origin.Rotate(speed.eulerAngles, isLocal ? Space.Self : Space.World);
+        origin.PhysicsRotate(speed,
+            speedBehaviour.speedMode == SpeedMode.Teleport,
+            isLocal ? Space.Self : Space.World);
     }
 
     public override Quaternion GetGlobal(Transform tr)

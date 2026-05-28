@@ -230,7 +230,9 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
 
     public override void Apply(Vector3 speed, bool isLocal = false)
     {
-        origin.Translate(speed, isLocal ? Space.Self : Space.World);
+        origin.PhysicsTranslate(speed,
+            speedBehaviour.speedMode == SpeedMode.Teleport,
+            isLocal ? Space.Self : Space.World);
         if (reorientTransform)
             ReorientTransform(speed, isLocal);
     }

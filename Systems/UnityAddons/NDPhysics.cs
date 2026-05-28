@@ -231,6 +231,11 @@ public class NDRigidbody
             if (is2D) return Quaternion.Euler(0f, 0f, rigid2.rotation);
             else return rigid3.rotation;
         }
+        set
+        {
+            if (is2D) rigid2.rotation = value.eulerAngles.z;
+            else rigid3.rotation = value;
+        }
     }
 
     public Bounds GetBounds()
@@ -417,6 +422,12 @@ public class NDRigidbody
     {
         if (is2D) rigid2.MovePosition(position);
         else rigid3.MovePosition(position);
+    }
+
+    public void MoveRotation(Quaternion rotation)
+    {
+        if (is2D) rigid2.MoveRotation(rotation);
+        else rigid3.MoveRotation(rotation);
     }
 
     static List<NDRaycastHit> auxHits;

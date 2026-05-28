@@ -10,6 +10,11 @@ public interface ITransformationSequence
     public void Draw(Color color);
 }
 
+public struct BGenericPath<T>
+{
+    //TO DO
+}
+
 public struct ValuePath : ITransformationSequence
 {
     public float[] path;
@@ -118,7 +123,7 @@ public struct ValuePath : ITransformationSequence
         else return (value > 0) ? magnitude : 0f;
     }
 
-    public float ValueAlong(float distance)
+    public float ValueAlong(float distance, bool loop = false)
     {
         if (IsComplexPath())
         {
@@ -135,15 +140,18 @@ public struct ValuePath : ITransformationSequence
                 wholeDist += dist;
                 previousCorner = currentCorner;
                 i++;
+                if (loop && (i >= count))
+                    i -= count;
             }
             return previousCorner + (previousCorner - path[last - 1]) * (distance - wholeDist);
         }
-        else return origin + (dif * distance);
+        else return origin + (dif *
+                (loop ? Mathf.PingPong(distance, magnitude) : distance));
     }
 
-    public float DisplacementAlong(float distance)
+    public float DisplacementAlong(float distance, bool loop = false)
     {
-        float worldPos = ValueAlong(distance);
+        float worldPos = ValueAlong(distance, loop);
         return worldPos - origin;
     }
 
@@ -395,7 +403,7 @@ public struct RotationPath : ITransformationSequence
         else return (point > 0) ? magnitude : 0f;
     }
 
-    public Quaternion RotationAlong(float distance)
+    public Quaternion RotationAlong(float distance, bool loop = false)
     {
         if (IsComplexPath())
         {
@@ -416,18 +424,21 @@ public struct RotationPath : ITransformationSequence
                 wholeDist += tangle;
                 previousCorner = currentCorner;
                 i++;
+                if (loop && (i >= count))
+                    i -= count;
             }
 
             path[count - 2].Subtract(previousCorner).ToAngleAxis(mode, out tangle, out taxis);
 
             return previousCorner.Add(Quaternion.AngleAxis(distance - wholeDist, taxis));
         }
-        else return origin.Add(Quaternion.AngleAxis(distance, difAxis));
+        else return origin.Add(Quaternion.AngleAxis(
+            loop ? Mathf.PingPong(distance, magnitude) : distance, difAxis));
     }
 
-    public Quaternion DisplacementAlong(float distance)
+    public Quaternion DisplacementAlong(float distance, bool loop = false)
     {
-        Quaternion worldPos = RotationAlong(distance);
+        Quaternion worldPos = RotationAlong(distance, loop);
         return worldPos.Subtract(origin);
     }
 
@@ -722,7 +733,7 @@ public struct MovementPath : ITransformationSequence
         else return (point > 0) ? magnitude : 0f;
     }
 
-    public Vector3 PositionAlong(float distance)
+    public Vector3 PositionAlong(float distance, bool loop = false)
     {
         if (IsComplexPath())
         {
@@ -738,15 +749,18 @@ public struct MovementPath : ITransformationSequence
                 wholeDist += dist;
                 previousCorner = currentCorner;
                 i++;
+                if (loop && (i >= count))
+                    i -= count;
             }
             return previousCorner + (previousCorner - path[last - 1]).normalized * (distance - wholeDist);
         }
-        else return origin + (dif.normalized * distance);
+        else return origin + (dif.normalized *
+                (loop ? Mathf.PingPong(distance, magnitude) : distance));
     }
 
-    public Vector3 DisplacementAlong(float distance)
+    public Vector3 DisplacementAlong(float distance, bool loop = false)
     {
-        Vector3 worldPos = PositionAlong(distance);
+        Vector3 worldPos = PositionAlong(distance, loop);
         return worldPos - origin;
     }
 
@@ -809,23 +823,22 @@ public struct MovementPath : ITransformationSequence
         if (IsComplexPath())
         {
             float dist = Mathf.Infinity;
-            float dispAdd = 0f;
+            disp = 0f;
             int n = 0;
             Vector3 clos = path[0];
             for (int i = 0; i < last; i++)
             {
-                Vector3 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd_c);
+                Vector3 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd);
                 float d = Vector3.Distance(point, c);
                 if (d < dist)
                 {
-                    dispAdd = dispAdd_c;
+                    disp = dispAdd;
                     dist = d;
                     clos = c;
                     n = i;
                 }
             }
 
-            disp = dispAdd * Vector3.Distance(path[n], path[n + 1]);
             for (int i = 0; i < n; i++)
                 disp += Vector3.Distance(path[i], path[i + 1]);
 
@@ -1038,7 +1051,7 @@ public struct Movement4DPath : ITransformationSequence
         else return (point > 0) ? magnitude : 0f;
     }
 
-    public Vector4 PositionAlong(float distance)
+    public Vector4 PositionAlong(float distance, bool loop = false)
     {
         if (IsComplexPath())
         {
@@ -1054,15 +1067,18 @@ public struct Movement4DPath : ITransformationSequence
                 wholeDist += dist;
                 previousCorner = currentCorner;
                 i++;
+                if (loop && (i >= count))
+                    i -= count;
             }
             return previousCorner + (previousCorner - path[last - 1]).normalized * (distance - wholeDist);
         }
-        else return origin + (dif.normalized * distance);
+        else return origin + (dif.normalized *
+                (loop ? Mathf.PingPong(distance, magnitude) : distance));
     }
 
-    public Vector4 DisplacementAlong(float distance)
+    public Vector4 DisplacementAlong(float distance, bool loop = false)
     {
-        Vector4 worldPos = PositionAlong(distance);
+        Vector4 worldPos = PositionAlong(distance, loop);
         return worldPos - origin;
     }
 
@@ -1124,23 +1140,22 @@ public struct Movement4DPath : ITransformationSequence
         if (IsComplexPath())
         {
             float dist = Mathf.Infinity;
-            float dispAdd = 0f;
+            disp = 0f;
             int n = 0;
             Vector4 clos = path[0];
             for (int i = 0; i < last; i++)
             {
-                Vector4 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd_c);
+                Vector4 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd);
                 float d = Vector4.Distance(point, c);
                 if (d < dist)
                 {
-                    dispAdd = dispAdd_c;
+                    disp = dispAdd;
                     dist = d;
                     clos = c;
                     n = i;
                 }
             }
 
-            disp = dispAdd * Vector4.Distance(path[n], path[n + 1]);
             for (int i = 0; i < n; i++)
                 disp += Vector4.Distance(path[i], path[i + 1]);
 

@@ -88,6 +88,8 @@ public static class FloatExtension_Loop
 
     public static int Loop(this int value, int length)
     {
+        while (value < 0)
+            value += length;
         return value % length;
     }
 
@@ -115,6 +117,7 @@ public static class FloatExtension_Loop
 
     public static int Loop(this int value, int min, int max)
     {
+        //TO DO: Handle negative values
         int rmin = Mathf.Min(min, max);
         int rmax = Mathf.Max(min, max);
         min = rmin;
