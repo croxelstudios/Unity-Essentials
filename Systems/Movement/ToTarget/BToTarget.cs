@@ -3,7 +3,6 @@ using Sirenix.OdinInspector;
 using static SpeedBehaviour;
 
 //TO DO: Add intermediate class that removes the Q component.
-//TO DO: General Path class that implements ITransformationSequence and generalized common methods
 public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSequence, new()
 {
     [PropertyOrder(-5)]
@@ -242,7 +241,7 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
 
     protected virtual bool ShouldIExecute(P path)
     {
-        float distanceToTarget = path.GetMagnitude();
+        float distanceToTarget = path.magnitude;
         if ((distanceToTarget < margin) && (targetMode == TargetMode.StopAtMargin))
             distanceToTarget = 0f;
         return distanceToTarget > 0f;

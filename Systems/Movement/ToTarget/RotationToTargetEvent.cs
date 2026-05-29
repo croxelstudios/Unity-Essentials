@@ -61,7 +61,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
             //}
             //else
             {
-                accelHalf0 = rotPath.DirectionAxis() * accel;
+                accelHalf0 = rotPath.Direction() * accel;
                 dynamicInfo.accelHalf = accelHalf0;
             }
         }

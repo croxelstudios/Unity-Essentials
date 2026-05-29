@@ -88,7 +88,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
             }
             //else
             {
-                accelerationHalf0 = path.Direction(accel);
+                accelerationHalf0 = path.DirectionDisplacement(accel);
                 dynamicInfo.accelHalf = accelerationHalf0;
             }
         }

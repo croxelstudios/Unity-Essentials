@@ -65,7 +65,7 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
             }
             //else
             {
-                accelerationHalf0 = path.Direction(accel);
+                accelerationHalf0 = path.DirectionDisplacement(accel);
                 dynamicInfo.accelHalf = accelerationHalf0;
             }
         }

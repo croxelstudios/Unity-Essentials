@@ -83,7 +83,7 @@ public static class QuaternionExtension_ToAngleAxis
         return axis;
     }
 
-    public static float Angle(this Quaternion quat, RotationMode mode, Quaternion other)
+    public static float Angle(this Quaternion quat, Quaternion other, RotationMode mode = RotationMode.Shortest)
     {
         Quaternion dif = quat.Subtract(other);
         return Mathf.Abs(dif.Angle(mode));

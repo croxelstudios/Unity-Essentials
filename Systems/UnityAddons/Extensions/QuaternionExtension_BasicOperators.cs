@@ -11,12 +11,6 @@ public static class QuaternionExtension_BasicOperators
     {
         return subtractee * Quaternion.Inverse(subtractor);
     }
-
-    public static float AngleDistance(this Quaternion subtractee, Quaternion subtractor, RotationMode mode = RotationMode.Shortest)
-    {
-        Quaternion dif = Subtract(subtractee, subtractor);
-        return dif.Angle(mode);
-    }
 }
 
 public enum RotationMode { Shortest, Longest, Positive, Negative }

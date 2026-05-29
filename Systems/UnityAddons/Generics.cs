@@ -14,6 +14,11 @@ public static class Generics
     public delegate bool HasMagnitudeImpl<T>(T value, float epsilon);
     public delegate float MagnitudeImpl<T>(T value);
     public delegate T NegateImpl<T>(T value);
+    public delegate D DirectionImpl<T, D>(T value);
+    public delegate void DirectionMagnitudeImpl<T, D>(T value, out D direction, out float magnitude);
+    public delegate T FromDirectionMagnitudeImpl<T, D>(D direction, float magnitude);
+    public delegate float DotImpl<T>(T a, T b);
+    public delegate T LerpImpl<T>(T a, T b, float t);
 
     static readonly Dictionary<Type, object> table_SmoothDamp;
     static readonly Dictionary<Type, object> table_IsZero;
@@ -24,18 +29,31 @@ public static class Generics
     static readonly Dictionary<Type, object> table_HasMagnitude;
     static readonly Dictionary<Type, object> table_Magnitude;
     static readonly Dictionary<Type, object> table_Negate;
+    static readonly Dictionary<(Type, Type), object> table_Direction;
+    static readonly Dictionary<(Type, Type), object> table_DirectionMagnitude;
+    static readonly Dictionary<(Type, Type), object> table_FromDirectionMagnitude;
+    static readonly Dictionary<Type, object> table_Dot;
+    static readonly Dictionary<Type, object> table_Lerp;
 
     static Generics()
     {
-        table_SmoothDamp = new Dictionary<Type, object>(5);
-        table_IsZero = new Dictionary<Type, object>(5);
-        table_Add = new Dictionary<Type, object>(5);
-        table_Subtract = new Dictionary<Type, object>(5);
-        table_Scale= new Dictionary<Type, object>(5);
-        table_Multiply = new Dictionary<Type, object>(5);
-        table_HasMagnitude = new Dictionary<Type, object>(5);
-        table_Magnitude = new Dictionary<Type, object>(5);
-        table_Negate = new Dictionary<Type, object>(5);
+        const int MANY = 6;
+        const int VECTORS = 4;
+
+        table_SmoothDamp = new Dictionary<Type, object>(MANY);
+        table_IsZero = new Dictionary<Type, object>(MANY);
+        table_Add = new Dictionary<Type, object>(MANY);
+        table_Subtract = new Dictionary<Type, object>(MANY);
+        table_Scale= new Dictionary<Type, object>(MANY);
+        table_Multiply = new Dictionary<Type, object>(MANY);
+        table_HasMagnitude = new Dictionary<Type, object>(MANY);
+        table_Magnitude = new Dictionary<Type, object>(MANY);
+        table_Negate = new Dictionary<Type, object>(MANY);
+        table_Dot = new Dictionary<Type, object>(VECTORS);
+        table_Lerp = new Dictionary<Type, object>(MANY);
+        table_Direction = new Dictionary<(Type, Type), object>(MANY);
+        table_DirectionMagnitude = new Dictionary<(Type, Type), object>(MANY);
+        table_FromDirectionMagnitude = new Dictionary<(Type, Type), object>(MANY);
 
         // SmoothDamp
         table_SmoothDamp[typeof(float)] = new SmoothDampImpl<float>(SmoothDamp_Float);
@@ -108,6 +126,56 @@ public static class Generics
         table_Negate[typeof(Vector4)] = new NegateImpl<Vector4>(Negate_Vector4);
         table_Negate[typeof(Color)] = new NegateImpl<Color>(Negate_Color);
         table_Negate[typeof(Quaternion)] = new NegateImpl<Quaternion>(Negate_Quaternion);
+
+        // Dot
+        table_Dot[typeof(Vector2)] = new DotImpl<Vector2>(Dot_Vector2);
+        table_Dot[typeof(Vector3)] = new DotImpl<Vector3>(Dot_Vector3);
+        table_Dot[typeof(Vector4)] = new DotImpl<Vector4>(Dot_Vector4);
+        table_Dot[typeof(Color)] = new DotImpl<Color>(Dot_Color);
+
+        // Lerp
+        table_Lerp[typeof(float)] = new LerpImpl<float>(Lerp_Float);
+        table_Lerp[typeof(Vector2)] = new LerpImpl<Vector2>(Lerp_Vector2);
+        table_Lerp[typeof(Vector3)] = new LerpImpl<Vector3>(Lerp_Vector3);
+        table_Lerp[typeof(Vector4)] = new LerpImpl<Vector4>(Lerp_Vector4);
+        table_Lerp[typeof(Color)] = new LerpImpl<Color>(Lerp_Color);
+        table_Lerp[typeof(Quaternion)] = new LerpImpl<Quaternion>(Lerp_Quaternion);
+
+        // Direction
+        table_Direction[(typeof(float), typeof(float))] = new DirectionImpl<float, float>(Direction_Float);
+        table_Direction[(typeof(Vector2), typeof(Vector2))] = new DirectionImpl<Vector2, Vector2>(Direction_Vector2);
+        table_Direction[(typeof(Vector3), typeof(Vector3))] = new DirectionImpl<Vector3, Vector3>(Direction_Vector3);
+        table_Direction[(typeof(Vector4), typeof(Vector4))] = new DirectionImpl<Vector4, Vector4>(Direction_Vector4);
+        table_Direction[(typeof(Quaternion), typeof(Vector3))] = new DirectionImpl<Quaternion, Vector3>(Direction_Quaternion);
+        table_Direction[(typeof(Color), typeof(Color))] = new DirectionImpl<Color, Color>(Direction_Color);
+
+        // DirectionMagnitude
+        table_DirectionMagnitude[(typeof(float), typeof(float))] =
+            new DirectionMagnitudeImpl<float, float>(DirectionMagnitude_Float);
+        table_DirectionMagnitude[(typeof(Vector2), typeof(Vector2))] =
+            new DirectionMagnitudeImpl<Vector2, Vector2>(DirectionMagnitude_Vector2);
+        table_DirectionMagnitude[(typeof(Vector3), typeof(Vector3))] =
+            new DirectionMagnitudeImpl<Vector3, Vector3>(DirectionMagnitude_Vector3);
+        table_DirectionMagnitude[(typeof(Vector4), typeof(Vector4))] =
+            new DirectionMagnitudeImpl<Vector4, Vector4>(DirectionMagnitude_Vector4);
+        table_DirectionMagnitude[(typeof(Quaternion), typeof(Vector3))] =
+            new DirectionMagnitudeImpl<Quaternion, Vector3>(DirectionMagnitude_Quaternion);
+        table_DirectionMagnitude[(typeof(Color), typeof(Color))] =
+            new DirectionMagnitudeImpl<Color, Color>(DirectionMagnitude_Color);
+
+        // FromDirectionMagnitude
+        table_FromDirectionMagnitude[(typeof(float), typeof(float))] =
+            new FromDirectionMagnitudeImpl<float, float>(FromDirectionMagnitude_Float);
+        table_FromDirectionMagnitude[(typeof(Vector2), typeof(Vector2))] =
+            new FromDirectionMagnitudeImpl<Vector2, Vector2>(FromDirectionMagnitude_Vector2);
+        table_FromDirectionMagnitude[(typeof(Vector3), typeof(Vector3))] =
+            new FromDirectionMagnitudeImpl<Vector3, Vector3>(FromDirectionMagnitude_Vector3);
+        table_FromDirectionMagnitude[(typeof(Vector4), typeof(Vector4))] =
+            new FromDirectionMagnitudeImpl<Vector4, Vector4>(FromDirectionMagnitude_Vector4);
+        table_FromDirectionMagnitude[(typeof(Quaternion), typeof(Vector3))] =
+            new FromDirectionMagnitudeImpl<Quaternion, Vector3>(FromDirectionMagnitude_Quaternion);
+        table_FromDirectionMagnitude[(typeof(Color), typeof(Color))] =
+            new FromDirectionMagnitudeImpl<Color, Color>(FromDirectionMagnitude_Color);
     }
 
     #region Register functions
@@ -149,6 +217,31 @@ public static class Generics
     public static void Register_Negate<T>(NegateImpl<T> impl)
     {
         table_Negate[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
+    }
+
+    public static void Register_Dot<T>(DotImpl<T> impl)
+    {
+        table_Dot[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
+    }
+
+    public static void Register_Lerp<T>(LerpImpl<T> impl)
+    {
+        table_Lerp[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
+    }
+
+    public static void Register_Direction<T, D>(DirectionImpl<T, D> impl)
+    {
+        table_Direction[(typeof(T), typeof(D))] = impl ?? throw new ArgumentNullException(nameof(impl));
+    }
+
+    public static void Register_DirectionMagnitude<T, D>(DirectionMagnitudeImpl<T, D> impl)
+    {
+        table_DirectionMagnitude[(typeof(T), typeof(D))] = impl ?? throw new ArgumentNullException(nameof(impl));
+    }
+
+    public static void Register_FromDirectionMagnitude<T, D>(FromDirectionMagnitudeImpl<T, D> impl)
+    {
+        table_FromDirectionMagnitude[(typeof(T), typeof(D))] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
     #endregion
 
@@ -253,6 +346,66 @@ public static class Generics
 
         NegateImpl<T> impl = (NegateImpl<T>)o;
         return impl(value);
+    }
+
+    public static float Dot<T>(T a, T b)
+    {
+        if (!table_Dot.TryGetValue(typeof(T), out object o))
+            throw new NotSupportedException($"Type {typeof(T)} not supported by" +
+                $"Generics.Dot(). Register an implementation using" +
+                $"Generics.Register_Dot<{typeof(T).Name}>(...) if necessary.");
+
+        DotImpl<T> impl = (DotImpl<T>)o;
+        return impl(a, b);
+    }
+
+    public static T Lerp<T>(T a, T b, float t)
+    {
+        if (!table_Lerp.TryGetValue(typeof(T), out object o))
+            throw new NotSupportedException($"Type {typeof(T)} not supported by" +
+                $"Generics.Lerp(). Register an implementation using" +
+                $"Generics.Register_Lerp<{typeof(T).Name}>(...) if necessary.");
+
+        LerpImpl<T> impl = (LerpImpl<T>)o;
+        return impl(a, b, t);
+    }
+
+    public static D Direction<T, D>(T value)
+    {
+        if (!table_Direction.TryGetValue((typeof(T), typeof(D)), out object o))
+            throw new NotSupportedException($"Type {typeof(T)}-{typeof(D)} not supported by" +
+                $"Generics.Direction(). Register an implementation using" +
+                $"Generics.Register_Direction<{typeof(T).Name}, {typeof(D).Name}>(...) if necessary.");
+
+        DirectionImpl<T, D> impl = (DirectionImpl<T, D>)o;
+        return impl(value);
+    }
+
+    public static void DirectionMagnitude<T, D>(T value, out D direction, out float magnitude)
+    {
+        if (!table_DirectionMagnitude.TryGetValue((typeof(T), typeof(D)), out object o))
+            throw new NotSupportedException($"Type {typeof(T)}-{typeof(D)} not supported by" +
+                $"Generics.DirectionMagnitude(). Register an implementation using" +
+                $"Generics.Register_DirectionMagnitude<{typeof(T).Name}, {typeof(D).Name}>(...) if necessary.");
+
+        DirectionMagnitudeImpl<T, D> impl = (DirectionMagnitudeImpl<T, D>)o;
+        impl(value, out direction, out magnitude);
+    }
+
+    public static T FromDirectionMagnitude<T, D>(D direction, float magnitude)
+    {
+        if (!table_FromDirectionMagnitude.TryGetValue((typeof(T), typeof(D)), out object o))
+            throw new NotSupportedException($"Type {typeof(T)}-{typeof(D)} not supported by" +
+                $"Generics.FromDirectionMagnitude(). Register an implementation using" +
+                $"Generics.Register_FromDirectionMagnitude<{typeof(T).Name}, {typeof(D).Name}>(...) if necessary.");
+
+        FromDirectionMagnitudeImpl<T, D> impl = (FromDirectionMagnitudeImpl<T, D>)o;
+        return impl(direction, magnitude);
+    }
+
+    public static float Distance<T>(T a, T b)
+    {
+        return Magnitude(Subtract(a, b));
     }
 
     #region Implementations
@@ -498,7 +651,7 @@ public static class Generics
     #region Magnitude
     public static float Magnitude_Float(float value)
     {
-        return value;
+        return Mathf.Abs(value);
     }
 
     public static float Magnitude_Vector2(Vector2 value)
@@ -556,6 +709,174 @@ public static class Generics
     public static Quaternion Negate_Quaternion(Quaternion value)
     {
         return Quaternion.Inverse(value);
+    }
+    #endregion
+
+    #region Dot
+    public static float Dot_Vector2(Vector2 a, Vector2 b)
+    {
+        return Vector2.Dot(a, b);
+    }
+
+    public static float Dot_Vector3(Vector3 a, Vector3 b)
+    {
+        return Vector3.Dot(a, b);
+    }
+
+    public static float Dot_Vector4(Vector4 a, Vector4 b)
+    {
+        return Vector4.Dot(a, b);
+    }
+
+    public static float Dot_Color(Color a, Color b)
+    {
+        return Vector4.Dot(a, b);
+    }
+    #endregion
+
+    #region Lerp
+    public static float Lerp_Float(float a, float b, float t)
+    {
+        return Mathf.Lerp(a, b, t);
+    }
+
+    public static Vector2 Lerp_Vector2(Vector2 a, Vector2 b, float t)
+    {
+        return Vector2.Lerp(a, b, t);
+    }
+
+    public static Vector3 Lerp_Vector3(Vector3 a, Vector3 b, float t)
+    {
+        return Vector3.Lerp(a, b, t);
+    }
+
+    public static Vector4 Lerp_Vector4(Vector4 a, Vector4 b, float t)
+    {
+        return Vector4.Lerp(a, b, t);
+    }
+
+    public static Color Lerp_Color(Color a, Color b, float t)
+    {
+        return Color.Lerp(a, b, t);
+    }
+
+    public static Quaternion Lerp_Quaternion(Quaternion a, Quaternion b, float t)
+    {
+        return Quaternion.Slerp(a, b, t);
+    }
+    #endregion
+
+    #region Direction
+    public static float Direction_Float(float value)
+    {
+        return Mathf.Sign(value);
+    }
+
+    public static Vector2 Direction_Vector2(Vector2 value)
+    {
+        return value.normalized;
+    }
+
+    public static Vector3 Direction_Vector3(Vector3 value)
+    {
+        return value.normalized;
+    }
+
+    public static Vector4 Direction_Vector4(Vector4 value)
+    {
+        return value.normalized;
+    }
+
+    public static Vector3 Direction_Quaternion(Quaternion value)
+    {
+        return value.Axis();
+    }
+
+    public static Color Direction_Color(Color value)
+    {
+        return value / value.grayscale;
+    }
+    #endregion
+
+    #region DirectionMagnitude
+    public static void DirectionMagnitude_Float(float value, out float sign, out float abs)
+    {
+        if (value < 0f)
+        {
+            sign = -1f;
+            abs = -value;
+        }
+        else
+        {
+            sign = 1f;
+            abs = value;
+        }
+    }
+
+    public static void DirectionMagnitude_Vector2(Vector2 value, out Vector2 direction, out float magnitude)
+    {
+        magnitude = value.magnitude;
+        direction = (magnitude > 0f) ? (value / magnitude) : Vector2.zero;
+    }
+
+    public static void DirectionMagnitude_Vector3(Vector3 value, out Vector3 direction, out float magnitude)
+    {
+        magnitude = value.magnitude;
+        direction = (magnitude > 0f) ? (value / magnitude) : Vector3.zero;
+    }
+
+    public static void DirectionMagnitude_Vector4(Vector4 value, out Vector4 direction, out float magnitude)
+    {
+        magnitude = value.magnitude;
+        direction = (magnitude > 0f) ? (value / magnitude) : Vector4.zero;
+    }
+
+    public static void DirectionMagnitude_Quaternion(Quaternion value, out Vector3 axis, out float angle)
+    {
+        value.ToAngleAxis(out angle, out axis);
+    }
+
+    public static void DirectionMagnitude_Color(Color value, out Color hue, out float grayscale)
+    {
+        grayscale = value.grayscale;
+        float alpha = value.a;
+        hue = (grayscale > 0f) ? (value / grayscale) : Color.black;
+        hue.a = alpha;
+    }
+    #endregion
+
+    #region FromDirectionMagnitude
+    public static float FromDirectionMagnitude_Float(float sign, float abs)
+    {
+        return Mathf.Sign(sign) * abs;
+    }
+
+    public static Vector2 FromDirectionMagnitude_Vector2(Vector2 direction, float magnitude)
+    {
+        return direction.normalized * magnitude;
+    }
+
+    public static Vector3 FromDirectionMagnitude_Vector3(Vector3 direction, float magnitude)
+    {
+        return direction.normalized * magnitude;
+    }
+
+    public static Vector4 FromDirectionMagnitude_Vector4(Vector4 direction, float magnitude)
+    {
+        return direction.normalized * magnitude;
+    }
+
+    public static Quaternion FromDirectionMagnitude_Quaternion(Vector3 axis, float angle)
+    {
+        return Quaternion.AngleAxis(angle, axis);
+    }
+
+    public static Color FromDirectionMagnitude_Color(Color hue, float grayscale)
+    {
+        float alpha = hue.a;
+        hue *= grayscale;
+        hue.a = alpha;
+        return hue;
     }
     #endregion
     #endregion
