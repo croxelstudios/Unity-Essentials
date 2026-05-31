@@ -28,12 +28,53 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
     protected bool isComplexPath;
     bool usingBezier_L;
     bool usingBezier_R;
-    bool usingBeziers { get { return usingBezier_L || usingBezier_R; } }
+    bool usingBezier_Q;
+    bool usingBeziers { get { return usingBezier_L || usingBezier_R || usingBezier_Q; } }
 
     Dictionary<int, T> lBezier;
     Dictionary<int, T> rBezier;
+    Dictionary<int, T> qBezier;
 
     Dictionary<int, Dictionary<string, object>> pointsData;
+    Dictionary<(int, int), FrameLength> frameLengths;
+    struct FrameLength : IEquatable<FrameLength>
+    {
+        public int frame;
+        public float length;
+
+        public FrameLength(int frame, float length)
+        {
+            this.frame = frame;
+            this.length = length;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (!(other is FrameLength)) return false;
+            return Equals((FrameLength)other);
+        }
+
+        public bool Equals(FrameLength other)
+        {
+            return (frame == other.frame)
+                && (length == other.length);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashMaker.Elements(frame, length);
+        }
+
+        public static bool operator ==(FrameLength o1, FrameLength o2)
+        {
+            return o1.Equals(o2);
+        }
+
+        public static bool operator !=(FrameLength o1, FrameLength o2)
+        {
+            return !o1.Equals(o2);
+        }
+    }
 
     #region Init
     public BGenericPath()
@@ -50,6 +91,20 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
 
     public BGenericPath(T[] values)
     {
+        path = values;
+        CalculateData();
+    }
+
+    public virtual void Set(T origin, T target)
+    {
+        ClearDictionaries();
+        path = new T[] { origin, target };
+        CalculateData();
+    }
+
+    public virtual void Set(T[] values)
+    {
+        ClearDictionaries();
         path = values;
         CalculateData();
     }
@@ -140,6 +195,13 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
         else return false;
     }
 
+    public bool GetBezier_Q(int id, out T bezier)
+    {
+        if (qBezier.SmartGetValue(id, out bezier))
+            return true;
+        else return false;
+    }
+
     public void SetBezier_L(int id, T bezier)
     {
         lBezier = lBezier.CreateAdd(id, bezier);
@@ -150,6 +212,12 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
     {
         rBezier = rBezier.CreateAdd(id, bezier);
         usingBezier_R = true;
+    }
+
+    public void SetBezier(int id, T bezier)
+    {
+        qBezier = qBezier.CreateAdd(id, bezier);
+        usingBezier_Q = true;
     }
 
     public void SetBezier(int id, T lBezier, T rBezier)
@@ -174,18 +242,27 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
     {
         ClearBezier_L(id);
         ClearBezier_R(id);
+
+        qBezier.SmartRemove(id);
+        if (qBezier.IsNullOrEmpty()) usingBezier_Q = false;
     }
 
     public void SetBeziers_L(Dictionary<int, T> lBeziers)
     {
-        lBezier = lBeziers;
+        lBezier = lBezier.CreateAddRange(lBeziers);
         usingBezier_L = !lBezier.IsNullOrEmpty();
     }
 
     public void SetBeziers_R(Dictionary<int, T> rBeziers)
     {
-        rBezier = rBeziers;
+        rBezier = rBezier.CreateAddRange(rBeziers);
         usingBezier_R = !rBezier.IsNullOrEmpty();
+    }
+
+    public void SetBeziers(Dictionary<int, T> qBeziers)
+    {
+        qBezier = qBezier.CreateAddRange(qBeziers);
+        usingBezier_Q = !qBezier.IsNullOrEmpty();
     }
 
     public void SetBeziers(Dictionary<int, T> lBeziers, Dictionary<int, T> rBeziers)
@@ -212,6 +289,10 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
     {
         ClearBeziers_L();
         ClearBeziers_R();
+
+        qBezier.Clear();
+        qBezier = null;
+        usingBezier_Q = false;
     }
     #endregion
 
@@ -272,7 +353,7 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
             int i = 1;
             while (i <= value)
             {
-                lengthSoFar += IntervalLength(i, prev);
+                lengthSoFar += IntervalLength(prev, i);
                 prev = i;
                 i++;
             }
@@ -284,7 +365,7 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
     public T PredictNext(float multiplier = 1f)
     {
         if (isComplexPath)
-            return path.PredictNext(multiplier);
+            return ValueArrayExtension_PredictNext.PredictNext(path, multiplier);
         else return Generics.Add(target, dif);
     }
 
@@ -297,10 +378,10 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
             int i = 1;
             while (i < count)
             {
-                float tlength = IntervalLength(i, prev);
+                float tlength = IntervalLength(prev, i);
 
                 if ((wholeDist + tlength) > distance)
-                    return Generics.Add(path[prev], AlongInterval(prev, i, distance - wholeDist));
+                    return AlongInterval(prev, i, distance - wholeDist);
                 wholeDist += tlength;
                 prev = i;
                 i++;
@@ -308,10 +389,9 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
                     i -= count;
             }
 
-            return Generics.Add(path[prev], AlongInterval(prev, last - 1, distance - wholeDist));
+            return AlongInterval(prev, last - 1, distance - wholeDist);
         }
-        else return Generics.Add(origin, AlongInterval(0, 1,
-                        loop ? Mathf.PingPong(distance, magnitude) : distance));
+        else return AlongInterval(0, 1, loop ? Mathf.PingPong(distance, magnitude) : distance);
     }
 
     public T AlongDelta(float distance, bool loop = false)
@@ -409,11 +489,11 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
             Dictionary<int, Dictionary<string, object>> subPointsData =
                 new Dictionary<int, Dictionary<string, object>>();
 
-            corners.Add(Generics.Add(currentCorner, AlongInterval(curr, prev, wholeDist)));
+            corners.Add(AlongInterval(curr, prev, wholeDist));
             //TO DO: Add interpolated beziers and point data when possible
 
             if (wholeDist > distance)
-                corners.Add(Generics.Add(previousCorner, AlongInterval(prev, curr, wholeDist + distance)));
+                corners.Add(AlongInterval(prev, curr, wholeDist + distance));
             //TO DO: Add interpolated beziers and point data when possible
             else
             {
@@ -445,7 +525,7 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
                     i++;
                 }
 
-                corners.Add(Generics.Add(previousCorner, AlongInterval(prev, curr, wholeDist)));
+                corners.Add(AlongInterval(prev, curr, wholeDist));
                 //TO DO: Add interpolated beziers and point data when possible
             }
 
@@ -473,19 +553,53 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
             if (invert)
             {
                 subPath = NewPath(
-                    Generics.Add(origin, AlongInterval(0, 1, offset + distance)),
-                    Generics.Add(origin, AlongInterval(0, 1, offset)));
+                    AlongInterval(0, 1, offset + distance),
+                    AlongInterval(0, 1, offset));
                 //TO DO: Add interpolated beziers and point data when possible
             }
             else
             {
                 subPath = NewPath(
-                    Generics.Add(origin, AlongInterval(0, 1, offset)),
-                    Generics.Add(origin, AlongInterval(0, 1, offset + distance)));
+                    AlongInterval(0, 1, offset),
+                    AlongInterval(0, 1, offset + distance));
                 //TO DO: Add interpolated beziers and point data when possible
             }
             return subPath;
         }
+    }
+
+    public T ClosestInPath(T point)
+    {
+        return ClosestInPath(point, out float d);
+    }
+
+    public T ClosestInPath(T point, out float disp)
+    {
+        if (isComplexPath)
+        {
+            float dist = Mathf.Infinity;
+            disp = 0f;
+            int n = 0;
+            T clos = path[0];
+            for (int i = 0; i < last; i++)
+            {
+                T c = ClosestOnInterval(point, i, i + 1, out float dispAdd);
+                float d = Distance(point, c);
+                if (d < dist)
+                {
+                    disp = dispAdd;
+                    dist = d;
+                    clos = c;
+                    n = i;
+                }
+            }
+
+            for (int i = 0; i < n; i++)
+                disp += IntervalLength(i, i + 1);
+
+            return clos;
+        }
+        else return ClosestOnInterval(point, 0, last, out disp);
     }
     #endregion
 
@@ -507,18 +621,20 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
         if (usingBeziers)
         {
             Dictionary<int, T> bez = (a > b) ? lBezier : rBezier;
-            if (bez.SmartGetValue(a, out T bezier))
+            if (bez.SmartGetValue(a, out T bezier) || qBezier.SmartGetValue(a, out bezier))
                 return Generics.Direction<T, D>(bezier);
         }
-        
+
         return isComplexPath ?
             Generics.Direction<T, D>(Generics.Subtract(path[b], path[a])) : difDirection;
     }
 
-    bool IntervalBezierData(int a, int b, out T start, out T controlA, out T controlB, out T end)
+    bool IntervalBezierData(int a, int b, out T start, out T controlA, out T controlB, out T end,
+        out bool useQuadratic)
     {
         controlA = start = path[a];
         controlB = end = path[b];
+        useQuadratic = false;
         if (!usingBeziers)
             return false;
 
@@ -529,14 +645,21 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
 
         bool inverted = a > b;
 
-        bool hasR = rBezier.SmartGetValue(first, out T rBez);
-        bool hasL = lBezier.SmartGetValue(last, out T lBez);
+        bool hasL = false;
+        bool hasR = useQuadratic = qBezier.SmartGetValue(first, out T rBez);
+        T lBez = Default<T>.Value;
+        if (!useQuadratic)
+        {
+            hasR = rBezier.SmartGetValue(first, out rBez);
+            hasL = lBezier.SmartGetValue(last, out lBez);
+        }
+
         if (hasR || hasL)
         {
             T firstP = inverted ? end : start;
             controlA = hasR ? Generics.Add(firstP, rBez) : firstP;
             T lastP = inverted ? start : end;
-            controlB = hasL ? Generics.Add(lastP, lBez) : lastP;
+            controlB = useQuadratic ? controlA : (hasL ? Generics.Add(lastP, lBez) : lastP);
 
             if (inverted)
             {
@@ -550,21 +673,53 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
         else return false;
     }
 
-    protected virtual float IntervalLength(int a, int b)
+    float IntervalLength(int a, int b)
     {
-        if (IntervalBezierData(a, b, out T start, out T controlA, out T controlB, out T end))
-            return BezierTools.CubicBezier_Length(start, controlA, controlB, end);
+        if (frameLengths.SmartGetValue((a, b), out FrameLength value) && (value.frame == Time.frameCount))
+            return value.length;
+        else
+        {
+            float length = CalculateIntervalLength(a, b);
+            frameLengths = frameLengths.CreateAdd((a, b), new FrameLength(Time.frameCount, length));
+            frameLengths.Add((b, a), new FrameLength(Time.frameCount, length));
+            return length;
+        }
+    }
+
+    protected virtual float CalculateIntervalLength(int a, int b)
+    {
+        if (IntervalBezierData(a, b, out T start, out T controlA, out T controlB, out T end, out bool useQuadratic))
+            return useQuadratic ?
+                BezierTools.QuadraticBezier_Length(start, controlA, end) :
+                BezierTools.CubicBezier_Length(start, controlA, controlB, end);
 
         return isComplexPath ? Distance(path[a], path[b]) : difLength;
     }
 
+    protected virtual T ClosestOnInterval(T point, int a, int b, out float disp)
+    {
+        if (IntervalBezierData(a, b, out T start, out T controlA, out T controlB, out T end, out bool useQuadratic))
+        {
+            T result = useQuadratic ?
+                BezierTools.QuadraticBezier_Closest(point, start, controlA, end, out disp) :
+                BezierTools.CubicBezier_Closest(point, start, controlA, controlB, end, out disp);
+            disp *= IntervalLength(a, b);
+            return result;
+        }
+
+        return VectorExtension_ClosestPointOnSegment.
+            ClosestPointOnSegment(point, path[a], path[b], out disp);
+    }
+
     protected virtual T AlongInterval(int a, int b, float distance)
     {
-        if (IntervalBezierData(a, b, out T start, out T controlA, out T controlB, out T end))
-            return BezierTools.CubicBezier(start, controlA, controlB, end, distance / IntervalLength(a, b));
+        if (IntervalBezierData(a, b, out T start, out T controlA, out T controlB, out T end, out bool useQuadratic))
+            return useQuadratic ?
+                BezierTools.QuadraticBezier(start, controlA, end, distance / IntervalLength(a, b)) :
+                BezierTools.CubicBezier(start, controlA, controlB, end, distance / IntervalLength(a, b));
 
         D direction = IntervalDirection(a, b);
-        return Generics.FromDirectionMagnitude<T, D>(direction, distance);
+        return Generics.Add(path[a], Generics.FromDirectionMagnitude<T, D>(direction, distance));
     }
 
     protected virtual float Distance(T a, T b)
@@ -597,6 +752,18 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
         return change;
     }
     #endregion
+
+    public void ClearDictionaries()
+    {
+        pointsData.SmartClear();
+        frameLengths.SmartClear();
+        lBezier.SmartClear();
+        usingBezier_L = false;
+        rBezier.SmartClear();
+        usingBezier_R = false;
+        qBezier.SmartClear();
+        usingBezier_Q = false;
+    }
 }
 
 public class ValuePath : BGenericPath<float, float>
@@ -607,9 +774,11 @@ public class ValuePath : BGenericPath<float, float>
 
     public ValuePath(float[] values) : base(values) { }
 
-    //public float ClosestInPath(float point)
-
-    //public float ClosestInPath(float point, out float disp)
+    protected override float ClosestOnInterval(float point, int a, int b, out float disp)
+    {
+        disp = Mathf.Clamp(path[a], path[b], point);
+        return disp;
+    }
 
     public override void Draw(Color color)
     {
@@ -638,6 +807,30 @@ public class RotationPath : BGenericPath<Quaternion, Vector3>
         path = rotations;
 
         CalculateData();
+    }
+
+    public override void Set(Quaternion origin, Quaternion target)
+    {
+        mode = RotationMode.Shortest;
+        base.Set(origin, target);
+    }
+
+    public override void Set(Quaternion[] values)
+    {
+        mode = RotationMode.Shortest;
+        base.Set(values);
+    }
+
+    public void Set(Quaternion origin, Quaternion target, RotationMode mode)
+    {
+        this.mode = mode;
+        base.Set(origin, target);
+    }
+
+    public void Set(Quaternion[] values, RotationMode mode)
+    {
+        this.mode = mode;
+        base.Set(values);
     }
 
     protected override void CalculateData()
@@ -681,13 +874,8 @@ public class RotationPath : BGenericPath<Quaternion, Vector3>
         return disp;
     }
 
-    public Quaternion ClosestInPath(Quaternion point)
-    {
-        return ClosestInPath(point, out float d);
-    }
-
     //TO DO
-    public Quaternion ClosestInPath(Quaternion point, out float disp)
+    protected override Quaternion ClosestOnInterval(Quaternion point, int a, int b, out float disp)
     {
         disp = 0f;
         return origin;
@@ -728,6 +916,24 @@ public class MovementPath : BGenericPath<Vector3, Vector3>
 
     public MovementPath(Vector3[] points) : base(points) { }
 
+    public void Set(Vector3 origin, Vector3 target,
+        bool useNavMesh = false, int navMeshAreaMask = 0, int navMeshAgentType = 0)
+    {
+        path = new Vector3[] { origin, target };
+
+        if (useNavMesh)
+        {
+            NavMeshPath nav = new NavMeshPath();
+            NavMeshQueryFilter filter = new NavMeshQueryFilter();
+            filter.agentTypeID = navMeshAgentType;
+            filter.areaMask = navMeshAreaMask;
+            NavMesh.CalculatePath(origin, target, filter, nav);
+            path = nav.corners;
+        }
+
+        CalculateData();
+    }
+
     public void ProjectOnPlane(Vector3 normal)
     {
         for (int i = 0; i < count; i++)
@@ -764,41 +970,6 @@ public class MovementPath : BGenericPath<Vector3, Vector3>
         return disp;
     }
 
-    public Vector3 ClosestInPath(Vector3 point)
-    {
-        return ClosestInPath(point, out float d);
-    }
-    //BEZIER SUPPORT: TO DO
-
-    public Vector3 ClosestInPath(Vector3 point, out float disp)
-    {
-        if (isComplexPath)
-        {
-            float dist = Mathf.Infinity;
-            disp = 0f;
-            int n = 0;
-            Vector3 clos = path[0];
-            for (int i = 0; i < last; i++)
-            {
-                Vector3 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd);
-                float d = Vector3.Distance(point, c);
-                if (d < dist)
-                {
-                    disp = dispAdd;
-                    dist = d;
-                    clos = c;
-                    n = i;
-                }
-            }
-
-            for (int i = 0; i < n; i++)
-                disp += Vector3.Distance(path[i], path[i + 1]);
-
-            return clos;
-        }
-        else return point.ClosestPointOnSegment(origin, target, out disp);
-    }
-
     public override void Draw(Color color)
     {
         for (int i = 0; i < last; i++)
@@ -827,40 +998,6 @@ public class Movement4DPath : BGenericPath<Vector4, Vector4>
         return disp;
     }
 
-    public Vector4 ClosestInPath(Vector4 point)
-    {
-        return ClosestInPath(point, out float d);
-    }
-
-    public Vector4 ClosestInPath(Vector4 point, out float disp)
-    {
-        if (isComplexPath)
-        {
-            float dist = Mathf.Infinity;
-            disp = 0f;
-            int n = 0;
-            Vector4 clos = path[0];
-            for (int i = 0; i < last; i++)
-            {
-                Vector4 c = point.ClosestPointOnSegment(path[i], path[i + 1], out float dispAdd);
-                float d = Vector4.Distance(point, c);
-                if (d < dist)
-                {
-                    disp = dispAdd;
-                    dist = d;
-                    clos = c;
-                    n = i;
-                }
-            }
-
-            for (int i = 0; i < n; i++)
-                disp += Vector4.Distance(path[i], path[i + 1]);
-
-            return clos;
-        }
-        else return point.ClosestPointOnSegment(origin, target, out disp);
-    }
-
     public override void Draw(Color color)
     {
         for (int i = 0; i < last; i++)
@@ -876,12 +1013,73 @@ public class ColorPath : BGenericPath<Color, Color> // TO DO
 
     public ColorPath(Color[] points) : base(points) { }
 
-    //public Color ClosestInPath(Color point)
-
-    //public Color ClosestInPath(Color point, out float disp)
-
     public override void Draw(Color color)
     {
         //TO DO
+    }
+}
+
+public static class PathStaticHelpers
+{
+    public static P SmartSetValues<P, T, D>(this P path, T origin, T target)
+        where P : BGenericPath<T, D>, new()
+        where T : IEquatable<T>
+    {
+        if (path == null)
+            path = new P();
+        path.Set(origin, target);
+        return path;
+    }
+
+    public static P SmartSetValues<P, T, D>(this P path, T[] values)
+        where P : BGenericPath<T, D>, new()
+        where T : IEquatable<T>
+    {
+        if (path == null)
+            path = new P();
+        path.Set(values);
+        return path;
+    }
+
+    public static RotationPath SmartSetValues(this RotationPath path,
+        Quaternion origin, Quaternion target, RotationMode mode)
+    {
+        if (path == null)
+            return new RotationPath(origin, target, mode);
+        else
+        {
+            path.Set(origin, target, mode);
+            return path;
+        }
+    }
+
+    public static RotationPath SmartSetValues(this RotationPath path,
+        Quaternion[] values, RotationMode mode)
+    {
+        if (path == null)
+            return new RotationPath(values, mode);
+        else
+        {
+            path.Set(values, mode);
+            return path;
+        }
+    }
+
+    public static MovementPath SmartSetValues(this MovementPath path,
+        Vector3 origin, Vector3 target,
+        bool useNavMesh = false, int navMeshAreaMask = 0, int navMeshAgentType = 0)
+    {
+        if (path == null)
+            return new MovementPath(origin, target, useNavMesh, navMeshAreaMask, navMeshAgentType);
+        else
+        {
+            path.Set(origin, target, useNavMesh, navMeshAreaMask, navMeshAgentType);
+            return path;
+        }
+    }
+
+    public static MovementPath SmartSetValues(this MovementPath path, Vector3[] values)
+    {
+        return SmartSetValues<MovementPath, Vector3, Vector3>(path, values);
     }
 }

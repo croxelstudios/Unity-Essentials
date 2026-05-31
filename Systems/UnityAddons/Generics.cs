@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,7 +12,8 @@ public static class Generics
     public delegate T SubtractImpl<T>(T A, T B);
     public delegate T ScaleImpl<T>(T value, float scale);
     public delegate T MultiplyImpl<T>(T A, T B);
-    public delegate bool HasMagnitudeImpl<T>(T value, float epsilon);
+    public delegate bool MagnitudeGreaterThanImpl<T>(T value, float max, bool inclusive);
+    public delegate float FastMagnitudeImpl<T>(T value);
     public delegate float MagnitudeImpl<T>(T value);
     public delegate T NegateImpl<T>(T value);
     public delegate D DirectionImpl<T, D>(T value);
@@ -26,7 +28,8 @@ public static class Generics
     static readonly Dictionary<Type, object> table_Subtract;
     static readonly Dictionary<Type, object> table_Scale;
     static readonly Dictionary<Type, object> table_Multiply;
-    static readonly Dictionary<Type, object> table_HasMagnitude;
+    static readonly Dictionary<Type, object> table_MagnitudeGreaterThan;
+    static readonly Dictionary<Type, object> table_FastMagnitude;
     static readonly Dictionary<Type, object> table_Magnitude;
     static readonly Dictionary<Type, object> table_Negate;
     static readonly Dictionary<(Type, Type), object> table_Direction;
@@ -46,7 +49,8 @@ public static class Generics
         table_Subtract = new Dictionary<Type, object>(MANY);
         table_Scale= new Dictionary<Type, object>(MANY);
         table_Multiply = new Dictionary<Type, object>(MANY);
-        table_HasMagnitude = new Dictionary<Type, object>(MANY);
+        table_MagnitudeGreaterThan = new Dictionary<Type, object>(MANY);
+        table_FastMagnitude = new Dictionary<Type, object>(MANY);
         table_Magnitude = new Dictionary<Type, object>(MANY);
         table_Negate = new Dictionary<Type, object>(MANY);
         table_Dot = new Dictionary<Type, object>(VECTORS);
@@ -104,12 +108,26 @@ public static class Generics
         table_Subtract[typeof(Quaternion)] = new SubtractImpl<Quaternion>(Subtract_Quaternion);
 
         // HasMagnitude
-        table_HasMagnitude[typeof(float)] = new HasMagnitudeImpl<float>(HasMagnitude_Float);
-        table_HasMagnitude[typeof(Vector2)] = new HasMagnitudeImpl<Vector2>(HasMagnitude_Vector2);
-        table_HasMagnitude[typeof(Vector3)] = new HasMagnitudeImpl<Vector3>(HasMagnitude_Vector3);
-        table_HasMagnitude[typeof(Vector4)] = new HasMagnitudeImpl<Vector4>(HasMagnitude_Vector4);
-        table_HasMagnitude[typeof(Color)] = new HasMagnitudeImpl<Color>(HasMagnitude_Color);
-        table_HasMagnitude[typeof(Quaternion)] = new HasMagnitudeImpl<Quaternion>(HasMagnitude_Quaternion);
+        table_MagnitudeGreaterThan[typeof(float)] =
+            new MagnitudeGreaterThanImpl<float>(MagnitudeGreaterThan_Float);
+        table_MagnitudeGreaterThan[typeof(Vector2)] =
+            new MagnitudeGreaterThanImpl<Vector2>(MagnitudeGreaterThan_Vector2);
+        table_MagnitudeGreaterThan[typeof(Vector3)] =
+            new MagnitudeGreaterThanImpl<Vector3>(MagnitudeGreaterThan_Vector3);
+        table_MagnitudeGreaterThan[typeof(Vector4)] =
+            new MagnitudeGreaterThanImpl<Vector4>(MagnitudeGreaterThan_Vector4);
+        table_MagnitudeGreaterThan[typeof(Color)] =
+            new MagnitudeGreaterThanImpl<Color>(MagnitudeGreaterThan_Color);
+        table_MagnitudeGreaterThan[typeof(Quaternion)] =
+            new MagnitudeGreaterThanImpl<Quaternion>(MagnitudeGreaterThan_Quaternion);
+
+        // SqrMagnitude
+        table_FastMagnitude[typeof(float)] = new FastMagnitudeImpl<float>(FastMagnitude_Float);
+        table_FastMagnitude[typeof(Vector2)] = new FastMagnitudeImpl<Vector2>(FastMagnitude_Vector2);
+        table_FastMagnitude[typeof(Vector3)] = new FastMagnitudeImpl<Vector3>(FastMagnitude_Vector3);
+        table_FastMagnitude[typeof(Vector4)] = new FastMagnitudeImpl<Vector4>(FastMagnitude_Vector4);
+        table_FastMagnitude[typeof(Color)] = new FastMagnitudeImpl<Color>(FastMagnitude_Color);
+        table_FastMagnitude[typeof(Quaternion)] = new FastMagnitudeImpl<Quaternion>(FastMagnitude_Quaternion);
 
         // Magnitude
         table_Magnitude[typeof(float)] = new MagnitudeImpl<float>(Magnitude_Float);
@@ -204,9 +222,14 @@ public static class Generics
         table_Scale[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
-    public static void Register_HasMagnitude<T>(HasMagnitudeImpl<T> impl)
+    public static void Register_MagnitudeGreaterThan<T>(MagnitudeGreaterThanImpl<T> impl)
     {
-        table_HasMagnitude[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
+        table_MagnitudeGreaterThan[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
+    }
+
+    public static void Register_FastMagnitude<T>(FastMagnitudeImpl<T> impl)
+    {
+        table_FastMagnitude[typeof(T)] = impl ?? throw new ArgumentNullException(nameof(impl));
     }
 
     public static void Register_Magnitude<T>(MagnitudeImpl<T> impl)
@@ -315,15 +338,31 @@ public static class Generics
         return impl(A, B);
     }
 
+    public static bool MagnitudeGreaterThan<T>(T value, float max, bool inclusive = false)
+    {
+        if (!table_MagnitudeGreaterThan.TryGetValue(typeof(T), out object o))
+            throw new NotSupportedException($"Type {typeof(T)} not supported by" +
+                $"Generics.MagnitudeGreaterThan(). Register an implementation using" +
+                $"Generics.Register_MagnitudeGreaterThan<{typeof(T).Name}>(...) if necessary.");
+
+        MagnitudeGreaterThanImpl<T> impl = (MagnitudeGreaterThanImpl<T>)o;
+        return impl(value, max, inclusive);
+    }
+
     public static bool HasMagnitude<T>(T value, float epsilon = 0f)
     {
-        if (!table_HasMagnitude.TryGetValue(typeof(T), out object o))
-            throw new NotSupportedException($"Type {typeof(T)} not supported by" +
-                $"Generics.HasMagnitude(). Register an implementation using" +
-                $"Generics.Register_HasMagnitude<{typeof(T).Name}>(...) if necessary.");
+        return MagnitudeGreaterThan(value, epsilon);
+    }
 
-        HasMagnitudeImpl<T> impl = (HasMagnitudeImpl<T>)o;
-        return impl(value, epsilon);
+    public static float FastMagnitude<T>(T value)
+    {
+        if (!table_FastMagnitude.TryGetValue(typeof(T), out object o))
+            throw new NotSupportedException($"Type {typeof(T)} not supported by" +
+                $"Generics.FastMagnitude(). Register an implementation using" +
+                $"Generics.Register_FastMagnitude<{typeof(T).Name}>(...) if necessary.");
+
+        FastMagnitudeImpl<T> impl = (FastMagnitudeImpl<T>)o;
+        return impl(value);
     }
 
     public static float Magnitude<T>(T value)
@@ -616,35 +655,79 @@ public static class Generics
     }
     #endregion
 
-    #region HasMagnitude
-    public static bool HasMagnitude_Float(float value, float epsilon)
+    #region MagnitudeGreaterThan
+    public static bool MagnitudeGreaterThan_Float(float value, float max, bool inclusive)
     {
-        return Mathf.Abs(value) > epsilon;
+        float sqr = Mathf.Abs(value);
+        float sqrM = max;
+        return inclusive ? (sqr >= max) : (sqr > max);
     }
 
-    public static bool HasMagnitude_Vector2(Vector2 value, float epsilon)
+    public static bool MagnitudeGreaterThan_Vector2(Vector2 value, float max, bool inclusive)
     {
-        return value.sqrMagnitude > epsilon;
+        float sqr = value.sqrMagnitude;
+        float sqrM = max * max;
+        return inclusive ? (sqr >= sqrM) : (sqr > sqrM);
     }
 
-    public static bool HasMagnitude_Vector3(Vector3 value, float epsilon)
+    public static bool MagnitudeGreaterThan_Vector3(Vector3 value, float max, bool inclusive)
     {
-        return value.sqrMagnitude > epsilon;
+        float sqr = value.sqrMagnitude;
+        float sqrM = max * max;
+        return inclusive ? (sqr >= sqrM) : (sqr > sqrM);
     }
 
-    public static bool HasMagnitude_Vector4(Vector4 value, float epsilon)
+    public static bool MagnitudeGreaterThan_Vector4(Vector4 value, float max, bool inclusive)
     {
-        return value.sqrMagnitude > epsilon;
+        float sqr = value.sqrMagnitude;
+        float sqrM = max * max;
+        return inclusive ? (sqr >= sqrM) : (sqr > sqrM);
     }
 
-    public static bool HasMagnitude_Color(Color value, float epsilon)
+    public static bool MagnitudeGreaterThan_Color(Color value, float max, bool inclusive)
     {
-        return value.grayscale > epsilon;
+        float sqr = ((Vector4)value).sqrMagnitude;
+        float sqrM = max * max;
+        return inclusive ? (sqr >= sqrM) : (sqr > sqrM);
     }
 
-    public static bool HasMagnitude_Quaternion(Quaternion value, float epsilon)
+    public static bool MagnitudeGreaterThan_Quaternion(Quaternion value, float max, bool inclusive)
     {
-        return value.Angle() > epsilon;
+        float sqr = value.Angle();
+        float sqrM = max;
+        return inclusive ? (sqr >= sqrM) : (sqr > sqrM);
+    }
+    #endregion
+
+    #region FastMagnitude
+    public static float FastMagnitude_Float(float value)
+    {
+        return Mathf.Abs(value);
+    }
+
+    public static float FastMagnitude_Vector2(Vector2 value)
+    {
+        return value.sqrMagnitude;
+    }
+
+    public static float FastMagnitude_Vector3(Vector3 value)
+    {
+        return value.sqrMagnitude;
+    }
+
+    public static float FastMagnitude_Vector4(Vector4 value)
+    {
+        return value.sqrMagnitude;
+    }
+
+    public static float FastMagnitude_Color(Color value)
+    {
+        return ((Vector4)value).sqrMagnitude;
+    }
+
+    public static float FastMagnitude_Quaternion(Quaternion value)
+    {
+        return value.Angle();
     }
     #endregion
 

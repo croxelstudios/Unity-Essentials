@@ -41,6 +41,8 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
     DXFloatEvent magnitudePercent = null;
     #endregion
 
+    MovementPath path;
+
     //Agent type
     public void OverrideNavMeshAgentType(int navMeshAgentType, out int prevAgentType)
     {
@@ -61,7 +63,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
         if (speedBehaviour.MoveAway())
             tPos = oPos - (tPos - oPos);
 
-        MovementPath path = new MovementPath(oPos, tPos, useNavMesh, (int)navMeshAreaMask, navMeshAgentType);
+        path = path.SmartSetValues(oPos, tPos, useNavMesh, (int)navMeshAreaMask, navMeshAgentType);
 
         if (projectOnPlane)
         {

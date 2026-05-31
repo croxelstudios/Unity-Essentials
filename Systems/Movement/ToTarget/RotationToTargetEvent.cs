@@ -17,6 +17,8 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
     DXFloatEvent angleSpeedPercent = null;
     #endregion
 
+    RotationPath rotPath;
+
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -29,7 +31,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
         if (speedBehaviour.MoveAway())
             tRot = Quaternion.Inverse(tRot);
 
-        RotationPath rotPath = new RotationPath(oRot, tRot, rotationMode);
+        rotPath = rotPath.SmartSetValues(oRot, tRot, rotationMode);
 
         if (projectOnPlane)
         {

@@ -161,6 +161,25 @@ public static class CollectionExtensions
     //    return list;
     //}
 
+    public static D CreateAddRange<T, D>(this D list,
+        IEnumerable<T> elements, bool testContains = false)
+        where D : ICollection<T>, new()
+    {
+        list = list.CreateIfNull();
+
+        if (elements.IsNullOrEmpty())
+            return list;
+
+        if (testContains)
+        {
+            foreach (T element in elements)
+                if (!list.Contains(element))
+                    list.Add(element);
+        }
+        else list.AddRange(elements);
+        return list;
+    }
+
     public static List<T> CreateAddRange<T>(this List<T> list,
         IEnumerable<T> elements, bool testContains = false)
     {
