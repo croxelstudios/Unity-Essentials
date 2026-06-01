@@ -13,7 +13,7 @@ public class BColliderInteractor : MonoBehaviour
     //[Tooltip("Determines if it should also check the tag of the attached rigidbody")]
     bool checkRigidbodyTag = false;
     [SerializeField]
-    LayerMask layerMask = -1;
+    protected LayerMask layerMask = -1;
     [SerializeField]
     [TagSelector]
     [Tooltip("Will fire on any collision if this array is empty")]

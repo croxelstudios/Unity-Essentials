@@ -22,7 +22,7 @@ public class BCollisionManager : BColliderInteractor
     [SerializeField]
     Space normalSpace = Space.World;
 
-    List<NDCollision> collisions;
+    protected Dictionary<NDCollider, NDContactPoint[]> collisions;
 
     NDRigidbody rigid;
     CollisionManager_Detector detector;
@@ -30,7 +30,7 @@ public class BCollisionManager : BColliderInteractor
 
     protected override void Awake()
     {
-        collisions = new List<NDCollision>();
+        collisions = new Dictionary<NDCollider, NDContactPoint[]>();
         base.Awake();
 
         rigid = NDRigidbody.GetNDRigidbodyFrom(gameObject, Scope.inParents);
@@ -47,42 +47,47 @@ public class BCollisionManager : BColliderInteractor
     {
         if (collisions.Count > 0)
         {
-            foreach (NDCollision col in collisions)
-                OnColExit(col);
+            foreach (NDCollider col in collisions.Keys)
+                OnColExit(collisions[col]);
             collisions.Clear();
             OnLastColExit();
         }
         DisableDetector();
     }
 
-    void FixedUpdate()
+    List<NDCollider> aux;
+
+    protected virtual void FixedUpdate()
     {
         if (!HasEnabledCollider())
             OnDisable();
         else EnableDetector();
 
-        for (int i = collisions.Count - 1; i > -1; i--)
+        aux = aux.ClearOrCreate();
+        foreach (NDCollider col in collisions.Keys)
         {
-            if (collisions[i].collider.IsNull() ||
-                (!collisions[i].collider.enabled) ||
-                (!collisions[i].collider.gameObject.activeInHierarchy))
-            {
-                collisions.RemoveAt(i);
-                if (collisions.Count == 0) OnLastColExit();
-                OnColExit(null);
-            }
+            if (col.IsNull() ||
+                (!col.enabled) ||
+                (!col.gameObject.activeInHierarchy))
+                aux.Add(col);
+        }
+
+        for (int i = 0; i < aux.Count; i++)
+        {
+            collisions.Remove(aux[i]);
+            if (collisions.Count == 0) OnLastColExit();
+            OnColExit(null);
         }
     }
 
-    //TO DO: Something here is making the collison trigger even when impact is greater than maxImpact.
-    //Probably CollisionStay is being called after the impact force has been reduced.
+    //TO DO: Collison trigger is called even when impact is greater than maxImpact.
+    //This was intended at first but makes no sense in retrospect
     public void CollisionStay(NDCollision collision)
     {
         if (IsThisEnabled() && (minImpact > Mathf.Epsilon) &&
             CheckCollision(collision.gameObject, out CustomTag otherTag) &&
             CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
-            OnColEnter(collision);
             OnColEnter(points, impact);
             LaunchCustomTag(otherTag);
         }
@@ -95,10 +100,9 @@ public class BCollisionManager : BColliderInteractor
             CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
             int prevCount = collisions.Count;
-            if (!collisions.Contains(collision))
-                collisions.Add(collision);
+            if (!collisions.ContainsKey(collision.collider))
+                collisions.Add(collision.collider, collision.contacts);
             if (prevCount == 0) OnFirstColEnter();
-            OnColEnter(collision);
             OnColEnter(points, impact);
             LaunchCustomTag(otherTag);
         }
@@ -108,9 +112,9 @@ public class BCollisionManager : BColliderInteractor
     {
         if (IsThisEnabled() && CheckCollision(collision.gameObject))
         {
-            collisions.Remove(collision);
+            collisions.Remove(collision.collider);
             if (collisions.Count == 0) OnLastColExit();
-            OnColExit(collision);
+            OnColExit(collision.contacts);
         }
     }
 
@@ -186,17 +190,12 @@ public class BCollisionManager : BColliderInteractor
 
     }
 
-    public virtual void OnColEnter(NDCollision collision)
-    {
-
-    }
-
     public virtual void OnColEnter(NDContactPoint[] contacts, float impact)
     {
 
     }
 
-    public virtual void OnColExit(NDCollision collision)
+    public virtual void OnColExit(NDContactPoint[] collision)
     {
 
     }

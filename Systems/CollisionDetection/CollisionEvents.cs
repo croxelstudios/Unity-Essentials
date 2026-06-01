@@ -49,7 +49,7 @@ public class CollisionEvents : BCollisionManager
         entered?.Invoke(Mathf.Clamp01(Mathf.InverseLerp(minImpact, maxImpact, impact)));
     }
 
-    public override void OnColExit(NDCollision collision)
+    public override void OnColExit(NDContactPoint[] collision)
     {
         exited?.Invoke();
     }
