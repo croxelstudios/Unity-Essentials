@@ -70,9 +70,23 @@ public class ScaleModifier : DXMonoBehaviour
         }
     }
 
+    void ScaleInstant(Vector3 newScl)
+    {
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+#endif
+            scaleTarget = currentVirtualScale = newScl;
+        transform.localScale = newScl;
+    }
+
     public void Scale(float scale)
     {
         Scale(Current() * scale);
+    }
+
+    public void ScaleInstant(float scale)
+    {
+        ScaleInstant(Current() * scale);
     }
 
     public void ScaleX(float scale)
@@ -119,6 +133,11 @@ public class ScaleModifier : DXMonoBehaviour
     public void ScaleSet(float scale)
     {
         Scale(Vector3.one * scale);
+    }
+
+    public void ScaleSetInstant(float scale)
+    {
+        ScaleInstant(Vector3.one * scale);
     }
 
     public void ScaleXSet(float scale)

@@ -8,9 +8,9 @@ public class TimeSlowdown : MonoBehaviour
     [SerializeField]
     float smoothTime = 0.01f;
     [SerializeField]
-    float minDifference = 0.1f;
-    [SerializeField]
     bool sleepWhileActive = false;
+
+    const float MINDIF = 0.01f;
 
     static float fixedTimeRelation = -1f;
     static TimeSlowdown staticHolder;
@@ -54,10 +54,7 @@ public class TimeSlowdown : MonoBehaviour
         {
             TryCreatingStaticHolder();
             if (staticHolder != null)
-            {
-                if (co != null) staticHolder.StopCoroutine(co);
-                co = staticHolder.StartCoroutine(TransitionToTimeScale(newScale, smoothTime, minDifference));
-            }
+                staticHolder.ToTimeScale(newScale, smoothTime, MINDIF);
         }
     }
 
@@ -67,10 +64,7 @@ public class TimeSlowdown : MonoBehaviour
         {
             TryCreatingStaticHolder();
             if (staticHolder != null)
-            {
-                if (co != null) staticHolder.StopCoroutine(co);
-                co = staticHolder.StartCoroutine(TransitionToTimeScale(defaultTimeScale, smoothTime, minDifference));
-            }
+                staticHolder.ToTimeScale(defaultTimeScale, smoothTime, MINDIF);
         }
     }
 
@@ -78,6 +72,15 @@ public class TimeSlowdown : MonoBehaviour
     {
         Time.timeScale = newScale;
         Time.fixedDeltaTime = newScale * fixedTimeRelation;
+    }
+
+    void ToTimeScale(float newScale, float smoothTime, float mindif)
+    {
+        if (co != null) staticHolder.StopCoroutine(co);
+
+        if (smoothTime <= Mathf.Epsilon)
+            SetTimeScale(newScale);
+        else co = StartCoroutine(TransitionToTimeScale(newScale, smoothTime, mindif));
     }
 
     static IEnumerator TransitionToTimeScale(float newScale, float smoothTime, float mindif)

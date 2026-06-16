@@ -279,6 +279,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "64c2b93d82354e3fae5a5563fad467c3",
+    "m_Id": 2,
+    "m_DisplayName": "FlipAxis",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "FlipAxis",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.SubGraphOutputNode",
     "m_ObjectId": "a63a12a8a48643f39b869a1d624382b4",
     "m_Group": {
@@ -347,6 +370,9 @@
         },
         {
             "m_Id": "3e7befc9ac5a45b0bfeac1e25529142a"
+        },
+        {
+            "m_Id": "64c2b93d82354e3fae5a5563fad467c3"
         }
     ],
     "synonyms": [
@@ -364,7 +390,7 @@
     "m_FunctionName": "GetRotationMatrix",
     "m_FunctionSource": "",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "    // Columnas de la parte 3x3 (ejes del objeto en world space)\n    float3 c0 = float3(In[0][0], In[1][0], In[2][0]); // X axis\n    float3 c1 = float3(In[0][1], In[1][1], In[2][1]); // Y axis\n    float3 c2 = float3(In[0][2], In[1][2], In[2][2]); // Z axis\n\n    // Longitud de cada eje = escala de ese eje\n    float sx = length(c0);\n    float sy = length(c1);\n    float sz = length(c2);\n\n    // Evita división por cero\n    if (sx < 1e-8 || sy < 1e-8 || sz < 1e-8)\n    {\n        Out = float4x4(\n            1, 0, 0, 0,\n            0, 1, 0, 0,\n            0, 0, 1, 0,\n            0, 0, 0, 1\n        );\n        return;\n    }\n\n    // Quita la escala\n    c0 /= sx;\n    c1 /= sy;\n    c2 /= sz;\n\n    // Si hay escala negativa, la base puede quedar \"handedness flipped\"\n    // Corregimos forzando un sistema dextrógiro.\n    float det = dot(c0, cross(c1, c2));\n    if (det < 0.0)\n    {\n        // Flip del eje dominante para minimizar cambios numéricos\n        if (sx >= sy && sx >= sz)      c0 = -c0;\n        else if (sy >= sz)             c1 = -c1;\n        else                           c2 = -c2;\n    }\n\n    // Reconstruye matriz de rotación pura en convención Column\n    Out = float4x4(\n        c0.x, c1.x, c2.x, 0.0,\n        c0.y, c1.y, c2.y, 0.0,\n        c0.z, c1.z, c2.z, 0.0,\n        0.0,  0.0,  0.0,  1.0\n    );"
+    "m_FunctionBody": "    // Columnas de la parte 3x3 (ejes del objeto en world space)\n    float3 c0 = float3(In[0][0], In[1][0], In[2][0]); // X axis\n    float3 c1 = float3(In[0][1], In[1][1], In[2][1]); // Y axis\n    float3 c2 = float3(In[0][2], In[1][2], In[2][2]); // Z axis\n\n    // Longitud de cada eje = escala de ese eje\n    float sx = length(c0);\n    float sy = length(c1);\n    float sz = length(c2);\n\n    // Evita división por cero\n    if (sx < 1e-8 || sy < 1e-8 || sz < 1e-8)\n    {\n        Out = float4x4(\n            1, 0, 0, 0,\n            0, 1, 0, 0,\n            0, 0, 1, 0,\n            0, 0, 0, 1\n        );\n        return;\n    }\n\n    // Quita la escala\n    c0 /= sx;\n    c1 /= sy;\n    c2 /= sz;\n\n    // Si hay escala negativa, la base puede quedar \"handedness flipped\"\n    // Corregimos forzando un sistema dextrógiro.\n    float det = dot(c0, cross(c1, c2));\n    if (det < 0.0)\n    {\n        // Flip del eje dominante para minimizar cambios numéricos\n        if (sx >= sy && sx >= sz) {c0 = -c0; FlipAxis = float3(-1, 1, 1);}\n        else if (sy >= sz) {c1 = -c1; FlipAxis = float3(1, -1, 1);}\n        else {c2 = -c2; FlipAxis = float3(1, 1, -1);}\n    }\n    else FlipAxis = float3(1, 1, 1);\n\n    // Reconstruye matriz de rotación pura en convención Column\n    Out = float4x4(\n        c0.x, c1.x, c2.x, 0.0,\n        c0.y, c1.y, c2.y, 0.0,\n        c0.z, c1.z, c2.z, 0.0,\n        0.0,  0.0,  0.0,  1.0\n    );"
 }
 
 {
