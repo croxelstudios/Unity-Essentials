@@ -568,20 +568,32 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
         }
     }
 
-    public T ClosestInPath(T point)
+    public T ClosestInPath(T point, int lastPoint = 0)
     {
-        return ClosestInPath(point, out float d);
+        return ClosestInPath(point, out float d, lastPoint);
     }
 
-    public T ClosestInPath(T point, out float disp)
+    public T ClosestInPath(T point, out float disp, int lastPoint = 0)
     {
+        return ClosestInPath(point, out disp, out int interval, lastPoint);
+    }
+
+    public T ClosestInPath(T point, out int interval, int lastPoint = 0)
+    {
+        return ClosestInPath(point, out float disp, out interval, lastPoint);
+    }
+
+    public T ClosestInPath(T point, out float disp, out int interval, int lastPoint = 0)
+    {
+        interval = 0;
         if (isComplexPath)
         {
+            if (lastPoint <= 0) lastPoint = last;
+
             float dist = Mathf.Infinity;
             disp = 0f;
-            int n = 0;
             T clos = path[0];
-            for (int i = 0; i < last; i++)
+            for (int i = 0; i < (lastPoint - 1); i++)
             {
                 T c = ClosestOnInterval(point, i, i + 1, out float dispAdd);
                 float d = Distance(point, c);
@@ -590,11 +602,11 @@ public class BGenericPath<T, D> : ITransformationSequence where T : IEquatable<T
                     disp = dispAdd;
                     dist = d;
                     clos = c;
-                    n = i;
+                    interval = i;
                 }
             }
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < interval; i++)
                 disp += IntervalLength(i, i + 1);
 
             return clos;
