@@ -120,9 +120,9 @@ public struct SpeedBehaviour
         switch (speedMode)
         {
             case SpeedMode.Linear:
-                return (maxSpeed * speed) < 0f;
+                return (speed < 0f) || (maxSpeed < 0f);
             case SpeedMode.Accelerated:
-                return (maxSpeed * acceleration) < 0f;
+                return (acceleration < 0f) || (maxSpeed < 0f);
             case SpeedMode.LerpSmooth:
                 return speed < 0f;
             default:

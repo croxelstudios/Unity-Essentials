@@ -19,19 +19,33 @@ public class LookForTransform : DXMonoBehaviour
     [SerializeField]
     bool searchOnEnable = true;
     [SerializeField]
+    Timing timing = Timing.OnEnable;
+    [SerializeField]
     DXTransformEvent transformFound = null;
 
+    Transform[] possible;
+
+    enum Timing { OnEnable, Update, OnCall }
     enum ChoosingMode { Nearest, Random, FirstFound }
 
     void OnEnable()
     {
-        if (searchOnEnable) SearchTags();
+        FindAllTransforms();
+        if (timing == Timing.OnEnable) SearchTags();
+    }
+
+    void Update()
+    {
+        if (timing == Timing.Update) SearchTags();
+    }
+
+    public void UpdateTransforms()
+    {
+        possible = FindAllTransforms();
     }
 
     public void SearchTags()
     {
-        Transform[] possible = FindAllTransforms();
-
         Transform[] possibleInRadius = FilterTrByRadius(possible, radius);
         if (possibleInRadius.Length > 0)
             possible = possibleInRadius;
@@ -43,7 +57,6 @@ public class LookForTransform : DXMonoBehaviour
                     float distance = Mathf.Infinity;
                     Transform nearest = null;
                     foreach (Transform tr in possible)
-                    {
                         if ((tr != transform) && !exceptions.Any(x => x == tr))
                         {
                             float dist = Vector3.Distance(transform.position, tr.position);
@@ -53,7 +66,6 @@ public class LookForTransform : DXMonoBehaviour
                                 distance = dist;
                             }
                         }
-                    }
                     transformFound?.Invoke(nearest);
                     break;
                 case ChoosingMode.Random:

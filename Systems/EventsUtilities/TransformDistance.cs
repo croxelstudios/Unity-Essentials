@@ -57,4 +57,14 @@ public class TransformDistance : MonoBehaviour
         if (distanceRange.x > distanceRange.y)
             distanceRange.y = distanceRange.x;
     }
+
+    public void SetOrigin(Transform transform)
+    {
+        origin = new ObjectRef<Transform>("Origin", transform);
+    }
+
+    public void SetTarget(Transform transform)
+    {
+        target = new ObjectRef<Transform>("Target", transform);
+    }
 }

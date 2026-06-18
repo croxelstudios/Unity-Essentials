@@ -10,8 +10,6 @@ public class FloatModifyModes : MonoBehaviour
     [SerializeField]
     int mode = 0;
     [SerializeField]
-    ScaleMode[] scaleModes = new ScaleMode[] { new ScaleMode(1f, 0f, 0f, false, false) };
-    [SerializeField]
     Modification[] modes = new Modification[] { new Modification(Operation.Type.Scale) };
     [SerializeField]
     DXFloatEvent modifiedValue = null;
@@ -40,16 +38,12 @@ public class FloatModifyModes : MonoBehaviour
 
     public void ModifyScale(float value)
     {
-        //ScaleMode sclMode = scaleModes[mode];
-        //sclMode.scale = value;
-        //scaleModes[mode] = sclMode;
         modes[mode].SetScale(value);
         Apply();
     }
 
     void Apply()
     {
-        //float newValue = scaleModes[mode].Apply(currentValue);
         float newValue = modes[mode].Apply(currentValue);
         modifiedValue?.Invoke(newValue);
         int iValue;
@@ -70,69 +64,63 @@ public class FloatModifyModes : MonoBehaviour
 
     public void SetMode(int mode)
     {
-        this.mode = (int)Mathf.Clamp(mode, 0f, scaleModes.Length);
-    }
-
-    [Serializable]
-    public struct ScaleMode
-    {
-        public float scale;
-        [SerializeField]
-        float preAddition;
-        [SerializeField]
-        float postAddition;
-        [SerializeField]
-        bool abs;
-        [SerializeField]
-        bool oneMinus;
-        [SerializeField]
-        bool clamp;
-        [Indent]
-        [ShowIf("clamp")]
-        [SerializeField]
-        Vector2 between;
-
-        public ScaleMode(float scale, float preAddition, float postAddition,
-            bool abs, bool oneMinus)
-        {
-            this.scale = scale;
-            this.preAddition = preAddition;
-            this.postAddition = postAddition;
-            this.abs = abs;
-            this.oneMinus = oneMinus;
-            clamp = false;
-            between = new Vector2(0f, 1f);
-        }
-
-        public ScaleMode(float scale, float preAddition, float postAddition,
-            bool abs, bool oneMinus, Vector2 between)
-        {
-            this.scale = scale;
-            this.preAddition = preAddition;
-            this.postAddition = postAddition;
-            this.abs = abs;
-            this.oneMinus = oneMinus;
-            clamp = true;
-            this.between = between;
-        }
-
-        public float Apply(float value)
-        {
-            if (abs) value = Mathf.Abs(value);
-            if (oneMinus) value = 1f - value;
-            value += preAddition;
-            value *= scale;
-            value += postAddition;
-            if (clamp) value = Mathf.Clamp(value, between.x, between.y);
-            return value;
-        }
+        this.mode = (int)Mathf.Clamp(mode, 0f, modes.Length);
     }
 
     [Serializable]
     public struct Modification
     {
         [SerializeField]
+        [ListDrawerSettings(ShowFoldout = false, HideAddButton = true)]
         Operation[] operations;
+
+        [Button("Scale")]
+        [HorizontalGroup]
+        public void AddScale()
+        {
+            operations = operations.Resize(operations.Length + 1);
+            operations[operations.Length - 1] = new Operation(Operation.Type.Scale);
+        }
+
+        [Button("Add")]
+        [HorizontalGroup]
+        public void AddAdd()
+        {
+            operations = operations.Resize(operations.Length + 1);
+            operations[operations.Length - 1] = new Operation(Operation.Type.Add);
+        }
+
+        [Button("Abs")]
+        [HorizontalGroup]
+        public void AddAbs()
+        {
+            operations = operations.Resize(operations.Length + 1);
+            operations[operations.Length - 1] = new Operation(Operation.Type.Abs);
+        }
+
+        [Button("OneMinus")]
+        [HorizontalGroup]
+        public void AddOneMinus()
+        {
+            operations = operations.Resize(operations.Length + 1);
+            operations[operations.Length - 1] = new Operation(Operation.Type.OneMinus);
+        }
+
+        [Button("Clamp")]
+        [HorizontalGroup]
+        public void AddClamp()
+        {
+            operations = operations.Resize(operations.Length + 1);
+            operations[operations.Length - 1] = new Operation(Operation.Type.Clamp);
+        }
+
+        [Button("Round")]
+        [HorizontalGroup]
+        public void AddRound()
+        {
+            operations = operations.Resize(operations.Length + 1);
+            operations[operations.Length - 1] = new Operation(Operation.Type.Round);
+        }
 
         public Modification(Operation.Type type)
         {

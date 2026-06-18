@@ -80,7 +80,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
         Vector3 accelerationHalf0 = Vector3.zero;
         if (doAccelerate)
         {
-            float accel = speedBehaviour.acceleration * deltaTime * 0.5f;
+            float accel = Mathf.Abs(speedBehaviour.acceleration) * deltaTime * 0.5f;
             //if (keepInStraightPath)
             {
                 //TO DO: This is quite complicated because I need to somehow figure out the magnitude
@@ -148,7 +148,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
     {
         //TO DO: Doesn't work with keepinpath feature
         return path.SmoothDamp(ref dynamicInfo.speed,
-            speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime,
+            speedBehaviour.smoothTime, speedBehaviour.unsignedMaxSpeed, deltaTime,
             useNavMesh ? MovementPath.SmoothMode.NavMesh : MovementPath.SmoothMode.AlongPath)
             - path.origin;
     }

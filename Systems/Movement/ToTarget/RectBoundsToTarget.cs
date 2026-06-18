@@ -55,7 +55,7 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
         Vector4 accelerationHalf0 = Vector4.zero;
         if (doAccelerate)
         {
-            float accel = speedBehaviour.acceleration * deltaTime * 0.5f;
+            float accel = Mathf.Abs(speedBehaviour.acceleration) * deltaTime * 0.5f;
             //if (keepInStraightPath)
             {
                 //TO DO: This is quite complicated because I need to somehow figure out the magnitude
@@ -123,7 +123,7 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
     {
         //TO DO: Doesn't work with keepinpath feature
         return path.SmoothDamp(ref dynamicInfo.speed,
-            speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime)
+            speedBehaviour.smoothTime, speedBehaviour.unsignedMaxSpeed, deltaTime)
             - path.origin;
     }
 

@@ -53,7 +53,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
         Vector3 accelHalf0 = Vector3.zero;
         if (doAccelerate)
         {
-            float accel = speedBehaviour.acceleration * deltaTime * 0.5f;
+            float accel = Mathf.Abs(speedBehaviour.acceleration) * deltaTime * 0.5f;
             //if (keepInStraightPath)
             //{
             //TO DO: This is quite complicated because I need to somehow figure out the magnitude
@@ -131,7 +131,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
         //TO DO: Doesn't work with keepinpath feature
         //TO DO: Only works with Shortest RotationMode
         return rotPath.SmoothDamp(ref dynamicInfo.speed,
-            speedBehaviour.smoothTime, speedBehaviour.maxSpeed, deltaTime).Subtract(rotPath.origin);
+            speedBehaviour.smoothTime, speedBehaviour.unsignedMaxSpeed, deltaTime).Subtract(rotPath.origin);
     }
 
     protected override Quaternion LerpSmooth(RotationPath rotPath, float deltaTime)

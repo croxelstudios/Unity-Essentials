@@ -18,7 +18,6 @@ public class PostProWeightFromFloatURP : MonoBehaviour
 
     float current;
     float tmpspd;
-    Coroutine co;
 
     void OnDisable()
     {
