@@ -17,20 +17,18 @@ public class LookForTransform : DXMonoBehaviour
     [SerializeField]
     ChoosingMode choosingMode = ChoosingMode.Nearest;
     [SerializeField]
-    bool searchOnEnable = true;
-    [SerializeField]
     Timing timing = Timing.OnEnable;
     [SerializeField]
     DXTransformEvent transformFound = null;
 
     Transform[] possible;
 
-    enum Timing { OnEnable, Update, OnCall }
+    enum Timing { OnEnable, Update, OnCall, OnCallUpdateTransforms }
     enum ChoosingMode { Nearest, Random, FirstFound }
 
     void OnEnable()
     {
-        FindAllTransforms();
+        UpdateTransforms();
         if (timing == Timing.OnEnable) SearchTags();
     }
 
@@ -46,17 +44,18 @@ public class LookForTransform : DXMonoBehaviour
 
     public void SearchTags()
     {
-        Transform[] possibleInRadius = FilterTrByRadius(possible, radius);
-        if (possibleInRadius.Length > 0)
-            possible = possibleInRadius;
+        if (timing == Timing.OnCallUpdateTransforms)
+            UpdateTransforms();
 
-        if (possible.Length > 0)
+        Transform[] possibleInRadius = FilterTrByRadius(possible, radius);
+
+        if (possibleInRadius.Length > 0)
             switch (choosingMode)
             {
                 case ChoosingMode.Nearest:
                     float distance = Mathf.Infinity;
                     Transform nearest = null;
-                    foreach (Transform tr in possible)
+                    foreach (Transform tr in possibleInRadius)
                         if ((tr != transform) && !exceptions.Any(x => x == tr))
                         {
                             float dist = Vector3.Distance(transform.position, tr.position);
@@ -69,10 +68,10 @@ public class LookForTransform : DXMonoBehaviour
                     transformFound?.Invoke(nearest);
                     break;
                 case ChoosingMode.Random:
-                    transformFound?.Invoke(possible[Random.Range(0, possible.Length)].transform);
+                    transformFound?.Invoke(possibleInRadius[Random.Range(0, possible.Length)].transform);
                     break;
                 default:
-                    transformFound?.Invoke(possible[0]);
+                    transformFound?.Invoke(possibleInRadius[0]);
                     break;
             }
     }
@@ -82,15 +81,20 @@ public class LookForTransform : DXMonoBehaviour
         return CustomTag.FindTransforms(customTags, tags);
         //return FindWithTag.Transforms(tags);
     }
+    
+    List<Transform> aux;
 
     Transform[] FilterTrByRadius(Transform[] trs, float radius)
     {
-        List<Transform> list = new List<Transform>();
+        if (trs.IsNullOrEmpty())
+            return new Transform[0];
+
+        aux = aux.ClearOrCreate();
         foreach (Transform tr in trs)
         {
             if (Vector3.Distance(tr.position, transform.position) < radius)
-                list.Add(tr);
+                aux.Add(tr);
         }
-        return list.ToArray();
+        return aux.ToArray();
     }
 }
