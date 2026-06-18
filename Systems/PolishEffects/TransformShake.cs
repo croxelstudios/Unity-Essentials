@@ -7,6 +7,7 @@ using Random = UnityEngine.Random;
 using UnityEditor;
 #endif
 
+//TO DO: Some way to visualize in editor when selected
 public class TransformShake : BOffsetBasedTransformer<Vector3>
 {
     [SerializeField]

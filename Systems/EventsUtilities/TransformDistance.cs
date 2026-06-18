@@ -34,13 +34,22 @@ public class TransformDistance : MonoBehaviour
         if ((!Application.isPlaying) && (!launchInEditor))
             return;
 #endif
-        Vector3 other = ((Transform)target).position;
-        if (local)
-            other = ((Transform)origin).InverseTransformPoint(other);
-        float dist = Vector3.Distance(local ? ((Transform)origin).localPosition : ((Transform)origin).position, other);
-        if (lerpDistance)
-            dist = Mathf.InverseLerp(distanceRange.x, distanceRange.y, dist);
-        distance?.Invoke(dist * multiplier);
+        Transform targ = (Transform)target;
+        Transform orig = (Transform)origin;
+        if ((targ != null) && (orig != null))
+        {
+            origin.SetClosest(targ);
+            orig = (Transform)origin;
+            target.SetClosest(orig);
+            targ = (Transform)target;
+            Vector3 other = targ.position;
+            if (local)
+                other = orig.InverseTransformPoint(other);
+            float dist = Vector3.Distance(local ? orig.localPosition : orig.position, other);
+            if (lerpDistance)
+                dist = Mathf.InverseLerp(distanceRange.x, distanceRange.y, dist);
+            distance?.Invoke(dist * multiplier);
+        }
     }
 
     public void RestrictRange()

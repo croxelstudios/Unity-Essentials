@@ -101,6 +101,7 @@ public class CentralizedSettingsDrawer : PropertyDrawer
             {
 #if ODIN_INSPECTOR
                 RemoveAddAttributes.Remove(prop,
+                    typeof(HideLabelAttribute),
                     typeof(LabelTextAttribute),
                     typeof(HorizontalGroupAttribute),
                     typeof(IndentAttribute),

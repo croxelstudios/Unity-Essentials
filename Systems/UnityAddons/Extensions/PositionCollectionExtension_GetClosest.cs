@@ -6,6 +6,12 @@ public static class PositionCollectionExtension_GetClosest
 {
     public static T GetClosest<T>(this IEnumerable<T> collection, Vector3 position) where T : Object
     {
+        if (collection.IsNullOrEmpty())
+            return null;
+
+        if (collection.Count() == 1)
+            return collection.First();
+
         T closestTarget = null;
         float closestDistanceSqr = Mathf.Infinity;
         foreach (T potentialTarget in collection)
