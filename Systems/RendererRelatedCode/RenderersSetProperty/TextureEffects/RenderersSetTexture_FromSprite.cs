@@ -36,19 +36,20 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
     protected override void UpdateBehaviour()
     {
         int j = 0;
-        for (int i = 0; i < rend.Length; i++)
-            if (typeof(SpriteRenderer).IsAssignableFrom(rend[i].GetType()))
-            {
-                Texture tex = ((SpriteRenderer)rend[i]).sprite.texture;
-                //if (tex != oldTexs[j])
-                    //TO DO: This has a problem if you change any sprite to the last renderer's sprite, it won't update
+        if (!rend.IsNullOrEmpty())
+            for (int i = 0; i < rend.Length; i++)
+                if (typeof(SpriteRenderer).IsAssignableFrom(rend[i].GetType()))
                 {
-                    oldTexs[j] = tex;
-                    _texture = tex;
-                    break;
+                    Texture tex = ((SpriteRenderer)rend[i]).sprite.texture;
+                    //if (tex != oldTexs[j])
+                        //TO DO: This has a problem if you change any sprite to the last renderer's sprite, it won't update
+                    {
+                        oldTexs[j] = tex;
+                        _texture = tex;
+                        break;
+                    }
+                    //j++;
                 }
-                //j++;
-            }
 
         base.UpdateBehaviour();
     }
