@@ -181,11 +181,11 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
             if (bottom) bottomValue?.Invoke(r.w);
 
             if (applyInTransform)
-                Apply(speedPerThisFrame, locally);
+                Apply(speedPerThisFrame, locally, speedBehaviour.speedMode == SpeedMode.Teleport);
         }
     }
 
-    public override void Set(Vector4 target, bool isLocal = false)
+    public override void Set(Vector4 target, bool isLocal, bool teleport = false)
     {
         Vector4 dif = target - Current();
         if (projectOnPlane)
@@ -193,11 +193,11 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
             Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
             dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
         }
-        Apply(dif, isLocal);
+        Apply(dif, isLocal, teleport);
         ResetSpeed();
     }
 
-    public override void Apply(Vector4 speed, bool isLocal = false)
+    public override void Apply(Vector4 speed, bool isLocal, bool teleport = false)
     {
         RectTransform tr = origin as RectTransform;
         if (leftOrWidth)

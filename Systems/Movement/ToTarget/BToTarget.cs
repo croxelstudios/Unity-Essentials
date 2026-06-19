@@ -291,7 +291,7 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
     /// </summary>
     public void Teleport()
     {
-        Set(Target(), locally);
+        Set(Target(), locally, true);
     }
 
     public void Respawn()
@@ -299,11 +299,21 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
         recorded.SetInTransform(origin);
     }
 
-    public virtual void Set(T target, bool isLocal = false)
+    public void Set(T target)
+    {
+        Set(target, locally);
+    }
+
+    public virtual void Set(T target, bool isLocal, bool teleport = false)
     {
     }
 
-    public virtual void Apply(T speed, bool isLocal)
+    public void Apply(T speed)
+    {
+        Apply(speed, locally);
+    }
+
+    public virtual void Apply(T speed, bool isLocal, bool teleport = false)
     {
     }
 

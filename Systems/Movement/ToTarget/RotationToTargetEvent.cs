@@ -184,11 +184,11 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
 
             rotation?.Invoke(r);
             if (applyInTransform)
-                Apply(angleAxisPerThisFrame, locally);
+                Apply(angleAxisPerThisFrame, locally, speedBehaviour.speedMode == SpeedMode.Teleport);
         }
     }
 
-    public override void Set(Quaternion target, bool isLocal = false)
+    public override void Set(Quaternion target, bool isLocal, bool teleport = false)
     {
         Quaternion dif = target.Subtract(Current());
         if (projectOnPlane)
@@ -196,15 +196,39 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
             Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
             dif = Quaternion.AngleAxis(dif.Angle(rotationMode), localPlaneNormal);
         }
-        Apply(dif, isLocal);
+        Apply(dif, isLocal, teleport);
         ResetSpeed();
     }
 
-    public override void Apply(Quaternion speed, bool isLocal = false)
+    public override void Apply(Quaternion speed, bool isLocal, bool teleport = false)
     {
-        origin.PhysicsRotate(speed,
-            speedBehaviour.speedMode == SpeedMode.Teleport,
-            isLocal ? Space.Self : Space.World);
+        //WARNING: Rigidbodies will apply rotation in fixed time and this can break order of events
+        //Use IgnorePhysics variants if you need to apply rotation instantly
+        origin.PhysicsRotate(speed, teleport, isLocal ? Space.Self : Space.World);
+    }
+
+    public void Teleport_IgnorePhysics()
+    {
+        Set_IgnorePhysics(Target(), locally);
+    }
+
+    public void Set_IgnorePhysics(Quaternion target, bool isLocal)
+    {
+        Quaternion dif = target.Subtract(Current());
+        if (projectOnPlane)
+        {
+            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
+            dif = Quaternion.AngleAxis(dif.Angle(rotationMode), localPlaneNormal);
+        }
+        Apply_IgnorePhysics(dif, isLocal);
+        ResetSpeed();
+    }
+
+    public void Apply_IgnorePhysics(Quaternion speed, bool isLocal)
+    {
+        if (isLocal) speed = speed.Add(origin.rotation);
+        else speed = origin.rotation.Add(speed);
+        origin.rotation = speed;
     }
 
     public override Quaternion GetGlobal(Transform tr)

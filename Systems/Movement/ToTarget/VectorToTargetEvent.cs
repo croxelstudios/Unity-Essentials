@@ -205,7 +205,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
 
             vector?.Invoke(r);
             if (applyInTransform)
-                Apply(speedPerThisFrame, locally);
+                Apply(speedPerThisFrame, locally, speedBehaviour.speedMode == SpeedMode.Teleport);
             else if (reorientTransform)
                 ReorientTransform(speedPerThisFrame, locally);
         }
@@ -217,7 +217,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
             origin.parent.TransformDirection(speed) : speed;
     }
 
-    public override void Set(Vector3 target, bool isLocal = false)
+    public override void Set(Vector3 target, bool isLocal, bool teleport = false)
     {
         Vector3 dif = target - Current();
         if (projectOnPlane)
@@ -226,15 +226,40 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
             dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
         }
         dif.Scale(vectorMultiplier);
-        Apply(dif, isLocal);
+        Apply(dif, isLocal, teleport);
         ResetSpeed();
     }
 
-    public override void Apply(Vector3 speed, bool isLocal = false)
+    public override void Apply(Vector3 speed, bool isLocal, bool teleport = false)
     {
-        origin.PhysicsTranslate(speed,
-            speedBehaviour.speedMode == SpeedMode.Teleport,
-            isLocal ? Space.Self : Space.World);
+        //WARNING: Rigidbodies will apply movement in fixed time and this can break order of events
+        //Use IgnorePhysics variants if you need to apply movement instantly
+        origin.PhysicsTranslate(speed, teleport, isLocal ? Space.Self : Space.World);
+        if (reorientTransform)
+            ReorientTransform(speed, isLocal);
+    }
+
+    public void Teleport_IgnorePhysics()
+    {
+        Set_IgnorePhysics(Target(), locally);
+    }
+
+    public void Set_IgnorePhysics(Vector3 target, bool isLocal)
+    {
+        Vector3 dif = target - Current();
+        if (projectOnPlane)
+        {
+            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
+            dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
+        }
+        dif.Scale(vectorMultiplier);
+        Apply_IgnorePhysics(dif, isLocal);
+        ResetSpeed();
+    }
+
+    public void Apply_IgnorePhysics(Vector3 speed, bool isLocal)
+    {
+        origin.DXTranslate(speed, isLocal ? Space.Self : Space.World);
         if (reorientTransform)
             ReorientTransform(speed, isLocal);
     }
