@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class BBaseSignalListener : MonoBehaviour
@@ -8,6 +9,7 @@ public class BBaseSignalListener : MonoBehaviour
     [Tooltip("Disabling this only takes effect when the signal is dynamic")]
     protected bool checkActiveState = true;
     [SerializeField]
+    [LabelText("Order")]
     public int priority = 0;
     public bool CheckActiveState { get { return checkActiveState; } set { checkActiveState = value; } }
 
