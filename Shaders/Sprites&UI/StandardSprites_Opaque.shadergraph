@@ -80,6 +80,9 @@
         },
         {
             "m_Id": "1e1b34552c374dd9bc0ffd59d90d1bdf"
+        },
+        {
+            "m_Id": "964128b93bda4df386b5759d40de3e55"
         }
     ],
     "m_Keywords": [
@@ -213,6 +216,9 @@
         },
         {
             "m_Id": "1739f9392e1a46aa8367175d64bb33f5"
+        },
+        {
+            "m_Id": "54d30c74aef848c68f307c15f66e4351"
         }
     ],
     "m_GroupDatas": [],
@@ -356,6 +362,20 @@
                     "m_Id": "ad6933f21b0241e2bff0db57e4d47e72"
                 },
                 "m_SlotId": -77244918
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "54d30c74aef848c68f307c15f66e4351"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "ad6933f21b0241e2bff0db57e4d47e72"
+                },
+                "m_SlotId": -1945873167
             }
         },
         {
@@ -863,6 +883,9 @@
         },
         {
             "m_Id": "f3612b3adf8a459194afdbc9ea971934"
+        },
+        {
+            "m_Id": "964128b93bda4df386b5759d40de3e55"
         }
     ]
 }
@@ -1873,6 +1896,42 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "54d30c74aef848c68f307c15f66e4351",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 373.3333435058594,
+            "y": 1166.0,
+            "width": 133.99996948242188,
+            "height": 36.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "d595f8589dda4d35afd3b0b1effbf5d5"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "964128b93bda4df386b5759d40de3e55"
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "56b9ca9845cd47f18a8b56eb8c6a7268",
     "m_Group": {
         "m_Id": ""
@@ -2212,6 +2271,22 @@
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_BareResource": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "72b00176e99845dd9f9201d2023bc1f0",
+    "m_Id": -1945873167,
+    "m_DisplayName": "DepthFade",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_DepthFade",
+    "m_StageCapability": 2,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -2676,6 +2751,50 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "VertexDescription.Position"
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "964128b93bda4df386b5759d40de3e55",
+    "m_Guid": {
+        "m_GuidSerialized": "c16af429-e987-4908-8188-065ac250d9da"
+    },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
+    "m_Name": "DepthFade",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "DepthFade",
+    "m_DefaultReferenceName": "_DepthFade",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
+    "m_Value": 0.0,
+    "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
+    },
+    "m_SliderType": 0,
+    "m_SliderPower": 3.0,
+    "m_EnumType": 0,
+    "m_CSharpEnumString": "",
+    "m_EnumNames": [
+        "Default"
+    ],
+    "m_EnumValues": [
+        0
+    ]
 }
 
 {
@@ -3211,6 +3330,9 @@
             "m_Id": "3bf9d051022540b4aef34e7eb7f0bce1"
         },
         {
+            "m_Id": "72b00176e99845dd9f9201d2023bc1f0"
+        },
+        {
             "m_Id": "e8db7cee3f154ed5aed3b58a42db337f"
         },
         {
@@ -3275,7 +3397,8 @@
         "a711979c-80be-4d62-93d5-de0bb1a50498",
         "76ccfc2f-81be-49f0-bfb3-ff9cf6fbe682",
         "702424cd-6cdf-45ca-a1b2-e61e8312fd9d",
-        "5e70549c-cdf5-4348-891c-9e915b50bbaf"
+        "5e70549c-cdf5-4348-891c-9e915b50bbaf",
+        "3087d4ff-3840-4ece-8adb-1f59c46352ab"
     ],
     "m_PropertyIds": [
         1473462455,
@@ -3305,7 +3428,8 @@
         2041145088,
         556086744,
         -1225398224,
-        589157819
+        589157819,
+        -1945873167
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -3864,6 +3988,22 @@
     "m_Property": {
         "m_Id": "96c1c9be953342f1901aadfb5f9dee42"
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "d595f8589dda4d35afd3b0b1effbf5d5",
+    "m_Id": 0,
+    "m_DisplayName": "DepthFade",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
