@@ -141,16 +141,6 @@ public class MaterialsReplacer : MonoBehaviour
             if ((!updateInstances) && (instanced.IsNullOrEmpty() || (instanced.Length != rend.Length)))
                 updateInstances = true;
 
-            if (!updateInstances)
-            {
-                for (int i = 0; i < instanced.Length; i++)
-                    if (instanced[i] == null)
-                    {
-                        updateInstances = true;
-                        break;
-                    }
-            }
-
             if (updateInstances)
                 Reinstantiate();
         }
