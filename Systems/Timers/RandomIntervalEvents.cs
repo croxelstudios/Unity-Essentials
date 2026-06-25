@@ -116,4 +116,9 @@ public class RandomIntervalEvents : MonoBehaviour //TO DO: Should inherit from p
         if (this.IsActiveAndEnabled())  
             co = StartCoroutine(Interval());
     }
+
+    public void SetUnscaled(bool unscaled)
+    {
+        unscaledTime = unscaled;
+    }
 }

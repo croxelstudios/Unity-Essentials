@@ -63,4 +63,9 @@ public class PeriodicEvent : MonoBehaviour
     {
         actions?.Invoke();
     }
+
+    public void SetUnscaled(bool unscaled)
+    {
+        unscaledTime = unscaled;
+    }
 }
