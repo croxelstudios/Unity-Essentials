@@ -523,13 +523,11 @@ public static class CollectionExtensions
         if (dict == null) return null;
         bool hasNulls = false;
         foreach (KeyValuePair<T, Y> pair in dict)
-        {
             if (pair.Key == null)
             {
                 hasNulls = true;
                 break;
             }
-        }
 
         if (hasNulls)
         {

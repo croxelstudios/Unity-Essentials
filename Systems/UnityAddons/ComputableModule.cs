@@ -437,14 +437,47 @@ public static class ComputableModule
     class ReplaceElementCollection<Holder, Value, Computable>
         where Value : Object where Computable : ComputableBase<Value>
     {
-        Dictionary<Holder, bool> visible;
-        Dictionary<Holder, Computable> elements;
+        //TO DO: Probably better if I have a struct
+        //with all the data instead of multiple dictionaries
+        Dictionary<Holder, Computable> visibleElements;
+        Dictionary<Holder, Computable> allElements;
         Dictionary<Holder, List<Component>> usedBy;
         Dictionary<Holder, Value> originals;
         Dictionary<Holder, Value> last;
         public bool isInitialized;
-        public int count { get { return (elements != null) ? elements.Count : 0; } }
+        public int count { get { return (allElements != null) ? allElements.Count : 0; } }
         bool wasCleaned;
+
+        //class HolderData
+        //{
+        //    public Computable element;
+        //    public List<Component> usedBy;
+        //    public Value original;
+        //    public Value last;
+
+        //    public HolderData(Computable element,
+        //        IEnumerable<Component> usedBy, Value original, Value last)
+        //    {
+        //        this.element = element;
+        //        this.usedBy = new List<Component>();
+        //        this.usedBy.AddRange(usedBy);
+        //        this.original = original;
+        //        this.last = last;
+        //    }
+
+        //    public HolderData(Computable element)
+        //    {
+        //        this.element = element;
+        //        usedBy = new List<Component>();
+        //        original = default;
+        //        last = default;
+        //    }
+
+        //    public bool IsNull()
+        //    {
+        //        return element == null;
+        //    }
+        //}
 
         //Reusables
         Dictionary<Holder, ValueKey> keys;
@@ -476,9 +509,8 @@ public static class ComputableModule
 
         protected void Create(Holder holder, Component comp, Computable element)
         {
-            visible = visible.CreateAdd(holder, false);
             originals = originals.CreateAdd(holder, GetCurrent(holder));
-            elements = elements.CreateAdd(holder, element);
+            allElements = allElements.CreateAdd(holder, element);
             SetUseByComponent(holder, comp);
             isInitialized = true;
         }
@@ -515,9 +547,9 @@ public static class ComputableModule
 
         public void SmartRemove(Holder holder)
         {
-            bool hasElements = !elements.IsNullOrEmpty();
+            bool hasElements = !allElements.IsNullOrEmpty();
             Computable computable = null;
-            if (hasElements) elements.TryGetValue(holder, out computable);
+            if (hasElements) allElements.TryGetValue(holder, out computable);
 
             if (last.NotNullContainsKey(holder))
                 SetValue(holder, last[holder]);
@@ -526,7 +558,7 @@ public static class ComputableModule
             {
                 originals.Remove(holder);
                 usedBy.SmartRemove(holder);
-                elements.SmartRemove(holder);
+                allElements.SmartRemove(holder);
                 last.SmartRemove(holder);
                 if (keys.SmartGetValue(holder, out ValueKey key))
                 {
@@ -540,7 +572,7 @@ public static class ComputableModule
                 }
             }
 
-            if (hasElements && (computable != null) && (!elements.Values.Contains(computable)))
+            if (hasElements && (computable != null) && (!allElements.Values.Contains(computable)))
                 computable.Dispose();
         }
 
@@ -551,7 +583,7 @@ public static class ComputableModule
                 //Remove null filters
                 originals = originals.ClearNulls();
                 usedBy = usedBy.ClearNulls();
-                elements = elements.ClearNulls();
+                allElements = allElements.ClearNulls();
                 last = last.ClearNulls();
 
                 //Remove filters with null meshes
@@ -562,18 +594,18 @@ public static class ComputableModule
                 foreach (Holder element in auxElementList)
                 {
                     originals.Remove(element);
-                    elements.Remove(element);
+                    allElements.Remove(element);
                 }
 
                 //Remove filters with null computables
                 auxElementList = auxElementList.ClearOrCreate(); //To remove
-                foreach (KeyValuePair<Holder, Computable> pair in elements)
+                foreach (KeyValuePair<Holder, Computable> pair in allElements)
                     if ((pair.Value == null) || (pair.Value.IsNull()))
                         auxElementList.Add(pair.Key);
                 foreach (Holder element in auxElementList)
                 {
                     originals.Remove(element);
-                    elements.Remove(element);
+                    allElements.Remove(element);
                 }
 
                 wasCleaned = true;
@@ -592,10 +624,10 @@ public static class ComputableModule
             if (!originals.NotNullContainsKey(holder))
                 return null;
 
-            if (!elements.NotNullContainsKey(holder))
+            if (!allElements.NotNullContainsKey(holder))
                 return null;
 
-            return elements[holder];
+            return allElements[holder];
         }
 
         public void SetUseByComponent(Holder holder, Component comp)
@@ -623,26 +655,24 @@ public static class ComputableModule
 
         public void SubstituteElements()
         {
-            Holder[] elements = originals.Keys.ToArray();
-
-            foreach (Holder element in elements)
-                if ((element != null) && visible[element])
-                {
-                    last = last.CreateAdd(element, GetCurrent(element));
-                    SetValue(element, this.elements[element].GetValue());
-                }
+            if (!visibleElements.IsNullOrEmpty())
+                foreach (KeyValuePair<Holder, Computable> pair in visibleElements)
+                    if (pair.Key != null)
+                    {
+                        last = last.CreateAdd(pair.Key, GetCurrent(pair.Key));
+                        SetValue(pair.Key, pair.Value.GetValue());
+                    }
         }
 
         public void RestoreElements()
         {
-            Holder[] elements = originals.Keys.ToArray();
-
-            foreach (Holder element in elements)
-                if ((element != null) && visible[element])
-                {
-                    last.SmartRemove(element);
-                    SetValue(element, this.elements[element].GetOriginal());
-                }
+            if (!visibleElements.IsNullOrEmpty())
+                foreach (KeyValuePair<Holder, Computable> pair in visibleElements)
+                    if (pair.Key != null)
+                    {
+                        last.SmartRemove(pair.Key);
+                        SetValue(pair.Key, pair.Value.GetOriginal());
+                    }
         }
 
         public Value OriginalMesh(Holder holder)
@@ -654,8 +684,13 @@ public static class ComputableModule
 
         public void SetVisible(Holder holder, bool visible)
         {
-            if (this.visible.NotNullContainsKey(holder))
-                this.visible[holder] = visible;
+            bool contains = visibleElements.NotNullContainsKey(holder);
+            if (contains != visible)
+            {
+                if (visible)
+                    visibleElements = visibleElements.CreateAdd(holder, allElements[holder]);
+                else visibleElements.Remove(holder);
+            }
         }
 
         struct ValueKey : IEquatable<ValueKey>

@@ -23,12 +23,14 @@ public static class CameraExtension_IsObjectInFrustrum
             foreach (Camera cam in cameras)
                 if ((cam != null) && cam.enabled &&
                     ((LayerMask)cam.cullingMask).ContainsLayer(renderer.gameObject.layer) &&
-                    cam.IsObjectInFrustrum(renderer, maxFar)) return true;
+                    cam.IsObjectInFrustrum(renderer, maxFar))
+                    return true;
 
 #if UNITY_EDITOR
-        if (SceneView.sceneViews != null)
+        if ((!Application.isPlaying) && (SceneView.sceneViews != null))
             foreach (SceneView view in SceneView.sceneViews)
-                if (view.camera.IsObjectInFrustrum(renderer, maxFar)) return true;
+                if (view.camera.IsObjectInFrustrum(renderer, maxFar))
+                    return true;
 #endif
 
         return false;
@@ -73,10 +75,13 @@ public static class CameraExtension_IsObjectInFrustrum
 
         if ((!camFrustrumPlanes.NotNullContainsKey(cam)) || (currentFrame != frame))
         {
-            camFrustrumPlanes = camFrustrumPlanes.ClearOrCreate();
+            if (camFrustrumPlanes == null)
+                camFrustrumPlanes = new Dictionary<Camera, Plane[]>();
+            else camFrustrumPlanes = camFrustrumPlanes.ClearNulls();
             camFrustrumPlanes.Set(cam, GeometryUtility.CalculateFrustumPlanes(cam));
+            frame = currentFrame;
         }
 
-        return camFrustrumPlanes[cam];
+        return (Plane[])camFrustrumPlanes[cam].Clone();
     }
 }

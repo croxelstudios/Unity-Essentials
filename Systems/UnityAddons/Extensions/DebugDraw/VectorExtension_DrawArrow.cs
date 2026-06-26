@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using UnityEngine;
 
 public static class VectorExtension_DrawArrow
@@ -23,6 +24,30 @@ public static class VectorExtension_DrawArrow
 
             prevDir = direction;
         }
+    }
+
+    public static void DrawSphere(this Vector3 point, float radius = 0.5f)
+    {
+        point.DrawSphere(radius, Color.orange);
+    }
+
+    public static void DrawSphere(this Vector3 point, float radius, Color color)
+    {
+        point.DrawSphere(Vector3.forward, Vector3.up, radius, color);
+    }
+
+    public static void DrawSphere(this Vector3 point, Vector3 forward, Vector3 up, float radius = 0.5f)
+    {
+        point.DrawSphere(forward, up, radius, Color.orange);
+    }
+
+    public static void DrawSphere(this Vector3 point, Vector3 forward, Vector3 up, float radius, Color color)
+    {
+        forward = forward.normalized;
+        up = up.normalized;
+        point.DrawCircle(forward, up, radius, color);
+        point.DrawCircle(Vector3.Cross(forward, up), up, radius, color);
+        point.DrawCircle(up, forward, radius, color);
     }
 
     public static void DrawViewCone(this Vector3 position, Vector3 forward, Vector3 up, float radius, float angle, Color color)
