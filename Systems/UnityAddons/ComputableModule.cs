@@ -800,13 +800,13 @@ public static class ComputableModule
         public MeshFilter filter;
         public Renderer renderer;
         IsVisibleTracker isVisibleTracker;
-        public bool internalIsVisible { get { return isVisibleTracker.Get(); } }
+        public bool internalIsVisible { get { isVisibleTracker.rend = renderer; return isVisibleTracker.Get(); } }
         public CustomRenderer customRenderer;
         public Transform transform;
         public GameObject gameObject;
         public RenType renType;
         FrameNullTracker isNullTracker;
-        public bool isNull { get { return isNullTracker.IsNull(); } }
+        public bool isNull { get { isNullTracker.obj = nullableObject; return isNullTracker.IsNull(); } }
         public object nullableObject
         {
             get
@@ -1023,14 +1023,14 @@ public static class ComputableModule
 
         struct IsVisibleTracker
         {
-            Renderer rend;
-            int frame;
+            public Renderer rend;
+            PerFrameTracker tracker;
             bool last;
 
             public IsVisibleTracker(Renderer rend)
             {
                 this.rend = rend;
-                frame = -1;
+                tracker = new PerFrameTracker();
                 last = false;
             }
 
@@ -1039,11 +1039,13 @@ public static class ComputableModule
                 if (rend == null)
                     return false;
 
-                if (Time.frameCount != frame)
-                {
-                    frame = Time.frameCount;
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    return rend.isVisible;
+#endif
+
+                if (tracker.Simple())
                     last = rend.isVisible;
-                }
                 return last;
             }
         }

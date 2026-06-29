@@ -2,24 +2,26 @@ using UnityEngine;
 
 public struct FrameNullTracker
 {
-    object obj;
-    int frame;
+    public object obj;
+    PerFrameTracker tracker;
     bool last;
 
     public FrameNullTracker(object obj)
     {
         this.obj = obj;
-        frame = Time.frameCount;
+        tracker = new PerFrameTracker();
         last = obj == null;
     }
 
     public bool IsNull()
     {
-        if (Time.frameCount != frame)
-        {
-            frame = Time.frameCount;
-            last = obj == null;
-        }
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            return obj is null;
+#endif
+
+        if (tracker.Simple())
+            last = obj is null;
         return last;
     }
 }

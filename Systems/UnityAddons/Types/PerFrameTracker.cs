@@ -9,9 +9,9 @@ public class PerFrameTracker
 
     public bool Simple()
     {
-        if (Time.frameCount != prevFrameCount)
+        if (prevFrameCount != FrameCount())
         {
-            prevFrameCount = Time.frameCount;
+            prevFrameCount = FrameCount();
             return true;
         }
         else return false;
@@ -21,9 +21,9 @@ public class PerFrameTracker
     {
         shouldEndFirst = false;
 
-        if (Time.frameCount != prevFrameCount)
+        if (prevFrameCount != FrameCount())
         {
-            prevFrameCount = Time.frameCount;
+            prevFrameCount = FrameCount();
             if (waitForRepetitions > 0)
             {
                 shouldEndFirst = true;
@@ -61,6 +61,15 @@ public class PerFrameTracker
     {
         ShouldStart(out bool isLastExecute);
         return ShouldEnd() || isLastExecute;
+    }
+
+    public static int FrameCount()
+    {
+        return
+#if UNITY_EDITOR
+            (!Application.isPlaying) ? EditorTime.frameCount :
+#endif
+            Time.frameCount;
     }
 }
 
