@@ -12,6 +12,7 @@ public struct AxisBooleans
     public bool y;
     [HorizontalGroup(LabelWidth = 10f, Width = 30f)]
     public bool z;
+    public bool any { get { return x || y || z; } }
 
     public AxisBooleans(bool x, bool y, bool z)
     {

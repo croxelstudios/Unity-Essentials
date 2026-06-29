@@ -16,7 +16,8 @@ public struct CBuffersCollection
     {
         if (buffers.SmartGetValue(key, out ComputeBuffer old))
             old.Dispose();
-        buffers = buffers.CreateAdd(key, buffer);
+        buffers = buffers.CreateIfNull();
+        buffers.Set(key, buffer);
     }
 
     public bool Has(string key)

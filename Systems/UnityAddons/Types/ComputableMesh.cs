@@ -49,6 +49,7 @@ public class ComputableMesh : ComputableBase<Mesh>
     public Mesh original { get; private set; }
     public Mesh mesh { get; private set; }
 
+    public CBuffersCollection auxBuffers;
     NativeArray<VertexData> vertexData;
     NativeArray<uint>[] triangleData;
     GraphicsBuffer vertexBuf;
@@ -1190,6 +1191,7 @@ public class ComputableMesh : ComputableBase<Mesh>
 
     public override void Dispose()
     {
+        auxBuffers.Release();
         if (vertexData.IsCreated)
             vertexData.Dispose();
         if (!triangleData.IsNullOrEmpty())

@@ -437,54 +437,62 @@ public static class ComputableModule
     class ReplaceElementCollection<Holder, Value, Computable>
         where Value : Object where Computable : ComputableBase<Value>
     {
-        //TO DO: Probably better if I have a struct
-        //with all the data instead of multiple dictionaries
-        Dictionary<Holder, Computable> visibleElements;
-        Dictionary<Holder, Computable> allElements;
-        Dictionary<Holder, List<Component>> usedBy;
-        Dictionary<Holder, Value> originals;
+        Dictionary<Holder, HolderData> visibleElements;
+        Dictionary<Holder, HolderData> allElements;
         Dictionary<Holder, Value> last;
         public bool isInitialized;
         public int count { get { return (allElements != null) ? allElements.Count : 0; } }
-        bool wasCleaned;
+        PerFrameTracker cleaningFrame;
 
-        //class HolderData
-        //{
-        //    public Computable element;
-        //    public List<Component> usedBy;
-        //    public Value original;
-        //    public Value last;
+        class HolderData
+        {
+            public Computable element;
+            public List<Component> usedBy;
+            public Value original;
 
-        //    public HolderData(Computable element,
-        //        IEnumerable<Component> usedBy, Value original, Value last)
-        //    {
-        //        this.element = element;
-        //        this.usedBy = new List<Component>();
-        //        this.usedBy.AddRange(usedBy);
-        //        this.original = original;
-        //        this.last = last;
-        //    }
+            public HolderData(Computable element,
+                IEnumerable<Component> usedBy, Value original)
+            {
+                this.element = element;
+                this.usedBy = new List<Component>();
+                this.usedBy.AddRange(usedBy);
+                this.original = original;
+            }
 
-        //    public HolderData(Computable element)
-        //    {
-        //        this.element = element;
-        //        usedBy = new List<Component>();
-        //        original = default;
-        //        last = default;
-        //    }
+            public HolderData(Computable element, Value original)
+            {
+                this.element = element;
+                usedBy = new List<Component>();
+                this.original = original;
+            }
 
-        //    public bool IsNull()
-        //    {
-        //        return element == null;
-        //    }
-        //}
+            public HolderData(Computable element)
+            {
+                this.element = element;
+                usedBy = new List<Component>();
+                original = default;
+            }
+
+            public bool IsNull()
+            {
+                return element == null;
+            }
+
+            public void Clear()
+            {
+                element = null;
+                usedBy.Clear();
+                usedBy = null;
+                original = null;
+            }
+        }
 
         //Reusables
         Dictionary<Holder, ValueKey> keys;
         Dictionary<ValueKey, Computable> reusable;
         Dictionary<ValueKey, int> uses;
 
-        static List<Holder> auxElementList;
+        static List<Holder> auxHoldersList;
 
         public Computable Create(Holder holder, Component comp, Value value, string name, string reusableKey = null)
         {
@@ -509,8 +517,15 @@ public static class ComputableModule
 
         protected void Create(Holder holder, Component comp, Computable element)
         {
-            originals = originals.CreateAdd(holder, GetCurrent(holder));
-            allElements = allElements.CreateAdd(holder, element);
+            Value current = GetCurrent(holder);
+
+            if (ListContainsHolderData(holder, out HolderData data))
+            {
+                data.element = element;
+                data.original = current;
+            }
+            else allElements =
+                    allElements.CreateAdd(holder, new HolderData(element, current));
             SetUseByComponent(holder, comp);
             isInitialized = true;
         }
@@ -531,15 +546,13 @@ public static class ComputableModule
 
         public bool ElementChanged(Holder holder)
         {
-            if (!originals.NotNullContainsKey(holder))
+            if (!ListContainsHolderData(holder, out HolderData data))
                 return true;
 
-            if (last.NotNullContainsKey(holder))
-            {
-                if (originals[holder] != last[holder])
-                    return true;
-            }
-            else if (GetCurrent(holder) != originals[holder])
+            if (!last.SmartGetValue(holder, out Value value))
+                value = GetCurrent(holder);
+
+            if (data.original != value)
                 return true;
 
             return false;
@@ -547,19 +560,12 @@ public static class ComputableModule
 
         public void SmartRemove(Holder holder)
         {
-            bool hasElements = !allElements.IsNullOrEmpty();
-            Computable computable = null;
-            if (hasElements) allElements.TryGetValue(holder, out computable);
-
-            if (last.NotNullContainsKey(holder))
-                SetValue(holder, last[holder]);
-
-            if (originals.SmartGetValue(holder, out Value original))
+            if (ListContainsHolderData(holder, out HolderData data))
             {
-                originals.Remove(holder);
-                usedBy.SmartRemove(holder);
+                if (last.SmartGetValue(holder, out Value value))
+                    SetValue(holder, value);
+
                 allElements.SmartRemove(holder);
-                last.SmartRemove(holder);
                 if (keys.SmartGetValue(holder, out ValueKey key))
                 {
                     uses[key]--;
@@ -570,75 +576,65 @@ public static class ComputableModule
                     }
                     keys.Remove(holder);
                 }
-            }
 
-            if (hasElements && (computable != null) && (!allElements.Values.Contains(computable)))
-                computable.Dispose();
+                if ((data.element != null) && (!allElements.Values.Any(x => x.element == data.element)))
+                    data.element.Dispose();
+
+                data.Clear();
+            }
         }
 
         public void CleanNullValues()
         {
-            if ((!wasCleaned) && (!originals.IsNullOrEmpty()))
+            cleaningFrame = cleaningFrame.CreateIfNull();
+            if (cleaningFrame.Simple() && (!allElements.IsNullOrEmpty()))
             {
-                //Remove null filters
-                originals = originals.ClearNulls();
-                usedBy = usedBy.ClearNulls();
+                //Remove null holders
+                foreach (KeyValuePair<Holder, HolderData> pair in allElements)
+                    if (pair.Key == null) pair.Value.Clear();
                 allElements = allElements.ClearNulls();
-                last = last.ClearNulls();
 
-                //Remove filters with null meshes
-                auxElementList = auxElementList.ClearOrCreate();
-                foreach (KeyValuePair<Holder, Value> pair in originals)
-                    if (pair.Value == null)
-                        auxElementList.Add(pair.Key);
-                foreach (Holder element in auxElementList)
+                //Remove holders with null data
+                auxHoldersList = auxHoldersList.ClearOrCreate();
+                foreach (KeyValuePair<Holder, HolderData> pair in allElements)
                 {
-                    originals.Remove(element);
-                    allElements.Remove(element);
+                    HolderData data = pair.Value;
+                    if ((data == null) || (data.original == null) ||
+                        (data.element == null) || (data.element.IsNull()))
+                        auxHoldersList.Add(pair.Key);
                 }
-
-                //Remove filters with null computables
-                auxElementList = auxElementList.ClearOrCreate(); //To remove
-                foreach (KeyValuePair<Holder, Computable> pair in allElements)
-                    if ((pair.Value == null) || (pair.Value.IsNull()))
-                        auxElementList.Add(pair.Key);
-                foreach (Holder element in auxElementList)
-                {
-                    originals.Remove(element);
+                foreach (Holder element in auxHoldersList)
                     allElements.Remove(element);
-                }
-
-                wasCleaned = true;
-                Application.onBeforeRender += ResetCleaner;
             }
         }
 
-        void ResetCleaner()
+        bool ListContainsHolderData(Holder holder, out HolderData data)
         {
-            wasCleaned = false;
-            Application.onBeforeRender -= ResetCleaner;
+            data = null;
+            if (!allElements.NotNullContainsKey(holder))
+                return false;
+            data = allElements[holder];
+            return data != null;
         }
 
         public Computable GetComputable(Holder holder)
         {
-            if (!originals.NotNullContainsKey(holder))
-                return null;
-
-            if (!allElements.NotNullContainsKey(holder))
-                return null;
-
-            return allElements[holder];
+            if (ListContainsHolderData(holder, out HolderData data))
+                return data.element;
+            else return null;
         }
 
         public void SetUseByComponent(Holder holder, Component comp)
         {
-            usedBy = usedBy.CreateAdd(holder, comp);
+            if (ListContainsHolderData(holder, out HolderData data))
+                data.usedBy.Add(comp);
         }
 
         public void StopUsing(Holder holder, Component comp)
         {
-            if (usedBy.SmartGetValue(holder, out List<Component> list))
+            if (ListContainsHolderData(holder, out HolderData data))
             {
+                List<Component> list = data.usedBy;
                 list.SmartRemove(comp);
                 if (list.Count <= 0)
                     SmartRemove(holder);
@@ -647,39 +643,60 @@ public static class ComputableModule
 
         public void ResetCompletely()
         {
-            Holder[] filters = originals.Keys.ToArray();
-            foreach (Holder filter in filters)
-                for (int i = usedBy[filter].Count - 1; i >= 0; i--)
-                    StopUsing(filter, usedBy[filter][i]);
+            auxHoldersList = auxHoldersList.ClearOrCreate();
+            auxHoldersList.AddRange(allElements.Keys);
+            foreach (Holder filter in auxHoldersList)
+            {
+                if (ListContainsHolderData(filter, out HolderData data))
+                {
+                    List<Component> list = data.usedBy;
+                    for (int i = list.Count - 1; i >= 0; i--)
+                        StopUsing(filter, list[i]);
+                }
+            }
         }
 
         public void SubstituteElements()
         {
             if (!visibleElements.IsNullOrEmpty())
-                foreach (KeyValuePair<Holder, Computable> pair in visibleElements)
-                    if (pair.Key != null)
+                foreach (KeyValuePair<Holder, HolderData> pair in visibleElements)
+                {
+                    Holder holder = pair.Key;
+                    if (holder != null)
                     {
-                        last = last.CreateAdd(pair.Key, GetCurrent(pair.Key));
-                        SetValue(pair.Key, pair.Value.GetValue());
+                        HolderData data = pair.Value;
+                        if ((data.element != null) && !data.element.IsNull())
+                        {
+                            last = last.CreateAdd(holder, GetCurrent(holder));
+                            SetValue(holder, data.element.GetValue());
+                        }
                     }
+                }
         }
 
         public void RestoreElements()
         {
             if (!visibleElements.IsNullOrEmpty())
-                foreach (KeyValuePair<Holder, Computable> pair in visibleElements)
-                    if (pair.Key != null)
+                foreach (KeyValuePair<Holder, HolderData> pair in visibleElements)
+                {
+                    Holder holder = pair.Key;
+                    if (holder != null)
                     {
-                        last.SmartRemove(pair.Key);
-                        SetValue(pair.Key, pair.Value.GetOriginal());
+                        HolderData data = pair.Value;
+                        if ((data.element != null) && !data.element.IsNull())
+                        {
+                            last.SmartRemove(holder);
+                            SetValue(holder, data.element.GetOriginal());
+                        }
                     }
+                }
         }
 
         public Value OriginalMesh(Holder holder)
         {
-            if (!originals.NotNullContainsKey(holder))
-                return null;
-            return originals[holder];
+            if (ListContainsHolderData(holder, out HolderData data))
+                return data.original;
+            else return null;
         }
 
         public void SetVisible(Holder holder, bool visible)
@@ -782,23 +799,28 @@ public static class ComputableModule
         static bool wasCleaned;
         public MeshFilter filter;
         public Renderer renderer;
+        IsVisibleTracker isVisibleTracker;
+        public bool internalIsVisible { get { return isVisibleTracker.Get(); } }
         public CustomRenderer customRenderer;
         public Transform transform;
+        public GameObject gameObject;
         public RenType renType;
-        public bool isNull
+        FrameNullTracker isNullTracker;
+        public bool isNull { get { return isNullTracker.IsNull(); } }
+        public object nullableObject
         {
             get
             {
                 switch (renType)
                 {
                     case RenType.Filter:
-                        return filter == null;
+                        return filter;
                     case RenType.Sprite:
-                        return renderer == null;
+                        return renderer;
                     case RenType.Custom:
-                        return customRenderer == null;
+                        return customRenderer;
                     default:
-                        return renderer == null;
+                        return renderer;
                 }
             }
         }
@@ -820,7 +842,7 @@ public static class ComputableModule
                 case RenType.Custom:
                     return customRenderer.IsVisible(maxFar); //TO DO
                 default:
-                    return renderer.IsVisibleBySceneCameras(maxFar);
+                    return internalIsVisible ? renderer.IsVisibleBySceneCameras(maxFar, gameObject, true) : false;
             }
         }
 
@@ -832,9 +854,9 @@ public static class ComputableModule
                     return customRenderer.IsVisible(excludeShadowCasters); //TO DO
                 default:
                     if (excludeShadowCasters)
-                        return renderer.IsVisibleBySceneCameras();
+                        return internalIsVisible ? renderer.IsVisibleBySceneCameras(gameObject, true) : false;
                     else
-                        return renderer.isVisible;
+                        return internalIsVisible;
             }
         }
 
@@ -843,25 +865,35 @@ public static class ComputableModule
         public ComputableElement(MeshFilter filter)
         {
             this.filter = filter;
-            renderer = filter.gameObject.GetComponent<MeshRenderer>();
+            gameObject = filter.gameObject;
+            renderer = gameObject.GetComponent<MeshRenderer>();
             customRenderer = null;
             transform = null;
             renType = RenType.Filter;
+            isVisibleTracker = new IsVisibleTracker(renderer);
+            isNullTracker = new FrameNullTracker();
 
             if (filter != null)
                 transform = filter.transform;
+
+            isNullTracker = new FrameNullTracker(nullableObject);
         }
 
         public ComputableElement(SpriteRenderer spriteRenderer)
         {
             filter = null;
             renderer = spriteRenderer;
+            gameObject = spriteRenderer.gameObject;
             customRenderer = null;
             transform = null;
             renType = RenType.Sprite;
+            isVisibleTracker = new IsVisibleTracker(renderer);
+            isNullTracker = new FrameNullTracker();
 
             if (spriteRenderer != null)
                 transform = spriteRenderer.transform;
+
+            isNullTracker = new FrameNullTracker(nullableObject);
         }
 
         public ComputableElement(CustomRenderer customRenderer)
@@ -869,23 +901,31 @@ public static class ComputableModule
             filter = null;
             renderer = null;
             this.customRenderer = customRenderer;
+            gameObject = customRenderer.gameObject;
             transform = null;
             renType = RenType.Custom;
+            isVisibleTracker = new IsVisibleTracker(renderer);
+            isNullTracker = new FrameNullTracker();
 
             if (customRenderer != null)
                 transform = customRenderer.transform;
+
+            isNullTracker = new FrameNullTracker(nullableObject);
         }
 
         public ComputableElement(GameObject gameObject)
         {
+            this.gameObject = gameObject;
             filter = gameObject.GetComponent<MeshFilter>();
             renderer = null;
             customRenderer = null;
             transform = gameObject.transform;
+            isVisibleTracker = new IsVisibleTracker(renderer);
+            isNullTracker = new FrameNullTracker();
 
             if (filter != null)
             {
-                renderer = filter.gameObject.GetComponent<MeshRenderer>();
+                renderer = gameObject.GetComponent<MeshRenderer>();
                 renType = RenType.Filter;
             }
             else
@@ -898,25 +938,27 @@ public static class ComputableModule
                 }
                 else renType = RenType.Sprite;
             }
+
+            isNullTracker = new FrameNullTracker(nullableObject);
         }
 
         public static ComputableElement Get(GameObject gameObject)
         {
             ClearNulls();
 
-            ComputableElement filter;
-            if (!filters.SmartGetValue(gameObject, out filter))
+            ComputableElement holder;
+            if (!filters.SmartGetValue(gameObject, out holder))
             {
-                filter = new ComputableElement(gameObject);
-                filters = filters.CreateAdd(gameObject, filter);
+                holder = new ComputableElement(gameObject);
+                filters = filters.CreateAdd(gameObject, holder);
             }
-            else if (filter.isNull)
+            else if (holder.isNull)
             {
                 filters.Remove(gameObject);
-                filter = new ComputableElement(gameObject);
-                filters = filters.CreateAdd(gameObject, filter);
+                holder = new ComputableElement(gameObject);
+                filters = filters.CreateAdd(gameObject, holder);
             }
-            return filter;
+            return holder;
         }
 
         static void ClearNulls()
@@ -977,6 +1019,33 @@ public static class ComputableModule
         public static bool operator !=(ComputableElement o1, ComputableElement o2)
         {
             return !o1.Equals(o2);
+        }
+
+        struct IsVisibleTracker
+        {
+            Renderer rend;
+            int frame;
+            bool last;
+
+            public IsVisibleTracker(Renderer rend)
+            {
+                this.rend = rend;
+                frame = -1;
+                last = false;
+            }
+
+            public bool Get()
+            {
+                if (rend == null)
+                    return false;
+
+                if (Time.frameCount != frame)
+                {
+                    frame = Time.frameCount;
+                    last = rend.isVisible;
+                }
+                return last;
+            }
         }
     }
 }

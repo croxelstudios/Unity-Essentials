@@ -8,9 +8,25 @@ public static class CameraExtension_IsObjectInFrustrum
     static Dictionary<Camera, Plane[]> camFrustrumPlanes;
     static int frame;
 
-    public static bool IsVisibleBySceneCameras(this Renderer renderer, float maxFar = -1)
+    public static bool IsVisibleBySceneCameras(this Renderer renderer, GameObject cachedGameObject, bool skipIsVisible = false)
     {
-        if (!renderer.isVisible)
+        return renderer.IsVisibleBySceneCameras(-1, cachedGameObject, skipIsVisible);
+    }
+
+    public static bool IsVisibleBySceneCameras(this Renderer renderer, int cachedLayer, bool skipIsVisible = false)
+    {
+        return renderer.IsVisibleBySceneCameras(-1, cachedLayer, skipIsVisible);
+    }
+
+    public static bool IsVisibleBySceneCameras(this Renderer renderer,
+        float maxFar, GameObject cachedGameObject, bool skipIsVisible = false)
+    {
+        return renderer.IsVisibleBySceneCameras(maxFar, (cachedGameObject != null) ? cachedGameObject.layer : -1, skipIsVisible);
+    }
+
+    public static bool IsVisibleBySceneCameras(this Renderer renderer, float maxFar = -1, int cachedLayer = -1, bool skipIsVisible = false)
+    {
+        if (!(skipIsVisible || renderer.isVisible))
             return false;
 
         int count = Camera.allCamerasCount;
@@ -22,7 +38,8 @@ public static class CameraExtension_IsObjectInFrustrum
         if (!cameras.IsNullOrEmpty())
             foreach (Camera cam in cameras)
                 if ((cam != null) && cam.enabled &&
-                    ((LayerMask)cam.cullingMask).ContainsLayer(renderer.gameObject.layer) &&
+                    ((LayerMask)cam.cullingMask).ContainsLayer(
+                        (cachedLayer < 0) ? renderer.gameObject.layer : cachedLayer) &&
                     cam.IsObjectInFrustrum(renderer, maxFar))
                     return true;
 

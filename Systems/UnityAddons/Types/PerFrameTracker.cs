@@ -5,7 +5,17 @@ public class PerFrameTracker
     bool occurring = false;
     int repetitions = 0;
     int waitForRepetitions = 0;
-    int prevFrameCount = 0;
+    int prevFrameCount = -1;
+
+    public bool Simple()
+    {
+        if (Time.frameCount != prevFrameCount)
+        {
+            prevFrameCount = Time.frameCount;
+            return true;
+        }
+        else return false;
+    }
 
     public bool ShouldStart(out bool shouldEndFirst)
     {

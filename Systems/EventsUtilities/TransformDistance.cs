@@ -12,6 +12,7 @@ public class TransformDistance : MonoBehaviour
     bool local = false;
     [SerializeField]
     bool lerpDistance = true;
+    [Indent]
     [SerializeField]
     [ShowIf("lerpDistance")]
     [OnValueChanged("RestrictRange")]
@@ -22,6 +23,8 @@ public class TransformDistance : MonoBehaviour
     bool launchInEditor = false;
     [SerializeField]
     DXFloatEvent distance = new DXFloatEvent();
+
+    float lastValue = -1f;
 
     void Reset()
     {
@@ -48,11 +51,16 @@ public class TransformDistance : MonoBehaviour
             float dist = Vector3.Distance(local ? orig.localPosition : orig.position, other);
             if (lerpDistance)
                 dist = Mathf.InverseLerp(distanceRange.x, distanceRange.y, dist);
-            distance?.Invoke(dist * multiplier);
+            dist *= multiplier;
+            if (dist != lastValue)
+            {
+                distance?.Invoke(dist);
+                lastValue = dist;
+            }
         }
     }
 
-    public void RestrictRange()
+    protected void RestrictRange()
     {
         if (distanceRange.x > distanceRange.y)
             distanceRange.y = distanceRange.x;

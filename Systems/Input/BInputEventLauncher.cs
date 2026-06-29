@@ -9,17 +9,17 @@ using UnityEngine.Internal;
 public class BInputEventLauncher : MonoBehaviour
 {
     [SerializeField]
-    ButtonInput[] buttons = null;
+    protected ButtonInput[] buttons = null;
     [SerializeField]
-    AxisInput[] axes = null;
+    protected AxisInput[] axes = null;
     [SerializeField]
-    VectorInput[] joysticks = null;
+    protected VectorInput[] joysticks = null;
     [SerializeField]
-    ButtonsState[] buttonStates = null;
+    protected ButtonsState[] buttonStates = null;
     [SerializeField]
     ScaledTimeMode timeMode = ScaledTimeMode.Update;
 
-    void OnEnable()
+    protected virtual void OnEnable()
     {
         //Buttons
         for (int n = 0; n < buttons.Length; n++)
@@ -74,7 +74,6 @@ public class BInputEventLauncher : MonoBehaviour
                     }
                 }
                 buttonStates[n].SetPrevState(state);
-
             }
         }
         //TO DO: Setter as a separate function
@@ -90,7 +89,7 @@ public class BInputEventLauncher : MonoBehaviour
         if (timeMode.IsFixed()) CheckInput();
     }
 
-    void OnDisable()
+    protected virtual void OnDisable()
     {
         UnpressAll(false);
     }
@@ -343,7 +342,7 @@ public class BInputEventLauncher : MonoBehaviour
     }
 
     [Serializable]
-    struct ButtonInput
+    protected struct ButtonInput
     {
         [HideLabel]
         [InlineProperty]
@@ -372,7 +371,7 @@ public class BInputEventLauncher : MonoBehaviour
             isPressed = set;
         }
 
-        string GetName()
+        public string GetName()
         {
             if (string.IsNullOrEmpty(button.name))
                 return "Button";
@@ -384,7 +383,7 @@ public class BInputEventLauncher : MonoBehaviour
     public class FloatEvent : UnityEvent<float> { }
 
     [Serializable]
-    struct AxisInput
+    protected struct AxisInput
     {
         [HideLabel]
         [InlineProperty]
@@ -426,7 +425,7 @@ public class BInputEventLauncher : MonoBehaviour
             isPressed = set;
         }
 
-        string GetName()
+        public string GetName()
         {
             if ((axis.names.Length <= 0) || string.IsNullOrEmpty(axis.names[0]))
                 return "Axis";
@@ -435,10 +434,10 @@ public class BInputEventLauncher : MonoBehaviour
     }
 
     [Serializable] //TO DO: Implement DXVectorEvent
-    class VectorEvent : UnityEvent<Vector2> { }
+    protected class VectorEvent : UnityEvent<Vector2> { }
 
     [Serializable]
-    struct VectorInput
+    protected struct VectorInput
     {
         [HideLabel]
         [InlineProperty]
@@ -492,7 +491,7 @@ public class BInputEventLauncher : MonoBehaviour
             isPressed = set;
         }
 
-        string GetName()
+        public string GetName()
         {
             if ((joystick.names.Length <= 0) ||
                 (string.IsNullOrEmpty(joystick.names[0].x) && string.IsNullOrEmpty(joystick.names[0].y)))
@@ -501,10 +500,10 @@ public class BInputEventLauncher : MonoBehaviour
         }
     }
 
-    enum ValueLimit { Clamp01, Normalized, None };
+    protected enum ValueLimit { Clamp01, Normalized, None };
 
     [Serializable]
-    struct ButtonsState
+    protected struct ButtonsState
     {
         [FoldoutGroup("@GetName()")]
         public bool isToggle;
@@ -537,7 +536,7 @@ public class BInputEventLauncher : MonoBehaviour
             prevState = set;
         }
 
-        string GetName()
+        public string GetName()
         {
             string total = buttonsState[0].GetName();
             for (int i = 1; i < buttonsState.Length; i++)
@@ -549,7 +548,7 @@ public class BInputEventLauncher : MonoBehaviour
     }
 
     [Serializable]
-    struct ButtonState
+    protected struct ButtonState
     {
         [HideLabel]
         [InlineProperty]
@@ -573,7 +572,7 @@ public class BInputEventLauncher : MonoBehaviour
     }
 
     [Serializable]
-    struct ButtonEvents
+    protected struct ButtonEvents
     {
         public DXEvent Pressed;
         public DXEvent Released;
@@ -586,7 +585,7 @@ public class BInputEventLauncher : MonoBehaviour
     }
 
     [Serializable]
-    struct AxisButtonEvents
+    protected struct AxisButtonEvents
     {
         public FloatEvent Pressed;
         public DXEvent Released;
@@ -599,7 +598,7 @@ public class BInputEventLauncher : MonoBehaviour
     }
 
     [Serializable]
-    struct JoystickButtonEvents
+    protected struct JoystickButtonEvents
     {
         public VectorEvent Pressed;
         public DXEvent Released;
