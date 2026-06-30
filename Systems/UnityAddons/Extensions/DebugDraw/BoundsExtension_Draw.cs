@@ -11,32 +11,32 @@ public static class BoundsExtension_Draw
     public static void Draw(this Bounds bounds, Color color, Quaternion rotation, BoundsEdge[] exclude = null)
     {
         Vector3[] corners = bounds.GetCorners(rotation);
-
-        if (!exclude.Contains(BoundsEdge.LT))
+        bool excludeIsNull = exclude.IsNullOrEmpty();
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LT))
             Debug.DrawLine(corners[0], corners[1], color);
-        if (!exclude.Contains(BoundsEdge.LB))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LB))
             Debug.DrawLine(corners[2], corners[3], color);
-        if (!exclude.Contains(BoundsEdge.RT))
-            Debug.DrawLine(corners[4], corners[3], color);
-        if (!exclude.Contains(BoundsEdge.RB))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RT))
+            Debug.DrawLine(corners[4], corners[5], color);
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RB))
             Debug.DrawLine(corners[6], corners[7], color);
 
-        if (!exclude.Contains(BoundsEdge.LBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LBa))
             Debug.DrawLine(corners[0], corners[2], color);
-        if (!exclude.Contains(BoundsEdge.LF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LF))
             Debug.DrawLine(corners[1], corners[3], color);
-        if (!exclude.Contains(BoundsEdge.RBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RBa))
             Debug.DrawLine(corners[4], corners[6], color);
-        if (!exclude.Contains(BoundsEdge.RF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RF))
             Debug.DrawLine(corners[5], corners[7], color);
 
-        if (!exclude.Contains(BoundsEdge.TBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.TBa))
             Debug.DrawLine(corners[0], corners[4], color);
-        if (!exclude.Contains(BoundsEdge.TF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.TF))
             Debug.DrawLine(corners[1], corners[5], color);
-        if (!exclude.Contains(BoundsEdge.BBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.BBa))
             Debug.DrawLine(corners[2], corners[6], color);
-        if (!exclude.Contains(BoundsEdge.BF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.BF))
             Debug.DrawLine(corners[3], corners[7], color);
     }
 
@@ -49,31 +49,32 @@ public static class BoundsExtension_Draw
     {
         Vector3[] corners = bounds.GetCorners(rotation);
 
-        if (!exclude.Contains(BoundsEdge.LT))
+        bool excludeIsNull = exclude.IsNullOrEmpty();
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LT))
             Debug.DrawLine(corners[0], corners[1], color, duration);
-        if (!exclude.Contains(BoundsEdge.LB))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LB))
             Debug.DrawLine(corners[2], corners[3], color, duration);
-        if (!exclude.Contains(BoundsEdge.RT))
-            Debug.DrawLine(corners[4], corners[3], color, duration);
-        if (!exclude.Contains(BoundsEdge.RB))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RT))
+            Debug.DrawLine(corners[4], corners[5], color, duration);
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RB))
             Debug.DrawLine(corners[6], corners[7], color, duration);
 
-        if (!exclude.Contains(BoundsEdge.LBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LBa))
             Debug.DrawLine(corners[0], corners[2], color, duration);
-        if (!exclude.Contains(BoundsEdge.LF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.LF))
             Debug.DrawLine(corners[1], corners[3], color, duration);
-        if (!exclude.Contains(BoundsEdge.RBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RBa))
             Debug.DrawLine(corners[4], corners[6], color, duration);
-        if (!exclude.Contains(BoundsEdge.RF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.RF))
             Debug.DrawLine(corners[5], corners[7], color, duration);
 
-        if (!exclude.Contains(BoundsEdge.TBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.TBa))
             Debug.DrawLine(corners[0], corners[4], color, duration);
-        if (!exclude.Contains(BoundsEdge.TF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.TF))
             Debug.DrawLine(corners[1], corners[5], color, duration);
-        if (!exclude.Contains(BoundsEdge.BBa))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.BBa))
             Debug.DrawLine(corners[2], corners[6], color, duration);
-        if (!exclude.Contains(BoundsEdge.BF))
+        if (excludeIsNull || !exclude.Contains(BoundsEdge.BF))
             Debug.DrawLine(corners[3], corners[7], color, duration);
     }
 }

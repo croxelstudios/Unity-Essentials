@@ -942,7 +942,7 @@ public static class NDPhysics
         }
         else
         {
-            Collider[] inRange = Physics.OverlapBox(position, size, quat, layerMask);
+            Collider[] inRange = Physics.OverlapBox(position, size * 0.5f, quat, layerMask);
             result = new NDCollider[inRange.Length];
             for (int i = 0; i < inRange.Length; i++)
                 result[i] = inRange[i].ND();
