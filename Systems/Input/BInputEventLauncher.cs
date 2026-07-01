@@ -19,6 +19,8 @@ public class BInputEventLauncher : MonoBehaviour
     [SerializeField]
     ScaledTimeMode timeMode = ScaledTimeMode.Update;
 
+    int updateDelay;
+
     protected virtual void OnEnable()
     {
         //Buttons
@@ -76,6 +78,7 @@ public class BInputEventLauncher : MonoBehaviour
                 buttonStates[n].SetPrevState(state);
             }
         }
+        updateDelay = 1;
         //TO DO: Setter as a separate function
     }
 
@@ -96,6 +99,12 @@ public class BInputEventLauncher : MonoBehaviour
 
     void CheckInput()
     {
+        if (updateDelay > 0)
+        {
+            updateDelay--;
+            return;
+        }
+
         //Buttons
         for (int n = 0; n < buttons.Length; n++)
         {

@@ -71,10 +71,11 @@ public class FloatModifyModes : MonoBehaviour
     public struct Modification
     {
         [SerializeField]
+        [PropertyOrder(1)]
         [ListDrawerSettings(ShowFoldout = false, HideAddButton = true)]
         Operation[] operations;
 
-        [Button("Scale")]
+        [Button("+ Scale")]
         [HorizontalGroup]
         public void AddScale()
         {
@@ -82,7 +83,7 @@ public class FloatModifyModes : MonoBehaviour
             operations[operations.Length - 1] = new Operation(Operation.Type.Scale);
         }
 
-        [Button("Add")]
+        [Button("+ Add")]
         [HorizontalGroup]
         public void AddAdd()
         {
@@ -90,7 +91,7 @@ public class FloatModifyModes : MonoBehaviour
             operations[operations.Length - 1] = new Operation(Operation.Type.Add);
         }
 
-        [Button("Abs")]
+        [Button("+ Abs")]
         [HorizontalGroup]
         public void AddAbs()
         {
@@ -98,7 +99,7 @@ public class FloatModifyModes : MonoBehaviour
             operations[operations.Length - 1] = new Operation(Operation.Type.Abs);
         }
 
-        [Button("OneMinus")]
+        [Button("+ OneMinus")]
         [HorizontalGroup]
         public void AddOneMinus()
         {
@@ -106,7 +107,7 @@ public class FloatModifyModes : MonoBehaviour
             operations[operations.Length - 1] = new Operation(Operation.Type.OneMinus);
         }
 
-        [Button("Clamp")]
+        [Button("+ Clamp")]
         [HorizontalGroup]
         public void AddClamp()
         {
@@ -114,7 +115,7 @@ public class FloatModifyModes : MonoBehaviour
             operations[operations.Length - 1] = new Operation(Operation.Type.Clamp);
         }
 
-        [Button("Round")]
+        [Button("+ Round")]
         [HorizontalGroup]
         public void AddRound()
         {
