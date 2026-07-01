@@ -37,16 +37,7 @@ public class TMP_DisplayFloat : TMP_BTextPreprocessor, ITextReplacer
 
     string GetResultingText()
     {
-        float finalValue = (value * scale) + offset;
-
-        string valueText;
-        if (format == "Time") valueText = TimeSpan.FromSeconds(finalValue).ToString("c");
-        else if (format.Contains('D', StringComparison.CurrentCultureIgnoreCase) ||
-            format.Contains('X', StringComparison.CurrentCultureIgnoreCase))
-            valueText = ((int)finalValue).ToString(format);
-        else valueText = finalValue.ToString(format);
-
-        return valueText;
+        return ((value * scale) + offset).StringFormat(format);
     }
 
     void OnValidate()

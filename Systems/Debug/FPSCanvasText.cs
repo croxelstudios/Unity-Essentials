@@ -6,10 +6,16 @@ public class FPSCanvasText : MonoBehaviour
 {
     Text text;
     [SerializeField]
+    string addText = "fps";
+    [SerializeField]
+    string format = "F2";
+    [SerializeField]
     int averageEveryXFrames = 10;
 
+    const string replaceText = "{0}";
+
     int frameCounter = 0;
-    int frameSum = 0;
+    float frameSum = 0;
     void Awake()
     {
         text = GetComponent<Text>();
@@ -17,13 +23,18 @@ public class FPSCanvasText : MonoBehaviour
 
     void Update()
     {
-        frameSum += (int)(1 / Time.deltaTime);
+        string textValue;
+        frameSum += 1 / Time.unscaledDeltaTime;
         frameCounter++;
         if (frameCounter > averageEveryXFrames)
         {
-            text.text = (frameSum/averageEveryXFrames).ToString();
+            textValue = (frameSum/averageEveryXFrames).StringFormat(format);
             frameCounter = 0;
             frameSum = 0;
+
+            if (addText.Contains(replaceText))
+                text.text = addText.Replace(replaceText, textValue);
+            else text.text = textValue + addText;
         }
     }
 }
