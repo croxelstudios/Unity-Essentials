@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
+using Sirenix.Utilities;
+using UnityEngine;
+#if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
 using Sirenix.OdinInspector.Editor.ValueResolvers;
-using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
-using UnityEngine;
+#endif
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
 public class ToggleButtonsAttribute : Attribute
@@ -60,6 +62,8 @@ public class ToggleButtonsAttribute : Attribute
         m_falseColor = falseColor;
     }
 }
+
+#if UNITY_EDITOR
 public class ToggleButtonsAttributeDrawer : OdinAttributeDrawer<ToggleButtonsAttribute>
 {
     private static readonly bool DO_MANUAL_COLORING = UnityVersion.IsVersionOrGreater(2019, 3);
@@ -320,3 +324,4 @@ public class ToggleButtonsAttributeDrawer : OdinAttributeDrawer<ToggleButtonsAtt
         return nullable;
     }
 }
+#endif

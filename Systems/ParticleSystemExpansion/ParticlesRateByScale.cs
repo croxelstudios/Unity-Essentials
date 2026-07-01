@@ -27,12 +27,16 @@ public class ParticlesRateByScale : MonoBehaviour
     void OnEnable()
     {
         SetScale();
+#if UNITY_EDITOR
         OnEditorChange.PropertyModification_In(PropertyModification);
+#endif
     }
 
     void OnDisable()
     {
+#if UNITY_EDITOR
         OnEditorChange.PropertyModification_Out(PropertyModification);
+#endif
     }
 
     void SetScale()
