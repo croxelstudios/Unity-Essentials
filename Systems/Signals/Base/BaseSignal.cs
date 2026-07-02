@@ -190,28 +190,20 @@ public class BaseSignal : ScriptableObject
     }
 }
 
-public interface IValueSignal
+public class ValueSignal : BaseSignal
 {
-    //Base
-    public string name { get; }
-    public string popupName { get; }
-    public bool dynamicSearch { get; }
-    public void OnEnable();
-    public void OnDisable();
-    public void ActivateDynamicSearch();
-    public void DeactivateDynamicSearch();
-    public void AddAction(BBaseSignalListener listener, int index);
-    public void RemoveAction(BBaseSignalListener receiver, int index);
-    public void Reset();
-    public void AddListener(UnityAction action, bool beforeCall = false);
-    //
+    public virtual void SetValueParse(string value)
+    {
 
-    public void SetValueParse(string value);
+    }
 
-    public string GetStringValue();
+    public virtual string GetStringValue()
+    {
+        return "";
+    }
 }
 
-public class ValueSignal<T> : BaseSignal, IValueSignal
+public class ValueSignal<T> : ValueSignal
 {
     [SerializeField]
     bool resetValueOnStart = true;
@@ -231,7 +223,7 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
         currentValue = value;
     }
 
-    public void SetValueParse(string value)
+    public override void SetValueParse(string value)
     {
 #if UNITY_EDITOR
         if (MustShowStartValue())
@@ -240,7 +232,7 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
         CallSignal(value.Replace("|;&", ",").Parse<T>());
     }
 
-    public virtual string GetStringValue()
+    public override string GetStringValue()
     {
 #if UNITY_EDITOR
         if (MustShowStartValue())
@@ -341,7 +333,9 @@ public class ValueSignal<T> : BaseSignal, IValueSignal
 
     protected virtual bool IsDifferentFromCurrent(T value)
     {
-        return !value.Equals(currentValue);
+        if (value != null)
+            return !value.Equals(currentValue);
+        else return currentValue != null;
     }
 
 #if UNITY_EDITOR

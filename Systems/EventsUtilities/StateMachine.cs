@@ -80,8 +80,13 @@ public class StateMachine : MonoBehaviour
         }
     }
 
+    PerFrameTracker tracker;
+
     public virtual void OnValidate()
     {
+        tracker = tracker.CreateIfNull();
+        if (!tracker.Simple()) return;
+
         if (states.IsNullOrEmpty())
         {
             states = new State[1];

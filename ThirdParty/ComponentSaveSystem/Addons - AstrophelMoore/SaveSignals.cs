@@ -76,11 +76,11 @@ public class SaveSignals : BSaver
     {
         base.Load(data);
 
-        List<IValueSignal> signals = new List<IValueSignal>();
+        List<ValueSignal> signals = new List<ValueSignal>();
         foreach (BaseSignal signal in this.signals)
-            if (signal.GetType().IsOrInheritsFrom(typeof(IValueSignal)))
+            if (signal.GetType().IsOrInheritsFrom(typeof(ValueSignal)))
             {
-                IValueSignal valueSig = (IValueSignal)(object)signal;
+                ValueSignal valueSig = (ValueSignal)(object)signal;
                 valueSig.Reset();
                 signals.Add(valueSig);
             }
@@ -96,9 +96,9 @@ public class SaveSignals : BSaver
     {
         Dictionary<string, string> signalValues = new Dictionary<string, string>();
         foreach (BaseSignal signal in this.signals)
-            if (signal.GetType().IsOrInheritsFrom(typeof(IValueSignal)))
+            if (signal.GetType().IsOrInheritsFrom(typeof(ValueSignal)))
             {
-                IValueSignal valueSig = (IValueSignal)(object)signal;
+                ValueSignal valueSig = (ValueSignal)(object)signal;
                 signalValues.Add(valueSig.name, valueSig.GetStringValue());
             }
 
