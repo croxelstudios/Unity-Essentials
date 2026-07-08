@@ -122,6 +122,7 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
 
     DynamicInfo dynamicInfo;
     protected T prev;
+    const float EPSILON = 0.00001f;
 
     void Reset()
     {
@@ -278,11 +279,11 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
 
     protected void CheckStartStop(float perSecondSpeed)
     {
-        if (prevSpd <= Mathf.Epsilon)
+        if (prevSpd <= EPSILON)
         {
-            if (perSecondSpeed > Mathf.Epsilon) started?.Invoke();
+            if (perSecondSpeed > EPSILON) started?.Invoke();
         }
-        else if (perSecondSpeed <= Mathf.Epsilon) stopped?.Invoke();
+        else if (perSecondSpeed <= EPSILON) stopped?.Invoke();
         prevSpd = perSecondSpeed;
     }
 
