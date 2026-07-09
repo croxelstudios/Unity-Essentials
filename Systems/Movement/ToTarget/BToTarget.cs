@@ -122,7 +122,7 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
 
     DynamicInfo dynamicInfo;
     protected T prev;
-    const float EPSILON = 0.00001f;
+    const float EPSILON = 0.0001f;
 
     void Reset()
     {
