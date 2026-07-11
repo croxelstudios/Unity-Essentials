@@ -7,6 +7,13 @@ using Object = UnityEngine.Object;
 public static class CollectionExtensions
 {
     #region Create Add (1 layer)
+    public static T[] CreateAdd<T>(this T[] array, T element, bool testContains = true)
+    {
+        if (array.IsNullOrEmpty()) array = new T[1] { element };
+        else array = array.Resize(array.Length + 1, element);
+        return array;
+    }
+
     public static L CreateAdd<L, T>(this L list, T element, bool testContains = true)
         where L : ICollection<T>, new()
     {

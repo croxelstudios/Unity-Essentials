@@ -217,21 +217,24 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
             origin.parent.TransformDirection(speed) : speed;
     }
 
-    public override void Set(Vector3 target, bool isLocal, bool teleport = false)
+    protected override Vector3 ProjectOnPlane(Vector3 value, Vector3 normal)
     {
-        Vector3 dif = target - Current();
-        if (projectOnPlane)
-        {
-            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
-            dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
-        }
+        return Vector3.ProjectOnPlane(value, normal);
+    }
+
+    protected override Vector3 AboutToSet(Vector3 dif)
+    {
         dif.Scale(vectorMultiplier);
-        Apply(dif, isLocal, teleport);
-        ResetSpeed();
+        return dif;
     }
 
     public override void Apply(Vector3 speed, bool isLocal, bool teleport = false)
     {
+        if (timeMode.IsSmooth())
+        {
+            Apply_IgnorePhysics(speed, isLocal);
+            return;
+        }
         //WARNING: Rigidbodies will apply movement in fixed time and this can break order of events
         //Use IgnorePhysics variants if you need to apply movement instantly
         origin.PhysicsTranslate(speed, teleport, isLocal ? Space.Self : Space.World);
@@ -244,16 +247,14 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, IN
         Set_IgnorePhysics(Target(), locally);
     }
 
+    public void Set_IgnorePhysics(Vector3 target)
+    {
+        Set_IgnorePhysics(target, locally);
+    }
+
     public void Set_IgnorePhysics(Vector3 target, bool isLocal)
     {
-        Vector3 dif = target - Current();
-        if (projectOnPlane)
-        {
-            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
-            dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
-        }
-        dif.Scale(vectorMultiplier);
-        Apply_IgnorePhysics(dif, isLocal);
+        Apply_IgnorePhysics(AboutToSet(GetDif(target)), isLocal);
         ResetSpeed();
     }
 

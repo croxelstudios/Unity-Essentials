@@ -305,8 +305,31 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
         Set(target, locally);
     }
 
-    public virtual void Set(T target, bool isLocal, bool teleport = false)
+    public void Set(T target, bool isLocal, bool teleport = false)
     {
+        Apply(AboutToSet(GetDif(target)), isLocal, teleport);
+        ResetSpeed();
+    }
+
+    protected virtual T ProjectOnPlane(T value, Vector3 normal)
+    {
+        return value;
+    }
+
+    protected virtual T AboutToSet(T dif)
+    {
+        return dif;
+    }
+
+    public T GetDif(T target)
+    {
+        T dif = Generics.Subtract(target, Current());
+        if (projectOnPlane)
+        {
+            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
+            dif = ProjectOnPlane(dif, localPlaneNormal);
+        }
+        return dif;
     }
 
     public void Apply(T speed)

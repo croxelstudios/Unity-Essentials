@@ -185,16 +185,9 @@ public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
         }
     }
 
-    public override void Set(Vector4 target, bool isLocal, bool teleport = false)
+    protected override Vector4 ProjectOnPlane(Vector4 value, Vector3 normal)
     {
-        Vector4 dif = target - Current();
-        if (projectOnPlane)
-        {
-            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
-            dif = Vector3.ProjectOnPlane(dif, localPlaneNormal);
-        }
-        Apply(dif, isLocal, teleport);
-        ResetSpeed();
+        return Vector3.ProjectOnPlane(value, normal);
     }
 
     public override void Apply(Vector4 speed, bool isLocal, bool teleport = false)

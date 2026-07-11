@@ -188,20 +188,18 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
         }
     }
 
-    public override void Set(Quaternion target, bool isLocal, bool teleport = false)
+    protected override Quaternion ProjectOnPlane(Quaternion value, Vector3 normal)
     {
-        Quaternion dif = target.Subtract(Current());
-        if (projectOnPlane)
-        {
-            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
-            dif = Quaternion.AngleAxis(dif.Angle(rotationMode), localPlaneNormal);
-        }
-        Apply(dif, isLocal, teleport);
-        ResetSpeed();
+        return Quaternion.AngleAxis(value.Angle(rotationMode), normal);
     }
 
     public override void Apply(Quaternion speed, bool isLocal, bool teleport = false)
     {
+        if (timeMode.IsSmooth())
+        {
+            Apply_IgnorePhysics(speed, isLocal);
+            return;
+        }
         //WARNING: Rigidbodies will apply rotation in fixed time and this can break order of events
         //Use IgnorePhysics variants if you need to apply rotation instantly
         origin.PhysicsRotate(speed, teleport, isLocal ? Space.Self : Space.World);
@@ -212,15 +210,14 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
         Set_IgnorePhysics(Target(), locally);
     }
 
+    public void Set_IgnorePhysics(Quaternion target)
+    {
+        Set_IgnorePhysics(target, locally);
+    }
+
     public void Set_IgnorePhysics(Quaternion target, bool isLocal)
     {
-        Quaternion dif = target.Subtract(Current());
-        if (projectOnPlane)
-        {
-            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
-            dif = Quaternion.AngleAxis(dif.Angle(rotationMode), localPlaneNormal);
-        }
-        Apply_IgnorePhysics(dif, isLocal);
+        Apply_IgnorePhysics(AboutToSet(GetDif(target)), isLocal);
         ResetSpeed();
     }
 

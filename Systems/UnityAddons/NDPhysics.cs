@@ -847,6 +847,61 @@ public class NDCollider
         return finalHits.ToArray();
     }
 
+    public NDRaycastHit[] RaycastToThis(Vector3 origin, Vector3 direction, float distance)
+    {
+        //TO DO: Can be optimized for 3D case with Collider.Raycast
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RaycastAll(origin - (direction.normalized * offset),
+            direction, distance + offset, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] RaycastExceptThis(Vector3 origin, Vector3 direction, float distance,
+        bool includeTriggers = false)
+    {
+        //TO DO: Can be optimized for 2D case with Collider2D.Raycast
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RaycastAll(origin - (direction.normalized * offset),
+            direction, distance + offset, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider != this) &&
+                (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
+                finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] RaycastToThis(Vector3 origin, Vector3 direction, float distance,
+        LayerMask mask)
+    {
+        //TO DO: Can be optimized for 3D case with Collider.Raycast
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RaycastAll(origin - (direction.normalized * offset),
+            direction, distance + offset, mask, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider == this) && (hits[i].distance >= offset)) finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
+    public NDRaycastHit[] RaycastExceptThis(Vector3 origin, Vector3 direction, float distance,
+        LayerMask mask, bool includeTriggers = false)
+    {
+        //TO DO: Can be optimized for 2D case with Collider2D.Raycast
+        float offset = NDPhysics.DefaultContactOffset(is2D);
+        NDRaycastHit[] hits = NDPhysics.RaycastAll(origin - (direction.normalized * offset),
+            direction, distance + offset, mask, is2D);
+        List<NDRaycastHit> finalHits = new List<NDRaycastHit>();
+        for (int i = 0; i < hits.Length; i++)
+            if ((hits[i].collider != this) &&
+                (includeTriggers || !hits[i].isTrigger) && (hits[i].distance >= offset))
+                finalHits.Add(hits[i]);
+        return finalHits.ToArray();
+    }
+
     public void Draw(Color color)
     {
         Vector3 center = transform.position;
