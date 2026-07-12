@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 using System.Collections;
 using System.Linq;
@@ -5,74 +6,131 @@ using System.Collections.Generic;
 
 public class BRumbleUtility : MonoBehaviour
 {
+    //TO DO: Maybe add curve to the SpeedBehaviour class and use that here and in TransformShake too.
+    static Dictionary<int, (float, float)> rumbleValues;
+
+    [SerializeField]
+    protected GamepadSelection gamepad = GamepadSelection.Current;
+    [Indent]
+    [ShowIf("gamepad", GamepadSelection.Specific)]
+    [SerializeField]
+    protected int gamepadIndex = -1;
+    int gamepadId => gamepad == GamepadSelection.Specific ? gamepadIndex :
+        gamepad == GamepadSelection.Current ? -1 : -2;
     [SerializeField]
     int priorityGroup = 0;
-    [Space]
     [SerializeField]
-    protected AnimationCurve rumbleCurve = new AnimationCurve(new Keyframe[] { new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 0f, 0f) });
-
-    [Header("Smooth")]
+    Motor motor = Motor.Both;
+    [MinValue(0f)]
     [SerializeField]
-    protected float smoothTime = 0f;
+    float smooth = 0f;
     [SerializeField]
-    protected float minDiff = 0.01f;
+    [Range(0f, 1f)]
+    float _intensity = 1f;
+    public float intensity { get { return _intensity; } set { _intensity = value; } }
+    [SerializeField]
+    float _rumbleTime = 0.2f;
+    public float rumbleTime { get { return _rumbleTime; } set { _rumbleTime = value; } }
+    [SerializeField]
+    bool blinkCurve = false;
+    [ShowIf("blinkCurve")]
+    [SerializeField]
+    protected AnimationCurve rumbleCurve =
+        new AnimationCurve(new Keyframe[] {
+            new(0f, 0f, 1f, 1f),
+            new(1f, 1f, 0f, 0f),
+            new(0f, 0f, 1f, 1f) });
+    [SerializeField]
+    bool rumbleWhileEnabled = false;
 
     public float currentRumble { get; private set; }
 
     static SortedDictionary<int, List<BRumbleUtility>> rumbles;
+
+    enum Motor { Both, Left, Right }
+    protected enum GamepadSelection { Current, All, Specific }
 
     protected virtual void Awake()
     {
         rumbles = rumbles.CreateAdd(priorityGroup, this);
     }
 
-    [ContextMenu("Rumble by curve")]
-    public void RumbleByCurve()
+    protected virtual void OnEnable()
     {
-        if (this.IsActiveAndEnabled())
-            StartCoroutine(StartRumbleByCurveCoroutine());
+        if (rumbleWhileEnabled) SetRumble(intensity);
     }
 
-    IEnumerator StartRumbleByCurveCoroutine()
+    public void SetGamepad(int gamepadIndex)
     {
-        float startTime = Time.time;
-        float duration = rumbleCurve.keys.Max(x => x.time);
-        float endTime = startTime + duration;
-
-        while (Time.time < endTime)
+        if (gamepadIndex < 0)
+            gamepad = GamepadSelection.Current;
+        else if (gamepadIndex >= GamepadCount())
+            gamepad = GamepadSelection.All;
+        else
         {
-            float t = Time.time - startTime;
-            float intensity = rumbleCurve.Evaluate(t);
-
-            SetRumble_Internal(intensity);
-            yield return null;
+            gamepad = GamepadSelection.Specific;
+            this.gamepadIndex = gamepadIndex;
         }
+    }
 
-        SetRumble_Internal(0f);
+    public void SetRumbleInstant()
+    {
+        SetRumbleInstant(intensity);
+    }
+
+    public void SetRumbleInstant(float intensity)
+    {
+        if (this.IsActiveAndEnabled())
+            SetRumble_Internal(intensity);
+    }
+
+    public void SetRumble()
+    {
+        SetRumble(intensity);
     }
 
     public void SetRumble(float intensity)
     {
         if (this.IsActiveAndEnabled())
-            SetRumble_Internal(intensity);
+        {
+            if (smooth <= 0f) SetRumble_Internal(intensity);
+            else StartCoroutine(SetRumbleCoroutine(intensity));
+        }
     }
 
-    [ContextMenu("Rumble smooth")]
-    public void RumbleSmooth(float intensity)
+    [ContextMenu("Blink Rumble")]
+    public void BlinkRumble()
+    {
+        BlinkRumble(intensity);
+    }
+
+    public void BlinkRumble(float intensity)
     {
         if (this.IsActiveAndEnabled())
-            StartCoroutine(StartSmoothedRumbleCoroutine(intensity));
+        {
+            if (blinkCurve)
+                StartCoroutine(RumbleByCurveCoroutine(intensity));
+            else
+            StartCoroutine(BlinkRumbleCoroutine(intensity));
+        }
     }
 
-    IEnumerator StartSmoothedRumbleCoroutine(float intensity)
+    IEnumerator BlinkRumbleCoroutine(float intensity)
+    {
+        SetRumble(intensity);
+        yield return new WaitForSeconds(rumbleTime);
+        SetRumble(0f);
+    }
+
+    IEnumerator SetRumbleCoroutine(float intensity)
     {
         float current = currentRumble;
         float spd = 0f;
 
-        while (Mathf.Abs(current - intensity) > minDiff)
+        while (!Mathf.Approximately(current, intensity))
         {
             current = Mathf.SmoothDamp(current, intensity, ref spd,
-                smoothTime, Mathf.Infinity, Time.deltaTime);
+                smooth, Mathf.Infinity, Time.deltaTime);
             SetRumble_Internal(current);
             yield return null;
         }
@@ -80,10 +138,31 @@ public class BRumbleUtility : MonoBehaviour
         SetRumble_Internal(intensity);
     }
 
+    IEnumerator RumbleByCurveCoroutine(float intensity)
+    {
+        float startTime = Time.time;
+        float duration = rumbleCurve.keys.Max(x => x.time) * rumbleTime;
+        float endTime = startTime + duration;
+
+        while (Time.time < endTime)
+        {
+            float t = (Time.time - startTime) / rumbleTime;
+            float current = rumbleCurve.Evaluate(t) * intensity;
+
+            SetRumble_Internal(current);
+            yield return null;
+        }
+
+        SetRumble_Internal(0f);
+    }
+
     private void OnDisable()
     {
         StopAllCoroutines();
-        SetRumble_Internal(0f);
+        //if (gameObject.activeInHierarchy)
+        //    SetRumble(0f);
+        //else
+            SetRumble_Internal(0f);
     }
 
     void SetRumble_Internal(float amount)
@@ -94,26 +173,74 @@ public class BRumbleUtility : MonoBehaviour
 
     void UpdateGlobalRumble()
     {
-        float globalRumble = 0f;
+        float lRumble = 0f;
+        float rRumble = 0f;
+        bool checkLeft = motor != Motor.Right;
+        bool checkRight = motor != Motor.Left;
+
+        if (rumbleValues.SmartGetValue(gamepadId, out (float, float) values))
+        {
+            if (!checkLeft) lRumble = values.Item1;
+            if (!checkRight) rRumble = values.Item2;
+        }
+        else rumbleValues = rumbleValues.CreateAdd(gamepadId, (lRumble, rRumble));
 
         for (int i = rumbles.Last().Key; i >= 0; i--)
         {
-            float sum = 0f;
+            float lSum = 0f;
+            float rSum = 0f;
 
             for (int j = 0; j < rumbles[i].Count; j++)
-                sum += rumbles[i][j].currentRumble;
-
-            if (sum > 0f)
             {
-                globalRumble = Mathf.Clamp01(sum);
-                break;
+                BRumbleUtility rumble = rumbles[i][j];
+                if (rumble.gamepadId == gamepadId)
+                    switch (motor)
+                    {
+                        case Motor.Both:
+                            if (checkLeft) lSum += rumble.currentRumble;
+                            if (checkRight) rSum += rumble.currentRumble;
+                            break;
+                        case Motor.Left:
+                            if (checkLeft) lSum += rumble.currentRumble;
+                            break;
+                        case Motor.Right:
+                            if (checkRight) rSum += rumble.currentRumble;
+                            break;
+                    }
             }
+
+            if (lSum > 0f)
+            {
+                lRumble = Mathf.Clamp01(lSum);
+                checkLeft = false;
+            }
+
+            if (rSum > 0f)
+            {
+                rRumble = Mathf.Clamp01(rSum);
+                checkRight = false;
+            }
+
+            if (!(checkLeft || checkRight))
+                break;
         }
 
-        SetGlobalRumble(globalRumble);
+        DoSetRumble(lRumble, rRumble);
     }
 
-    protected virtual void SetGlobalRumble(float amount)
+    void DoSetRumble(float left, float right)
     {
+        rumbleValues[gamepadId] = (left, right);
+        SetRumble(left, right);
+    }
+
+    protected virtual int GamepadCount()
+    {
+        return 0;
+    }
+
+    protected virtual void SetRumble(float left, float right)
+    {
+
     }
 }

@@ -2,7 +2,6 @@
 using UnityEngine.Events;
 using System;
 using Sirenix.OdinInspector;
-using UnityEngine.Internal;
 
 //TO DO: Micro-optimize by saving the button values in a static dictionary so that
 //other launchers with the same input are not checking it twice (or a similar solution)
