@@ -52,14 +52,10 @@ public class BRumbleUtility : MonoBehaviour
     public float currentRumble { get; private set; }
     bool didFirstFrame;
     bool canBlink { get { return (!skipFirstFrameBlinks) || didFirstFrame; } }
+    bool isInit = false;
 
     enum Motor { Both, Left, Right }
     protected enum GamepadSelection { Current, All, Specific }
-
-    protected virtual void Awake()
-    {
-        rumbles = rumbles.CreateAdd(priorityGroup, this);
-    }
 
     protected virtual void OnEnable()
     {
@@ -90,13 +86,22 @@ public class BRumbleUtility : MonoBehaviour
 
     void DisableRumble()
     {
-        if (rumbles != null)
+        if (isInit)
         {
             StopAllCoroutines();
             //if (gameObject.activeInHierarchy)
             //    SetRumble(0f);
             //else
                 SetRumble_Internal(0f);
+        }
+    }
+
+    void TryInit()
+    {
+        if (!isInit)
+        {
+            rumbles = rumbles.CreateAdd(priorityGroup, this);
+            isInit = true;
         }
     }
 
@@ -203,6 +208,7 @@ public class BRumbleUtility : MonoBehaviour
 
     void SetRumble_Internal(float amount)
     {
+        TryInit();
         currentRumble = amount;
         UpdateGlobalRumble();
     }
