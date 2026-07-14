@@ -21,4 +21,9 @@ public class BControllersData : ScriptableObject
     {
         return false;
     }
+
+    public virtual int AvailableGamepads()
+    {
+        return 1;
+    }
 }

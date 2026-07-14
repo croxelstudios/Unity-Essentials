@@ -3,7 +3,7 @@ using UnityEditor;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Renderer))]
-public class GamepadSwitch_Materials : GamepadSwitch
+public class GamepadSwitch_Materials : BGamepadSwitch_Prompt
 {
     Renderer rend;
 

@@ -9,7 +9,9 @@ public class BRumbleUtility : MonoBehaviour
     //TO DO: Maybe add curve to the SpeedBehaviour class and use that here and in TransformShake too.
     static SortedDictionary<int, List<BRumbleUtility>> rumbles;
     static Dictionary<int, (float, float)> rumbleValues;
+    static DXEvent onUsingKeyboard = new DXEvent();
     static float globalIntensity = 1f;
+    static bool usingKeyboard = false;
 
     [SerializeField]
     protected GamepadSelection gamepad = GamepadSelection.Current;
@@ -64,17 +66,38 @@ public class BRumbleUtility : MonoBehaviour
         if (rumbleWhileEnabled) SetRumble(intensity);
         if (skipFirstFrameBlinks)
             StartCoroutine(FrameDelay());
+        onUsingKeyboard.AddListener(DisableRumble);
     }
 
     protected virtual void OnDisable()
     {
-        StopAllCoroutines();
-        //if (gameObject.activeInHierarchy)
-        //    SetRumble(0f);
-        //else
-            SetRumble_Internal(0f);
+        DisableRumble();
+        onUsingKeyboard.RemoveListener(DisableRumble);
         if (skipFirstFrameBlinks)
             didFirstFrame = false;
+    }
+
+    public void SetGlobalIntensity(float intensity)
+    {
+        globalIntensity = intensity;
+    }
+
+    public void SetUsingKeyboard(bool usingKeyboard)
+    {
+        BRumbleUtility.usingKeyboard = usingKeyboard;
+        if (usingKeyboard) onUsingKeyboard?.Invoke();
+    }
+
+    void DisableRumble()
+    {
+        if (rumbles != null)
+        {
+            StopAllCoroutines();
+            //if (gameObject.activeInHierarchy)
+            //    SetRumble(0f);
+            //else
+                SetRumble_Internal(0f);
+        }
     }
 
     IEnumerator FrameDelay()
@@ -101,14 +124,9 @@ public class BRumbleUtility : MonoBehaviour
         SetRumbleInstant(intensity);
     }
 
-    public void SetGlobalIntensity(float intensity)
-    {
-        globalIntensity = intensity;
-    }
-
     public void SetRumbleInstant(float intensity)
     {
-        if (this.IsActiveAndEnabled())
+        if (this.IsActiveAndEnabled() && (!usingKeyboard))
             SetRumble_Internal(intensity);
     }
 
@@ -119,7 +137,7 @@ public class BRumbleUtility : MonoBehaviour
 
     public void SetRumble(float intensity)
     {
-        if (this.IsActiveAndEnabled())
+        if (this.IsActiveAndEnabled() && (!usingKeyboard))
         {
             if (smooth <= 0f) SetRumble_Internal(intensity);
             else StartCoroutine(SetRumbleCoroutine(intensity));
@@ -134,7 +152,7 @@ public class BRumbleUtility : MonoBehaviour
 
     public void BlinkRumble(float intensity)
     {
-        if (this.IsActiveAndEnabled() && canBlink)
+        if (this.IsActiveAndEnabled() && (!usingKeyboard) && canBlink)
         {
             StopAllCoroutines();
             if (blinkCurve) StartCoroutine(RumbleByCurveCoroutine(intensity));

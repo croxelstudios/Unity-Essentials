@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Image))]
-public class GamepadSwitch_Images : GamepadSwitch
+public class GamepadSwitch_Images : BGamepadSwitch_Prompt
 {
     Image image;
 

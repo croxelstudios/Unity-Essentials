@@ -1,8 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 
-[ExecuteAlways]
 public class GamepadSwitch : MonoBehaviour
 {
     [SerializeField]
@@ -11,10 +10,6 @@ public class GamepadSwitch : MonoBehaviour
     [SerializeField]
     [OnValueChanged("ChangeCheck")]
     protected int current = 0;
-    [SerializeField]
-    [OnValueChanged("ChangeCheck")]
-    protected InputPrompt inputData = null;
-    //TO DO: Connect and disconnect events
 
     static Dictionary<BControllersData, GamepadSwitch_Updater> updaters;
     GamepadSwitch_Updater slotData
@@ -29,54 +24,30 @@ public class GamepadSwitch : MonoBehaviour
 
     void Awake()
     {
-#if UNITY_EDITOR
-        if (Application.isPlaying)
-#endif
+        updaters = updaters.CreateIfNull();
+        if (!updaters.ContainsKey(controllersData))
         {
-            updaters = updaters.CreateIfNull();
-            if (!updaters.ContainsKey(controllersData))
-            {
-                controllersData.AwakeData();
-                GameObject go = new GameObject("GamepadSwitch_Updater");
-                updaters.Add(controllersData, go.AddComponent<GamepadSwitch_Updater>());
-                slotData.controllersData = controllersData;
-            }
+            controllersData.AwakeData();
+            GameObject go = new GameObject("GamepadSwitch_Updater");
+            updaters.Add(controllersData, go.AddComponent<GamepadSwitch_Updater>());
+            slotData.controllersData = controllersData;
         }
     }
 
     protected virtual void OnEnable()
     {
-#if UNITY_EDITOR
-        if (Application.isPlaying)
-#endif
+        if (slotData != null)
         {
-            if ((slotData != null) && (inputData != null))
-            {
-                controllersData.UpdateData();
-                UpdateController();
-                slotData.gamepadSwitch.AddListener(UpdateController);
-            }
+            controllersData.UpdateData();
+            UpdateController();
+            slotData.gamepadSwitch.AddListener(UpdateController);
         }
     }
 
     private void OnDisable()
     {
-#if UNITY_EDITOR
-        if (Application.isPlaying)
-#endif
-        {
-            if (slotData != null)
-                slotData.gamepadSwitch.RemoveListener(UpdateController);
-        }
-    }
-
-    void Update()
-    {
-#if UNITY_EDITOR
-        if (!Application.isPlaying) ChangeCheck();
-        //else
-#endif
-        //UpdateController();
+        if (slotData != null)
+            slotData.gamepadSwitch.RemoveListener(UpdateController);
     }
 
     void UpdateController()
@@ -85,30 +56,55 @@ public class GamepadSwitch : MonoBehaviour
             SwitchValue(controllersData.IdentifyController());
     }
 
-    void ChangeCheck()
+    protected void ChangeCheck()
     {
-        if (inputData != null) SwitchValue(current);
+        SwitchValue(current);
     }
 
     public void SwitchValue(int newValue)
     {
-        if (newValue < -1)
+        if (CanSwitchValue())
         {
-#if UNITY_EDITOR
-            if (!Application.isPlaying) current = -1;
-            else
-#endif
-                current = (controllersData.IsGamepadConnected()) ? inputData.gamepadDefault : -1;
-        }
-        else current = newValue;
+            if (newValue < -1)
+            {
+    #if UNITY_EDITOR
+                if (!Application.isPlaying) current = -1;
+                else
+    #endif
+                    current = controllersData.IsGamepadConnected() ? newValue : -1;
+            }
+            else current = newValue;
 
-        if (current < 0) SwitchValue(inputData.keyboardTexture);
-        else if (current >= inputData.buttonTextures.Length)
-            SwitchValue(inputData.buttonTextures[inputData.gamepadDefault]);
-        else SwitchValue(inputData.buttonTextures[current]);
+            if (current.IsBetween(-1, AvailableGamepads()))
+            {
+                if (current < 0) SwitchToKeyboard();
+                else SwitchToGamepad(current);
+            }
+            else SwitchToDefault();
+        }
     }
 
-    public virtual void SwitchValue(InputPrompt.InputPromptTexture texture)
+    protected virtual int AvailableGamepads()
+    {
+        return controllersData.AvailableGamepads();
+    }
+
+    protected virtual bool CanSwitchValue()
+    {
+        return true;
+    }
+
+    protected virtual void SwitchToDefault()
+    {
+
+    }
+
+    protected virtual void SwitchToKeyboard()
+    {
+
+    }
+
+    protected virtual void SwitchToGamepad(int gamepadId)
     {
 
     }

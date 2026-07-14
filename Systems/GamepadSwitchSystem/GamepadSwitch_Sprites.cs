@@ -2,7 +2,7 @@
 
 [ExecuteAlways]
 [RequireComponent(typeof(SpriteRenderer))]
-public class GamepadSwitch_Sprites : GamepadSwitch
+public class GamepadSwitch_Sprites : BGamepadSwitch_Prompt
 {
     SpriteRenderer spriteRenderer;
 
