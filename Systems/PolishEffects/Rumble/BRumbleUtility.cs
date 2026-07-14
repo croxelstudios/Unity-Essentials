@@ -7,7 +7,9 @@ using System.Collections.Generic;
 public class BRumbleUtility : MonoBehaviour
 {
     //TO DO: Maybe add curve to the SpeedBehaviour class and use that here and in TransformShake too.
+    static SortedDictionary<int, List<BRumbleUtility>> rumbles;
     static Dictionary<int, (float, float)> rumbleValues;
+    static float globalIntensity = 1f;
 
     [SerializeField]
     protected GamepadSelection gamepad = GamepadSelection.Current;
@@ -42,10 +44,12 @@ public class BRumbleUtility : MonoBehaviour
             new(0f, 0f, 1f, 1f) });
     [SerializeField]
     bool rumbleWhileEnabled = false;
+    [SerializeField]
+    bool skipFirstFrameBlinks = true;
 
     public float currentRumble { get; private set; }
-
-    static SortedDictionary<int, List<BRumbleUtility>> rumbles;
+    bool didFirstFrame;
+    bool canBlink { get { return (!skipFirstFrameBlinks) || didFirstFrame; } }
 
     enum Motor { Both, Left, Right }
     protected enum GamepadSelection { Current, All, Specific }
@@ -58,6 +62,25 @@ public class BRumbleUtility : MonoBehaviour
     protected virtual void OnEnable()
     {
         if (rumbleWhileEnabled) SetRumble(intensity);
+        if (skipFirstFrameBlinks)
+            StartCoroutine(FrameDelay());
+    }
+
+    protected virtual void OnDisable()
+    {
+        StopAllCoroutines();
+        //if (gameObject.activeInHierarchy)
+        //    SetRumble(0f);
+        //else
+            SetRumble_Internal(0f);
+        if (skipFirstFrameBlinks)
+            didFirstFrame = false;
+    }
+
+    IEnumerator FrameDelay()
+    {
+        yield return WaitFor.Frames(1);
+        didFirstFrame = true;
     }
 
     public void SetGamepad(int gamepadIndex)
@@ -76,6 +99,11 @@ public class BRumbleUtility : MonoBehaviour
     public void SetRumbleInstant()
     {
         SetRumbleInstant(intensity);
+    }
+
+    public void SetGlobalIntensity(float intensity)
+    {
+        globalIntensity = intensity;
     }
 
     public void SetRumbleInstant(float intensity)
@@ -106,19 +134,18 @@ public class BRumbleUtility : MonoBehaviour
 
     public void BlinkRumble(float intensity)
     {
-        if (this.IsActiveAndEnabled())
+        if (this.IsActiveAndEnabled() && canBlink)
         {
-            if (blinkCurve)
-                StartCoroutine(RumbleByCurveCoroutine(intensity));
-            else
-            StartCoroutine(BlinkRumbleCoroutine(intensity));
+            StopAllCoroutines();
+            if (blinkCurve) StartCoroutine(RumbleByCurveCoroutine(intensity));
+            else StartCoroutine(BlinkRumbleCoroutine(intensity));
         }
     }
 
     IEnumerator BlinkRumbleCoroutine(float intensity)
     {
         SetRumble(intensity);
-        yield return new WaitForSeconds(rumbleTime);
+        yield return new WaitForSecondsRealtime(rumbleTime);
         SetRumble(0f);
     }
 
@@ -130,7 +157,7 @@ public class BRumbleUtility : MonoBehaviour
         while (!Mathf.Approximately(current, intensity))
         {
             current = Mathf.SmoothDamp(current, intensity, ref spd,
-                smooth, Mathf.Infinity, Time.deltaTime);
+                smooth, Mathf.Infinity, Time.unscaledDeltaTime);
             SetRumble_Internal(current);
             yield return null;
         }
@@ -140,13 +167,13 @@ public class BRumbleUtility : MonoBehaviour
 
     IEnumerator RumbleByCurveCoroutine(float intensity)
     {
-        float startTime = Time.time;
+        float startTime = Time.unscaledTime;
         float duration = rumbleCurve.keys.Max(x => x.time) * rumbleTime;
         float endTime = startTime + duration;
 
-        while (Time.time < endTime)
+        while (Time.unscaledTime < endTime)
         {
-            float t = (Time.time - startTime) / rumbleTime;
+            float t = (Time.unscaledTime - startTime) / rumbleTime;
             float current = rumbleCurve.Evaluate(t) * intensity;
 
             SetRumble_Internal(current);
@@ -154,15 +181,6 @@ public class BRumbleUtility : MonoBehaviour
         }
 
         SetRumble_Internal(0f);
-    }
-
-    private void OnDisable()
-    {
-        StopAllCoroutines();
-        //if (gameObject.activeInHierarchy)
-        //    SetRumble(0f);
-        //else
-            SetRumble_Internal(0f);
     }
 
     void SetRumble_Internal(float amount)
@@ -231,7 +249,7 @@ public class BRumbleUtility : MonoBehaviour
     void DoSetRumble(float left, float right)
     {
         rumbleValues[gamepadId] = (left, right);
-        SetRumble(left, right);
+        SetRumble(left * globalIntensity, right * globalIntensity);
     }
 
     protected virtual int GamepadCount()
