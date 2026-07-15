@@ -123,6 +123,14 @@ public class FloatModifyModes : MonoBehaviour
             operations[operations.Length - 1] = new Operation(Operation.Type.Round);
         }
 
+        [Button("+ Loop")]
+        [HorizontalGroup]
+        public void AddLoop()
+        {
+            operations = operations.Resize(operations.Length + 1);
+            operations[operations.Length - 1] = new Operation(Operation.Type.Loop);
+        }
+
         public Modification(Operation.Type type)
         {
             operations = new Operation[] { new Operation(type) };
@@ -173,7 +181,7 @@ public class FloatModifyModes : MonoBehaviour
     [Serializable]
     public struct Operation
     {
-        public enum Type { Scale, Add, Abs, OneMinus, Clamp, Round }
+        public enum Type { Scale, Add, Abs, OneMinus, Clamp, Round, Loop }
         public enum RoundMode { Nearest, Floor, Ceil }
 
         [HideLabel]
@@ -183,7 +191,7 @@ public class FloatModifyModes : MonoBehaviour
         [HorizontalGroup]
         [ShowIf("@(type == Type.Scale) || (type == Type.Add)")]
         public float amount;
-        [ShowIf("@type == Type.Clamp")]
+        [ShowIf("@(type == Type.Clamp) || (type == Type.Loop)")]
         public Vector2 between;
         [HideLabel]
         [HorizontalGroup]
@@ -194,7 +202,7 @@ public class FloatModifyModes : MonoBehaviour
         {
             this.type = type;
             amount = (type == Type.Scale) ? 1f : 0f;
-            between = new Vector2(0f, 1f);
+            between = (type == Type.Loop) ? new Vector2(-180f, 180f) : new Vector2(0f, 1f);
             roundMode = RoundMode.Nearest;
         }
 
@@ -210,7 +218,7 @@ public class FloatModifyModes : MonoBehaviour
         {
             this.type = type;
             this.amount = ((type != Type.Clamp) && (type != Type.Round)) ? amount : 0f;
-            between = new Vector2(0f, (type == Type.Clamp) ? amount : 1f);
+            between = new Vector2(0f, ((type == Type.Clamp) || (type == Type.Loop)) ? amount : 1f);
             roundMode = (type == Type.Round) ?
                 (RoundMode)Mathf.Clamp(Mathf.Floor(amount), 0f, 2f) : RoundMode.Nearest;
         }
@@ -253,6 +261,8 @@ public class FloatModifyModes : MonoBehaviour
                     return 1f - value;
                 case Type.Clamp:
                     return Mathf.Clamp(value, between.x, between.y);
+                case Type.Loop:
+                    return value.Loop(between.x, between.y);
                 case Type.Round:
                     switch (roundMode)
                     {
