@@ -4,7 +4,7 @@ using UnityEngine.Events;
 public class GamepadSwitch_Updater : MonoBehaviour
 {
     public BControllersData controllersData = null;
-    public UnityEvent gamepadSwitch = null;
+    public UnityEvent gamepadSwitch = new UnityEvent();
 
     void Awake()
     {
