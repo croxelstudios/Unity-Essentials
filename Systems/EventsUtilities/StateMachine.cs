@@ -264,14 +264,14 @@ public class StateMachine : MonoBehaviour
 #if UNITY_EDITOR
         public string EventsFoldout()
         {
-            return "Enter Exit Events" + ((enter.IsNull() && exit.IsNull()) ? "" : " ⚠");
+            return "Enter Exit Events" + ((enter.IsNull() && exit.IsNull()) ? "" : " ●");
         }
 
         public string ConditionalEventsFoldout()
         {
             if (events != null)
                 foreach (DXEvent ev in events)
-                    if (!ev.IsNull()) return "State-dependant Events ⚠";
+                    if (!ev.IsNull()) return "State-dependant Events ●";
             return "State-dependant Events";
         }
 #endif

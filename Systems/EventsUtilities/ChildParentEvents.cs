@@ -39,7 +39,7 @@ public class ChildParentEvents : MonoBehaviour
     List<ChildParentEvents> childrenEventsISubscribedAsParent;
     int currentChild = 0;
 
-    static List<ChildParentEvents> auxEvents;
+    List<ChildParentEvents> auxEvents;
 
     bool init;
 
@@ -69,7 +69,7 @@ public class ChildParentEvents : MonoBehaviour
     }
 
     #region Children Functions
-    [StringSelector("notedTargetEventNames")]
+    [StringSelector("childEventNames")]
     public void CallChildEvent(string name)
     {
         if (this.IsActiveAndEnabled())
@@ -192,7 +192,7 @@ public class ChildParentEvents : MonoBehaviour
     #endregion
 
     #region Parents Functions
-    [StringSelector("notedTargetEventNames")]
+    [StringSelector("parentEventNames")]
     public void CallParentEvent(string name)
     {
         if (this.IsActiveAndEnabled())
