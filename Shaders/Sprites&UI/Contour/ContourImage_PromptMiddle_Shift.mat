@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ContourImage_PromptBright
+  m_Name: ContourImage_PromptMiddle_Shift
   m_Shader: {fileID: -6465566751694194690, guid: 4cd2fd33cc72307488963a454809f99f, type: 3}
-  m_Parent: {fileID: -876546973899608171, guid: 4cd2fd33cc72307488963a454809f99f, type: 3}
+  m_Parent: {fileID: 2100000, guid: 15a53cd7920dc754dadf872c40b340ac, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -25,13 +25,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Range: 0.184
-    - _Resolution: 1
-    - _Smooth: 0
-    - _UseBrightness: 1
-    m_Colors:
-    - _ColorSource: {r: 0.8078432, g: 0.7960785, b: 0.8078432, a: 1}
-    - _ShadowOffset: {r: 0.02, g: -0.02, b: 0, a: 0}
-    - _Tint: {r: 1, g: 1, b: 1, a: 1}
+    - _MaskAspect: 2.34
+    m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
