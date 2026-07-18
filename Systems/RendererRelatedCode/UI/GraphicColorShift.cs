@@ -110,8 +110,11 @@ public class GraphicColorShift : MonoBehaviour
 
     void OnDisable()
     {
-        for (int i = 0; i < graphics.Length; i++)
-            graphics[i].color = originals[i];
+#if UNITY_EDITOR
+        if (executeInEditMode || Application.isPlaying)
+#endif
+            for (int i = 0; i < graphics.Length; i++)
+                graphics[i].color = originals[i];
     }
 
     void Update()

@@ -46,11 +46,20 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
 
     Vector3 currentSpd;
     Coroutine shakeCo;
+    bool init = false;
 
+    void TryInit()
+    {
+        if (!init)
+        {
+            if (transformOverride == null) transformOverride = transform;
+            if (applyToParent) transformOverride = transformOverride.parent;
+            init = true;
+        }
+    }
     protected override void Awake()
     {
-        if (transformOverride == null) transformOverride = transform;
-        if (applyToParent) transformOverride = transformOverride.parent;
+        TryInit();
         base.Awake();
     }
 
@@ -65,6 +74,7 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
 
     protected override void OnDisable()
     {
+        TryInit();
         RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
         if (shakeCo != null) StopCoroutine(shakeCo);
         base.OnDisable();
@@ -80,6 +90,7 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
     {
         if (this.IsActiveAndEnabled())
         {
+            TryInit();
             if (shakeCo != null) StopCoroutine(shakeCo);
             shakeCo = StartCoroutine(ShakeTime(time));
         }
@@ -90,6 +101,7 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
     {
         if (this.IsActiveAndEnabled())
         {
+            TryInit();
             if (shakeCo != null) StopCoroutine(shakeCo);
             shakeCo = StartCoroutine(ShakeTime(time, targetChangeFrecuency, amount, smooth));
         }
