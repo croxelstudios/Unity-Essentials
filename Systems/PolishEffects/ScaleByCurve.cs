@@ -29,7 +29,6 @@ public class ScaleByCurve : DXMonoBehaviour
     bool negative;
     float lastScaleModifier;
     bool initialized;
-    Coroutine co;
 
     //Vector3 currentVirtualScale;
     //TO DO: Make this script relative so it is compatible with other scaling scripts.
@@ -47,7 +46,7 @@ public class ScaleByCurve : DXMonoBehaviour
 
     void OnDisable()
     {
-        if (co != null) StopCoroutine(co);
+        StopAllCoroutines();
     }
 
     void Update()
