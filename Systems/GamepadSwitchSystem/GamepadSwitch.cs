@@ -29,6 +29,7 @@ public class GamepadSwitch : MonoBehaviour
         {
             controllersData.AwakeData();
             GameObject go = new GameObject("GamepadSwitch_Updater");
+            go.hideFlags = HideFlags.HideAndDontSave;
             updaters.Add(controllersData, go.AddComponent<GamepadSwitch_Updater>());
             slotData.controllersData = controllersData;
         }

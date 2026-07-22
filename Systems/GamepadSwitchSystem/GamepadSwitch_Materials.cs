@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using UnityEditor;
 
-[ExecuteAlways]
 [RequireComponent(typeof(Renderer))]
 public class GamepadSwitch_Materials : BGamepadSwitch_Prompt
 {

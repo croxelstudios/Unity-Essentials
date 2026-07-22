@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-[ExecuteAlways]
 [RequireComponent(typeof(Image))]
 public class GamepadSwitch_Images : BGamepadSwitch_Prompt
 {
