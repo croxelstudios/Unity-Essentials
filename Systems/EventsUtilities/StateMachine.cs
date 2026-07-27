@@ -37,17 +37,8 @@ public class StateMachine : MonoBehaviour
         get { return _currentState; }
         set
         {
-            if (_currentState != value)
-            {
-                if ((value < states.Length) && (value >= 0))
-                {
+            if ((_currentState != value) && (value < states.Length) && (value >= 0))
                     SwitchState(value);
-#if UNITY_EDITOR
-                    if (!Application.isPlaying)
-                        RecordGameObjectModificationsFromPrefab();
-#endif
-                }
-            }
         }
     }
 
@@ -145,6 +136,10 @@ public class StateMachine : MonoBehaviour
             if (connectedStateMachine != null)
                 connectedStateMachine.SwitchState(newState);
             EnterStateAction();
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                RecordGameObjectModificationsFromPrefab();
+#endif
         }
     }
 
