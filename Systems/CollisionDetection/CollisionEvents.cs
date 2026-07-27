@@ -4,13 +4,17 @@ using UnityEngine;
 public class CollisionEvents : BCollisionManager
 {
     [MinValue(0f)]
+    [HorizontalGroup("maxImp")]
     [SerializeField]
     float maxImpact = 3f;
-    //TO DO: Change how this works to really limit events to impact range and
-    //add a different system to handle percent
+    [HorizontalGroup("maxImp", LabelWidth = 120, Width = 137)]
+    [SerializeField]
+    bool limitByMaxImpact = false;
     [PropertyOrder(5)]
     [SerializeField]
     Transform[] toContactPoints = null;
+    [SerializeField]
+    bool lerpValue = true;
     [PropertyOrder(5)]
     [SerializeField]
     protected DXFloatEvent entered = null;
@@ -20,6 +24,9 @@ public class CollisionEvents : BCollisionManager
 
     public override void OnColEnter(NDContactPoint[] contacts, float impact)
     {
+        if (limitByMaxImpact && (impact > maxImpact))
+            return;
+
         if ((toContactPoints != null) && (toContactPoints.Length > 0))
         {
             for (int i = 0; i < toContactPoints.Length; i++)
@@ -46,7 +53,9 @@ public class CollisionEvents : BCollisionManager
                 tr.up = normal;
             }
         }
-        entered?.Invoke(Mathf.Clamp01(Mathf.InverseLerp(minImpact, maxImpact, impact)));
+        float result = lerpValue ?
+            Mathf.Clamp01(Mathf.InverseLerp(minImpact, maxImpact, impact)) : impact;
+        entered?.Invoke(result);
     }
 
     public override void OnColExit(NDContactPoint[] collision)
