@@ -16,4 +16,9 @@ public static class LayerMaskExtension_Combine
     {
         return layerMask | other;
     }
+
+    public static LayerMask SubtractLayerMask(this LayerMask layerMask, LayerMask other)
+    {
+        return layerMask & ~other;
+    }
 }

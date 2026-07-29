@@ -5,19 +5,9 @@ public static class ComponentExtension_GetTransform
 {
     public static Transform GetTransform(this Component comp)
     {
-        switch (comp)
-        {
-            case Transform c:
-                return c;
-            case Behaviour c:
-                return c.transform;
-            case Collider c:
-                return c.transform;
-            case Renderer c:
-                return c.transform;
-            default:
-                return null;
-        }
+        if (comp is Transform tr)
+            return tr;
+        else return comp.transform;
     }
 
     public static Transform GetTransform(this Object obj)

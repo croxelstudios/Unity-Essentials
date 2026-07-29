@@ -911,7 +911,10 @@ public class NDCollider
             //TO DO: Other types of 3D colliders
             if (boxCol != null)
             {
-                center += boxCol.center;
+                Vector3 offset = boxCol.center;
+                offset.Scale(transform.lossyScale);
+                offset = transform.rotation * offset;
+                center += offset;
                 Vector3 size = Vector3.Scale(boxCol.size, transform.lossyScale);
                 Bounds bounds = new Bounds(center, size);
                 bounds.Draw(color, transform.rotation);
@@ -924,7 +927,9 @@ public class NDCollider
             PolygonCollider2D polyCol = col2 as PolygonCollider2D;
             if (boxCol != null)
             {
-                center += (Vector3)boxCol.offset;
+                Vector3 offset = (Vector3)boxCol.offset;
+                offset.Scale(transform.lossyScale);
+                center += offset;
                 Vector3 size = Vector3.Scale((Vector3)boxCol.size, transform.lossyScale);
                 Bounds bounds = new Bounds(center, size);
                 bounds.Draw(color, transform.rotation);

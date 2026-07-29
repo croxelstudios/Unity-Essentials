@@ -4,6 +4,21 @@ using System.Linq;
 
 public static class ArrayExtension_IsEqual
 {
+    public static bool IsEqual_Refs<T>(this IEnumerable<T> a, IEnumerable<T> b) where T : class
+    {
+        if (a == null || b == null)
+            return (a == null) && (b == null);
+
+        if (a.Count() != b.Count())
+            return false;
+
+        for (int i = 0; i < a.Count(); i++)
+            if (a.ElementAt(i) != b.ElementAt(i))
+                return false;
+
+        return true;
+    }
+
     public static bool IsEqual<T>(this IEnumerable<T> a, IEnumerable<T> b) where T : IEquatable<T>
     {
         if (a == null || b == null)

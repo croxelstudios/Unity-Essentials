@@ -8,10 +8,18 @@ public static class ArrayExtension_CleanChildren
     {
         List<T> list = new List<T>();
         list.AddRange(objs);
+        bool hasNulls = false;
         foreach (T objp in objs)
+        {
+            if (objp == null) { hasNulls = true; continue; }
             foreach (T obj in objs)
+            {
+                if (obj == null) continue;
                 if ((obj != objp) && obj.GetTransform().IsChildOf(objp.GetTransform()))
                     list.Remove(obj);
+            }
+        }
+        if (hasNulls) list.ClearNulls();
         return list;
     }
 
