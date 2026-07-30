@@ -70,8 +70,8 @@ namespace SpriteAssist
             {
                 GameObject subInstance = new GameObject(objectName + "(sub)");
                 subInstance.transform.SetParent(instance.transform, false);
-                subInstance.transform.localPosition = default;
-                subInstance.transform.localRotation = default;
+                subInstance.transform.SetLocalPositionAndRotation(
+                    default, default);
                 subInstance.transform.localScale = Vector3.one;
             }
 
@@ -100,8 +100,8 @@ namespace SpriteAssist
             {
                 GameObject subInstance = new GameObject(instance.transform.name + "(sub)");
                 subInstance.transform.SetParent(instance.transform, false);
-                subInstance.transform.localPosition = default;
-                subInstance.transform.localRotation = default;
+                subInstance.transform.SetLocalPositionAndRotation(
+                    default, default);
                 subInstance.transform.localScale = Vector3.one;
             }
 

@@ -961,6 +961,8 @@ public class NDCollider
 
 public static class NDPhysics
 {
+    static Dictionary<Transform, NDRigidbody> rigidbodies;
+
     public static NDCollider[] OverlapRadiusAll(Vector3 position, float radius, LayerMask layerMask, bool is2D)
     {
         NDCollider[] result = null;
@@ -1313,6 +1315,19 @@ public static class NDPhysics
     public static int MaskForLayer(NDRigidbody rb)
     {
         return MaskForLayer(rb.layer, rb.is2D);
+    }
+
+    public static NDRigidbody GetNDRigidbody(this Transform tr)
+    {
+        rigidbodies = rigidbodies.CreateIfNull_StaticPersistent();
+
+        if (!rigidbodies.TryGetValue(tr, out NDRigidbody rigid))
+        {
+            rigid = NDRigidbody.GetNDRigidbodyFrom(tr.gameObject);
+            rigidbodies.Add(tr, rigid);
+        }
+
+        return rigid;
     }
 }
 

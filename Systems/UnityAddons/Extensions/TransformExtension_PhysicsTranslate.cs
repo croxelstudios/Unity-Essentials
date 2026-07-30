@@ -1,12 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
 
 public static class TransformExtension_PhysicsTranslate
 {
-    static Dictionary<Transform, NDRigidbody> rigidbodies;
-
     public static Vector3 PhysicsPosition(this Transform tr)
     {
         if (tr == null)
@@ -220,34 +216,5 @@ public static class TransformExtension_PhysicsTranslate
             else rigid.MoveRotation(rotation);
         }
         else tr.rotation = rotation;
-    }
-
-    public static NDRigidbody GetNDRigidbody(this Transform tr)
-    {
-        TryCreateDictionary();
-
-        NDRigidbody rigid;
-        if (!rigidbodies.TryGetValue(tr, out rigid))
-        {
-            rigid = NDRigidbody.GetNDRigidbodyFrom(tr.gameObject);
-            rigidbodies.Add(tr, rigid);
-        }
-
-        return rigid;
-    }
-
-    static void TryCreateDictionary()
-    {
-        if (rigidbodies == null)
-        {
-            rigidbodies = new Dictionary<Transform, NDRigidbody>();
-            SceneManager.sceneUnloaded -= SceneUnloaded;
-            SceneManager.sceneUnloaded += SceneUnloaded;
-        }
-    }
-
-    static void SceneUnloaded(Scene scene)
-    {
-        rigidbodies.Clear();
     }
 }

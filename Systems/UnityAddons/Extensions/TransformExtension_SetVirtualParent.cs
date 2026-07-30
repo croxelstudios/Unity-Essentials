@@ -21,7 +21,7 @@ public static class TransformExtension_SetVirtualParent
     public static void SetVirtualParent(this Transform origin, Transform parent)
     {
         PCon pCon;
-        parentConstraints = parentConstraints.CreateIfNull();
+        parentConstraints = parentConstraints.CreateIfNull_StaticPersistent();
         if (!parentConstraints.TryGetValue(origin, out pCon))
         {
             pCon = new PCon();

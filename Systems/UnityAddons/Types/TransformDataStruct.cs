@@ -250,14 +250,12 @@ public struct TransformData : IEquatable<TransformData>
     {
         if (locally)
         {
-            target.localPosition = position;
-            target.localRotation = rotation;
+            target.SetLocalPositionAndRotation(position, rotation);
             target.localScale = localScale;
         }
         else
         {
-            target.position = position;
-            target.rotation = rotation;
+            target.SetPositionAndRotation(position, rotation);
             //target.localScale = localScale; //TO DO: Calculate lossyScale to localScale relation
         }
     }

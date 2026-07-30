@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class ColliderExtension_GetMesh //TO DO: Should generate a ComputableMesh.
 {
@@ -14,7 +14,7 @@ public static class ColliderExtension_GetMesh //TO DO: Should generate a Computa
         {
             case MeshCollider meshCollider:
                 if (applyWorldTransform)
-                    result = CloneMesh(meshCollider.sharedMesh);
+                    result = meshCollider.sharedMesh.Clone();
                 else result = meshCollider.sharedMesh;
                 break;
             case BoxCollider boxCollider:
@@ -33,19 +33,12 @@ public static class ColliderExtension_GetMesh //TO DO: Should generate a Computa
         }
 
         if ((result != null) && applyWorldTransform)
+        {
             result.ApplyMatrix(localToWorld);
+            result.name = $"WorldSpace_{result.name}";
+        }
 
         return result;
-    }
-
-    static Mesh CloneMesh(Mesh source)
-    {
-        if (source == null)
-            return null;
-
-        Mesh mesh = Object.Instantiate(source);
-        mesh.name = $"WorldSpace_{source.name}";
-        return mesh;
     }
 
     static Mesh BuildBoxMesh(BoxCollider box)

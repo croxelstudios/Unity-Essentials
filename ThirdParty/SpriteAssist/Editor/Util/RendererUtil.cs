@@ -50,8 +50,8 @@ namespace SpriteAssist
                     meshPrefabInstance.isStatic = gameObject.isStatic;
                     meshPrefabInstance.SetActive(gameObject.activeSelf);
                     meshPrefabInstance.transform.SetParent(gameObject.transform.parent);
-                    meshPrefabInstance.transform.localPosition = gameObject.transform.localPosition;
-                    meshPrefabInstance.transform.localRotation = gameObject.transform.localRotation;
+                    meshPrefabInstance.transform.SetLocalPositionAndRotation(
+                        gameObject.transform.localPosition, gameObject.transform.localRotation);
                     meshPrefabInstance.transform.localScale = gameObject.transform.localScale;
 
                     foreach (Transform t in gameObject.transform)

@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 public static class CollectionExtensions
@@ -685,5 +687,38 @@ public static class CollectionExtensions
         else if (index > list.Count)
             list.Add(element);
         else list.Insert(index, element);
+    }
+
+    static List<IDictionary> toCleanOnSceneUnload;
+    public static T CreateIfNull_StaticPersistent<T>(this T dict)
+        where T : IDictionary, new()
+    {
+        if (dict == null)
+        {
+            dict = new T();
+            toCleanOnSceneUnload = toCleanOnSceneUnload.CreateAdd((IDictionary)dict);
+            SceneManager.sceneUnloaded -= SceneUnloaded;
+            SceneManager.sceneUnloaded += SceneUnloaded;
+        }
+        return dict;
+    }
+    
+    //TO DO: ClearNulls() instead. Needs architectural change to access TKey.
+    static void SceneUnloaded(Scene scene)
+    {
+        foreach (IDictionary dict in toCleanOnSceneUnload)
+            dict.Clear();
+    }
+
+    public static Y GetComponent<T, Y>(this Dictionary<T, Y> dict, T source)
+        where T : Component where Y : Component
+    {
+        if (!dict.TryGetValue(source, out Y result))
+        {
+            result = source.GetComponent<Y>();
+            dict.Add(source, result);
+        }
+
+        return result;
     }
 }

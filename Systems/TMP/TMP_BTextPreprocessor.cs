@@ -27,12 +27,13 @@ public class TMP_BTextPreprocessor : MonoBehaviour, ITextPreprocessor
     {
         if (text != null)
         {
-            processors.SmartRemove(text, this);
-            if (!processors[text].IsNullOrEmpty())
-                text.textPreprocessor = processors[text][0];
+            processors.SmartRemoveClear(text, this);
+            if (processors.SmartGetValue(text, out List<TMP_BTextPreprocessor> list))
+                text.textPreprocessor = list[0];
             else text.textPreprocessor = null;
             RefreshText();
         }
+        else processors.ClearNulls();
     }
 
     protected virtual void OnEnable()

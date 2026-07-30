@@ -168,8 +168,11 @@ public class BRendererDuplicator : MonoBehaviour
         Renderer rend = source.RendererOfTransform(child);
         if (rend != null)
         {
-            MeshFilter mf = rend.GetComponent<MeshFilter>();
-            if (mf != null) target.AddComponentCopy(mf);
+            if (rend is MeshRenderer mRend)
+            {
+                MeshFilter mf = mRend.GetFilter();
+                if (mf != null) target.AddComponentCopy(mf);
+            }
 
             Renderer copy = target.AddComponentCopy(rend);
             copy.sortingLayerID = rend.sortingLayerID;
@@ -405,8 +408,8 @@ public class BRendererDuplicator : MonoBehaviour
             CopyChildTransforms(source, child, ref id);
 
             Transform from = source.trEquivalence[id];
-            child.localPosition = from.localPosition;
-            child.localRotation = from.localRotation;
+            child.SetLocalPositionAndRotation(
+                from.localPosition, from.localRotation);
             child.localScale = from.localScale;
         }
         id.RemoveLast();

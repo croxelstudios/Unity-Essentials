@@ -110,11 +110,12 @@ public static class ReflectionTools
     static ObjectInfo GetCachedInfo(object inObj, string fieldPath)
     {
         ObjectInfo objectInfo;
-        if (!cachedObjectInfo.SmartGetValue(inObj, out Dictionary<string, ObjectInfo> dict)
+        cachedObjectInfo = cachedObjectInfo.CreateIfNull_StaticPersistent();
+        if (!cachedObjectInfo.TryGetValue(inObj, out Dictionary<string, ObjectInfo> dict)
             || (dict == null))
         {
             dict = new Dictionary<string, ObjectInfo>();
-            cachedObjectInfo = cachedObjectInfo.CreateAdd(inObj, new Dictionary<string, ObjectInfo>());
+            cachedObjectInfo.Add(inObj, new Dictionary<string, ObjectInfo>());
         }
         if (!dict.TryGetValue(fieldPath, out objectInfo)
             || (objectInfo.fieldInfo == null))

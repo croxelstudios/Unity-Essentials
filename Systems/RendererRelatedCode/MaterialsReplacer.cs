@@ -368,7 +368,7 @@ public class MaterialsReplacer : MonoBehaviour
 
         public RendererData(Renderer rend)
         {
-            filter = rend.GetComponent<MeshFilter>();
+            filter = rend.GetFilter();
             this.rend = rend;
             gameObject = rend.gameObject;
             transform = gameObject.transform;

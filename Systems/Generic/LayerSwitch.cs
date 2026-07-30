@@ -10,6 +10,8 @@ public class LayerSwitch : MonoBehaviour
     string newLayer = "";
 
     Dictionary<Transform, int> oldLayers;
+    public static event LayerSwitchDelegate SwitchedLayer = null;
+    public delegate void LayerSwitchDelegate(GameObject go, int oldLayer, int newLayer);
 
     void OnValidate()
     {
@@ -65,9 +67,10 @@ public class LayerSwitch : MonoBehaviour
 
     void SwitchLayer_ThisOnly(Transform tr, ref Dictionary<Transform, int> dic, int newLayer, bool registerDic = false)
     {
+        GameObject go = tr.gameObject;
+        int l = go.layer;
         if (registerDic)
         {
-            int l = tr.gameObject.layer;
             if (dic.ContainsKey(tr)) { if (l != newLayer) dic[tr] = l; }
             else dic.Add(tr, l);
 
@@ -80,6 +83,7 @@ public class LayerSwitch : MonoBehaviour
             else if (newLayer >= 0)
                 tr.gameObject.layer = newLayer;
         }
+        SwitchedLayer?.Invoke(go, l, newLayer);
     }
 
     public void DeactivateObject()
