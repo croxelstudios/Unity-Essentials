@@ -104,12 +104,12 @@ public static class ColliderExtension_GetMesh //TO DO: Should generate a Computa
                 int next = current + longitudeSegments + 1;
 
                 triangles.Add(current);
-                triangles.Add(next);
                 triangles.Add(current + 1);
+                triangles.Add(next);
 
                 triangles.Add(current + 1);
-                triangles.Add(next);
                 triangles.Add(next + 1);
+                triangles.Add(next);
             }
         }
 

@@ -470,9 +470,14 @@ public static class ReflectionTools
 
     public static T InvokeMethod<T>(Type type, string name, params object[] parameters)
     {
+        return InvokeMethod<T>(type, name, new Type[] { typeof(T) }, parameters);
+    }
+
+    public static T InvokeMethod<T>(Type type, string name, Type[] genericTypes, params object[] parameters)
+    {
         MethodInfo method = GetMethod(type, name, parameters, BindingFlags.Public | BindingFlags.Static);
         if (method.IsGenericMethod)
-            method = method.MakeGenericMethod(typeof(T));
+            method = method.MakeGenericMethod(genericTypes);
 
         return (T)method.Invoke(null, parameters);
     }

@@ -20,7 +20,8 @@ public static class FindWithTag
             return Transform(tags) as T;
 
         //Invoke Component method by reflection
-        return ReflectionTools.InvokeMethod<T>(typeof(FindWithTag), name, tags);
+        return ReflectionTools.InvokeMethod<T>(
+            typeof(FindWithTag), name, new string[][] { tags });
     }
 
     public static T[] Anys<T>(params string[] tags) where T : Object
@@ -34,7 +35,8 @@ public static class FindWithTag
             return Transforms(tags) as T[];
 
         //Invoke Component method by reflection
-        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tags);
+        return ReflectionTools.InvokeMethod<T[]>(
+            typeof(FindWithTag), name, new Type[] { typeof(T) }, new string[][] { tags });
     }
 
     public static T Any<T>(params string[][] tags) where T : Object
@@ -48,7 +50,8 @@ public static class FindWithTag
             return Transform(tags) as T;
 
         //Invoke Component method by reflection
-        return ReflectionTools.InvokeMethod<T>(typeof(FindWithTag), name, tags);
+        return ReflectionTools.InvokeMethod<T>(
+            typeof(FindWithTag), name, new string[][][] { tags });
     }
 
     public static T[] Anys<T>(params string[][] tags) where T : Object
@@ -62,7 +65,8 @@ public static class FindWithTag
             return Transforms(tags) as T[];
 
         //Invoke Component method by reflection
-        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tags);
+        return ReflectionTools.InvokeMethod<T[]>(
+            typeof(FindWithTag), name, new Type[] { typeof(T) }, new string[][][] { tags });
     }
 
     public static T Any<T>(string tag, params string[] extraTags) where T : Object
@@ -90,7 +94,8 @@ public static class FindWithTag
             return Transforms(tag, extraTags) as T[];
 
         //Invoke Component method by reflection
-        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tag, extraTags);
+        return ReflectionTools.InvokeMethod<T[]>(
+            typeof(FindWithTag), name, new Type[] { typeof(T) }, tag, extraTags);
     }
     #endregion
 
@@ -449,7 +454,8 @@ public static class FindWithTag
             return TransformInChildren(obj, tags) as T;
 
         //Invoke Component method by reflection
-        return ReflectionTools.InvokeMethod<T>(typeof(FindWithTag), name, tags);
+        return ReflectionTools.InvokeMethod<T>(
+            typeof(FindWithTag), name, new string[][] { tags });
     }
 
     public static T[] AnysInChildren<T>(GameObject obj, params string[] tags) where T : Object
@@ -463,7 +469,8 @@ public static class FindWithTag
             return TransformsInChildren(obj, tags) as T[];
 
         //Invoke Component method by reflection
-        return ReflectionTools.InvokeMethod<T[]>(typeof(FindWithTag), name, tags);
+        return ReflectionTools.InvokeMethod<T[]>(
+            typeof(FindWithTag), name, new Type[] { typeof(T) }, new string[][] { tags });
     }
 
     public static GameObject GameObjectInChildren(GameObject obj, params string[] tags)
