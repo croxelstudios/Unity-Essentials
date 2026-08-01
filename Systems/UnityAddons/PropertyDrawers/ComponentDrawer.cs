@@ -37,7 +37,7 @@ public class ComponentDrawer : PropertyDrawer
 
         Rect rightRect = valueRect;
         rightRect.x = leftRect.xMax + 2;
-        rightRect.width = leftRect.width;
+        rightRect.width = valueRect.width - 2 - leftRect.width;
 
         // Game Object
         selectedSources = selectedSources.CreateIfNull();
