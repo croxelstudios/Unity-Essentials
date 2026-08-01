@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
-
 #if UNITY_EDITOR
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
@@ -13,17 +12,18 @@ using Sirenix.Utilities.Editor;
 using UnityEditor;
 #endif
 
+[ExecuteAlways]
 public class CentralizedSettings : MonoBehaviour
 {
 #if UNITY_EDITOR
     [SerializeField]
-    VariableReference[] variables = new VariableReference[1];
+    protected VariableReference[] variables = new VariableReference[1];
     [SerializeField]
-    Holder holder = new Holder(new VariableReference[1]);
+    Holder holder = new();
 
-    void OnValidate()
+    void OnEnable()
     {
-        holder.variables = variables;
+        holder.source = this;
     }
 
     [Serializable]
@@ -44,11 +44,11 @@ public class CentralizedSettings : MonoBehaviour
     [Serializable]
     public struct Holder
     {
-        public VariableReference[] variables;
+        public CentralizedSettings source;
 
-        public Holder(VariableReference[] variables)
+        public Holder(CentralizedSettings source)
         {
-            this.variables = variables;
+            this.source = source;
         }
     }
 #endif
@@ -59,6 +59,7 @@ public class CentralizedSettings : MonoBehaviour
 public class CentralizedSettingsDrawer : PropertyDrawer
 {
     const float EXTRASIZE = 5f;
+    const string sourceName = "source";
     const string variablesName = "variables";
     const string componentName = "component";
     const string displayName = "displayName";
@@ -184,7 +185,11 @@ public class CentralizedSettingsDrawer : PropertyDrawer
         bool getVariables = true)
     {
         if (getVariables)
-            property = property.FindPropertyRelative(variablesName);
+        {
+            property = property.FindPropertyRelative(sourceName);
+            SerializedObject obj = new SerializedObject(property.objectReferenceValue);
+            property = obj.FindProperty(variablesName);
+        }
 
         children = new SerializedProperty[property.arraySize];
         for (int i = 0; i < children.Length; i++)
