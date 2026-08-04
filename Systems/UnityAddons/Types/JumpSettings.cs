@@ -207,4 +207,14 @@ public struct JumpSettings
     {
         return useGravity && (gravity > 0f);
     }
+
+    public void SetGravity(bool gravity)
+    {
+        useGravity = gravity;
+    }
+
+    public void SetGravity(float gravity)
+    {
+        this.gravity = gravity;
+    }
 }

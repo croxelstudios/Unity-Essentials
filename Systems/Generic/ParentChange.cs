@@ -31,7 +31,7 @@ public class ParentChange : MonoBehaviour
     GameObject oldParent;
 
     enum OnEnableBehaviour { None, SetTargetParent, SetNullParent }
-    enum DestroyBehaviour { None, DestroyWithOldParent, DestroyWithOldParentWhenParentless }
+    enum DestroyBehaviour { None, DestroyWithOriginal, DestroyWithOriginalWhenParentless }
 
     void OnEnable()
     {
@@ -52,8 +52,8 @@ public class ParentChange : MonoBehaviour
     {
         switch (destroyBehaviour)
         {
-            case DestroyBehaviour.DestroyWithOldParent:
-            case DestroyBehaviour.DestroyWithOldParentWhenParentless:
+            case DestroyBehaviour.DestroyWithOriginal:
+            case DestroyBehaviour.DestroyWithOriginalWhenParentless:
                 if (oldParent != null)
                     GenericCallbacks.Get(oldParent).onDestroy -= OldParentDestroyed;
                 break;
@@ -72,11 +72,11 @@ public class ParentChange : MonoBehaviour
     {
         switch (destroyBehaviour)
         {
-            case DestroyBehaviour.DestroyWithOldParent:
-                Destroy(gameObject);
+            case DestroyBehaviour.DestroyWithOriginal:
+                if (this != null) Destroy(gameObject);
                 break;
-            case DestroyBehaviour.DestroyWithOldParentWhenParentless:
-                if (hadParent && (transform.parent == null))
+            case DestroyBehaviour.DestroyWithOriginalWhenParentless:
+                if (hadParent && (transform.parent == null) && (this != null))
                     Destroy(gameObject);
                 break;
             default:
@@ -132,8 +132,8 @@ public class ParentChange : MonoBehaviour
         {
             switch (destroyBehaviour)
             {
-                case DestroyBehaviour.DestroyWithOldParent:
-                case DestroyBehaviour.DestroyWithOldParentWhenParentless:
+                case DestroyBehaviour.DestroyWithOriginal:
+                case DestroyBehaviour.DestroyWithOriginalWhenParentless:
                     oldParent = transform.parent.gameObject;
                     GenericCallbacks.Get(oldParent).onDestroy += OldParentDestroyed;
                     break;
