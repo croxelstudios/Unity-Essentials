@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class RenderersSetKeyword : MonoBehaviour
 {
-    protected Renderer[] rend;
+    protected Renderizable[] rend;
 
     [SerializeField]
     [OnValueChanged("UpdateRenderers")]
@@ -50,7 +50,7 @@ public class RenderersSetKeyword : MonoBehaviour
 
     protected bool IsInitialized()
     {
-        return (rend != null) && (rend.Length > 0);
+        return !rend.IsNullOrEmpty();
     }
 
     public virtual void UpdateRenderers()
@@ -58,11 +58,11 @@ public class RenderersSetKeyword : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             if (affectsChildren)
-                rend = GetComponentsInChildren<Renderer>(true);
+                rend = Renderizable.GetAll(gameObject, Scope.inChildren, true);
             else
             {
-                Renderer r = GetComponent<Renderer>();
-                if (r != null) rend = new Renderer[] { r };
+                Renderizable r = Renderizable.Get(gameObject);
+                if (!r.IsNull()) rend = new Renderizable[] { r };
             }
         }
     }
@@ -88,8 +88,8 @@ public class RenderersSetKeyword : MonoBehaviour
         OnUpdatingProperty();
         for (int i = 0; i < rend.Length; i++)
         {
-            Renderer r = rend[i];
-            if (r != null)
+            Renderizable r = rend[i];
+            if (!r.IsNull())
             {
                 Material[] shM = r.sharedMaterials;
                 if (materialIndex < 0)
@@ -106,7 +106,7 @@ public class RenderersSetKeyword : MonoBehaviour
     //    UpdateMaterial(rend[rendId], rend[rendId].sharedMaterials[materialId], materialId, reset);
     //}
 
-    void UpdateMaterial(Renderer rend, Material mat, int materialId, bool reset = false)
+    void UpdateMaterial(Renderizable rend, Material mat, int materialId, bool reset = false)
     {
         if (mat != null)
         {
@@ -120,7 +120,7 @@ public class RenderersSetKeyword : MonoBehaviour
 
     }
 
-    protected virtual void VSetProperty(Renderer rend, int mat)
+    protected virtual void VSetProperty(Renderizable rend, int mat)
     {
         RendMat rendMat = new RendMat(rend, mat);
         Material m = rend.materials[mat];
@@ -129,7 +129,7 @@ public class RenderersSetKeyword : MonoBehaviour
         SetKeyword(m, propertyName, enable);
     }
 
-    protected virtual void VResetProperty(Renderer rend, int mat)
+    protected virtual void VResetProperty(Renderizable rend, int mat)
     {
         RendMat rendMat = new RendMat(rend, mat);
         Material m = rend.materials[mat];

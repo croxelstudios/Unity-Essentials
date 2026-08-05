@@ -34,7 +34,7 @@ public class RenderersSetTexture_FromTMP : RenderersSetTexture
         for (int i = 0; i < rend.Length; i++)
         {
             TMP_Text tmp = rend[i].gameObject.GetComponent<TMP_Text>();
-            tmps.Add(rend[i], tmp);
+            tmps.Add(rend[i].renderer, tmp);
         }
 
         base.Init();
@@ -54,7 +54,7 @@ public class RenderersSetTexture_FromTMP : RenderersSetTexture
         int j = 0;
         for (int i = 0; i < rend.Length; i++)
         {
-            TMP_FontAsset font = tmps[rend[i]]?.font;
+            TMP_FontAsset font = tmps[rend[i].renderer]?.font;
             if (font != null)
             {
                 Texture tex = font.atlasTexture;
@@ -73,7 +73,7 @@ public class RenderersSetTexture_FromTMP : RenderersSetTexture
 
     protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        TMP_FontAsset font = tmps[rendMat.rend]?.font;
+        TMP_FontAsset font = tmps[rendMat.rend.renderer]?.font;
         if (font != null)
             _texture = font.atlasTexture;
 
@@ -85,7 +85,7 @@ public class RenderersSetTexture_FromTMP : RenderersSetTexture
 
     protected override void VSetProperty(RendMatProp rendMat)
     {
-        TMP_FontAsset font = tmps[rendMat.rend]?.font;
+        TMP_FontAsset font = tmps[rendMat.rend.renderer]?.font;
         if (font != null)
             _texture = font.atlasTexture;
 

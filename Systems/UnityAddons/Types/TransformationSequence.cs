@@ -856,7 +856,7 @@ public class RotationPath : BGenericPath<Quaternion, Vector3>
     public void ProjectOnPlane(Vector3 normal)
     {
         for (int i = 0; i < count; i++)
-            path[i] = Quaternion.AngleAxis(path[i].Angle(mode), normal);
+            path[i] = path[i].ProjectOnPlane(normal);
         CalculateData();
     }
 

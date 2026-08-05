@@ -18,8 +18,8 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
     [PropertyOrder(-4)]
     [SerializeField]
     protected OriginTarget originTarget = new OriginTarget("Player");
-    public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
     public Transform origin { get { return originTarget.origin; } set { originTarget.SetOrigin(value); } }
+    public Transform target { get { return originTarget.target; } set { originTarget.SetTarget(value); } }
     #endregion
 
     #region Transformation

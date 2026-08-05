@@ -35,7 +35,9 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
 
         if (projectOnPlane)
         {
-            Vector3 localPlaneNormal = projectLocally ? transform.rotation * planeNormal : planeNormal;
+            Transform parent = transform.parent;
+            bool locally = projectLocally && (parent != null);
+            Vector3 localPlaneNormal = locally ? parent.rotation * planeNormal : planeNormal;
             rotPath.ProjectOnPlane(localPlaneNormal);
         }
 
@@ -190,7 +192,7 @@ public class RotationToTargetEvent : BToTarget<Quaternion, RotationPath, Vector3
 
     protected override Quaternion ProjectOnPlane(Quaternion value, Vector3 normal)
     {
-        return Quaternion.AngleAxis(value.Angle(rotationMode), normal);
+        return value.ProjectOnPlane(normal);
     }
 
     public override void Apply(Quaternion speed, bool isLocal, bool teleport = false)

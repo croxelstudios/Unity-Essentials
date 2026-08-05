@@ -70,9 +70,9 @@ public static class ComputableModule
         if (comp == null)
             return null;
 
-        ComputableElement filter = ComputableElement.Get(gameObject);
+        Renderizable filter = Renderizable.Get(gameObject);
 
-        if (filter.isNull)
+        if (filter.IsNull())
             return null;
 
         switch (filter.renType)
@@ -96,9 +96,9 @@ public static class ComputableModule
 
     public static void StopUsing(Component comp, GameObject gameObject)
     {
-        ComputableElement filter = ComputableElement.Get(gameObject);
+        Renderizable filter = Renderizable.Get(gameObject);
 
-        if (!filter.isNull)
+        if (!filter.IsNull())
         {
             switch (filter.renType)
             {
@@ -133,21 +133,21 @@ public static class ComputableModule
 
     public static Matrix4x4 LocalToWorldMatrix(GameObject obj, int id)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
         return filter.LocalToWorldMatrix(id);
     }
 
     public static Matrix4x4 WorldToLocalMatrix(GameObject obj, int id)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
         return filter.WorldToLocalMatrix(id);
     }
 
     public static bool IsRenderingAgentEnabled(GameObject obj)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
 
-        if (filter.isNull)
+        if (filter.IsNull())
             return false;
 
         switch (filter.renType)
@@ -180,16 +180,16 @@ public static class ComputableModule
 
     public static RenType RendererType(GameObject obj)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
 
         return filter.renType;
     }
 
     public static bool FilterMeshChanged(GameObject obj)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
 
-        if (filter.isNull)
+        if (filter.IsNull())
             return true;
 
         switch (filter.renType)
@@ -218,7 +218,7 @@ public static class ComputableModule
 
     public static void SetRenderingEvent_Start(Component comp, GameObject obj, UnityAction method)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
         startActions = startActions.CreateAdd(comp, method);
 
         if (filter.renType == RenType.Custom)
@@ -242,7 +242,7 @@ public static class ComputableModule
 
     public static void SetRenderingEvent_Finished(Component comp, GameObject obj, UnityAction method)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
         finishActions = finishActions.CreateAdd(comp, method);
 
         if (filter.renType == RenType.Custom)
@@ -255,19 +255,19 @@ public static class ComputableModule
 
     public static bool IsVisible(GameObject obj, float maxFar)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
         return filter.IsVisible(maxFar);
     }
 
     public static bool IsVisible(GameObject obj, bool excludeShadowCasters = false)
     {
-        ComputableElement filter = ComputableElement.Get(obj);
+        Renderizable filter = Renderizable.Get(obj);
         return filter.IsVisible(excludeShadowCasters);
     }
 
     public static void SetVisible(GameObject obj, bool visible)
     {
-        ComputableElement element = ComputableElement.Get(obj);
+        Renderizable element = Renderizable.Get(obj);
         switch (element.renType)
         {
             case RenType.Filter:
@@ -792,270 +792,4 @@ public static class ComputableModule
             return new ComputableSprite(sprite, name);
         }
     }
-
-    struct ComputableElement : IEquatable<ComputableElement>
-    {
-        static Dictionary<GameObject, ComputableElement> filters = null;
-        static bool wasCleaned;
-        public MeshFilter filter;
-        public Renderer renderer;
-        IsVisibleTracker isVisibleTracker;
-        public bool internalIsVisible { get { isVisibleTracker.rend = renderer; return isVisibleTracker.Get(); } }
-        public CustomRenderer customRenderer;
-        public Transform transform;
-        public GameObject gameObject;
-        public RenType renType;
-        FrameNullTracker isNullTracker;
-        public bool isNull { get { isNullTracker.obj = nullableObject; return isNullTracker.IsNull(); } }
-        public object nullableObject
-        {
-            get
-            {
-                switch (renType)
-                {
-                    case RenType.Filter:
-                        return filter;
-                    case RenType.Sprite:
-                        return renderer;
-                    case RenType.Custom:
-                        return customRenderer;
-                    default:
-                        return renderer;
-                }
-            }
-        }
-        public Matrix4x4 LocalToWorldMatrix(int id)
-        {
-            return (renType != RenType.Custom) ? transform.localToWorldMatrix :
-                customRenderer.LocalToWorldMatrix(id);
-        }
-        public Matrix4x4 WorldToLocalMatrix(int id)
-        {
-            return (renType != RenType.Custom) ? transform.worldToLocalMatrix :
-                customRenderer.WorldToLocalMatrix(id);
-        }
-
-        public bool IsVisible(float maxFar)
-        {
-            switch (renType)
-            {
-                case RenType.Custom:
-                    return customRenderer.IsVisible(maxFar); //TO DO
-                default:
-                    return internalIsVisible ? renderer.IsVisibleBySceneCameras(maxFar, gameObject, true) : false;
-            }
-        }
-
-        public bool IsVisible(bool excludeShadowCasters = false)
-        {
-            switch (renType)
-            {
-                case RenType.Custom:
-                    return customRenderer.IsVisible(excludeShadowCasters); //TO DO
-                default:
-                    if (excludeShadowCasters)
-                        return internalIsVisible ? renderer.IsVisibleBySceneCameras(gameObject, true) : false;
-                    else
-                        return internalIsVisible;
-            }
-        }
-
-        static List<GameObject> auxGOs;
-
-        public ComputableElement(MeshFilter filter)
-        {
-            this.filter = filter;
-            gameObject = filter.gameObject;
-            renderer = gameObject.GetComponent<MeshRenderer>();
-            customRenderer = null;
-            transform = null;
-            renType = RenType.Filter;
-            isVisibleTracker = new IsVisibleTracker(renderer);
-            isNullTracker = new FrameNullTracker();
-
-            if (filter != null)
-                transform = filter.transform;
-
-            isNullTracker = new FrameNullTracker(nullableObject);
-        }
-
-        public ComputableElement(SpriteRenderer spriteRenderer)
-        {
-            filter = null;
-            renderer = spriteRenderer;
-            gameObject = spriteRenderer.gameObject;
-            customRenderer = null;
-            transform = null;
-            renType = RenType.Sprite;
-            isVisibleTracker = new IsVisibleTracker(renderer);
-            isNullTracker = new FrameNullTracker();
-
-            if (spriteRenderer != null)
-                transform = spriteRenderer.transform;
-
-            isNullTracker = new FrameNullTracker(nullableObject);
-        }
-
-        public ComputableElement(CustomRenderer customRenderer)
-        {
-            filter = null;
-            renderer = null;
-            this.customRenderer = customRenderer;
-            gameObject = customRenderer.gameObject;
-            transform = null;
-            renType = RenType.Custom;
-            isVisibleTracker = new IsVisibleTracker(renderer);
-            isNullTracker = new FrameNullTracker();
-
-            if (customRenderer != null)
-                transform = customRenderer.transform;
-
-            isNullTracker = new FrameNullTracker(nullableObject);
-        }
-
-        public ComputableElement(GameObject gameObject)
-        {
-            this.gameObject = gameObject;
-            filter = gameObject.GetComponent<MeshFilter>();
-            renderer = null;
-            customRenderer = null;
-            transform = gameObject.transform;
-            isVisibleTracker = new IsVisibleTracker(renderer);
-            isNullTracker = new FrameNullTracker();
-
-            if (filter != null)
-            {
-                renderer = gameObject.GetComponent<MeshRenderer>();
-                renType = RenType.Filter;
-            }
-            else
-            {
-                renderer = gameObject.GetComponent<SpriteRenderer>();
-                if (renderer == null)
-                {
-                    customRenderer = gameObject.GetComponent<CustomRenderer>();
-                    renType = RenType.Custom;
-                }
-                else renType = RenType.Sprite;
-            }
-
-            isNullTracker = new FrameNullTracker(nullableObject);
-        }
-
-        public static ComputableElement Get(GameObject gameObject)
-        {
-            ClearNulls();
-
-            ComputableElement holder;
-            if (!filters.SmartGetValue(gameObject, out holder))
-            {
-                holder = new ComputableElement(gameObject);
-                filters = filters.CreateAdd(gameObject, holder);
-            }
-            else if (holder.isNull)
-            {
-                filters.Remove(gameObject);
-                holder = new ComputableElement(gameObject);
-                filters = filters.CreateAdd(gameObject, holder);
-            }
-            return holder;
-        }
-
-        static void ClearNulls()
-        {
-            if ((!wasCleaned) && (filters != null))
-            {
-                filters = filters.ClearNulls();
-                auxGOs = auxGOs.ClearOrCreate();
-                foreach (KeyValuePair<GameObject, ComputableElement> pair in filters)
-                    if (pair.Value.isNull)
-                        auxGOs.Add(pair.Key);
-                foreach (GameObject go in auxGOs)
-                    filters.Remove(go);
-
-                wasCleaned = true;
-                Application.onBeforeRender += ResetCleaner;
-            }
-        }
-
-        static void ResetCleaner()
-        {
-            wasCleaned = false;
-            Application.onBeforeRender -= ResetCleaner;
-        }
-
-        public override bool Equals(object other)
-        {
-            if (!(other is ComputableElement)) return false;
-            return Equals((ComputableElement)other);
-        }
-
-        public bool Equals(ComputableElement other)
-        {
-            return (filter == other.filter)
-                && (customRenderer == other.customRenderer);
-        }
-
-        public override int GetHashCode()
-        {
-            switch (renType)
-            {
-                case RenType.Filter:
-                    return filter.GetHashCode();
-                case RenType.Sprite:
-                    return renderer.GetHashCode();
-                case RenType.Custom:
-                    return customRenderer.GetHashCode();
-                default:
-                    return 0;
-            }
-        }
-
-        public static bool operator ==(ComputableElement o1, ComputableElement o2)
-        {
-            return o1.Equals(o2);
-        }
-
-        public static bool operator !=(ComputableElement o1, ComputableElement o2)
-        {
-            return !o1.Equals(o2);
-        }
-
-        struct IsVisibleTracker
-        {
-            public Renderer rend;
-            PerFrameTracker tracker;
-            bool last;
-
-            public IsVisibleTracker(Renderer rend)
-            {
-                this.rend = rend;
-                tracker = new PerFrameTracker();
-                last = false;
-            }
-
-            public bool Get()
-            {
-                if (rend == null)
-                    return false;
-
-#if UNITY_EDITOR
-                if (!Application.isPlaying)
-                    return rend.isVisible;
-#endif
-
-                if (tracker.Simple())
-                    last = rend.isVisible;
-                return last;
-            }
-        }
-    }
-}
-
-public enum RenType
-{
-    Filter,
-    Sprite,
-    Custom,
-    Null
 }

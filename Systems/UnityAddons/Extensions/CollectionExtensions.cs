@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -699,6 +700,10 @@ public static class CollectionExtensions
             toCleanOnSceneUnload = toCleanOnSceneUnload.CreateAdd((IDictionary)dict);
             SceneManager.sceneUnloaded -= SceneUnloaded;
             SceneManager.sceneUnloaded += SceneUnloaded;
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+            EditorApplication.playModeStateChanged += PlayModeStateChanged;
+#endif
         }
         return dict;
     }
@@ -710,12 +715,33 @@ public static class CollectionExtensions
             dict.Clear();
     }
 
+#if UNITY_EDITOR
+    //TO DO: ClearNulls() instead. Needs architectural change to access TKey.
+    static void PlayModeStateChanged(PlayModeStateChange state)
+    {
+        foreach (IDictionary dict in toCleanOnSceneUnload)
+            dict.Clear();
+    }
+#endif
+
     public static Y GetComponent<T, Y>(this Dictionary<T, Y> dict, T source)
         where T : Component where Y : Component
     {
         if (!dict.TryGetValue(source, out Y result))
         {
             result = source.GetComponent<Y>();
+            dict.Add(source, result);
+        }
+
+        return result;
+    }
+
+    public static T GetComponent<T>(this Dictionary<GameObject, T> dict, GameObject source)
+        where T : Component
+    {
+        if (!dict.TryGetValue(source, out T result))
+        {
+            result = source.GetComponent<T>();
             dict.Add(source, result);
         }
 

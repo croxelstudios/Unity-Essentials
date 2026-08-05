@@ -4,7 +4,7 @@ using System;
 public struct RendMatProp : IEquatable<RendMatProp>
 {
     RendMat rendMat;
-    public Renderer rend { get { return rendMat.rend; } set { rendMat.rend = value; } }
+    public Renderizable rend { get { return rendMat.rend; } set { rendMat.rend = value; } }
     public int mat { get { return rendMat.mat; } set { rendMat.mat = value; } }
     public string property;
     public Material sharedMaterial { get { return rendMat.sharedMaterial; } }
@@ -12,7 +12,7 @@ public struct RendMatProp : IEquatable<RendMatProp>
 
     public static implicit operator RendMat(RendMatProp obj) => obj.rendMat;
 
-    public RendMatProp(Renderer rend, int mat, string property)
+    public RendMatProp(Renderizable rend, int mat, string property)
     {
         rendMat = new RendMat(rend, mat);
         this.property = property;
@@ -54,20 +54,20 @@ public struct RendMatProp : IEquatable<RendMatProp>
 
 public struct RendMat : IEquatable<RendMat>
 {
-    public Renderer rend;
+    public Renderizable rend;
     public int mat;
     public Material sharedMaterial { get { return rend.sharedMaterials[mat]; } }
     public Material material { get { return rend.materials[mat]; } }
 
-    public RendMat(Renderer rend, int mat)
+    public RendMat(Renderizable rend, int mat)
     {
         this.rend = rend;
         this.mat = mat;
     }
 
-    public void GetPropertyBlock(MaterialPropertyBlock block)
+    public void GetPropertyBlock(ref MaterialPropertyBlock block)
     {
-        rend.GetPropertyBlock(block, mat);
+        rend.GetPropertyBlock(ref block, mat);
     }
 
     public void SetPropertyBlock(MaterialPropertyBlock block)
@@ -77,7 +77,7 @@ public struct RendMat : IEquatable<RendMat>
 
     public bool IsNull()
     {
-        return (rend == null) || (!mat.IsBetween(0, rend.sharedMaterials.Length)) || (sharedMaterial == null);
+        return (rend.IsNull()) || (!mat.IsBetween(0, rend.sharedMaterials.Length)) || (sharedMaterial == null);
     }
 
     public override bool Equals(object other)

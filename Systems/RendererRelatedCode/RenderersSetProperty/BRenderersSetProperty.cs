@@ -7,7 +7,7 @@ using System;
 [ExecuteAlways]
 public class BRenderersSetProperty : DXMonoBehaviour
 {
-    protected Renderer[] rend;
+    protected Renderizable[] rend;
 
     [SerializeField]
     [OnValueChanged("UpdateRenderers")]
@@ -56,23 +56,23 @@ public class BRenderersSetProperty : DXMonoBehaviour
 #endif
                     )
                 block = new MaterialPropertyBlock();
-            if (ShouldUpdateRenderersOnEnable())
-                UpdateRenderersInternal();
-            SetBlocksProperty();
             isInitialized = true;
         }
+        if (ShouldUpdateRenderersOnEnable())
+            UpdateRenderersInternal();
+        SetBlocksProperty();
     }
 
     protected virtual void UpdateRenderersInternal()
     {
         if (affectsChildren)
         {
-            Renderer[] rends = GetComponentsInChildren<Renderer>(true);
+            Renderizable[] rends = Renderizable.GetAll(gameObject, Scope.inChildren, true);
             RenderersSetProperty_Exclude[] excluders =
                 GetComponentsInChildren<RenderersSetProperty_Exclude>(true);
             if (!excluders.IsNullOrEmpty())
             {
-                rend = new Renderer[rends.Length - excluders.Length];
+                rend = new Renderizable[rends.Length - excluders.Length];
                 int n = 0;
                 for (int i = 0; i < rends.Length; i++)
                 {
@@ -94,9 +94,9 @@ public class BRenderersSetProperty : DXMonoBehaviour
         }
         else
         {
-            Renderer r = GetComponent<Renderer>();
+            Renderizable r = Renderizable.Get(gameObject);
             RenderersSetProperty_Exclude e = GetComponent<RenderersSetProperty_Exclude>();
-            if ((r != null) && (e == null)) rend = new Renderer[] { r };
+            if ((!r.IsNull()) && (e == null)) rend = new Renderizable[] { r };
         }
     }
 
@@ -168,8 +168,8 @@ public class BRenderersSetProperty : DXMonoBehaviour
         OnUpdatingProperty();
         for (int i = 0; i < rend.Length; i++)
         {
-            Renderer r = rend[i];
-            if (r != null)
+            Renderizable r = rend[i];
+            if (!r.IsNull())
             {
                 Material[] shM = r.sharedMaterials;
                 if (materialIndex < 0)
@@ -205,7 +205,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
             }
             else if (block != null)
             {
-                rendMat.GetPropertyBlock(block);
+                rendMat.GetPropertyBlock(ref block);
                 CheckRendererBlocks(rendMat.rend);
                 if (reset) BlResetProperty(block, rendMatProp);
                 else BlSetProperty(block, rendMatProp);
@@ -214,7 +214,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
         }
     }
 
-    void CheckRendererBlocks(Renderer rend)
+    void CheckRendererBlocks(Renderizable rend)
     {
         //This was a workaroud for built-in that is no longer necessary for SRPs
         //if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
@@ -289,8 +289,8 @@ public class BRenderersSetProperty : DXMonoBehaviour
         if (rend != null)
             for (int i = 0; i < rend.Length; i++)
             {
-                Renderer r = rend[i];
-                if (r != null)
+                Renderizable r = rend[i];
+                if (!r.IsNull())
                 {
                     CheckRendererBlocks(r);
                     Material[] shM = r.sharedMaterials;
@@ -326,7 +326,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
     {
         int matInd = materialIndex;
         if (matInd < 0) matInd = 0;
-        rend[0].GetPropertyBlock(block, matInd);
+        rend[0].GetPropertyBlock(ref block, matInd);
         return block;
     }
 }
@@ -380,8 +380,8 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         StopAllCoroutines(); //TO DO??
         if (rend != null)
         {
-            foreach (Renderer ren in rend)
-                if (ren != null)
+            foreach (Renderizable ren in rend)
+                if (!ren.IsNull())
                 {
                     Material[] shM = ren.sharedMaterials;
                     for (int i = 0; i < shM.Length; i++)

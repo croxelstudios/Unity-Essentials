@@ -240,7 +240,7 @@ public class MaterialPerCameraTweaker : MonoBehaviour
     [Serializable]
     public struct RendererSource
     {
-        Renderer[] rend;
+        Renderizable[] rend;
 
         [SerializeField]
         [Tooltip("Won't work on editor because it requires instancing components")]
@@ -271,11 +271,11 @@ public class MaterialPerCameraTweaker : MonoBehaviour
         public void UpdateRenderers(GameObject obj)
         {
             if (affectsChildren)
-                rend = obj.GetComponentsInChildren<Renderer>(true);
+                rend = Renderizable.GetAll(obj, Scope.inChildren, true);
             else
             {
-                Renderer r = obj.GetComponent<Renderer>();
-                if (r != null) rend = new Renderer[] { r };
+                Renderizable r = Renderizable.Get(obj);
+                if (!r.IsNull()) rend = new Renderizable[] { r };
             }
         }
 
@@ -293,8 +293,8 @@ public class MaterialPerCameraTweaker : MonoBehaviour
                 rendMats.Clear();
                 for (int i = 0; i < rend.Length; i++)
                 {
-                    Renderer r = rend[i];
-                    if (r != null)
+                    Renderizable r = rend[i];
+                    if (!r.IsNull())
                     {
                         Material[] shM = r.sharedMaterials;
                         if (materialIndex < 0)

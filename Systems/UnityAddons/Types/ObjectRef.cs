@@ -8,7 +8,8 @@ using Object = UnityEngine.Object;
 [InlineProperty]
 public class ObjectRef<T> where T : Object
 {
-    string name;
+    [HideInInspector]
+    public string name;
     bool objWasNull;
     [SerializeField]
     [TagSelector]

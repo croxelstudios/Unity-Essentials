@@ -1,14 +1,45 @@
 using UnityEngine;
 using UnityEngine.Events;
-using System.Collections;
 
 public class CustomRenderer : MonoBehaviour
 {
     [SerializeField]
     //[MaterialEditor]
     protected Material[] materials = null;
+    public Material[] sharedMaterials
+    {
+        get { return materials; }
+        set
+        {
+            materials = materials.Resize(value.Length);
+            for (int i = 0; i < value.Length; i++)
+                materials[i] = value[i];
+        }
+    }
+    bool instancedMaterials;
+    public Material[] instMaterials
+    {
+        get
+        {
+            if (!instancedMaterials)
+            {
+                for (int i = 0; i < materials.Length; i++)
+                    materials[i] = Instantiate(materials[i]);
+                instancedMaterials = true;
+            }
+            return materials;
+        }
+        set
+        {
+            materials = materials.Resize(value.Length);
+            for (int i = 0; i < value.Length; i++)
+                materials[i] = Instantiate(value[i]);
+            instancedMaterials = true;
+        }
+    }
     protected UnityEvent startRendering;
     protected UnityEvent finishedRendering;
+    protected MaterialPropertyBlock[] propertyBlocks;
 
     public virtual void CreateComputables(string name, int vCount, int tCount)
     {
@@ -75,5 +106,19 @@ public class CustomRenderer : MonoBehaviour
     public void RemoveFinishAction(UnityAction action)
     {
         finishedRendering?.RemoveListener(action);
+    }
+
+    public void GetPropertyBlock(ref MaterialPropertyBlock block, int material)
+    {
+        propertyBlocks = propertyBlocks.Resize(Mathf.Max(materials.Length, material));
+        if (propertyBlocks[material] == null)
+            propertyBlocks[material] = new MaterialPropertyBlock();
+        block = propertyBlocks[material];
+    }
+
+    public void SetPropertyBlock(MaterialPropertyBlock block, int material)
+    {
+        propertyBlocks = propertyBlocks.Resize(Mathf.Max(materials.Length, material));
+        propertyBlocks[material] = block;
     }
 }

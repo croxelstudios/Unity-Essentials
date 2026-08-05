@@ -28,8 +28,8 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
 
         List<Texture> list = new List<Texture>();
         for (int i = 0; i < rend.Length; i++)
-            if (typeof(SpriteRenderer).IsAssignableFrom(rend[i].GetType()))
-                list.Add(((SpriteRenderer)rend[i]).sprite.texture);
+            if (rend[i].renType == RenType.Sprite)
+                list.Add(((SpriteRenderer)rend[i].renderer).sprite.texture);
         oldTexs = list.ToArray();
     }
 
@@ -38,9 +38,9 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
         int j = 0;
         if (!rend.IsNullOrEmpty())
             for (int i = 0; i < rend.Length; i++)
-                if (typeof(SpriteRenderer).IsAssignableFrom(rend[i].GetType()))
+                if (rend[i].renType == RenType.Sprite)
                 {
-                    Texture tex = ((SpriteRenderer)rend[i]).sprite.texture;
+                    Texture tex = ((SpriteRenderer)rend[i].renderer).sprite.texture;
                     //if (tex != oldTexs[j])
                         //TO DO: This has a problem if you change any sprite to the last renderer's sprite, it won't update
                     {
@@ -56,8 +56,9 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
 
     protected override void BlSetProperty(MaterialPropertyBlock block, RendMatProp rendMat)
     {
-        if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-            _texture = ((SpriteRenderer)rendMat.rend).sprite.texture;
+        Renderizable r = rendMat.rend;
+        if (r.renType == RenType.Sprite)
+            _texture = ((SpriteRenderer)r.renderer).sprite.texture;
 
         base.BlSetProperty(block, rendMat);
 
@@ -67,8 +68,9 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
 
     protected override void VSetProperty(RendMatProp rendMat)
     {
-        if (typeof(SpriteRenderer).IsAssignableFrom(rend.GetType()))
-            _texture = ((SpriteRenderer)rendMat.rend).sprite.texture;
+        Renderizable r = rendMat.rend;
+        if (r.renType == RenType.Sprite)
+            _texture = ((SpriteRenderer)r.renderer).sprite.texture;
 
         base.VSetProperty(rendMat);
 

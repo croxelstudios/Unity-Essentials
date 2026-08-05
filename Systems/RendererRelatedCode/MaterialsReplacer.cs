@@ -24,7 +24,7 @@ public class MaterialsReplacer : MonoBehaviour
     Dictionary<Material, Material> replacements;
     bool isChanged;
 
-    Renderer[] instanced;
+    Renderizable[] instanced;
     MeshFilter[] instancedFilters;
     List<RendererData> tmpList;
     bool preLoaded;
@@ -50,7 +50,7 @@ public class MaterialsReplacer : MonoBehaviour
         parent = transform;
         for (int i = 0; i < parentSearch; i++)
             parent = parent.parent;
-        Renderer[] r = parent.GetComponentsInChildren<Renderer>(true);
+        Renderizable[] r = Renderizable.GetAll(parent, Scope.inChildren, true);
         tmpList = tmpList.CreateIfNull();
         for (int i = 0; i < r.Length; i++)
             if (!r[i].gameObject.hideFlags.Contains(HideFlags.HideAndDontSave))
@@ -163,16 +163,16 @@ public class MaterialsReplacer : MonoBehaviour
         if (pm.target is Renderer ren)
         {
             for (int i = 0; i < rend.Length; i++)
-                if (rend[i].rend == ren)
+                if (rend[i].renderer == ren)
                 {
                     if (pm.propertyPath == "m_Enabled")
                     {
                         //rend[i].UpdateActiveState(pm.value.Parse<bool>());
                         //updateInstances = true;
                     }
-                    else if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
+                    else if ((!instanced.IsNullOrEmpty()) && (!instanced[i].IsNull()))
                     {
-                        instanced[i].GetCopyOf(ren);
+                        instanced[i].renderer.GetCopyOf(ren);
                         ReplaceMaterials(instanced[i], false);
                     }
                     else updateInstances = true;
@@ -193,9 +193,9 @@ public class MaterialsReplacer : MonoBehaviour
             for (int i = 0; i < rend.Length; i++)
                 if (rend[i].transform.IsChildOf(tr))
                 {
-                    if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
+                    if ((!instanced.IsNullOrEmpty()) && (!instanced[i].IsNull()))
                     {
-                        instanced[i].GetCopyOf(rend[i].rend);
+                        instanced[i].renderer.GetCopyOf(rend[i].renderer);
                         ReplaceMaterials(instanced[i], false);
                     }
                     else updateInstances = true;
@@ -247,7 +247,7 @@ public class MaterialsReplacer : MonoBehaviour
         if (isChanged)
         {
             foreach (KeyValuePair<RendMat, Material> kv in changedMaterials)
-                if (kv.Key.rend != null)
+                if (!kv.Key.rend.IsNull())
                 {
                     Material[] sm = kv.Key.rend.sharedMaterials;
                     sm[kv.Key.mat] = kv.Value;
@@ -258,12 +258,12 @@ public class MaterialsReplacer : MonoBehaviour
         }
     }
 
-    void ReplaceMaterials(Renderer renderer, bool register = true)
+    void ReplaceMaterials(Renderizable renderizable, bool register = true)
     {
-        tmpMaterials = renderer.sharedMaterials;
+        tmpMaterials = renderizable.sharedMaterials;
         for (int i = 0; i < tmpMaterials.Length; i++)
         {
-            RendMat rendMat = new RendMat(renderer, i);
+            RendMat rendMat = new RendMat(renderizable, i);
 
             if (tmpMaterials[i].name.Contains(" (Instance)") &&
                 originalMaterials.SmartGetValue(rendMat, out Material m))
@@ -281,7 +281,7 @@ public class MaterialsReplacer : MonoBehaviour
                 tmpMaterials[i] = replacement;
             }
         }
-        renderer.sharedMaterials = tmpMaterials;
+        renderizable.sharedMaterials = tmpMaterials;
     }
 
     public void Load()
@@ -307,7 +307,7 @@ public class MaterialsReplacer : MonoBehaviour
 
     void InstanceRenderersCopy()
     {
-        instanced = new Renderer[rend.Length];
+        instanced = new Renderizable[rend.Length];
         instancedFilters = new MeshFilter[rend.Length];
         for (int i = 0; i < rend.Length; i++)
             if ((!rend[i].IsNull()) && rend[i].enabled)
@@ -322,7 +322,7 @@ public class MaterialsReplacer : MonoBehaviour
                 MeshFilter origFilter = orig.GetComponent<MeshFilter>();
                 if (origFilter != null)
                     instancedFilters[i] = go.AddComponentCopy(origFilter);
-                instanced[i] = go.AddComponentCopy(rend[i].rend);
+                instanced[i] = new Renderizable(go.AddComponentCopy(rend[i].rend.renderer));
                 ReplaceMaterials(instanced[i], false);
             }
     }
@@ -331,7 +331,7 @@ public class MaterialsReplacer : MonoBehaviour
     {
         if (instanced != null)
             for (int i = 0; i < instanced.Length; i++)
-                if (instanced[i] != null)
+                if (!instanced[i].IsNull())
                     instanced[i].gameObject.DestroyOrImmediate();
         instanced = null;
     }
@@ -360,24 +360,23 @@ public class MaterialsReplacer : MonoBehaviour
     [Serializable]
     struct RendererData
     {
-        public MeshFilter filter;
-        public Renderer rend;
-        public GameObject gameObject;
-        public Transform transform;
+        public Renderizable rend;
+        public MeshFilter filter { get { return rend.filter; } }
+        public Renderer renderer { get { return rend.renderer; } }
+        public CustomRenderer customRenderer { get { return rend.customRenderer; } }
+        public GameObject gameObject { get { return rend.gameObject; } }
+        public Transform transform { get { return rend.transform; } }
         public bool enabled;
 
-        public RendererData(Renderer rend)
+        public RendererData(Renderizable rend)
         {
-            filter = rend.GetFilter();
             this.rend = rend;
-            gameObject = rend.gameObject;
-            transform = gameObject.transform;
             enabled = rend.enabled;
         }
 
         public bool IsNull()
         {
-            return rend == null;
+            return rend.IsNull();
         }
 
         public bool UpdateActiveState(bool state)
