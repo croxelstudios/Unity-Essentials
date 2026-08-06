@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Renderizable
+public class Renderizable : Wrapper
 {
     static Dictionary<GameObject, Renderizable> renderizables = null;
     static bool wasCleaned;
 
     //Types
     public RenType renType;
-    public RendType rendType; 
+    public RendType rendType;
     public MeshFilter filter;
     public Renderer renderer;
     public CustomRenderer customRenderer;
@@ -61,7 +61,6 @@ public class Renderizable
 
     //Nullable
     FrameNullTracker isNullTracker;
-    public bool isNull { get { isNullTracker.obj = nullableObject; return isNullTracker.IsNull(); } }
 
     //Visibility
     public bool internalIsVisible { get { isVisibleTracker.rend = renderer; return isVisibleTracker.Get(); } }
@@ -125,6 +124,11 @@ public class Renderizable
                     break;
             }
         }
+    }
+    protected override bool IsNull()
+    {
+        isNullTracker.obj = nullableObject;
+        return isNullTracker.IsNull();
     }
 
     static List<GameObject> auxGOs;
@@ -228,11 +232,8 @@ public class Renderizable
 
     void TryAddDictionary()
     {
-        //if (!isNull)
-        {
-            renderizables = renderizables.CreateIfNull_StaticPersistent();
-            renderizables.Set(gameObject, isNull ? null : this);
-        }
+        renderizables = renderizables.CreateIfNull_StaticPersistent();
+        renderizables.Set(gameObject, IsNull() ? null : this);
     }
 
     public Matrix4x4 LocalToWorldMatrix(int id = 0)
@@ -339,7 +340,7 @@ public class Renderizable
             renderizables = renderizables.ClearNulls();
             auxGOs = auxGOs.ClearOrCreate();
             foreach (KeyValuePair<GameObject, Renderizable> pair in renderizables)
-                if (pair.Value.IsNull())
+                if (pair.Value == null)
                     auxGOs.Add(pair.Key);
             foreach (GameObject go in auxGOs)
                 renderizables.Remove(go);
@@ -368,12 +369,12 @@ public class Renderizable
 
     public static Renderizable Get(GameObject gameObject)
     {
-        if ((!renderizables.SmartGetValue(gameObject, out Renderizable holder)) || holder.IsNull())
+        if ((!renderizables.SmartGetValue(gameObject, out Renderizable holder)) || (holder == null))
             holder = new Renderizable(gameObject);
-        return holder.IsNull() ? null : holder;
+        return (holder != null) ? holder : null;
     }
 
-    //TO DO: Support for multiple renderers in same object?
+    //TO DO: Support for multiple renderers in same exact object?
     public static Renderizable[] GetAll(GameObject gameObject, Scope where, bool includeInactive)
     {
         if (!(includeInactive || gameObject.activeInHierarchy))
@@ -402,16 +403,8 @@ public class Renderizable
                 return all.ToArray();
             default:
                 Renderizable rend = Get(gameObject);
-                return rend.IsNull() ? new Renderizable[0] : new Renderizable[] { rend };
+                return (rend == null) ? new Renderizable[0] : new Renderizable[] { rend };
         }
-    }
-}
-
-public static class RenderizableExtensions
-{
-    public static bool IsNull(this Renderizable rend)
-    {
-        return (rend == null) || rend.isNull;
     }
 }
 

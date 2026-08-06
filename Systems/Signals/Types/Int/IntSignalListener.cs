@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Sirenix.OdinInspector;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
-using Sirenix.OdinInspector;
+using static FlagChecker;
 
 public class IntSignalListener : BBaseSignalListener<int>
 {
@@ -84,9 +85,9 @@ public class IntSignalListener : BBaseSignalListener<int>
         public IntSignal signal; //Change type here
         [FoldoutGroup("@name")]
         public DXIntEvent actions; //Change type here
-        [FoldoutGroup("@name/$AlreadyEnabledFoldout")]
+        [FoldoutGroup("@name/@FoldoutName(\"Only When Already Enabled\", onlyWhenAlreadyEnabled)")]
         public ExtraEvent onlyWhenAlreadyEnabled;
-        [FoldoutGroup("@name/$OnEnableFoldout")]
+        [FoldoutGroup("@name/@FoldoutName(\"Only On Enable\", onlyOnEnable)")]
         public ExtraEvent onlyOnEnable;
 
         public SignalAction(IntSignal signal, DXIntEvent actions) //Change type here (2)
@@ -98,14 +99,9 @@ public class IntSignalListener : BBaseSignalListener<int>
         }
 
 #if UNITY_EDITOR
-        public string AlreadyEnabledFoldout()
+        public string FoldoutName(string name, ExtraEvent extra)
         {
-            return "Only When Already Enabled" + (onlyWhenAlreadyEnabled.IsNull() ? "" : " ⚠");
-        }
-
-        public string OnEnableFoldout()
-        {
-            return "Only On Enable" + (onlyOnEnable.IsNull() ? "" : " ⚠");
+            return name.ContentMarker(extra.actions);
         }
 #endif
     }
@@ -124,7 +120,7 @@ public class IntSignalListener : BBaseSignalListener<int>
 
         public bool IsNull()
         {
-            return actions.IsNull();
+            return actions == null;
         }
     }
 }

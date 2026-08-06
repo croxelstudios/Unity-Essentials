@@ -19,7 +19,7 @@ public class SpecificTriggerManager : MonoBehaviour
     {
         for (int i = colliders.Count - 1; i > -1; i--)
         {
-            if ((colliders[i].IsNull()) || (!colliders[i].enabled) || !colliders[i].gameObject.activeInHierarchy)
+            if ((colliders[i] == null) || (!colliders[i].enabled) || !colliders[i].gameObject.activeInHierarchy)
                 OnExit(colliders[i]);
         }
     }
@@ -57,7 +57,7 @@ public class SpecificTriggerManager : MonoBehaviour
 
     void OnExit(NDCollider ndCol)
     {
-        if (!ndCol.IsNull())
+        if (ndCol != null)
         {
             GameObject other;
             if (ndCol.attachedRigidbody != null) other = ndCol.attachedRigidbody.gameObject;

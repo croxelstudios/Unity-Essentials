@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
-public class ComputableBase<T> : IDisposable where T : Object
+public class ComputableBase<T> : Wrapper, IDisposable where T : Object
 {
     public GraphicsBuffer vertexBuffer
     { get { return VertexBuffer(); } }
@@ -32,11 +32,6 @@ public class ComputableBase<T> : IDisposable where T : Object
     public virtual T GetOriginal()
     {
         return null;
-    }
-
-    public virtual bool IsNull()
-    {
-        return false;
     }
 
     public virtual void Dispose()
@@ -1184,7 +1179,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         return original;
     }
 
-    public override bool IsNull()
+    protected override bool IsNull()
     {
         return mesh == null;
     }
@@ -1487,7 +1482,7 @@ public class ComputableSprite : ComputableBase<Sprite>
         return original;
     }
 
-    public override bool IsNull()
+    protected override bool IsNull()
     {
         return sprite == null;
     }

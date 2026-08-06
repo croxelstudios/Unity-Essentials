@@ -96,24 +96,16 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
     #region Events
     [SerializeField]
     [PropertyOrder(10)]
-    [FoldoutGroup("$StartStopFoldout")]
+    [FoldoutGroup("@FoldoutName(\"START and STOP\")")]
     [Tooltip("Resulting transformation was zero and is not zero now")]
     DXEvent started = null;
     [SerializeField]
     [PropertyOrder(10)]
-    [FoldoutGroup("$StartStopFoldout")]
+    [FoldoutGroup("@FoldoutName(\"START and STOP\")")]
     [Tooltip("Resulting transformation was not zero and is zero now")]
     DXEvent stopped = null;
 
     TransformData recorded;
-
-#if UNITY_EDITOR
-    public string StartStopFoldout()
-    {
-        return "START and STOP" +
-            ((started.IsNull() && stopped.IsNull()) ? "" : " ⚠");
-    }
-#endif
 
     float prevSpd;
     #endregion
@@ -383,4 +375,11 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
             this.accelHalf = accelHalf;
         }
     }
+
+#if UNITY_EDITOR
+    protected string FoldoutName(string name)
+    {
+        return name.ContentMarker(started, stopped);
+    }
+#endif
 }

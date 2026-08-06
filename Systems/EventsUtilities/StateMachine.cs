@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System;
 using Sirenix.OdinInspector;
+using Mono.CSharp;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -230,11 +232,11 @@ public class StateMachine : MonoBehaviour
         //TO DO: Add bool array property to reverse objects activation.
         //This should appear as a struct with the object and the bool
         //inside with some trick Attribute similar to NamedList.
-        [FoldoutGroup("$EventsFoldout")]
+        [FoldoutGroup("@FoldoutName(\"Enter Exit Events\")")]
         public DXEvent enter;
-        [FoldoutGroup("$EventsFoldout")]
+        [FoldoutGroup("@FoldoutName(\"Enter Exit Events\")")]
         public DXEvent exit;
-        [FoldoutGroup("$ConditionalEventsFoldout")]
+        [FoldoutGroup("@FoldoutName(\"State-dependant Events\", events)")]
         [NamedList("parentMachine.eventNames", false, true)]
         [SerializeField] public byte _foo;
         [HideInInspector]
@@ -257,17 +259,14 @@ public class StateMachine : MonoBehaviour
         }
 
 #if UNITY_EDITOR
-        public string EventsFoldout()
+        public string FoldoutName(string name)
         {
-            return "Enter Exit Events" + ((enter.IsNull() && exit.IsNull()) ? "" : " ●");
+            return name.ContentMarker(enter, exit);
         }
 
-        public string ConditionalEventsFoldout()
+        public string FoldoutName(string name, params object[] objects)
         {
-            if (events != null)
-                foreach (DXEvent ev in events)
-                    if (!ev.IsNull()) return "State-dependant Events ●";
-            return "State-dependant Events";
+            return name.ContentMarker(objects);
         }
 #endif
     }

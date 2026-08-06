@@ -4,7 +4,7 @@ using UnityEngine;
 public class BTriggerManager : BColliderInteractor
 {
     protected int count;
-    List<NDCollider> colliders;
+    protected List<NDCollider> colliders;
 
     protected override void Awake()
     {
@@ -155,7 +155,7 @@ public class BTriggerManager : BColliderInteractor
     protected void CleanNulls()
     {
         for (int i = count - 1; i >= 0; i--)
-            if (colliders[i].IsNull())
+            if (colliders[i] == null)
                 RemoveAt(i);
     }
 }

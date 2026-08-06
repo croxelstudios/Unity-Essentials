@@ -72,7 +72,7 @@ public class DXIntEvent : DXTypedEvent<int>
         negativeEvent.SmartRemoveListener(call);
     }
 
-    public override bool IsNull()
+    protected override bool IsNull()
     {
         bool isNull = true;
         for (int i = 0; i < types.Length; i++)

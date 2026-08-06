@@ -62,7 +62,7 @@ public class RenderersSetKeyword : MonoBehaviour
             else
             {
                 Renderizable r = Renderizable.Get(gameObject);
-                if (!r.IsNull()) rend = new Renderizable[] { r };
+                if (r != null) rend = new Renderizable[] { r };
             }
         }
     }
@@ -89,7 +89,7 @@ public class RenderersSetKeyword : MonoBehaviour
         for (int i = 0; i < rend.Length; i++)
         {
             Renderizable r = rend[i];
-            if (!r.IsNull())
+            if (r != null)
             {
                 Material[] shM = r.sharedMaterials;
                 if (materialIndex < 0)

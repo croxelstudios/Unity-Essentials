@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System;
 
-public class NDRigidbody
+public class NDRigidbody : Wrapper
 {
     static Dictionary<Rigidbody2D, NDRigidbody> rigids2;
     static Dictionary<Rigidbody, NDRigidbody> rigids3;
@@ -259,9 +259,9 @@ public class NDRigidbody
         }
     }
 
-    public bool IsValid()
+    protected override bool IsNull()
     {
-        return (rigid2 != null) || (rigid3 != null);
+        return (rigid2 == null) && (rigid3 == null);
     }
 
     NDRigidbody(Rigidbody2D rigid)
@@ -513,7 +513,7 @@ public class NDRigidbody
 public enum Scope { inThis, inParents, inChildren }
 
 [Serializable]
-public class NDCollider
+public class NDCollider : Wrapper
 {
     static Dictionary<Collider2D, NDCollider> cols2;
     static Dictionary<Collider, NDCollider> cols3;
@@ -784,7 +784,7 @@ public class NDCollider
         return NDPhysics.GetLayerCollisionMask(layer, is2D);
     }
 
-    bool IsNull()
+    protected override bool IsNull()
     {
         return (col2 == null) && (col3 == null);
     }
@@ -1244,16 +1244,6 @@ public static class NDPhysics
     public static NDCollider ND(this Collider collider)
     {
         return NDCollider.ND(collider);
-    }
-
-    public static bool IsNull(this NDCollider collider)
-    {
-        return (collider == null) || ((collider.col2 == null) && (collider.col3 == null));
-    }
-
-    public static bool IsNull(this NDRigidbody rigidbody)
-    {
-        return (rigidbody == null) || (!rigidbody.IsValid());
     }
 
     public static float DefaultContactOffset(bool is2D)

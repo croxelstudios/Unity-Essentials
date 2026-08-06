@@ -66,7 +66,7 @@ public class BCollisionManager : BColliderInteractor
         aux = aux.ClearOrCreate();
         foreach (NDCollider col in collisions.Keys)
         {
-            if (col.IsNull() ||
+            if ((col == null) ||
                 (!col.enabled) ||
                 (!col.gameObject.activeInHierarchy))
                 aux.Add(col);

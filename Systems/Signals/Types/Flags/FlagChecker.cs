@@ -199,9 +199,9 @@ public class FlagChecker : BBaseSignalListener<bool>
         public DXEvent whenTrue; //Change type here
         [FoldoutGroup("@name")]
         public DXEvent whenFalse; //Change type here
-        [FoldoutGroup("@name/$AlreadyEnabledFoldout")]
+        [FoldoutGroup("@name/@FoldoutName(\"Only When Already Enabled\", onlyWhenAlreadyEnabled)")]
         public ExtraEvents onlyWhenAlreadyEnabled;
-        [FoldoutGroup("@name/$OnEnableFoldout")]
+        [FoldoutGroup("@name/@FoldoutName(\"Only On Enable\", onlyOnEnable)")]
         public ExtraEvents onlyOnEnable;
 
         public FlagAction(Flag signal) //Change type here (2)
@@ -214,14 +214,9 @@ public class FlagChecker : BBaseSignalListener<bool>
         }
 
 #if UNITY_EDITOR
-        public string AlreadyEnabledFoldout()
+        public string FoldoutName(string name, ExtraEvents extra)
         {
-            return "Only When Already Enabled" + (onlyWhenAlreadyEnabled.IsNull() ? "" : " ●");
-        }
-
-        public string OnEnableFoldout()
-        {
-            return "Only On Enable" + (onlyOnEnable.IsNull() ? "" : " ●");
+            return name.ContentMarker(extra.whenTrue, extra.whenFalse);
         }
 #endif
     }
@@ -242,7 +237,7 @@ public class FlagChecker : BBaseSignalListener<bool>
 
         public bool IsNull()
         {
-            return whenTrue.IsNull() && whenFalse.IsNull();
+            return (whenTrue == null) && (whenFalse == null);
         }
     }
 }

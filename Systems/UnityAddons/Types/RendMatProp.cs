@@ -77,7 +77,7 @@ public struct RendMat : IEquatable<RendMat>
 
     public bool IsNull()
     {
-        return (rend.IsNull()) || (!mat.IsBetween(0, rend.sharedMaterials.Length)) || (sharedMaterial == null);
+        return (rend == null) || (!mat.IsBetween(0, rend.sharedMaterials.Length)) || (sharedMaterial == null);
     }
 
     public override bool Equals(object other)

@@ -96,7 +96,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
         {
             Renderizable r = Renderizable.Get(gameObject);
             RenderersSetProperty_Exclude e = GetComponent<RenderersSetProperty_Exclude>();
-            if ((!r.IsNull()) && (e == null)) rend = new Renderizable[] { r };
+            if ((r != null) && (e == null)) rend = new Renderizable[] { r };
         }
     }
 
@@ -169,7 +169,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
         for (int i = 0; i < rend.Length; i++)
         {
             Renderizable r = rend[i];
-            if (!r.IsNull())
+            if (r != null)
             {
                 Material[] shM = r.sharedMaterials;
                 if (materialIndex < 0)
@@ -290,7 +290,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
             for (int i = 0; i < rend.Length; i++)
             {
                 Renderizable r = rend[i];
-                if (!r.IsNull())
+                if (r != null)
                 {
                     CheckRendererBlocks(r);
                     Material[] shM = r.sharedMaterials;
@@ -381,7 +381,7 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
         if (rend != null)
         {
             foreach (Renderizable ren in rend)
-                if (!ren.IsNull())
+                if (ren != null)
                 {
                     Material[] shM = ren.sharedMaterials;
                     for (int i = 0; i < shM.Length; i++)

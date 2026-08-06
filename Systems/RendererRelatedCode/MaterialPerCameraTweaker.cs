@@ -275,7 +275,7 @@ public class MaterialPerCameraTweaker : MonoBehaviour
             else
             {
                 Renderizable r = Renderizable.Get(obj);
-                if (!r.IsNull()) rend = new Renderizable[] { r };
+                if (r != null) rend = new Renderizable[] { r };
             }
         }
 
@@ -294,7 +294,7 @@ public class MaterialPerCameraTweaker : MonoBehaviour
                 for (int i = 0; i < rend.Length; i++)
                 {
                     Renderizable r = rend[i];
-                    if (!r.IsNull())
+                    if (r != null)
                     {
                         Material[] shM = r.sharedMaterials;
                         if (materialIndex < 0)

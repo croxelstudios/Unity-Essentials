@@ -170,7 +170,7 @@ public class MaterialsReplacer : MonoBehaviour
                         //rend[i].UpdateActiveState(pm.value.Parse<bool>());
                         //updateInstances = true;
                     }
-                    else if ((!instanced.IsNullOrEmpty()) && (!instanced[i].IsNull()))
+                    else if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
                     {
                         instanced[i].renderer.GetCopyOf(ren);
                         ReplaceMaterials(instanced[i], false);
@@ -193,7 +193,7 @@ public class MaterialsReplacer : MonoBehaviour
             for (int i = 0; i < rend.Length; i++)
                 if (rend[i].transform.IsChildOf(tr))
                 {
-                    if ((!instanced.IsNullOrEmpty()) && (!instanced[i].IsNull()))
+                    if ((!instanced.IsNullOrEmpty()) && (instanced[i] != null))
                     {
                         instanced[i].renderer.GetCopyOf(rend[i].renderer);
                         ReplaceMaterials(instanced[i], false);
@@ -247,7 +247,7 @@ public class MaterialsReplacer : MonoBehaviour
         if (isChanged)
         {
             foreach (KeyValuePair<RendMat, Material> kv in changedMaterials)
-                if (!kv.Key.rend.IsNull())
+                if (kv.Key.rend != null)
                 {
                     Material[] sm = kv.Key.rend.sharedMaterials;
                     sm[kv.Key.mat] = kv.Value;
@@ -331,7 +331,7 @@ public class MaterialsReplacer : MonoBehaviour
     {
         if (instanced != null)
             for (int i = 0; i < instanced.Length; i++)
-                if (!instanced[i].IsNull())
+                if (instanced[i] != null)
                     instanced[i].gameObject.DestroyOrImmediate();
         instanced = null;
     }
@@ -376,7 +376,7 @@ public class MaterialsReplacer : MonoBehaviour
 
         public bool IsNull()
         {
-            return rend.IsNull();
+            return rend == null;
         }
 
         public bool UpdateActiveState(bool state)

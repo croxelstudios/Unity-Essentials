@@ -11,6 +11,8 @@ public class TriggerEvents : BTriggerManager
     [SerializeField]
     int maxCollisions = 1;
     [SerializeField]
+    Transform[] toTrigger = null;
+    [SerializeField]
     protected DXEvent entered = null;
     [SerializeField]
     protected DXEvent exited = null;
@@ -35,6 +37,7 @@ public class TriggerEvents : BTriggerManager
                 exited?.Invoke();
             entered?.Invoke();
         }
+        UpdateToTriggerObjects();
     }
 
     public override void OnTrigExit(NDCollider other)
@@ -48,7 +51,7 @@ public class TriggerEvents : BTriggerManager
             while (count >= maxCollisions)
             {
                 toRecover = Get(i);
-                if (toRecover.IsNull())
+                if (toRecover == null)
                 {
                     RemoveAt(i);
                     i--;
@@ -61,6 +64,31 @@ public class TriggerEvents : BTriggerManager
                 CheckCollision(toRecover.gameObject, out CustomTag otherTag);
                 entered?.Invoke();
                 LaunchCustomTag(otherTag);
+            }
+        }
+        UpdateToTriggerObjects();
+    }
+
+    void UpdateToTriggerObjects()
+    {
+        if ((!toTrigger.IsNullOrEmpty()) && (!colliders.IsNullOrEmpty()))
+        {
+            Vector3 pos = Vector3.zero;
+            Vector4 rot = Vector4.zero;
+            for (int i = 0; i < colliders.Count; i++)
+            {
+                Transform tr = colliders[i].transform;
+                pos += tr.position;
+                rot += tr.rotation.ToVector();
+            }
+            pos /= colliders.Count;
+            rot /= colliders.Count;
+            Quaternion qRot = rot.ToQuaternion();
+            qRot.Normalize();
+            for (int i = 0; i < toTrigger.Length; i++)
+            {
+                toTrigger[i].position = pos;
+                toTrigger[i].rotation = qRot;
             }
         }
     }

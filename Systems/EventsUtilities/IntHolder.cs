@@ -188,7 +188,7 @@ public class IntHolder : MonoBehaviour
         public int value;
         bool useValueMultipliers;
         [SerializeField]
-        [FoldoutGroup("@FoldoutName()")]
+        [FoldoutGroup("@FoldoutName(\"Events\", actions)")]
         DXEvent actions;
 
         public OnVariationEvent(int value, bool useValueMultipliers, DXEvent actions)
@@ -235,10 +235,12 @@ public class IntHolder : MonoBehaviour
             }
         }
 
-        public string FoldoutName()
+#if UNITY_EDITOR
+        public string FoldoutName(string name, object objects)
         {
-            return actions.IsNull() ? "Events" : "Events ⚠";
+            return name.ContentMarker(objects);
         }
+#endif
     }
 
     [Serializable]
@@ -256,9 +258,9 @@ public class IntHolder : MonoBehaviour
         [SerializeField]
         GameObject[] objects;
         [SerializeField]
-        [FoldoutGroup("@FoldoutName()")]
+        [FoldoutGroup("@FoldoutName(\"Events\")")]
         DXEvent gotIn;
-        [FoldoutGroup("@FoldoutName()")]
+        [FoldoutGroup("@FoldoutName(\"Events\")")]
         [SerializeField]
         DXEvent gotOut;
 
@@ -295,10 +297,12 @@ public class IntHolder : MonoBehaviour
             gotOut?.Invoke();
         }
 
-        public string FoldoutName()
+#if UNITY_EDITOR
+        public string FoldoutName(string name)
         {
-            return (gotIn.IsNull() && gotOut.IsNull()) ? "Events" : "Events ⚠";
+            return name.ContentMarker(gotIn, gotOut);
         }
+#endif
     }
 
     [Serializable]

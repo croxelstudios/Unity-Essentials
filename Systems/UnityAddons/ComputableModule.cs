@@ -72,7 +72,7 @@ public static class ComputableModule
 
         Renderizable filter = Renderizable.Get(gameObject);
 
-        if (filter.IsNull())
+        if (filter == null)
             return null;
 
         switch (filter.renType)
@@ -98,7 +98,7 @@ public static class ComputableModule
     {
         Renderizable filter = Renderizable.Get(gameObject);
 
-        if (!filter.IsNull())
+        if (filter != null)
         {
             switch (filter.renType)
             {
@@ -147,7 +147,7 @@ public static class ComputableModule
     {
         Renderizable filter = Renderizable.Get(obj);
 
-        if (filter.IsNull())
+        if (filter == null)
             return false;
 
         switch (filter.renType)
@@ -189,7 +189,7 @@ public static class ComputableModule
     {
         Renderizable filter = Renderizable.Get(obj);
 
-        if (filter.IsNull())
+        if (filter == null)
             return true;
 
         switch (filter.renType)
@@ -444,7 +444,7 @@ public static class ComputableModule
         public int count { get { return (allElements != null) ? allElements.Count : 0; } }
         PerFrameTracker cleaningFrame;
 
-        class HolderData
+        class HolderData : Wrapper
         {
             public Computable element;
             public List<Component> usedBy;
@@ -473,7 +473,7 @@ public static class ComputableModule
                 original = default;
             }
 
-            public bool IsNull()
+            protected override bool IsNull()
             {
                 return element == null;
             }
@@ -600,7 +600,7 @@ public static class ComputableModule
                 {
                     HolderData data = pair.Value;
                     if ((data == null) || (data.original == null) ||
-                        (data.element == null) || (data.element.IsNull()))
+                        (data.element == null))
                         auxHoldersList.Add(pair.Key);
                 }
                 foreach (Holder element in auxHoldersList)
@@ -665,7 +665,7 @@ public static class ComputableModule
                     if (holder != null)
                     {
                         HolderData data = pair.Value;
-                        if ((data.element != null) && !data.element.IsNull())
+                        if (data.element != null)
                         {
                             last = last.CreateAdd(holder, GetCurrent(holder));
                             SetValue(holder, data.element.GetValue());
@@ -683,7 +683,7 @@ public static class ComputableModule
                     if (holder != null)
                     {
                         HolderData data = pair.Value;
-                        if ((data.element != null) && !data.element.IsNull())
+                        if (data.element != null)
                         {
                             last.SmartRemove(holder);
                             SetValue(holder, data.element.GetOriginal());

@@ -1,15 +1,15 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-public class BDXEvent<T> where T : UnityEventBase
+public class BDXEvent<T> : Wrapper where T : UnityEventBase
 {
     [SerializeField]
     [EasyEvent]
     protected T unityEvent = null;
 
-    public virtual bool IsNull()
+    protected override bool IsNull()
     {
-        return unityEvent == null || unityEvent.GetPersistentEventCount() <= 0;
+        return (unityEvent == null) || (unityEvent.GetPersistentEventCount() <= 0);
     }
 
     public void Clear()
@@ -47,10 +47,10 @@ public static class DXEventExtensions
     }
 
     public static T CreateIfNull<T, J>(this T dxEvent)
-        where T : DXTypedEvent<J>
+        where T : DXTypedEvent<J>, new()
     {
         if (dxEvent == null)
-            dxEvent = new DXTypedEvent<J>() as T;
+            dxEvent = new T();
         return dxEvent;
     }
 
@@ -62,7 +62,7 @@ public static class DXEventExtensions
     }
 
     public static T CreateAddListener<T, J>(this T dxEvent, UnityAction<J> call)
-        where T : DXTypedEvent<J>
+        where T : DXTypedEvent<J>, new()
     {
         dxEvent = dxEvent.CreateIfNull<T, J>();
         dxEvent.AddListener(call);
