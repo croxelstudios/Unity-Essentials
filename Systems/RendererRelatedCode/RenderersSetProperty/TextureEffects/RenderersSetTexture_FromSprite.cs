@@ -33,7 +33,7 @@ public class RenderersSetTexture_FromSprite : RenderersSetTexture
         oldTexs = list.ToArray();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         int j = 0;
         if (!rend.IsNullOrEmpty())

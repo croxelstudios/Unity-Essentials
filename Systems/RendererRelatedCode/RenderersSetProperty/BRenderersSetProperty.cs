@@ -50,17 +50,22 @@ public class BRenderersSetProperty : DXMonoBehaviour
     {
         if (!isInitialized)
         {
-            if ((usePropertyBlock && (block == null))
+            if (usePropertyBlock
 #if UNITY_EDITOR
                     || !Application.isPlaying
 #endif
                     )
-                block = new MaterialPropertyBlock();
+                EnsurePropertyBlock();
             isInitialized = true;
         }
         if (ShouldUpdateRenderersOnEnable())
             UpdateRenderersInternal();
         SetBlocksProperty();
+    }
+
+    void EnsurePropertyBlock()
+    {
+        if (block == null) block = new MaterialPropertyBlock();
     }
 
     protected virtual void UpdateRenderersInternal()
@@ -109,6 +114,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
                 ;
     }
 
+    [ContextMenu("ForceUpdate")]
     public virtual void UpdateRenderers()
     {
         if (this.IsActiveAndEnabled())
@@ -158,7 +164,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
             UpdateBehaviour();
     }
 
-    protected virtual void UpdateBehaviour()
+    public virtual void UpdateBehaviour()
     {
         if (isInitialized) SetBlocksProperty();
     }
@@ -166,19 +172,20 @@ public class BRenderersSetProperty : DXMonoBehaviour
     void SetBlocksProperty(bool reset = false)
     {
         OnUpdatingProperty();
-        for (int i = 0; i < rend.Length; i++)
-        {
-            Renderizable r = rend[i];
-            if (r != null)
+        if (!rend.IsNullOrEmpty())
+            for (int i = 0; i < rend.Length; i++)
             {
-                Material[] shM = r.sharedMaterials;
-                if (materialIndex < 0)
-                    for (int j = 0; j < shM.Length; j++)
-                        UpdateMaterial(new RendMat(r, j), reset);
-                else if (materialIndex < shM.Length)
-                    UpdateMaterial(new RendMat(r, materialIndex), reset);
+                Renderizable r = rend[i];
+                if (r != null)
+                {
+                    Material[] shM = r.sharedMaterials;
+                    if (materialIndex < 0)
+                        for (int j = 0; j < shM.Length; j++)
+                            UpdateMaterial(new RendMat(r, j), reset);
+                    else if (materialIndex < shM.Length)
+                        UpdateMaterial(new RendMat(r, materialIndex), reset);
+                }
             }
-        }
     }
 
     //void UpdateMaterial(int rendId, int materialId, bool reset = false)
@@ -203,8 +210,9 @@ public class BRenderersSetProperty : DXMonoBehaviour
                 if (reset) VResetProperty(rendMatProp);
                 else VSetProperty(rendMatProp);
             }
-            else if (block != null)
+            else
             {
+                EnsurePropertyBlock();
                 rendMat.GetPropertyBlock(ref block);
                 CheckRendererBlocks(rendMat.rend);
                 if (reset) BlResetProperty(block, rendMatProp);
@@ -348,7 +356,7 @@ public class BRenderersSetProperty<T> : BRenderersSetProperty where T : IEquatab
         return (!tValue.Equals(oldTValue)) || base.ShouldUpdate();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         base.UpdateBehaviour();
         oldTValue = tValue;
@@ -403,7 +411,7 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
             base.ShouldUpdate();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         if (blender != null)
             foreach (RendMat renMat in blender.Keys)

@@ -230,7 +230,7 @@ struct ProcTex
 
     public void UpdatePropertyModifications()
     {
-        if (!propertiesToModify.IsNullOrEmpty())
+        if (!propertyModifications.IsNullOrEmpty())
             for (int i = 0; i < propertyModifications.Length; i++)
                 SetArbitraryProperty(propertyModifications[i]);
     }

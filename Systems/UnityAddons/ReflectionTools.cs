@@ -514,7 +514,7 @@ public static class ReflectionTools
         if (method == null)
         {
             string paramNames = string.Join(", ", paramTypes.Select(t => t.Name).ToArray());
-            throw new InvalidOperationException("FindWithTag." + name + "<T>(" + paramNames + ") wasn't found.");
+            throw new InvalidOperationException(type.Name + "." + name + "<T>(" + paramNames + ") wasn't found.");
         }
 
         return method;

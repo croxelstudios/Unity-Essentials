@@ -31,7 +31,7 @@ public class RenderersSetFloat_Blink : RenderersSetFloat
         base.Init();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         base.UpdateBehaviour();
     }

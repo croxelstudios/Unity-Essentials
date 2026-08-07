@@ -707,7 +707,7 @@ public static class CollectionExtensions
         }
         return dict;
     }
-    
+
     //TO DO: ClearNulls() instead. Needs architectural change to access TKey.
     static void SceneUnloaded(Scene scene)
     {
@@ -719,8 +719,15 @@ public static class CollectionExtensions
     //TO DO: ClearNulls() instead. Needs architectural change to access TKey.
     static void PlayModeStateChanged(PlayModeStateChange state)
     {
-        foreach (IDictionary dict in toCleanOnSceneUnload)
-            dict.Clear();
+        switch (state)
+        {
+            case PlayModeStateChange.EnteredPlayMode:
+                break;
+            default:
+                foreach (IDictionary dict in toCleanOnSceneUnload)
+                    dict.Clear();
+                break;
+        }
     }
 #endif
 

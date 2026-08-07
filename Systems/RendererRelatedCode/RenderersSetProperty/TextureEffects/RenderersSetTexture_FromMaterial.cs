@@ -55,7 +55,7 @@ public class RenderersSetTexture_FromMaterial : RenderersSetTexture
             UpdateBehaviour();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         UpdateRT();
         base.UpdateBehaviour();

@@ -84,15 +84,15 @@ public class DXStringEvent : DXTypedEvent<string>
             switch (types[i])
             {
                 case EventType.String:
-                    if ((unityEvent != null) && (unityEvent.GetPersistentEventCount() > 0))
+                    if ((unityEvent != null) && (unityEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.IsEmpty:
-                    if ((isEmpty != null) && (isEmpty.GetPersistentEventCount() > 0))
+                    if ((isEmpty != null) && (isEmpty.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.IsNotEmpty:
-                    if ((isNotEmpty != null) && (isNotEmpty.GetPersistentEventCount() > 0))
+                    if ((isNotEmpty != null) && (isNotEmpty.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
             }

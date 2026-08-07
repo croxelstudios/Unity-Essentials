@@ -49,7 +49,7 @@ public class RenderersSetTexture_FromTMP : RenderersSetTexture
         oldTexs = list.ToArray();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         int j = 0;
         for (int i = 0; i < rend.Length; i++)

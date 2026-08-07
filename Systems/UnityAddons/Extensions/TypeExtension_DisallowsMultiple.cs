@@ -1,9 +1,6 @@
 #if UNITY_EDITOR
 using System;
-using System.Reflection;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.AI;
 
 public static class TypeExtension_DisallowsMultiple
 {
@@ -36,6 +33,10 @@ public static class TypeExtension_DisallowsMultiple
             case Type t when t.IsOrInheritsFrom(typeof(Terrain)):
                 return true;
             case Type t when t.IsOrInheritsFrom(typeof(Canvas)):
+                return true;
+            case Type t when t.IsOrInheritsFrom(typeof(MeshFilter)):
+                return true;
+            case Type t when t.IsOrInheritsFrom(typeof(MeshRenderer)):
                 return true;
             case Type t when t.IsOrInheritsFrom(Type.GetType("NavMeshAgent")):
                 return true;

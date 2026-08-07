@@ -9,7 +9,7 @@ public class BDXEvent<T> : Wrapper where T : UnityEventBase
 
     protected override bool IsNull()
     {
-        return (unityEvent == null) || (unityEvent.GetPersistentEventCount() <= 0);
+        return (unityEvent == null) || (unityEvent.GetTotalEventCount() <= 0);
     }
 
     public void Clear()
@@ -41,7 +41,7 @@ public static class DXEventExtensions
 {
     public static DXEvent CreateIfNull(this DXEvent dxEvent)
     {
-        if (dxEvent == null)
+        if (dxEvent is null)
             dxEvent = new DXEvent();
         return dxEvent;
     }
@@ -49,7 +49,7 @@ public static class DXEventExtensions
     public static T CreateIfNull<T, J>(this T dxEvent)
         where T : DXTypedEvent<J>, new()
     {
-        if (dxEvent == null)
+        if (dxEvent is null)
             dxEvent = new T();
         return dxEvent;
     }

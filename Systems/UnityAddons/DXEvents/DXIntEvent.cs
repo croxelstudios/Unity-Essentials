@@ -80,15 +80,15 @@ public class DXIntEvent : DXTypedEvent<int>
             switch (types[i])
             {
                 case EventType.Int:
-                    if ((unityEvent != null) && (unityEvent.GetPersistentEventCount() > 0))
+                    if ((unityEvent != null) && (unityEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.Abs:
-                    if ((absEvent != null) || (absEvent.GetPersistentEventCount() > 0))
+                    if ((absEvent != null) || (absEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.Negative:
-                    if ((negativeEvent != null) || (negativeEvent.GetPersistentEventCount() > 0))
+                    if ((negativeEvent != null) || (negativeEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
             }

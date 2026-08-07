@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class Renderizable : Wrapper
@@ -74,11 +75,9 @@ public class Renderizable : Wrapper
             switch (rendType)
             {
                 case RendType.Custom:
-                    return (customRenderer != null) ?
-                        customRenderer.sharedMaterials : null;
+                    return customRenderer.sharedMaterials;
                 default:
-                    return (renderer != null) ?
-                        renderer.sharedMaterials : null;
+                    return renderer.sharedMaterials;
             }
         }
         set
@@ -86,12 +85,10 @@ public class Renderizable : Wrapper
             switch (rendType)
             {
                 case RendType.Custom:
-                    if (customRenderer != null)
-                        customRenderer.sharedMaterials = value;
+                    customRenderer.sharedMaterials = value;
                     break;
                 default:
-                    if (renderer != null)
-                        renderer.sharedMaterials = value;
+                    renderer.sharedMaterials = value;
                     break;
             }
         }
@@ -103,11 +100,9 @@ public class Renderizable : Wrapper
             switch (rendType)
             {
                 case RendType.Custom:
-                    return (customRenderer != null) ?
-                        customRenderer.instMaterials : null;
+                    return customRenderer.instMaterials;
                 default:
-                    return (renderer != null) ?
-                        renderer.materials : null;
+                    return renderer.materials;
             }
         }
         set
@@ -115,12 +110,10 @@ public class Renderizable : Wrapper
             switch (rendType)
             {
                 case RendType.Custom:
-                    if (customRenderer != null)
-                        customRenderer.instMaterials = value;
+                    customRenderer.instMaterials = value;
                     break;
                 default:
-                    if (renderer != null)
-                        renderer.materials = value;
+                    renderer.materials = value;
                     break;
             }
         }
@@ -406,6 +399,24 @@ public class Renderizable : Wrapper
                 return (rend == null) ? new Renderizable[0] : new Renderizable[] { rend };
         }
     }
+
+#if UNITY_EDITOR
+    public void RecordGameObjectModificationsFromPrefab()
+    {
+        if (filter != null)
+            RecordGameObjectModificationsFromPrefab(filter);
+        if (renderer != null)
+            RecordGameObjectModificationsFromPrefab(renderer);
+        if (customRenderer != null)
+            RecordGameObjectModificationsFromPrefab(customRenderer);
+    }
+
+    void RecordGameObjectModificationsFromPrefab(Component comp)
+    {
+        EditorUtility.SetDirty(comp);
+        PrefabUtility.RecordPrefabInstancePropertyModifications(comp);
+    }
+#endif
 }
 
 public enum RendType

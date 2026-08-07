@@ -47,7 +47,7 @@ public class RenderersSetTextureScroll : BRenderersSetProperty
         base.Init();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         float deltaTime = timeMode.DeltaTime();
 

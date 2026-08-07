@@ -161,31 +161,31 @@ public class DXRotationEvent : DXTypedEvent<Vector3>
             switch (types[i])
             {
                 case EventType.EulerAngles:
-                    if ((unityEvent != null) && (unityEvent.GetPersistentEventCount() > 0))
+                    if ((unityEvent != null) && (unityEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.Quaternion:
-                    if ((quaternionEvent != null) && (quaternionEvent.GetPersistentEventCount() > 0))
+                    if ((quaternionEvent != null) && (quaternionEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.Angle:
-                    if ((angleEvent != null) && (angleEvent.GetPersistentEventCount() > 0))
+                    if ((angleEvent != null) && (angleEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.Axis:
-                    if ((axisEvent != null) && (axisEvent.GetPersistentEventCount() > 0))
+                    if ((axisEvent != null) && (axisEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.EulerX:
-                    if ((xEvent != null) && (xEvent.GetPersistentEventCount() > 0))
+                    if ((xEvent != null) && (xEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.EulerY:
-                    if ((yEvent != null) && (yEvent.GetPersistentEventCount() > 0))
+                    if ((yEvent != null) && (yEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
                 case EventType.EulerZ:
-                    if ((zEvent != null) && (zEvent.GetPersistentEventCount() > 0))
+                    if ((zEvent != null) && (zEvent.GetTotalEventCount() > 0))
                         isNull = false;
                     break;
             }

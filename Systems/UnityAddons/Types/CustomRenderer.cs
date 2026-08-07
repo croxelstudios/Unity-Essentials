@@ -14,6 +14,7 @@ public class CustomRenderer : MonoBehaviour
             materials = materials.Resize(value.Length);
             for (int i = 0; i < value.Length; i++)
                 materials[i] = value[i];
+            instancedMaterials = false;
         }
     }
     bool instancedMaterials;

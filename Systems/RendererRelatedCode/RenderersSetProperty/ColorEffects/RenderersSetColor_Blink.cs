@@ -23,7 +23,7 @@ public class RenderersSetColor_Blink : RenderersSetColor
         base.Init();
     }
 
-    protected override void UpdateBehaviour()
+    public override void UpdateBehaviour()
     {
         base.UpdateBehaviour();
     }

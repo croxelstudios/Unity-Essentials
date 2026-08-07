@@ -23,7 +23,7 @@ public class RenderersSetColor : BRenderersSetBlendedProperty<Color>
         Color newVal = value;
         if (setAlphaOnly)
         {
-            if (Count(rendMat) <= 0)
+            if ((Count(rendMat) <= 0) || (!blendWithOriginal))
                 newVal = GetProperty(rendMat.sharedMaterial, rendMat.property);
             else
             {
