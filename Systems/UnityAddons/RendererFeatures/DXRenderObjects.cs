@@ -89,7 +89,7 @@ public class DXRenderObjects : ScriptableRendererFeature
         [HideLabel]
         [InlineProperty]
         [FoldoutGroup("Overrides", true)]
-        public RenderGraphTools.CameraSettings cameraSettings = new RenderGraphTools.CameraSettings();
+        public RenderGraphExtensions.CameraSettings cameraSettings = new RenderGraphExtensions.CameraSettings();
     }
 
     /// <summary>
@@ -261,7 +261,7 @@ public class DXRenderObjects : ScriptableRendererFeature
     {
         RenderQueueType renderQueueType;
         TextureTargetSettings textureSettings;
-        RenderGraphTools.CameraSettings cameraSettings;
+        RenderGraphExtensions.CameraSettings cameraSettings;
         MaterialOverrideBehaviour materialOverride;
         FilteringSettings filteringSettings;
         RenderStateBlock renderStateBlock;
@@ -274,7 +274,7 @@ public class DXRenderObjects : ScriptableRendererFeature
 
         class PassData
         {
-            public RenderGraphTools.CameraSettings cameraSettings;
+            public RenderGraphExtensions.CameraSettings cameraSettings;
             public RenderPassEvent renderPassEvent;
 
             public TextureHandle color;
@@ -375,7 +375,7 @@ public class DXRenderObjects : ScriptableRendererFeature
         /// <param name="cameraSettings">The settings for custom cameras values.</param>
         public RenderPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags,
             RenderQueueType renderQueueType, int layerMask, TextureTargetSettings textureSettings,
-            RenderGraphTools.CameraSettings cameraSettings, MaterialOverrideBehaviour materialOverride,
+            RenderGraphExtensions.CameraSettings cameraSettings, MaterialOverrideBehaviour materialOverride,
             ShaderKeyword[] overrideKeywords, float timeScale, bool useUnscaledTime)
         {
             profilingSampler = new ProfilingSampler(profilerTag);

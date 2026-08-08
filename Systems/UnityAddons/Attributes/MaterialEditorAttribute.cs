@@ -65,7 +65,7 @@ public class MaterialEditorAttribute_Drawer : PropertyDrawer
 
     void AddIMGUI(EditorWindow window, IMGUIContainer container)
     {
-        BaseInspectorInjector.AddVisualElement(container, window);
+        InspectorInjector.AddVisualElement(container, window);
     }
 
     IMGUIContainer CreateIMGUI(Editor editor)

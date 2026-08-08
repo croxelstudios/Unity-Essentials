@@ -19,7 +19,7 @@ public static class IcoSphere
     }
 
     // return index of point in the middle of p1 and p2
-    private static int getMiddlePoint(int p1, int p2, ref List<Vector3> vertices, ref Dictionary<long, int> cache, float radius)
+    private static int GetMiddlePoint(int p1, int p2, ref List<Vector3> vertices, ref Dictionary<long, int> cache, float radius)
     {
         // first check if we have it already
         bool firstIsSmaller = p1 < p2;
@@ -118,9 +118,9 @@ public static class IcoSphere
             foreach (var tri in faces)
             {
                 // replace triangle by 4 triangles
-                int a = getMiddlePoint(tri.v1, tri.v2, ref vertList, ref middlePointIndexCache, radius);
-                int b = getMiddlePoint(tri.v2, tri.v3, ref vertList, ref middlePointIndexCache, radius);
-                int c = getMiddlePoint(tri.v3, tri.v1, ref vertList, ref middlePointIndexCache, radius);
+                int a = GetMiddlePoint(tri.v1, tri.v2, ref vertList, ref middlePointIndexCache, radius);
+                int b = GetMiddlePoint(tri.v2, tri.v3, ref vertList, ref middlePointIndexCache, radius);
+                int c = GetMiddlePoint(tri.v3, tri.v1, ref vertList, ref middlePointIndexCache, radius);
 
                 faces2.Add(new TriangleIndices(tri.v1, a, c));
                 faces2.Add(new TriangleIndices(tri.v2, b, a));

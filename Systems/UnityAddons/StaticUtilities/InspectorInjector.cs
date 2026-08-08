@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine.UIElements;
 
 [InitializeOnLoad]
-public static class BaseInspectorInjector
+public static class InspectorInjector
 {
     /*
     const string CustomButtonText = "My Custom Button";
@@ -18,7 +18,7 @@ public static class BaseInspectorInjector
     static Dictionary<VisualElement, EditorWindow> windowsDic;
     static Dictionary<VisualElement, EditorWindow> references;
 
-    static BaseInspectorInjector()
+    static InspectorInjector()
     {
         EditorApplication.delayCall += OnUpdate;
         //EditorApplication.update += RemoveInjections;

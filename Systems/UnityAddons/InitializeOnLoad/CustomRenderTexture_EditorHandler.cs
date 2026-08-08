@@ -3,8 +3,28 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor;
 
+[InitializeOnLoad]
 public static class CustomRenderTexture_EditorHandler
 {
+    static CustomRenderTexture_EditorHandler()
+    {
+        EditorApplication.delayCall += Initialization;
+    }
+
+    static void Initialization()
+    {
+        EditorApplication.delayCall -= Initialization;
+
+        List<CustomRenderTexture> crts = GetAllCustomRenderTextures();
+        foreach (CustomRenderTexture crt in crts)
+        {
+            if (crt.initializationMode != CustomRenderTextureUpdateMode.OnDemand)
+                crt.Initialize();
+            if (crt.updateMode != CustomRenderTextureUpdateMode.OnDemand)
+                crt.Update();
+        }
+    }
+
     [MenuItem("Tools/Update CustomRenderTextures")]
     static void UpdateCustomTextures()
     {
@@ -19,15 +39,15 @@ public static class CustomRenderTexture_EditorHandler
 
     public static List<CustomRenderTexture> GetAllCustomRenderTextures()
     {
-        var result = new List<CustomRenderTexture>();
+        List<CustomRenderTexture> result = new List<CustomRenderTexture>();
 
         string[] guids = AssetDatabase.FindAssets("t:CustomRenderTexture");
 
-        foreach (var guid in guids)
+        foreach (string guid in guids)
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
 
-            var crt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(path);
+            CustomRenderTexture crt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(path);
             if (crt != null)
                 result.Add(crt);
         }
