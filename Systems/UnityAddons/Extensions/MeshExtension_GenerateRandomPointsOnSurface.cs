@@ -8,7 +8,7 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
         float density, float randomVariation, out T normals, out int[] resultTris,
         out Vector2[] mappings) where T : IList<Vector3>
     {
-        return filter.sharedMesh.GenerateRandomPointsOnSurface(filter.transform.lossyScale,
+        return filter.sharedMesh.GenerateRandomPointsOnSurface(filter.transform.localToWorldMatrix,
             density, randomVariation, out normals, out resultTris, out mappings);
     }
 
@@ -16,7 +16,39 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
         int amount, float randomVariation, out T normals, out int[] resultTris,
         out Vector2[] mappings) where T : IList<Vector3>
     {
-        return filter.sharedMesh.GenerateRandomPointsOnSurface(filter.transform.lossyScale,
+        return filter.sharedMesh.GenerateRandomPointsOnSurface(filter.transform.localToWorldMatrix,
+            amount, randomVariation, out normals, out resultTris, out mappings);
+    }
+
+    public static Vector3[] GenerateRandomPointsOnSurface<T>(this MeshFilter filter, Vector3 scale,
+        float density, float randomVariation, out T normals, out int[] resultTris,
+        out Vector2[] mappings) where T : IList<Vector3>
+    {
+        return filter.sharedMesh.GenerateRandomPointsOnSurface(scale,
+            density, randomVariation, out normals, out resultTris, out mappings);
+    }
+
+    public static Vector3[] GenerateRandomPointsOnSurface<T>(this MeshFilter filter, Vector3 scale,
+        int amount, float randomVariation, out T normals, out int[] resultTris,
+        out Vector2[] mappings) where T : IList<Vector3>
+    {
+        return filter.sharedMesh.GenerateRandomPointsOnSurface(scale,
+            amount, randomVariation, out normals, out resultTris, out mappings);
+    }
+
+    public static Vector3[] GenerateRandomPointsOnSurface<T>(this MeshFilter filter, Matrix4x4 trMatrix,
+        float density, float randomVariation, out T normals, out int[] resultTris,
+        out Vector2[] mappings) where T : IList<Vector3>
+    {
+        return filter.sharedMesh.GenerateRandomPointsOnSurface(trMatrix,
+            density, randomVariation, out normals, out resultTris, out mappings);
+    }
+
+    public static Vector3[] GenerateRandomPointsOnSurface<T>(this MeshFilter filter, Matrix4x4 trMatrix,
+        int amount, float randomVariation, out T normals, out int[] resultTris,
+        out Vector2[] mappings) where T : IList<Vector3>
+    {
+        return filter.sharedMesh.GenerateRandomPointsOnSurface(trMatrix,
             amount, randomVariation, out normals, out resultTris, out mappings);
     }
 
@@ -24,65 +56,44 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
         float density, float randomVariation, out T normals, out int[] resultTris,
         out Vector2[] mappings) where T : IList<Vector3>
     {
-        float totalArea = mesh.CalculateArea(scale, out float[] areas);
-
-        int amount = Mathf.RoundToInt(totalArea * density);
-        float distrib = totalArea / amount;
-
-        Vector3[] result = new Vector3[amount];
-        Vector3[] meshNormals = mesh.normals;
-        Vector3[] norm = new Vector3[amount];
-        mappings = new Vector2[amount];
-        resultTris = new int[amount];
-
-        for (int i = 0; i < amount; i++)
-        {
-            //Get the triangle
-            float r = Mathf.Lerp(distrib * i, Random.Range(0, totalArea), randomVariation);
-            float c = 0f;
-            int j = 0;
-            for (j = 0; j < areas.Length; j++)
-            {
-                c += areas[j];
-                if (c > r) break;
-            }
-
-            //Get mapping for that triangle
-            float cb = c - areas[j];
-            r = Mathf.InverseLerp(cb, c, r);
-            Vector2 mapping = r.MapToVector();
-
-            //Set point
-            int triid = j * 3;
-            Vector3Int vIds = new Vector3Int(
-                mesh.triangles[triid],
-                mesh.triangles[triid + 1],
-                mesh.triangles[triid + 2]);
-            Triangle tri = new Triangle(
-                mesh.vertices[vIds.x],
-                mesh.vertices[vIds.y],
-                mesh.vertices[vIds.z]);
-
-            result[i] = tri.MapVectorToLocation(mapping);
-
-            norm[i] = ProcMesh.TrianglePointNormal(result[i], tri.p0, tri.p1, tri.p0,
-                meshNormals[vIds.x], meshNormals[vIds.y], meshNormals[vIds.z]);
-
-            resultTris[i] = triid;
-            mappings[i] = mapping;
-        }
-
-        normals = (T)(object)norm;
-
-        return result;
+        return mesh.GenerateRandomPointsOnSurface(Matrix4x4.Scale(scale), density, randomVariation,
+            out normals, out resultTris, out mappings);
     }
 
     public static Vector3[] GenerateRandomPointsOnSurface<T>(this Mesh mesh, Vector3 scale,
         int amount, float randomVariation, out T normals, out int[] resultTris,
         out Vector2[] mappings) where T : IList<Vector3>
     {
-        float totalArea = mesh.CalculateArea(scale, out float[] areas);
+        return mesh.GenerateRandomPointsOnSurface(Matrix4x4.Scale(scale), amount, randomVariation,
+            out normals, out resultTris, out mappings);
+    }
 
+    public static Vector3[] GenerateRandomPointsOnSurface<T>(this Mesh mesh, Matrix4x4 trMatrix,
+        float density, float randomVariation, out T normals, out int[] resultTris,
+        out Vector2[] mappings) where T : IList<Vector3>
+    {
+        float totalArea = mesh.CalculateArea(trMatrix, out float[] areas);
+
+        int amount = Mathf.RoundToInt(totalArea * density);
+
+        return GenerateRandomPointsOnSurface(mesh, totalArea, areas, amount, randomVariation,
+            out normals, out resultTris, out mappings);
+    }
+
+    public static Vector3[] GenerateRandomPointsOnSurface<T>(this Mesh mesh, Matrix4x4 trMatrix,
+        int amount, float randomVariation, out T normals, out int[] resultTris,
+        out Vector2[] mappings) where T : IList<Vector3>
+    {
+        float totalArea = mesh.CalculateArea(trMatrix, out float[] areas);
+
+        return GenerateRandomPointsOnSurface(mesh, totalArea, areas, amount, randomVariation,
+            out normals, out resultTris, out mappings);
+    }
+
+    static Vector3[] GenerateRandomPointsOnSurface<T>(Mesh mesh, float totalArea, float[] areas,
+        int amount, float randomVariation, out T normals, out int[] resultTris,
+        out Vector2[] mappings) where T : IList<Vector3>
+    {
         float distrib = totalArea / amount;
 
         Vector3[] result = new Vector3[amount];
@@ -217,6 +228,17 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
 
     public static float CalculateArea(this Mesh mesh, Vector3 scale, out float[] triangleAreas)
     {
+        return mesh.CalculateArea(Matrix4x4.Scale(scale), out triangleAreas);
+    }
+
+    public static float CalculateArea(this Mesh mesh, Matrix4x4 trMatrix)
+    {
+        float[] triangleAreas = new float[0];
+        return mesh.CalculateArea(trMatrix, out triangleAreas);
+    }
+
+    public static float CalculateArea(this Mesh mesh, Matrix4x4 trMatrix, out float[] triangleAreas)
+    {
         int[] triangles = mesh.triangles;
         Vector3[] vertices = mesh.vertices;
         triangleAreas = new float[triangles.Length / 3];
@@ -226,9 +248,9 @@ public static class MeshExtension_GenerateRandomPointsOnSurface
             int tri = i * 3;
             float area =
                 Triangle.CalculateArea(
-                    Vector3.Scale(vertices[triangles[tri]], scale),
-                    Vector3.Scale(vertices[triangles[tri + 1]], scale),
-                    Vector3.Scale(vertices[triangles[tri + 2]], scale));
+                    trMatrix.MultiplyPoint3x4(vertices[triangles[tri]]),
+                    trMatrix.MultiplyPoint3x4(vertices[triangles[tri + 1]]),
+                    trMatrix.MultiplyPoint3x4(vertices[triangles[tri + 2]]));
             triangleAreas[i] = area;
             totalArea += area;
         }

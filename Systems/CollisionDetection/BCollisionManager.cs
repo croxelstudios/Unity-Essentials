@@ -84,7 +84,7 @@ public class BCollisionManager : BColliderInteractor
     //This was intended at first but makes no sense in retrospect
     public void CollisionStay(NDCollision collision)
     {
-        if (IsThisEnabled() && (minImpact > Mathf.Epsilon) &&
+        if (IsThisEnabled() /*&& (minImpact > Mathf.Epsilon)*/ &&
             CheckCollision(collision.gameObject, out CustomTag otherTag) &&
             CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {

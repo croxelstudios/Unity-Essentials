@@ -13,12 +13,21 @@ public struct FrameNullTracker
         last = obj == null;
     }
 
+    void Initialize()
+    {
+        tracker = new PerFrameTracker();
+        last = obj == null;
+    }
+
     public bool IsNull()
     {
 #if UNITY_EDITOR
         if (!Application.isPlaying)
             return obj is null;
 #endif
+
+        if (tracker == null)
+            Initialize();
 
         if (tracker.Simple())
             last = obj is null;

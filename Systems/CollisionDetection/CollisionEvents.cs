@@ -34,7 +34,7 @@ public class CollisionEvents : BCollisionManager
                 Transform tr = toContactPoints[i];
                 NDContactPoint contact = contacts[i % contacts.Length];
                 tr.position = contact.point;
-                tr.up = contact.normal;
+                tr.forward = contact.normal;
             }
             if (toContactPoints.Length < contacts.Length)
             {
@@ -50,7 +50,7 @@ public class CollisionEvents : BCollisionManager
                 point /= contacts.Length - i;
                 normal = normal.normalized;
                 tr.position = point;
-                tr.up = normal;
+                tr.forward = normal;
             }
         }
         float result = lerpValue ?

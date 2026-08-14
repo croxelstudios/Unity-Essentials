@@ -42,6 +42,7 @@ public class TriggerEvents : BTriggerManager
 
     public override void OnTrigExit(NDCollider other)
     {
+        UpdateToTriggerObjects();
         if (!fuseColliders)
         {
             exited?.Invoke();
@@ -66,29 +67,41 @@ public class TriggerEvents : BTriggerManager
                 LaunchCustomTag(otherTag);
             }
         }
-        UpdateToTriggerObjects();
     }
 
     void UpdateToTriggerObjects()
     {
         if ((!toTrigger.IsNullOrEmpty()) && (!colliders.IsNullOrEmpty()))
         {
-            Vector3 pos = Vector3.zero;
-            Vector4 rot = Vector4.zero;
-            for (int i = 0; i < colliders.Count; i++)
-            {
-                Transform tr = colliders[i].transform;
-                pos += tr.position;
-                rot += tr.rotation.ToVector();
-            }
-            pos /= colliders.Count;
-            rot /= colliders.Count;
-            Quaternion qRot = rot.ToQuaternion();
-            qRot.Normalize();
             for (int i = 0; i < toTrigger.Length; i++)
             {
-                toTrigger[i].position = pos;
-                toTrigger[i].rotation = qRot;
+                Transform tr = toTrigger[i];
+                NDCollider collider = colliders[i % colliders.Count];
+                Transform colTr = collider.transform;
+                tr.position = colTr.position;
+                tr.rotation = colTr.rotation;
+            }
+            if (toTrigger.Length < colliders.Count)
+            {
+                int i = toTrigger.Length - 1;
+                Transform tr = toTrigger[i];
+                Vector3 pos = Vector3.zero;
+                Vector4 rot = Vector4.zero;
+                for (int j = i; j < colliders.Count; j++)
+                {
+                    Transform colTr = colliders[j].transform;
+                    pos += colTr.position;
+                    rot += colTr.rotation.ToVector();
+                }
+                pos /= colliders.Count;
+                rot /= colliders.Count;
+                Quaternion qRot = rot.ToQuaternion();
+                qRot.Normalize();
+                for (int j = 0; j < toTrigger.Length; j++)
+                {
+                    toTrigger[j].position = pos;
+                    toTrigger[j].rotation = qRot;
+                }
             }
         }
     }

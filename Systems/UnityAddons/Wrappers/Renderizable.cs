@@ -62,6 +62,7 @@ public class Renderizable : Wrapper
 
     //Nullable
     FrameNullTracker isNullTracker;
+    FrameNullTracker isNullTracker2;
 
     //Visibility
     public bool internalIsVisible { get { isVisibleTracker.rend = renderer; return isVisibleTracker.Get(); } }
@@ -121,7 +122,8 @@ public class Renderizable : Wrapper
     protected override bool IsNull()
     {
         isNullTracker.obj = nullableObject;
-        return isNullTracker.IsNull();
+        isNullTracker2.obj = renderer;
+        return isNullTracker.IsNull() || ((renType == RenType.Filter) ? isNullTracker2.IsNull() : false);
     }
 
     static List<GameObject> auxGOs;
@@ -137,11 +139,10 @@ public class Renderizable : Wrapper
         rendType = RendType.Renderer;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
+        isNullTracker2 = new FrameNullTracker();
 
         if (filter != null)
             transform = filter.transform;
-
-        isNullTracker = new FrameNullTracker(nullableObject);
 
         TryAddDictionary();
     }
@@ -157,11 +158,10 @@ public class Renderizable : Wrapper
         rendType = RendType.Renderer;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
+        isNullTracker2 = new FrameNullTracker();
 
         if (renderer != null)
             transform = renderer.transform;
-
-        isNullTracker = new FrameNullTracker(nullableObject);
 
         TryAddDictionary();
     }
@@ -177,11 +177,10 @@ public class Renderizable : Wrapper
         rendType = RendType.Custom;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
+        isNullTracker2 = new FrameNullTracker();
 
         if (customRenderer != null)
             transform = customRenderer.transform;
-
-        isNullTracker = new FrameNullTracker(nullableObject);
 
         TryAddDictionary();
     }
@@ -195,6 +194,7 @@ public class Renderizable : Wrapper
         transform = gameObject.transform;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
+        isNullTracker2 = new FrameNullTracker();
 
         if (filter != null)
         {
@@ -217,8 +217,6 @@ public class Renderizable : Wrapper
                 rendType = RendType.Renderer;
             }
         }
-
-        isNullTracker = new FrameNullTracker(nullableObject);
 
         TryAddDictionary();
     }
@@ -309,6 +307,12 @@ public class Renderizable : Wrapper
             last = false;
         }
 
+        void Initialize()
+        {
+            tracker = new PerFrameTracker();
+            last = false;
+        }
+
         public bool Get()
         {
             if (rend == null)
@@ -318,6 +322,9 @@ public class Renderizable : Wrapper
             if (!Application.isPlaying)
                 return rend.isVisible;
 #endif
+
+            if (tracker == null)
+                Initialize();
 
             if (tracker.Simple())
                 last = rend.isVisible;
