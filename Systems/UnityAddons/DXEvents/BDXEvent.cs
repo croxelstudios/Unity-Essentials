@@ -26,6 +26,16 @@ public class DXTypedEvent<T> : BDXEvent<UnityEvent<T>>
         unityEvent?.Invoke(arg0);
     }
 
+    public virtual void AddListener(UnityAction call)
+    {
+        unityEvent = unityEvent.CreateAddListener(call);
+    }
+
+    public virtual void RemoveListener(UnityAction call)
+    {
+        unityEvent.SmartRemoveListener(call);
+    }
+
     public virtual void AddListener(UnityAction<T> call)
     {
         unityEvent = unityEvent.CreateAddListener(call);

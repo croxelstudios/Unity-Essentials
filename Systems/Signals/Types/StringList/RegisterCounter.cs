@@ -23,11 +23,6 @@ public class RegisterCounter : MonoBehaviour
         register.valueAdded.RemoveListener(Launch);
     }
 
-    void Launch(string foo)
-    {
-        Launch();
-    }
-
     public void Launch()
     {
         if (register != null)

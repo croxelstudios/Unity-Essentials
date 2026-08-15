@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class ComponentParser : PolymorphicQcParser<BaseSignal>
+public class SignalParser : PolymorphicQcParser<BaseSignal>
 {
     public override BaseSignal Parse(string value, Type type)
     {
@@ -19,7 +19,12 @@ public class SignalSuggestor : IQcSuggestor
         string prompt = context.Prompt;
         if ((targetType != null) && typeof(BaseSignal).IsAssignableFrom(targetType))
         {
-            IOrderedEnumerable<BaseSignal> signals = BaseSignal.activeSignals[targetType]
+            List<BaseSignal> l = new();
+            if (targetType == typeof(BaseSignal))
+                foreach (List<BaseSignal> list in BaseSignal.activeSignals.Values)
+                    l.AddRange(list);
+            else l = BaseSignal.activeSignals[targetType];
+            IOrderedEnumerable<BaseSignal> signals = l
                 .Where(x => IsElementValid(x.name, prompt))
                 .OrderBy(x => ReorderFromPrompt(x.name, prompt));
 
