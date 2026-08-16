@@ -27,7 +27,7 @@ public class BSinoidalTransform : BOffsetBasedTransformer<float>
 
     void FixedUpdate()
     {
-        if (timeMode.IsFixed()) UpdatePosition(Time.fixedDeltaTime);
+        if (timeMode.IsFixed()) UpdatePosition(timeMode.DeltaTime());
     }
 
     void UpdatePosition(float deltaTime)

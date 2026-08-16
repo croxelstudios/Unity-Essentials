@@ -1,19 +1,25 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 public class TimeSlowdown : MonoBehaviour
 {
+    [SerializeField]
+    [StringSelector("names", false)]
+    int timeSpace = 0;
     [SerializeField]
     float defaultTimeScale = 1f;
     [SerializeField]
     float smoothTime = 0.01f;
     [SerializeField]
     bool sleepWhileActive = false;
+    protected string[] names { get { return TimeSpaces.Names(); } }
 
     const float MINDIF = 0.01f;
 
     static float fixedTimeRelation = -1f;
-    static TimeSlowdown staticHolder;
+    static Dictionary<int, TimeSlowdown> staticHolder;
     static Coroutine co;
     bool quitting;
 
@@ -29,11 +35,14 @@ public class TimeSlowdown : MonoBehaviour
 
     void TryCreatingStaticHolder()
     {
-        if ((staticHolder == null) && !quitting)
+        staticHolder = staticHolder.CreateIfNull();
+        if ((!staticHolder.ContainsKey(timeSpace)) && !quitting)
         {
             GameObject tscGO = new GameObject("GlobalTimeScaleManager");
             DontDestroyOnLoad(tscGO);
-            staticHolder = tscGO.AddComponent<TimeSlowdown>();
+            TimeSlowdown holder = tscGO.AddComponent<TimeSlowdown>();
+            holder.timeSpace = timeSpace;
+            staticHolder.Add(timeSpace, holder);
         }
     }
 
@@ -44,8 +53,8 @@ public class TimeSlowdown : MonoBehaviour
 
     void OnDisable()
     {
-        if ((this == staticHolder) && (co != null)) staticHolder.StopCoroutine(co);
-        SetTimeScale(defaultTimeScale);
+        if (staticHolder.Values.Contains(this) && (co != null)) staticHolder[timeSpace].StopCoroutine(co);
+        SetTimeScale(defaultTimeScale, timeSpace);
     }
 
     public void SetNewTimeScale(float newScale)
@@ -53,8 +62,8 @@ public class TimeSlowdown : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             TryCreatingStaticHolder();
-            if (staticHolder != null)
-                staticHolder.ToTimeScale(newScale, smoothTime, MINDIF);
+            if (staticHolder.NotNullContainsKey(timeSpace))
+                staticHolder[timeSpace].ToTimeScale(newScale, smoothTime, MINDIF);
         }
     }
 
@@ -63,27 +72,31 @@ public class TimeSlowdown : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             TryCreatingStaticHolder();
-            if (staticHolder != null)
-                staticHolder.ToTimeScale(defaultTimeScale, smoothTime, MINDIF);
+            if (staticHolder.NotNullContainsKey(timeSpace))
+                staticHolder[timeSpace].ToTimeScale(defaultTimeScale, smoothTime, MINDIF);
         }
     }
 
-    static void SetTimeScale(float newScale)
+    static void SetTimeScale(float newScale, int timeSpace = 0)
     {
-        Time.timeScale = newScale;
-        Time.fixedDeltaTime = newScale * fixedTimeRelation;
+        if (timeSpace <= 0)
+        {
+            Time.timeScale = newScale;
+            Time.fixedDeltaTime = newScale * fixedTimeRelation;
+        }
+        else TimeContext.SetTimeScale(timeSpace, newScale);
     }
 
     void ToTimeScale(float newScale, float smoothTime, float mindif)
     {
-        if (co != null) staticHolder.StopCoroutine(co);
+        if (co != null) staticHolder[timeSpace].StopCoroutine(co);
 
         if (smoothTime <= Mathf.Epsilon)
-            SetTimeScale(newScale);
-        else co = StartCoroutine(TransitionToTimeScale(newScale, smoothTime, mindif));
+            SetTimeScale(newScale, timeSpace);
+        else co = StartCoroutine(TransitionToTimeScale(newScale, smoothTime, mindif, timeSpace));
     }
 
-    static IEnumerator TransitionToTimeScale(float newScale, float smoothTime, float mindif)
+    static IEnumerator TransitionToTimeScale(float newScale, float smoothTime, float mindif, int timeSpace = 0)
     {
         float currentScale = Time.timeScale;
         float spd = 0f;
@@ -91,10 +104,10 @@ public class TimeSlowdown : MonoBehaviour
         {
             currentScale = Mathf.SmoothDamp(currentScale, newScale, ref spd,
                 smoothTime, Mathf.Infinity, Time.unscaledDeltaTime);
-            SetTimeScale(currentScale);
+            SetTimeScale(currentScale, timeSpace);
             yield return null;
         }
-        SetTimeScale(newScale);
+        SetTimeScale(newScale, timeSpace);
     }
 
     public void Sleep(float seconds)
@@ -102,15 +115,15 @@ public class TimeSlowdown : MonoBehaviour
         if (this.IsActiveAndEnabled())
         {
             TryCreatingStaticHolder();
-            if (co != null) staticHolder.StopCoroutine(co);
-            co = staticHolder.StartCoroutine(SleepCo(seconds, defaultTimeScale));
+            if (co != null) staticHolder[timeSpace].StopCoroutine(co);
+            co = staticHolder[timeSpace].StartCoroutine(SleepCo(seconds, defaultTimeScale, timeSpace));
         }
     }
 
-    static IEnumerator SleepCo(float seconds, float returnToTimeScale)
+    static IEnumerator SleepCo(float seconds, float returnToTimeScale, int timeSpace = 0)
     {
-        SetTimeScale(0f);
+        SetTimeScale(0f, timeSpace);
         yield return new WaitForSecondsRealtime(seconds);
-        SetTimeScale(returnToTimeScale);
+        SetTimeScale(returnToTimeScale, timeSpace);
     }
 }

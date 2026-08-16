@@ -33,6 +33,17 @@ public static class TimeModeFunctions
         return DeltaTime((TimeMode)timeMode);
     }
 
+    public static float DeltaTime(this ScaledTimeModeOrOnEnable timeMode)
+    {
+        switch (timeMode)
+        {
+            case ScaledTimeModeOrOnEnable.FixedUpdate:
+                return UnityEngine.Time.fixedDeltaTime;
+            default:
+                return UnityEngine.Time.deltaTime;
+        }
+    }
+
     public static float DeltaTime(this TimeModeOrOnEnable timeMode)
     {
         return DeltaTime((TimeMode)timeMode);

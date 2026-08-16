@@ -14,15 +14,30 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
     //It is too complicated, doesn't work well and is not being used.
     //I should find a better way to handle this or remove it.
     public string serializedPopupDataArray;
+    public bool showAsteriskWarning;
 
     public StringSelectorAttribute(string optionsArrayName) : base(optionsArrayName)
     {
         serializedPopupDataArray = "";
+        showAsteriskWarning = true;
     }
 
     public StringSelectorAttribute(string optionsArrayName, string serializedPopupDataArray) : base(optionsArrayName)
     {
         this.serializedPopupDataArray = serializedPopupDataArray;
+        showAsteriskWarning = true;
+    }
+
+    public StringSelectorAttribute(string optionsArrayName, bool showAsteriskWarning) : base(optionsArrayName)
+    {
+        serializedPopupDataArray = "";
+        this.showAsteriskWarning = showAsteriskWarning;
+    }
+
+    public StringSelectorAttribute(string optionsArrayName, string serializedPopupDataArray, bool showAsteriskWarning) : base(optionsArrayName)
+    {
+        this.serializedPopupDataArray = serializedPopupDataArray;
+        this.showAsteriskWarning = showAsteriskWarning;
     }
 
 #if UNITY_EDITOR
@@ -367,14 +382,14 @@ public struct UnityEventPropertyIdentifier
 }
 
 [CustomPropertyDrawer(typeof(StringSelectorAttribute))]
-public class StringPopupAttribute_Drawer : PropertyDrawer
+public class StringSelectorAttribute_Drawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         StringSelectorAttribute field = attribute as StringSelectorAttribute;
         bool popupWasDrawn = field.DrawIntOrStringProperty(property, position, true, label);
         if (!popupWasDrawn) EditorGUI.PropertyField(position, property,
-            new GUIContent(label.text + " *sp"));
+            new GUIContent(label.text + (field.showAsteriskWarning ? " *s" : "")));
     }
 }
 #endif
