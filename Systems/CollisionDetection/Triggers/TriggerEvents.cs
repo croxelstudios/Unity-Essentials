@@ -4,6 +4,9 @@ using UnityEngine;
 public class TriggerEvents : BTriggerManager
 {
     [SerializeField]
+    [Tooltip("If enabled, this will ignore trigger-trigger interactions and only work on trigger-solid interactions")]
+    bool onlySolids = false;
+    [SerializeField]
     [Tooltip("Determines if it should launch events when more than one collision with these tags ocurr")]
     bool fuseColliders = true;
     [Indent]
@@ -16,6 +19,11 @@ public class TriggerEvents : BTriggerManager
     protected DXEvent entered = null;
     [SerializeField]
     protected DXEvent exited = null;
+
+    protected override bool CheckCollision(NDCollider other, out CustomTag otherTag)
+    {
+        return base.CheckCollision(other, out otherTag) && (!(onlySolids && other.isTrigger));
+    }
 
     public override void OnTrigEnter()
     {
@@ -62,7 +70,7 @@ public class TriggerEvents : BTriggerManager
 
             if (count >= maxCollisions)
             {
-                CheckCollision(toRecover.gameObject, out CustomTag otherTag);
+                CheckCollision(toRecover, out CustomTag otherTag);
                 entered?.Invoke();
                 LaunchCustomTag(otherTag);
             }

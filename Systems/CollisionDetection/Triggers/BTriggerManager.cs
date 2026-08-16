@@ -35,7 +35,7 @@ public class BTriggerManager : BColliderInteractor
 
     void OnTriggerEnter(Collider other)
     {
-        if (IsThisEnabled() && CheckCollision(other.gameObject, out CustomTag otherTag))
+        if (IsThisEnabled() && CheckCollision(other.ND(), out CustomTag otherTag))
         {
             NDCollider enterCol = other.ND();
             int prevCount = count;
@@ -48,7 +48,7 @@ public class BTriggerManager : BColliderInteractor
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (IsThisEnabled() && CheckCollision(other.gameObject, out CustomTag otherTag))
+        if (IsThisEnabled() && CheckCollision(other.ND(), out CustomTag otherTag))
         {
             NDCollider enterCol = other.ND();
             int prevCount = count;
@@ -61,7 +61,7 @@ public class BTriggerManager : BColliderInteractor
 
     void OnTriggerExit(Collider other)
     {
-        if (IsThisEnabled() && CheckCollision(other.gameObject))
+        if (IsThisEnabled() && CheckCollision(other.ND()))
         {
             NDCollider exitCol = other.ND();
             for (int i = count - 1; i >= 0; i--)
@@ -77,7 +77,7 @@ public class BTriggerManager : BColliderInteractor
 
     void OnTriggerExit2D(Collider2D other)
     {
-        if (IsThisEnabled() && CheckCollision(other.gameObject))
+        if (IsThisEnabled() && CheckCollision(other.ND()))
         {
             NDCollider exitCol = other.ND();
             for (int i = count - 1; i >= 0; i--)

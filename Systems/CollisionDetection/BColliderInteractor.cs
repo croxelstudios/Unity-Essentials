@@ -43,12 +43,12 @@ public class BColliderInteractor : MonoBehaviour
         customTagsNullOrEmpty = customTags.IsNullOrEmpty();
     }
 
-    protected bool CheckCollision(GameObject other)
+    protected bool CheckCollision(NDCollider other)
     {
         return CheckCollision(other, out CustomTag otherTag);
     }
 
-    protected virtual bool CheckCollision(GameObject other, out CustomTag otherTag)
+    protected virtual bool CheckCollision(NDCollider other, out CustomTag otherTag)
     {
         if (CheckCollisionBase(other) && CheckCollisionCustomTag(other, out otherTag))
             return true;
@@ -57,14 +57,14 @@ public class BColliderInteractor : MonoBehaviour
         return false;
     }
 
-    bool CheckCollisionBase(GameObject other)
+    bool CheckCollisionBase(NDCollider other)
     {
         if ((tagsNullOrEmpty || detectionTags.Contains(other.tag))
             && layerMask.ContainsLayer(other.layer))
             return true;
         else if (checkRigidbodyTag)
         {
-            NDRigidbody rigid = NDRigidbody.GetNDRigidbodyFrom(other, Scope.inParents);
+            NDRigidbody rigid = NDRigidbody.GetNDRigidbodyFrom(other.gameObject, Scope.inParents);
             if ((rigid != null) && detectionTags.Contains(rigid.tag) &&
                 layerMask.ContainsLayer(rigid.layer))
                 return true;
@@ -72,14 +72,14 @@ public class BColliderInteractor : MonoBehaviour
         return false;
     }
 
-    bool CheckCollisionCustomTag(GameObject other, out CustomTag otherTag)
+    bool CheckCollisionCustomTag(NDCollider other, out CustomTag otherTag)
     {
         otherTag = null;
         if (customTagsNullOrEmpty)
             return true;
         else foreach (CustomTagItems customTag in customTags)
         //TO DO: It causes issues when the object is deactivated in the same physics step?
-                if (customTag.Check(other, out CustomTag targetTag))
+                if (customTag.Check(other.gameObject, out CustomTag targetTag))
                 {
                     otherTag = targetTag;
                     return true;

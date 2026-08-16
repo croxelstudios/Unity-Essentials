@@ -85,7 +85,7 @@ public class BCollisionManager : BColliderInteractor
     public void CollisionStay(NDCollision collision)
     {
         if (IsThisEnabled() /*&& (minImpact > Mathf.Epsilon)*/ &&
-            CheckCollision(collision.gameObject, out CustomTag otherTag) &&
+            CheckCollision(collision.collider, out CustomTag otherTag) &&
             CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
             OnColEnter(points, impact);
@@ -96,7 +96,7 @@ public class BCollisionManager : BColliderInteractor
     public void CollisionEnter(NDCollision collision)
     {
         if (IsThisEnabled() &&
-            CheckCollision(collision.gameObject, out CustomTag otherTag) &&
+            CheckCollision(collision.collider, out CustomTag otherTag) &&
             CheckImpact(collision, out NDContactPoint[] points, out float impact))
         {
             int prevCount = collisions.Count;
@@ -110,7 +110,7 @@ public class BCollisionManager : BColliderInteractor
 
     public void CollisionExit(NDCollision collision)
     {
-        if (IsThisEnabled() && CheckCollision(collision.gameObject))
+        if (IsThisEnabled() && CheckCollision(collision.collider))
         {
             collisions.Remove(collision.collider);
             if (collisions.Count == 0) OnLastColExit();
