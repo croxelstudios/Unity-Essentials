@@ -77,11 +77,15 @@ public class CustomRenderer : MonoBehaviour
 
     public virtual bool IsVisible(int id, float maxFar)
     {
+        if (this == null)
+            return false;
         return enabled;
     }
 
     public virtual bool IsVisible(int id, bool excludeShadowCasters = false)
     {
+        if (this == null)
+            return false;
         return enabled;
     }
 

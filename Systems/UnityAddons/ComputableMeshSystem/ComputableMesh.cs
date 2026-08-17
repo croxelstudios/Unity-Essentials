@@ -457,7 +457,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         set { mesh.name = value; }
     }
 
-    public Bounds bounds { get { return mesh.bounds; } }
+    public Bounds bounds { get { return mesh.bounds; } set { mesh.bounds = value; } }
 
     public int indexCount { get { return (int)mesh.GetIndexCount(0); } }
 

@@ -19,32 +19,34 @@ public static class BoundsExtension_Transform
         //one applied by unity to the renderer when scaling a parent
         //of a rotated object, but the one used by unity results in
         //completely broken bounds, so this might be better.
-        Bounds nBounds = new Bounds(bounds.center + position, bounds.size);
+        Vector3 exRTF = bounds.GetCorner(BoundsCorner.RTF);
+        Vector3 exRTB = bounds.GetCorner(BoundsCorner.RTB);
+        Vector3 exRBF = bounds.GetCorner(BoundsCorner.RBF);
+        Vector3 exLTF = bounds.GetCorner(BoundsCorner.LTF);
+        Vector3 exLBB = bounds.GetCorner(BoundsCorner.LBB);
+        Vector3 exLBF = bounds.GetCorner(BoundsCorner.LBF);
+        Vector3 exLTB = bounds.GetCorner(BoundsCorner.LTB);
+        Vector3 exRBB = bounds.GetCorner(BoundsCorner.RBB);
 
-        Vector3 exRTF = nBounds.extents;
-        Vector3 exRTB = Vector3.Scale(nBounds.extents, new Vector3(1, 1, -1));
-        Vector3 exRBF = Vector3.Scale(nBounds.extents, new Vector3(1, -1, 1));
-        Vector3 exLTF = Vector3.Scale(nBounds.extents, new Vector3(-1, 1, 1));
+        Vector3 cornerRTF = rotation * Vector3.Scale(exRTF, scale);
+        Vector3 cornerRTB = rotation * Vector3.Scale(exRTB, scale);
+        Vector3 cornerRBF = rotation * Vector3.Scale(exRBF, scale);
+        Vector3 cornerLTF = rotation * Vector3.Scale(exLTF, scale);
+        Vector3 cornerLBB = rotation * Vector3.Scale(exLBB, scale);
+        Vector3 cornerLBF = rotation * Vector3.Scale(exLBF, scale);
+        Vector3 cornerLTB = rotation * Vector3.Scale(exLTB, scale);
+        Vector3 cornerRBB = rotation * Vector3.Scale(exRBB, scale);
 
-        Vector3 cornerRTF = (rotation * Vector3.Scale(exRTF, scale));
-        Vector3 cornerRTB = (rotation * Vector3.Scale(exRTB, scale));
-        Vector3 cornerRBF = (rotation * Vector3.Scale(exRBF, scale));
-        Vector3 cornerLTF = (rotation * Vector3.Scale(exLTF, scale));
-        Vector3 cornerLBB = -cornerRTF;
-        Vector3 cornerLBF = -cornerRTB;
-        Vector3 cornerLTB = -cornerRBF;
-        Vector3 cornerRBB = -cornerLTF;
+        cornerLBB += position;
+        cornerLBF += position;
+        cornerLTB += position;
+        cornerRBB += position;
+        cornerRTF += position;
+        cornerRTB += position;
+        cornerRBF += position;
+        cornerLTF += position;
 
-        cornerLBB += nBounds.center;
-        cornerLBF += nBounds.center;
-        cornerLTB += nBounds.center;
-        cornerRBB += nBounds.center;
-        cornerRTF += nBounds.center;
-        cornerRTB += nBounds.center;
-        cornerRBF += nBounds.center;
-        cornerLTF += nBounds.center;
-
-        nBounds = new Bounds(cornerRTF, Vector3.zero);
+        Bounds nBounds = new Bounds(cornerRTF, Vector3.zero);
         nBounds.Encapsulate(cornerRTB);
         nBounds.Encapsulate(cornerRBF);
         nBounds.Encapsulate(cornerLTF);
