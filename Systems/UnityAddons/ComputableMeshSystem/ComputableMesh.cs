@@ -24,6 +24,10 @@ public class ComputableBase<T> : Wrapper, IDisposable where T : Object
         return null;
     }
 
+    public virtual void BakeToCPU()
+    {
+    }
+
     public virtual T GetValue()
     {
         return null;
@@ -113,6 +117,12 @@ public class ComputableMesh : ComputableBase<Mesh>
     {
         indexBuf ??= mesh.GetIndexBuffer();
         return indexBuf;
+    }
+
+    public override void BakeToCPU()
+    {
+        BakeVertexDataToCPU();
+        BakeIndexDataToCPU();
     }
 
     #region Initialize
@@ -1035,19 +1045,19 @@ public class ComputableMesh : ComputableBase<Mesh>
             (indexCount / 3f) / Numthreads_Small), 1, 1);
     }
 
-    public void UpdateVertexDataToCPU()
+    public void BakeVertexDataToCPU()
     {
         VertexData[] vertices = new VertexData[vertexCount];
-        vertexBuf.GetData(vertices);
+        vertexBuffer.GetData(vertices);
         for (int i = 0; i < vertices.Length; i++)
             vertexData[i] = vertices[i];
         UpdateVertexData();
     }
 
-    public void UpdateIndexDataToCPU()
+    public void BakeIndexDataToCPU()
     {
         uint[] indices = new uint[totalIndexCount];
-        indexBuf.GetData(indices);
+        indexBuffer.GetData(indices);
         int prev = 0;
         int tri = 0;
         for (int i = 0; i < indices.Length; i++)
@@ -1060,12 +1070,6 @@ public class ComputableMesh : ComputableBase<Mesh>
             triangleData[tri][i - prev] = indices[i];
         }
         UpdateTrianglesData();
-    }
-
-    public void UpdateMeshDataToCPU()
-    {
-        UpdateVertexDataToCPU();
-        UpdateIndexDataToCPU();
     }
 
     public void SetNull()
@@ -1280,6 +1284,11 @@ public class ComputableSprite : ComputableBase<Sprite>
     public override GraphicsBuffer IndexBuffer()
     {
         return mesh.indexBuffer;
+    }
+
+    public override void BakeToCPU()
+    {
+        mesh.BakeToCPU();
     }
 
     public void Initialize(Sprite spriteToCopy, string name)

@@ -407,6 +407,19 @@ public class Renderizable : Wrapper
         }
     }
 
+    public bool HasCustomRenderTime()
+    {
+        switch (rendType)
+        {
+            case RendType.Renderer:
+                return false;
+            case RendType.Custom:
+                return customRenderer.HasCustomRenderTime();
+            default:
+                return false;
+        }
+    }
+
 #if UNITY_EDITOR
     public void RecordGameObjectModificationsFromPrefab()
     {

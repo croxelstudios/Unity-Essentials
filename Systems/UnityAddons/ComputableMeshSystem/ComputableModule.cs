@@ -163,19 +163,10 @@ public static class ComputableModule
         }
     }
 
-    public static bool IsRendererCullable(GameObject obj)
+    public static bool HasCustomRenderTime(GameObject obj)
     {
-        switch (RendererType(obj))
-        {
-            case RenType.Filter:
-                return true;
-            case RenType.Sprite:
-                return true;
-            case RenType.Custom:
-                return false;
-            default:
-                return false;
-        }
+        Renderizable renderizable = Renderizable.Get(obj);
+        return renderizable.HasCustomRenderTime();
     }
 
     public static RenType RendererType(GameObject obj)

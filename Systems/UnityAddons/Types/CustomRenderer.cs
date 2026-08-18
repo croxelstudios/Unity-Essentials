@@ -89,17 +89,20 @@ public class CustomRenderer : MonoBehaviour
         return enabled;
     }
 
+    public virtual bool HasCustomRenderTime()
+    {
+        return false;
+    }
+
     public void AddStartAction(UnityAction action)
     {
-        if (startRendering == null)
-            startRendering = new UnityEvent();
+        startRendering = startRendering.CreateIfNull();
         startRendering.AddListener(action);
     }
 
     public void AddFinishAction(UnityAction action)
     {
-        if (finishedRendering == null)
-            finishedRendering = new UnityEvent();
+        finishedRendering = finishedRendering.CreateIfNull();
         finishedRendering.AddListener(action);
     }
 

@@ -110,10 +110,10 @@ public static class ProcMesh
         Vector3 vtr = new Vector3(0.5f, 0.5f, 0f);
         Vector3 vtl = new Vector3(-0.5f, 0.5f, 0f);
 
-        br = transform.MultiplyPoint(vbr);
-        bl = transform.MultiplyPoint(vbl);
-        tr = transform.MultiplyPoint(vtr);
-        tl = transform.MultiplyPoint(vtl);
+        br = transform.MultiplyPoint3x4(vbr);
+        bl = transform.MultiplyPoint3x4(vbl);
+        tr = transform.MultiplyPoint3x4(vtr);
+        tl = transform.MultiplyPoint3x4(vtl);
 
         Vector3 normal = Vector3.Cross(br - bl, tl - bl);
         nbr = normal;
@@ -266,9 +266,9 @@ public static class ProcMesh
         Vector3 vtl = new Vector3(-0.5f, 1.5f, 0f);
         Vector3 vbr = new Vector3(1.5f, -0.5f, 0f);
 
-        bl = transform.MultiplyPoint(vbl);
-        tl = transform.MultiplyPoint(vtl);
-        br = transform.MultiplyPoint(vbr);
+        bl = transform.MultiplyPoint3x4(vbl);
+        tl = transform.MultiplyPoint3x4(vtl);
+        br = transform.MultiplyPoint3x4(vbr);
 
         Vector3 normal = Vector3.Cross(tl - bl, br - bl).normalized;
         nbl = normal;
@@ -324,7 +324,7 @@ public static class ProcMesh
         where T : IList<Vector3>
     {
         for (int i = 0; i < vertices.Count; i++)
-            vertices[i] = transform.MultiplyPoint(mesh.vertices[i]);
+            vertices[i] = transform.MultiplyPoint3x4(mesh.vertices[i]);
     }
 
     public static void PositionArbitraryMesh<T>(Mesh mesh, ref T vertices, ref T normals,
@@ -333,9 +333,7 @@ public static class ProcMesh
     {
         for (int i = 0; i < vertices.Count; i++)
         {
-            Vector3 offset =
-                Vector3.Scale(localOffset, mesh.bounds.extents + mesh.bounds.center.Abs());
-            vertices[i] = transform.MultiplyPoint(mesh.vertices[i] + offset);
+            vertices[i] = transform.MultiplyPoint3x4(mesh.vertices[i] + localOffset);
             normals[i] = transform.rotation * mesh.normals[i];
         }
     }
