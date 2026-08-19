@@ -234,7 +234,10 @@ public static class ReflectionTools
             //else
             if (list is IEnumerable)
             {
-                return ((IList)list)[index];
+                IList l = (IList)list;
+                if (index.IsBetween(0, l.Count))
+                    return ((IList)list)[index];
+                else return null;
             }
         }
         else
@@ -250,7 +253,10 @@ public static class ReflectionTools
                 //else
                 if (list is IEnumerable)
                 {
-                    return ((IList)list)[index];
+                    IList l = (IList)list;
+                    if (index.IsBetween(0, l.Count))
+                        return ((IList)list)[index];
+                    else return null;
                 }
             }
         }

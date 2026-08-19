@@ -209,7 +209,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         SerializedObject serializedObject = property.serializedObject;
 
         NamedListAttribute att = attribute as NamedListAttribute;
-        SerializedProperty names = GetNamesProp(property, att.propPath);
+        SerializedProperty[] names = GetNameProps(property, att.propPath, out SerializedProperty namesArray);
         ReorderableOperation.ArraySizeChangeDelegate[] methods = 
             GetMethodProp(serializedObject.targetObject, att.sizeChangedMethodNames);
         bool draggable = att.draggable;
@@ -218,11 +218,11 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         ReorderableOperation operation;
         if (!reorderableLists.TryGetValue(propertyData, out operation))
         {
-            operation = new ReorderableOperation(property, names, draggable, hideHeader, methods);
+            operation = new ReorderableOperation(property, names, namesArray, draggable, hideHeader, methods);
             reorderableLists.Add(propertyData, operation);
             serializedObject.ApplyModifiedProperties();
         }
-        property.arraySize = names.arraySize;
+        property.arraySize = names.Length;
         lastFrame.Set(propertyData, EditorTime.frameCount);
         return operation;
     }
@@ -244,28 +244,30 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         return result;
     }
 
-    static SerializedProperty GetNamesProp(SerializedProperty property, string propPath)
+    static SerializedProperty[] GetNameProps(SerializedProperty property, string propPath, out SerializedProperty namesArray)
     {
-        SerializedObject obj = property.serializedObject;
-        return obj.GetSerializedProperty(propPath);
+        SerializedProperty obj = property.GetParent();
+        return obj.GetSerializedProperties(propPath, out namesArray);
     }
 
     public class ReorderableOperation
     {
         SerializedProperty array;
         SerializedObject serializedObject;
-        SerializedProperty names;
+        SerializedProperty[] names;
+        SerializedProperty namesArray;
         ReorderableList list;
         int lastIndex;
         public event ArraySizeChangeDelegate onArraySizeChange;
         public delegate void ArraySizeChangeDelegate(int size);
 
-        public ReorderableOperation(SerializedProperty property, SerializedProperty names,
+        public ReorderableOperation(SerializedProperty property, SerializedProperty[] names, SerializedProperty namesArray,
             bool draggable = true, bool hideHeader = false, ArraySizeChangeDelegate[] sizeChangeMethods = null)
         {
             array = property;
             serializedObject = property.serializedObject;
             this.names = names;
+            this.namesArray = namesArray;
             list = null;
             lastIndex = 0;
             onArraySizeChange = null;
@@ -318,7 +320,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
             float propertyHeight;
             if (element.isExpanded)
             {
-                propertyHeight = EditorGUI.GetPropertyHeight(names.GetArrayElementAtIndex(index));
+                propertyHeight = EditorGUI.GetPropertyHeight(names[index]);
 
                 if ((element.type == typeof(UnityEvent).Name) ||
                     (element.type == typeof(DXEvent).Name)) //TO DO: Very crappy
@@ -344,7 +346,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             SerializedProperty element = list.serializedProperty.GetArrayElementAtIndex(index);
-            SerializedProperty elementName = names.GetArrayElementAtIndex(index);
+            SerializedProperty elementName = names[index];
             rect.y += 2;
 
             //We get the name property of our element so we can display this in our list
@@ -412,24 +414,24 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         void OnReorderList(ReorderableList list)
         {
             #region Reorder names
-            string selectedString = names.GetArrayElementAtIndex(lastIndex).stringValue;
+            string selectedString = names[lastIndex].stringValue;
             if (list.index > lastIndex)
             {
                 for (int i = lastIndex + 1; i <= list.index; i++)
                 {
-                    names.GetArrayElementAtIndex(i - 1).stringValue =
-                        names.GetArrayElementAtIndex(i).stringValue;
+                    names[i - 1].stringValue =
+                        names[i].stringValue;
                 }
             }
             else if (list.index < lastIndex)
             {
                 for (int i = lastIndex - 1; i >= list.index; i--)
                 {
-                    names.GetArrayElementAtIndex(i + 1).stringValue =
-                        names.GetArrayElementAtIndex(i).stringValue;
+                    names[i + 1].stringValue =
+                        names[i].stringValue;
                 }
             }
-            names.GetArrayElementAtIndex(list.index).stringValue = selectedString;
+            names[list.index].stringValue = selectedString;
             #endregion
 
             lastIndex = list.index;
@@ -439,7 +441,8 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
         void OnAddElement(ReorderableList list)
         {
-            names.arraySize++;
+            namesArray.arraySize++;
+
             new ReorderableList.Defaults().DoAddButton(list);
 
             lastIndex = list.index;
@@ -450,7 +453,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
         void OnRemoveElement(ReorderableList list)
         {
-            names.DeleteArrayElementAtIndex(lastIndex);
+            namesArray.DeleteArrayElementAtIndex(lastIndex);
 
             new ReorderableList.Defaults().DoRemoveButton(list);
 

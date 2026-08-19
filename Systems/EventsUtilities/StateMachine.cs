@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using System;
 using Sirenix.OdinInspector;
-using Mono.CSharp;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -68,7 +66,6 @@ public class StateMachine : MonoBehaviour
         for (int i = 0; i < states.Length; i++)
         {
             states[i].name = connectedStateMachine.states[i].name;
-            states[i].SetStateMachine(this);
             stateNames[i] = states[i].name;
         }
     }
@@ -85,7 +82,6 @@ public class StateMachine : MonoBehaviour
             states = new State[1];
             states[0].name = "Default";
             stateNames = new string[1] { states[0].name };
-            states[0].SetStateMachine(this);
         }
 
         if (!wasprevStateUpdated)
@@ -110,7 +106,6 @@ public class StateMachine : MonoBehaviour
                 if (i < connectedStateMachine.states.Length)
                     newStates[i] = connectedStateMachine.states[i];
                 newStates[i].name = states[i].name;
-                newStates[i].SetStateMachine(connectedStateMachine);
             }
             connectedStateMachine.states = newStates;
             connectedStateMachine.OnValidate();
@@ -203,10 +198,7 @@ public class StateMachine : MonoBehaviour
     {
         stateNames = new string[states.Length];
         for (int i = 0; i < states.Length; i++)
-        {
             stateNames[i] = states[i].name;
-            states[i].SetStateMachine(this);
-        }
     }
 
     public void ClampCurrentState()
@@ -227,7 +219,6 @@ public class StateMachine : MonoBehaviour
     public struct State
     {
         public string name;
-        StateMachine parentMachine;
         public GameObject[] linkedObjects;
         //TO DO: Add bool array property to reverse objects activation.
         //This should appear as a struct with the object and the bool
@@ -237,7 +228,7 @@ public class StateMachine : MonoBehaviour
         [FoldoutGroup("@FoldoutName(\"Enter Exit Events\")")]
         public DXEvent exit;
         [FoldoutGroup("@FoldoutName(\"State-dependant Events\", events)")]
-        [NamedList("parentMachine.eventNames", false, true)]
+        [NamedList("/.eventNames", false, true)]
         [SerializeField] public byte _foo;
         [HideInInspector]
         public DXEvent[] events;
@@ -245,17 +236,11 @@ public class StateMachine : MonoBehaviour
         public State(string name, StateMachine parentMachine)
         {
             this.name = name;
-            this.parentMachine = parentMachine;
             linkedObjects = new GameObject[0];
             enter = null;
             exit = null;
             events = null;
             _foo = 0;
-        }
-
-        public void SetStateMachine(StateMachine parentMachine)
-        {
-            this.parentMachine = parentMachine;
         }
 
 #if UNITY_EDITOR

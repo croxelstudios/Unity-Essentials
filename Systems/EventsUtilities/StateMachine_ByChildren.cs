@@ -33,10 +33,7 @@ public class StateMachine_ByChildren : StateMachine
         if (states == null) states = new State[0];
         states = states.Resize(transform.childCount);
         for (int i = 0; i < states.Length; i++)
-        {
-            states[i].SetStateMachine(this);
             states[i].name = transform.GetChild(i).name;
-        }
         SyncNames();
         EditorUtility.SetDirty(this);
         PrefabUtility.RecordPrefabInstancePropertyModifications(this);
