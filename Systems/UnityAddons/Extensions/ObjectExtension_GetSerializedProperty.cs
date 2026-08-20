@@ -5,31 +5,42 @@ using UnityEngine;
 public static class ObjectExtension_GetSerializedProperty
 {
     public static SerializedProperty GetSerializedProperty(
-        this SerializedProperty serializedProperty, string compoundName)
+        this SerializedProperty serializedProperty, string compoundName, bool useReflectionToSkipNonSerialized = true)
     {
         string[] propStructure = GetPropStructure(ref serializedProperty, compoundName);
-
-        if (TryGetSerializedProperty(ref serializedProperty, ref propStructure))
-            return serializedProperty;
-        else return null;
+        return GetSerializedProperty(serializedProperty, propStructure, useReflectionToSkipNonSerialized);
     }
 
     public static SerializedProperty GetSerializedProperty(
-        this SerializedObject serializedObject, string compoundName)
+        this SerializedObject serializedObject, string compoundName, bool useReflectionToSkipNonSerialized = true)
     {
-        return serializedObject.GetIterator().GetSerializedProperty(compoundName);
+        return serializedObject.GetIterator().GetSerializedProperty(compoundName, useReflectionToSkipNonSerialized);
     }
 
     public static SerializedProperty GetSerializedProperty(
-        this Object obj, string compoundName)
+        this Object obj, string compoundName, bool useReflectionToSkipNonSerialized = true)
     {
         SerializedObject serializedObject = new SerializedObject(obj);
-        return serializedObject.GetSerializedProperty(compoundName);
+        return serializedObject.GetSerializedProperty(compoundName, useReflectionToSkipNonSerialized);
+    }
+
+    public static SerializedProperty GetSerializedProperty(
+        this SerializedProperty serializedProperty, string[] propStructure, bool useReflectionToSkipNonSerialized = true)
+    {
+        if (TryGetSerializedProperty(ref serializedProperty, ref propStructure))
+            return serializedProperty;
+        else if (useReflectionToSkipNonSerialized && !propStructure.IsNullOrEmpty())
+            return ReflectionTools.FirstSerializableInPath(serializedProperty, ref propStructure)?.
+                GetSerializedProperty(propStructure, true);
+        else return null;
     }
 
     static bool TryGetSerializedProperty(
         ref SerializedProperty serializedProperty, ref string[] propStructure)
     {
+        if (propStructure.IsNullOrEmpty())
+            return true;
+
         int i = 0;
         for (; i < propStructure.Length; i++)
         {
@@ -72,12 +83,20 @@ public static class ObjectExtension_GetSerializedProperty
         return compoundName.Split('.');
     }
 
-    public static SerializedProperty[] GetSerializedProperties(this SerializedProperty serializedProperty, string compoundName, out SerializedProperty arraySource)
+    public static SerializedProperty[] GetSerializedProperties(this SerializedProperty serializedProperty, string compoundName,
+        out SerializedProperty arraySource, bool useReflectionToSkipNonSerialized = true)
     {
         string[] propStructure = GetPropStructure(ref serializedProperty, compoundName);
+        return serializedProperty.GetSerializedProperties(propStructure, out arraySource, useReflectionToSkipNonSerialized);
+    }
+
+    public static SerializedProperty[] GetSerializedProperties(this SerializedProperty serializedProperty, string[] propStructure,
+        out SerializedProperty arraySource, bool useReflectionToSkipNonSerialized = true)
+    {
         arraySource = null;
 
         bool completedPath = TryGetSerializedProperty(ref serializedProperty, ref propStructure);
+        bool tryReflection = false;
         if (serializedProperty.isArray)
         {
             arraySource = serializedProperty;
@@ -85,20 +104,28 @@ public static class ObjectExtension_GetSerializedProperty
             SerializedProperty[] result = new SerializedProperty[serializedProperty.arraySize];
             for (int i = 0; i < result.Length; i++)
             {
+                SerializedProperty subProp = serializedProperty.GetArrayElementAtIndex(i);
                 if (completedPath)
-                    result[i] = serializedProperty.GetArrayElementAtIndex(i);
+                    result[i] = subProp;
                 else
                 {
-                    SerializedProperty subProp = serializedProperty.GetArrayElementAtIndex(i);
-                    string[] propStruct = new string[propStructure.Length];
-                    propStructure.CopyTo(propStruct, 0);
+                    string[] propStruct = propStructure.CreateCopy();
                     if (TryGetSerializedProperty(ref subProp, ref propStruct))
                         result[i] = subProp;
+                    else if (useReflectionToSkipNonSerialized && !propStruct.IsNullOrEmpty())
+                        result[i] = ReflectionTools.FirstSerializableInPath(subProp, ref propStruct)?.
+                            GetSerializedProperty(propStruct, true);
                 }
             }
             return result;
         }
-        else return null;
+        else tryReflection = true;
+
+        if (tryReflection && useReflectionToSkipNonSerialized && !propStructure.IsNullOrEmpty())
+            return ReflectionTools.FirstSerializableInPath(serializedProperty, ref propStructure)?.
+                GetSerializedProperties(propStructure, out arraySource, true);
+
+        return null;
     }
 
     public static SerializedProperty[] GetSerializedProperties(this SerializedObject serializedObject, string compoundName, out SerializedProperty arraySource)

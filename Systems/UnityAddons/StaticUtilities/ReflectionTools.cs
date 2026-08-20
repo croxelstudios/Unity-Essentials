@@ -3,13 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 #if UNITY_EDITOR
 using UnityEditor;
+using Object = UnityEngine.Object;
 #endif
 
 public static class ReflectionTools
 {
-    static Dictionary<object, Dictionary<string, ObjectInfo>> cachedObjectInfo = new Dictionary<object, Dictionary<string, ObjectInfo>>();
+    static Dictionary<object, Dictionary<string, ObjectInfo>> cachedObjectInfo;
+    static Dictionary<object, Dictionary<string, (ObjectInfo, ObjectInfo[])>> cachedObjectInfos;
     public struct ObjectInfo
     {
         public FieldInfo fieldInfo;
@@ -35,6 +38,13 @@ public static class ReflectionTools
             if (fieldInfo != null) return fieldInfo;
             else return propInfo;
         }
+
+        public Type Type()
+        {
+            if (fieldInfo != null) return fieldInfo.FieldType;
+            else if (propInfo != null) return propInfo.PropertyType;
+            else return null;
+        }
     }
 
     public static T GetValue<T>(object inObj, string fieldPath, bool cacheObjectInfo = true)
@@ -47,8 +57,7 @@ public static class ReflectionTools
     public static object GetFieldValue(object inObj, string fieldPath, bool cacheObjectInfo = true)
     {
         /*
-        fieldPath = fieldPath.Replace(".Array.data", "");
-        string[] fieldStructure = fieldPath.Split('.');
+        string[] fieldStructure = GetFieldStructure(fieldPath);
         for (int i = 0; i < fieldStructure.Length; i++)
         {
             string text = fieldStructure[i].BreakDownArrayVariableName(out int index);
@@ -84,27 +93,11 @@ public static class ReflectionTools
         if (cachedObjectInfo.SmartGetValue(inObj, fieldPath, out ObjectInfo result))
             return result;
 
-        fieldPath = fieldPath.Replace(".Array.data", "");
-        string[] fieldStructure = fieldPath.Split('.');
-        for (int i = 0; i < fieldStructure.Length - 1; i++)
-        {
-            string txt = fieldStructure[i].BreakDownArrayVariableName(out int ind);
-            if (ind >= 0) inObj = GetFieldValueWithIndex(txt, inObj, ind);
-            else inObj = GetFieldValue(txt, inObj);
-            if (inObj == null)
-                return new ObjectInfo();
-        }
+        string[] fieldStructure = GetFieldStructure(fieldPath);
 
-        string fieldName = fieldStructure.Last();
-
-        fieldName = fieldName.BreakDownArrayVariableName(out int index);
-
-        FieldInfo fieldInfo = GetField(fieldName, inObj, bindings);
-        PropertyInfo propInfo = null;
-        if (fieldInfo == null)
-            propInfo = GetProperty(fieldName, inObj, bindings);
-
-        return new ObjectInfo(fieldInfo, propInfo, inObj, index);
+        if (TryGetObjectInfo(ref inObj, ref fieldStructure, out result, bindings))
+            return result;
+        else return new ObjectInfo();
     }
 
     static ObjectInfo GetCachedInfo(object inObj, string fieldPath)
@@ -127,10 +120,170 @@ public static class ReflectionTools
         return objectInfo;
     }
 
+    public static T[] GetValues<T>(object inObj, string fieldPath, out ObjectInfo arraySource, bool cacheObjectInfo = true)
+    {
+        object[] obj = GetFieldValues(inObj, fieldPath, out arraySource, cacheObjectInfo);
+        if (obj == null) return null;
+
+        T[] result = new T[obj.Length];
+        for (int i = 0; i < obj.Length; i++)
+        {
+            if (obj[i] == null) result[i] = default;
+            else result[i] = (T)obj[i];
+        }
+        return result;
+    }
+
+    public static object[] GetFieldValues(object inObj, string fieldPath, out ObjectInfo arraySource, bool cacheObjectInfo = true)
+    {
+        ObjectInfo[] objectInfos;
+        if (!cacheObjectInfo)
+            objectInfos = GetObjectInfos(inObj, fieldPath, out arraySource);
+        else
+            objectInfos = GetCachedInfos(inObj, fieldPath, out arraySource);
+
+        object[] objects = new object[objectInfos.Length];
+        for (int i = 0; i < objectInfos.Length; i++)
+            objects[i] = GetFieldValue(objectInfos[i]);
+
+        return objects;
+    }
+
+    public static bool SetValues<T>(object inObj, string fieldPath, T[] newValues, bool cacheObjectInfo = true)
+    {
+        object[] objArray = new object[newValues.Length];
+        for (int i = 0; i < newValues.Length; i++)
+            objArray[i] = newValues[i];
+        return SetFieldValues(inObj, fieldPath, objArray, cacheObjectInfo);
+    }
+
+    public static bool SetFieldValues(object inObj, string fieldPath, object[] newValues, bool cacheObjectInfo = true)
+    {
+        ObjectInfo arraySourceInfo;
+        ObjectInfo[] objectInfos;
+        if (!cacheObjectInfo)
+            objectInfos = GetObjectInfos(inObj, fieldPath, out arraySourceInfo);
+        else
+            objectInfos = GetCachedInfos(inObj, fieldPath, out arraySourceInfo);
+
+        bool wasSet = false;
+        for (int i = 0; i < objectInfos.Length; i++)
+            if (SetFieldValue(objectInfos[i], newValues[i]))
+                wasSet = true;
+
+        return wasSet;
+    }
+
+    public static ObjectInfo[] GetObjectInfos(object inObj, string fieldPath, out ObjectInfo arraySource)
+    {
+        if (cachedObjectInfos.SmartGetValue(inObj, fieldPath, out (ObjectInfo, ObjectInfo[]) tupla))
+        {
+            arraySource = tupla.Item1;
+            return tupla.Item2;
+        }
+
+        string[] fieldStructure = GetFieldStructure(fieldPath);
+
+        bool completedPath = TryGetObjectInfo(ref inObj, ref fieldStructure, out arraySource);
+        if (arraySource.Type().IsOrInheritsFrom(typeof(ICollection)))
+        {
+            if (GetFieldValue(arraySource) is not ICollection collection)
+                return new ObjectInfo[0];
+
+            ObjectInfo[] result = new ObjectInfo[collection.Count];
+            for (int i = 0; i < result.Length; i++)
+            {
+                ObjectInfo subObj = new ObjectInfo(arraySource.fieldInfo, arraySource.propInfo, arraySource.obj, i);
+                if (completedPath)
+                    result[i] = subObj;
+                else
+                {
+                    string[] propStruct = fieldStructure.CreateCopy();
+                    if (TryGetObjectInfo(ref subObj.obj, ref propStruct, out subObj))
+                        result[i] = subObj;
+                }
+            }
+            return result;
+        }
+        else return null;
+    }
+
+    static ObjectInfo[] GetCachedInfos(object inObj, string fieldPath, out ObjectInfo arraySource)
+    {
+        cachedObjectInfos = cachedObjectInfos.CreateIfNull_StaticPersistent();
+        if (!cachedObjectInfos.TryGetValue(inObj, out Dictionary<string, (ObjectInfo, ObjectInfo[])> dict)
+            || (dict == null))
+        {
+            dict = new Dictionary<string, (ObjectInfo, ObjectInfo[])>();
+            cachedObjectInfos.Add(inObj, new Dictionary<string, (ObjectInfo, ObjectInfo[])>());
+        }
+        if (!dict.TryGetValue(fieldPath, out (ObjectInfo, ObjectInfo[]) objectInfos)
+            || (objectInfos.Item1.fieldInfo == null) || objectInfos.Item2.IsNullOrEmpty())
+        {
+            objectInfos.Item2 = GetObjectInfos(inObj, fieldPath, out objectInfos.Item1);
+            if (!(objectInfos.Item1.IsNull() || objectInfos.Item2.IsNullOrEmpty()))
+                dict.Set(fieldPath, objectInfos);
+        }
+        arraySource = objectInfos.Item1;
+        return objectInfos.Item2;
+    }
+
+    static bool TryGetObjectInfo(
+        ref object parent, ref string[] propStructure, out ObjectInfo info,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+    {
+        if (propStructure.IsNullOrEmpty())
+        {
+            info = new ObjectInfo(null, null, parent, -1);
+            return true;
+        }
+
+        FieldInfo field = null;
+        PropertyInfo property = null;
+        int index = -1;
+
+        int i = 0;
+        object next = parent;
+        for (; i < propStructure.Length; i++)
+        {
+            if (next == null) break;
+            parent = next;
+            next = null;
+
+            string name = propStructure[i].BreakDownArrayVariableName(out index);
+
+            field = GetField(name, parent, bindings);
+            property = null;
+            if (field != null)
+                next = GetFieldValue(field, parent, index);
+            else
+            {
+                property = GetProperty(name, parent, bindings);
+                if (property != null)
+                    next = GetPropertyValue(property, parent, index);
+            }
+        }
+
+        info = new ObjectInfo(field, property, parent, index);
+
+        if (i >= propStructure.Length)
+        {
+            propStructure = new string[0];
+            return true;
+        }
+        else
+        {
+            string[] newPropStructure = new string[propStructure.Length - i];
+            for (int j = 0; j < newPropStructure.Length; j++)
+                newPropStructure[j] = propStructure[i + j];
+            propStructure = newPropStructure;
+            return false;
+        }
+    }
+
     public static Type GetType(object inObj, string fieldPath)
     {
-        fieldPath = fieldPath.Replace(".Array.data", "");
-        string[] fieldStructure = fieldPath.Split('.');
+        string[] fieldStructure = GetFieldStructure(fieldPath);
         Type type = null;
         for (int i = 0; i < fieldStructure.Length; i++)
         {
@@ -150,13 +303,13 @@ public static class ReflectionTools
     {
         ObjectInfo objectInfo;
         if (!cacheObjectInfo)
-            objectInfo = GetObjectInfo(inObj, fieldPath);
+            objectInfo = GetObjectInfo(inObj, fieldPath, bindings);
         else
-            objectInfo = GetCachedInfo(inObj, fieldPath);
+            objectInfo = GetCachedInfo(inObj, fieldPath); //TO DO: Bindings??
         return objectInfo.MemberInfo();
     }
 
-    private static FieldInfo GetField(string fieldName, object obj,
+    static FieldInfo GetField(string fieldName, object obj,
         BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
     {
         Type originType = obj?.GetType();
@@ -175,10 +328,10 @@ public static class ReflectionTools
         return default;
     }
 
-    private static PropertyInfo GetProperty(string fieldName, object obj,
+    static PropertyInfo GetProperty(string fieldName, object obj,
         BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
     {
-        Type type = obj.GetType();
+        Type type = obj?.GetType();
         PropertyInfo property;
         do
         {
@@ -207,7 +360,7 @@ public static class ReflectionTools
         return methodInfo.CreateDelegate(typeof(T), obj) as T;
     }
 
-    private static object GetFieldValue(string fieldName, object obj,
+    public static object GetFieldValue(string fieldName, object obj,
         BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
     {
         FieldInfo field = GetField(fieldName, obj, bindings);
@@ -220,50 +373,52 @@ public static class ReflectionTools
         return default;
     }
 
-    private static object GetFieldValueWithIndex(string fieldName, object obj, int index,
+    public static object GetFieldValue(string fieldName, object obj, int index,
         BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
     {
         FieldInfo field = GetField(fieldName, obj, bindings);
         if (field != null)
-        {
-            object list = field.GetValue(obj);
-            //if (list.GetType().IsArray)
-            //{
-            //    return ((object[])list)[index];
-            //}
-            //else
-            if (list is IEnumerable)
-            {
-                IList l = (IList)list;
-                if (index.IsBetween(0, l.Count))
-                    return ((IList)list)[index];
-                else return null;
-            }
-        }
+            return GetFieldValue(field, obj, index, bindings);
         else
         {
             PropertyInfo property = GetProperty(fieldName, obj, bindings);
             if (property != null)
-            {
-                object list = property.GetValue(obj);
-                //if (list.GetType().IsArray)
-                //{
-                //    return ((object[])list)[index];
-                //}
-                //else
-                if (list is IEnumerable)
-                {
-                    IList l = (IList)list;
-                    if (index.IsBetween(0, l.Count))
-                        return ((IList)list)[index];
-                    else return null;
-                }
-            }
+                return GetPropertyValue(property, obj, index, bindings);
         }
         return default;
     }
 
-    private static object GetFieldValue(ObjectInfo info,
+    static object GetFieldValue(FieldInfo fieldInfo, object obj, int index,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+    {
+        if (fieldInfo != null)
+        {
+            object list = fieldInfo.GetValue(obj);
+            if (index < 0)
+                return list;
+            else if ((list is IList l) && index.IsBetween(0, l.Count))
+                return l[index];
+            else return null;
+        }
+        else return default;
+    }
+
+    static object GetPropertyValue(PropertyInfo propertyInfo, object obj, int index,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+    {
+        if (propertyInfo != null)
+        {
+            object list = propertyInfo.GetValue(obj);
+            if (index < 0)
+                return list;
+            else if ((list is IList l) && index.IsBetween(0, l.Count))
+                return l[index];
+            else return null;
+        }
+        else return default;
+    }
+
+    public static object GetFieldValue(ObjectInfo info,
         BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
     {
         object obj = info.obj;
@@ -271,46 +426,12 @@ public static class ReflectionTools
 
         FieldInfo field = info.fieldInfo;
         if (field != null)
-        {
-            if (index < 0)
-                return field.GetValue(obj);
-            else
-            {
-                object list = field.GetValue(obj);
-                //if (list.GetType().IsArray)
-                //{
-                //    return ((object[])list)[index];
-                //}
-                //else
-                if (list is IEnumerable)
-                {
-                    IList l = ((IList)list);
-                    return (l.Count <= index) ? null : l[index];
-                }
-            }
-        }
+            return GetFieldValue(field, obj, index, bindings);
         else
         {
             PropertyInfo property = info.propInfo;
             if (property != null)
-            {
-
-                if (index < 0)
-                    return property.GetValue(obj);
-                else
-                {
-                    object list = property.GetValue(obj);
-                    //if (list.GetType().IsArray)
-                    //{
-                    //    return ((object[])list)[index];
-                    //}
-                    //else
-                    if (list is IEnumerable)
-                    {
-                        return ((IList)list)[index];
-                    }
-                }
-            }
+                return GetPropertyValue(property, obj, index, bindings);
         }
         return default;
     }
@@ -342,44 +463,73 @@ public static class ReflectionTools
         return false;
     }
 
-    public static bool SetFieldValueWithIndex(string fieldName, object obj, int index, object value,
+    public static bool SetFieldValue(string fieldName, object obj, int index, object value,
         BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
     {
         FieldInfo field = GetField(fieldName, obj, bindings);
         if (field != null)
-        {
-            object list = field.GetValue(obj);
-            //if (list.GetType().IsArray)
-            //{
-            //    ((object[])list)[index] = value; //Breaks when using float arrays
-            //    return true;
-            //}
-            //else
-            if (list is IEnumerable)
-            {
-                ((IList)list)[index] = value;
-                return true;
-            }
-        }
+            return SetFieldValue(field, obj, index, value, bindings);
         else
         {
             PropertyInfo property = GetProperty(fieldName, obj, bindings);
             if (property != null)
-            {
-                object list = property.GetValue(obj);
-                if (list.GetType().IsArray)
-                {
-                    ((object[])list)[index] = value;
-                    return true;
-                }
-                else if (list is IEnumerable)
-                {
-                    ((IList)list)[index] = value;
-                    return true;
-                }
-            }
+                return SetPropertyValue(property, obj, index, value, bindings);
         }
         return false;
+    }
+
+    static bool SetFieldValue(FieldInfo fieldInfo, object obj, int index, object value,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+    {
+        if (fieldInfo != null)
+        {
+            if (index < 0)
+            {
+                try { Convert.ChangeType(value, fieldInfo.FieldType); } //WARNING: So ugly...
+                catch { return false; }
+
+                fieldInfo.SetValue(obj, value);
+                return true;
+            }
+            else
+            {
+                object list = fieldInfo.GetValue(obj);
+                if ((list is IList l) && index.IsBetween(0, l.Count))
+                {
+                    //TO DO: Try convert the type
+                    l[index] = value;
+                    fieldInfo.SetValue(obj, l);
+                    return true;
+                }
+                else return false;
+            }
+        }
+        else return false;
+    }
+
+    static bool SetPropertyValue(PropertyInfo propertyInfo, object obj, int index, object value,
+        BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+    {
+        if (propertyInfo != null)
+        {
+            object list = propertyInfo.GetValue(obj);
+            if (index < 0)
+            {
+                try { Convert.ChangeType(value, propertyInfo.PropertyType); } //WARNING: So ugly...
+                catch { return false; }
+
+                list = value;
+                return true;
+            }
+            else if ((list is IList l) && index.IsBetween(0, l.Count))
+            {
+                //TO DO: Try convert the type
+                l[index] = value;
+                return true;
+            }
+            else return false;
+        }
+        else return false;
     }
 
     public static bool SetFieldValue(ObjectInfo info, object value,
@@ -390,59 +540,12 @@ public static class ReflectionTools
 
         FieldInfo field = info.fieldInfo;
         if (field != null)
-        {
-            if (index < 0)
-            {
-                try { Convert.ChangeType(value, field.FieldType); } //WARNING: So ugly...
-                catch { return false; }
-
-                field.SetValue(obj, value);
-                return true;
-            }
-            else
-            {
-                object list = field.GetValue(obj);
-                //if (list.GetType().IsArray)
-                //{
-                //    ((object[])list)[index] = value; //Breaks when using float arrays
-                //    return true;
-                //}
-                //else
-                if (list is IEnumerable)
-                {
-                    ((IList)list)[index] = value;
-                    return true;
-                }
-            }
-        }
+            return SetFieldValue(field, obj, index, value, bindings);
         else
         {
             PropertyInfo property = info.propInfo;
             if (property != null)
-            {
-                if (index < 0)
-                {
-                    try { value = Convert.ChangeType(value, property.PropertyType); } //WARNING: So ugly...
-                    catch { return false; }
-
-                    property.SetValue(obj, value);
-                    return true;
-                }
-                else
-                {
-                    object list = property.GetValue(obj);
-                    if (list.GetType().IsArray)
-                    {
-                        ((object[])list)[index] = value;
-                        return true;
-                    }
-                    else if (list is IEnumerable)
-                    {
-                        ((IList)list)[index] = value;
-                        return true;
-                    }
-                }
-            }
+                return SetPropertyValue(property, obj, index, value, bindings);
         }
         return false;
     }
@@ -526,6 +629,12 @@ public static class ReflectionTools
         return method;
     }
 
+    static string[] GetFieldStructure(string fieldPath)
+    {
+        fieldPath = fieldPath.Replace(".Array.data[", "[");
+        return fieldPath.Split('.');
+    }
+
 #if UNITY_EDITOR
     public static T GetValue<T>(SerializedProperty property)
     {
@@ -534,7 +643,9 @@ public static class ReflectionTools
 
     public static object GetFieldValue(SerializedProperty property)
     {
-        return GetFieldValue(property.serializedObject.targetObject, property.propertyPath);
+        if (property.propertyPath.IsNullOrEmpty())
+            return property.serializedObject.targetObject;
+        else return GetFieldValue(property.serializedObject.targetObject, property.propertyPath);
     }
 
     public static bool SetValue<T>(SerializedProperty property, T newValue)
@@ -545,6 +656,47 @@ public static class ReflectionTools
     public static bool SetFieldValue(SerializedProperty property, object newValue)
     {
         return SetFieldValue(property.serializedObject.targetObject, property.propertyPath, newValue);
+    }
+
+    public static SerializedProperty FirstSerializableInPath(SerializedProperty source, ref string[] propStructure)
+    {
+        return FirstSerializableInPath(source.serializedObject.targetObject, ref propStructure, source.propertyPath);
+    }
+
+    public static SerializedProperty FirstSerializableInPath(object source, ref string[] propStructure, string initialPath = "")
+    {
+        string path = initialPath;
+        SerializedObject serializedObj = (source is Object obj) ? new SerializedObject(obj) : null;
+        for (int i = 0; i < propStructure.Length; i++)
+        {
+            path += (path.IsNullOrEmpty() ? "" : ".") + propStructure[i];
+
+            if (serializedObj != null)
+            {
+                SerializedProperty sp = serializedObj.FindProperty(path);
+                if (sp != null)
+                {
+                    int next = i + 1;
+                    string[] remaining = new string[propStructure.Length - next];
+                    for (int j = 0; j < remaining.Length; j++)
+                        remaining[j] = propStructure[next + j];
+                    propStructure = remaining;
+                    return sp;
+                }
+            }
+
+            source = GetFieldValue(source, path);
+            if (source is Object uobj)
+            {
+                SerializedObject so = new SerializedObject(uobj);
+                if (so != null)
+                {
+                    serializedObj = so;
+                    path = "";
+                }
+            }
+        }
+        return null;
     }
 #endif
 }

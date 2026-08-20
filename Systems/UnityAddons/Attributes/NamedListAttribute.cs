@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 #if UNITY_EDITOR
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 #endif
@@ -209,19 +209,22 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         SerializedObject serializedObject = property.serializedObject;
 
         NamedListAttribute att = attribute as NamedListAttribute;
-        SerializedProperty[] names = GetNameProps(property, att.propPath, out SerializedProperty namesArray);
-        ReorderableOperation.ArraySizeChangeDelegate[] methods = 
-            GetMethodProp(serializedObject.targetObject, att.sizeChangedMethodNames);
-        bool draggable = att.draggable;
-        bool hideHeader = att.hideHeader;
+        ValueReference[] names = GetNameProps(property, att.propPath, out ValueReference namesArray);
 
         ReorderableOperation operation;
         if (!reorderableLists.TryGetValue(propertyData, out operation))
         {
+            ReorderableOperation.ArraySizeChangeDelegate[] methods =
+                GetMethodProp(serializedObject.targetObject, att.sizeChangedMethodNames);
+            bool draggable = att.draggable;
+            bool hideHeader = att.hideHeader;
+
             operation = new ReorderableOperation(property, names, namesArray, draggable, hideHeader, methods);
             reorderableLists.Add(propertyData, operation);
             serializedObject.ApplyModifiedProperties();
         }
+        operation.names = names;
+        operation.namesArray = namesArray;
         property.arraySize = names.Length;
         lastFrame.Set(propertyData, EditorTime.frameCount);
         return operation;
@@ -244,24 +247,177 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         return result;
     }
 
-    static SerializedProperty[] GetNameProps(SerializedProperty property, string propPath, out SerializedProperty namesArray)
+    static ValueReference[] GetNameProps(SerializedProperty property, string propPath, out ValueReference namesArray)
     {
         SerializedProperty obj = property.GetParent();
-        return obj.GetSerializedProperties(propPath, out namesArray);
+        int upParents = propPath.Occurrences("/.");
+        propPath = propPath.Replace("/.", "");
+        for (int i = 0; i < upParents; i++)
+            obj = obj.GetParent();
+
+        SerializedProperty[] serializedProps = obj.GetSerializedProperties(propPath, out SerializedProperty namesArrayProp, true);
+        ValueReference[] names;
+        namesArray = new ValueReference(namesArrayProp);
+        if (!serializedProps.IsNullOrEmpty())
+        {
+            names = new ValueReference[serializedProps.Length];
+            for (int i = 0; i < serializedProps.Length; i++)
+                names[i] = new ValueReference(serializedProps[i]);
+        }
+        else
+        {
+            ReflectionTools.ObjectInfo[] nameInfos =
+                ReflectionTools.GetObjectInfos(ReflectionTools.GetFieldValue(obj), propPath,
+                out ReflectionTools.ObjectInfo namesArrayInfo);
+            names = new ValueReference[nameInfos.Length];
+            for (int i = 0; i < nameInfos.Length; i++)
+                names[i] = new ValueReference(nameInfos[i]);
+            if ((namesArrayProp == null) || (!ReferenceEquals(namesArrayInfo.obj, namesArrayProp.serializedObject.targetObject)))
+                namesArray = new ValueReference(namesArrayInfo);
+        }
+        return names;
+    }
+
+    //TO DO: Use reflection to skip non-serialized fields?
+    //static string[] GetNameProps(SerializedProperty property, string propPath, out ReflectionTools.ObjectInfo namesArray)
+    //{
+    //    SerializedProperty obj = property.GetParent();
+    //    int upParents = propPath.Occurrences("/.");
+    //    propPath = propPath.Replace("/.", "");
+    //    for (int i = 0; i < upParents; i++)
+    //        obj = obj.GetParent();
+    //    return ReflectionTools.GetValues<string>(ReflectionTools.GetFieldValue(obj), propPath, out namesArray);
+    //}
+
+    //static bool SetNameProps(SerializedProperty property, string propPath, string[] values)
+    //{
+    //    SerializedProperty obj = property.GetParent();
+    //    int upParents = propPath.Occurrences("/.");
+    //    propPath = propPath.Replace("/.", "");
+    //    for (int i = 0; i < upParents; i++)
+    //        obj = obj.GetParent();
+    //    return ReflectionTools.SetValues(ReflectionTools.GetFieldValue(obj), propPath, values);
+    //}
+
+    //static bool SetNamesArray(ReflectionTools.ObjectInfo namesArray, ICollection newArray)
+    //{
+    //    return ReflectionTools.SetFieldValue(namesArray, newArray);
+    //}
+
+    public struct ValueReference
+    {
+        SerializedProperty serializedProperty;
+        ReflectionTools.ObjectInfo objectInfo;
+
+        public ValueReference(SerializedProperty serializedProperty)
+        {
+            this.serializedProperty = serializedProperty;
+            objectInfo = new ReflectionTools.ObjectInfo();
+        }
+
+        public ValueReference(ReflectionTools.ObjectInfo objectInfo)
+        {
+            serializedProperty = null;
+            this.objectInfo = objectInfo;
+        }
+
+        public void PropertyField_Text(Rect rect, string label, float widthSum = -10f, float widthMult = 1f)
+        {
+            if (serializedProperty != null)
+                serializedProperty.PropertyField(label, rect, widthSum, widthMult);
+            else if (!objectInfo.IsNull())
+            {
+                rect = new Rect(rect.x + 10, rect.y, (rect.width * widthMult) + widthSum, EditorGUIUtility.singleLineHeight);
+                string value = ReflectionTools.GetFieldValue(objectInfo) as string;
+                value = EditorGUI.TextField(rect, label, value);
+                ReflectionTools.SetFieldValue(objectInfo, value);
+            }
+        }
+
+        public float GetPropertyHeight_Text()
+        {
+            if (serializedProperty != null)
+                return EditorGUI.GetPropertyHeight(serializedProperty, true);
+            else if (!objectInfo.IsNull())
+                return EditorGUIUtility.singleLineHeight;
+            else return 0f;
+        }
+
+        public string GetText()
+        {
+            if (serializedProperty != null)
+                return serializedProperty.stringValue;
+            else if (!objectInfo.IsNull())
+                return ReflectionTools.GetFieldValue(objectInfo) as string;
+            else return null;
+        }
+
+        public void SetText(string text)
+        {
+            if (serializedProperty != null)
+                serializedProperty.stringValue = text;
+            else if (!objectInfo.IsNull())
+                ReflectionTools.SetFieldValue(objectInfo, text);
+        }
+
+        public void ArrayAdd()
+        {
+            if (serializedProperty != null)
+                serializedProperty.arraySize++;
+            else if (!objectInfo.IsNull())
+            {
+                Type type = objectInfo.Type();
+                object array = ReflectionTools.GetFieldValue(objectInfo);
+                if (type.IsOrInheritsFrom(typeof(Array)))
+                {
+                    int length = 1;
+                    Array arr = null;
+                    bool arrayValid = false;
+                    if (array != null)
+                    {
+                        arr = array as Array;
+                        length = arr.Length + 1;
+                        arrayValid = true;
+                    }
+                    Array newArray = Array.CreateInstance(type.GetElementType(), length);
+                    if (arrayValid) Array.Copy(arr, newArray, arr.Length);
+                    ReflectionTools.SetFieldValue(objectInfo, newArray);
+                }
+            }
+        }
+
+        public void ArrayDelete(int index)
+        {
+            if (serializedProperty != null)
+                serializedProperty.DeleteArrayElementAtIndex(index);
+            else if (!objectInfo.IsNull())
+            {
+                object array = ReflectionTools.GetFieldValue(objectInfo);
+                if (array is Array arr)
+                {
+                    Array newArray = Array.CreateInstance(arr.GetType().GetElementType(), arr.Length - 1);
+                    if (index > 0)
+                        Array.Copy(arr, 0, newArray, 0, index);
+                    if (index < arr.Length - 1)
+                        Array.Copy(arr, index + 1, newArray, index, arr.Length - index - 1);
+                    ReflectionTools.SetFieldValue(objectInfo, newArray);
+                }
+            }
+        }
     }
 
     public class ReorderableOperation
     {
         SerializedProperty array;
         SerializedObject serializedObject;
-        SerializedProperty[] names;
-        SerializedProperty namesArray;
+        public ValueReference[] names;
+        public ValueReference namesArray;
         ReorderableList list;
         int lastIndex;
         public event ArraySizeChangeDelegate onArraySizeChange;
         public delegate void ArraySizeChangeDelegate(int size);
 
-        public ReorderableOperation(SerializedProperty property, SerializedProperty[] names, SerializedProperty namesArray,
+        public ReorderableOperation(SerializedProperty property, ValueReference[] names, ValueReference namesArray,
             bool draggable = true, bool hideHeader = false, ArraySizeChangeDelegate[] sizeChangeMethods = null)
         {
             array = property;
@@ -320,7 +476,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
             float propertyHeight;
             if (element.isExpanded)
             {
-                propertyHeight = EditorGUI.GetPropertyHeight(names[index]);
+                propertyHeight = names[index].GetPropertyHeight_Text();
 
                 if ((element.type == typeof(UnityEvent).Name) ||
                     (element.type == typeof(DXEvent).Name)) //TO DO: Very crappy
@@ -346,11 +502,11 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             SerializedProperty element = list.serializedProperty.GetArrayElementAtIndex(index);
-            SerializedProperty elementName = names[index];
+            ValueReference elementName = names[index];
             rect.y += 2;
 
             //We get the name property of our element so we can display this in our list
-            string n = elementName?.stringValue;
+            string n = elementName.GetText();
             string elementNumber = index + ". ";
             string elementTitle = n.IsNullOrEmpty() ? "Unnamed" : n;
 
@@ -365,11 +521,11 @@ public class NamedListAttribute_Drawer : PropertyDrawer
             if (element.isExpanded)
             {
                 //Draw name
-                elementName.PropertyField(rect, widthSum, widthMult);
+                elementName.PropertyField_Text(rect, element.displayName, widthSum, widthMult);
 
                 //Draw event
                 EditorGUI.BeginChangeCheck();
-                float y = rect.y + EditorGUI.GetPropertyHeight(elementName) + 2;
+                float y = rect.y + elementName.GetPropertyHeight_Text() + 2;
                 if ((element.type == typeof(UnityEvent).Name) ||
                     (element.type == typeof(DXEvent).Name)) //TO DO: Very crappy
                     element.PropertyField(elementTitle, y, rect, widthSum, widthMult);
@@ -414,24 +570,14 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         void OnReorderList(ReorderableList list)
         {
             #region Reorder names
-            string selectedString = names[lastIndex].stringValue;
+            string selectedString = names[lastIndex].GetText();
             if (list.index > lastIndex)
-            {
                 for (int i = lastIndex + 1; i <= list.index; i++)
-                {
-                    names[i - 1].stringValue =
-                        names[i].stringValue;
-                }
-            }
+                    names[i - 1].SetText(names[i].GetText());
             else if (list.index < lastIndex)
-            {
                 for (int i = lastIndex - 1; i >= list.index; i--)
-                {
-                    names[i + 1].stringValue =
-                        names[i].stringValue;
-                }
-            }
-            names[list.index].stringValue = selectedString;
+                    names[i + 1].SetText(names[i].GetText());
+            names[list.index].SetText(selectedString);
             #endregion
 
             lastIndex = list.index;
@@ -441,7 +587,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
         void OnAddElement(ReorderableList list)
         {
-            namesArray.arraySize++;
+            namesArray.ArrayAdd();
 
             new ReorderableList.Defaults().DoAddButton(list);
 
@@ -453,14 +599,13 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
         void OnRemoveElement(ReorderableList list)
         {
-            namesArray.DeleteArrayElementAtIndex(lastIndex);
+            namesArray.ArrayDelete(lastIndex);
 
             new ReorderableList.Defaults().DoRemoveButton(list);
 
             lastIndex = list.index;
 
             serializedObject.ApplyModifiedProperties();
-
             NameArrayChanged();
         }
         #endregion
