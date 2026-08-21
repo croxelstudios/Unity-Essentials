@@ -7,10 +7,10 @@ public class FadeInOut : MonoBehaviour
 {
     AlphaHolder alphaHolder;
 
-    [MinValue(0f)]
+    [Min(0f)]
     [SerializeField]
     float timeFadeOut = 0.5f;
-    [MinValue(0f)]
+    [Min(0f)]
     [SerializeField]
     float timeFadeIn = 0.5f;
     [SerializeField]

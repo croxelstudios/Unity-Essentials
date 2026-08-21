@@ -2,8 +2,7 @@
 using Sirenix.OdinInspector;
 using static SpeedBehaviour;
 
-//TO DO: Add intermediate class that removes the Q component.
-public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSequence, new()
+public class BToTarget<T, TrSeq, SpdType> : DXMonoBehaviour where TrSeq : ITransformationSequence, new()
 {
     [PropertyOrder(-5)]
     [Tooltip("Wether this code should apply transformations to the 'origin' or if " +
@@ -158,7 +157,7 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
     {
         float inverseDeltaTime = deltaTime.Reciprocal();
 
-        P path = GetPath();
+        TrSeq path = GetPath();
         //path.Draw();
 
         T spd = Default<T>.Value;
@@ -222,17 +221,17 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
 
         if (speedBehaviour.AffectedByCurrentSpeed() && (deltaTime != 0f))
             UpdateSpeed(ref dynamicInfo.speed, dynamicInfo.accelHalf, dynamicInfo.prev, deltaTime);
-        dynamicInfo.accelHalf = Default<Q>.Value;
+        dynamicInfo.accelHalf = Default<SpdType>.Value;
 
         UpdatePrev(ref dynamicInfo.prev);
     }
 
-    protected virtual P GetPath()
+    protected virtual TrSeq GetPath()
     {
-        return new P();
+        return new TrSeq();
     }
 
-    protected virtual bool ShouldIExecute(P path)
+    protected virtual bool ShouldIExecute(TrSeq path)
     {
         float distanceToTarget = path.magnitude;
         if ((distanceToTarget < margin) && (targetMode == TargetMode.StopAtMargin))
@@ -240,27 +239,27 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
         return distanceToTarget > 0f;
     }
 
-    protected virtual T Accelerated(P path, ref DynamicInfo dynamicInfo, float deltaTime)
+    protected virtual T Accelerated(TrSeq path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
         return Default<T>.Value;
     }
 
-    protected virtual T SmoothDamp(P path, ref DynamicInfo dynamicInfo, float deltaTime)
+    protected virtual T SmoothDamp(TrSeq path, ref DynamicInfo dynamicInfo, float deltaTime)
     {
         return Default<T>.Value;
     }
 
-    protected virtual T LerpSmooth(P path, float deltaTime)
+    protected virtual T LerpSmooth(TrSeq path, float deltaTime)
     {
         return Default<T>.Value;
     }
 
-    protected virtual T Teleport(P path, float deltaTime)
+    protected virtual T Teleport(TrSeq path, float deltaTime)
     {
         return Default<T>.Value;
     }
 
-    protected virtual T Linear(P path, float deltaTime)
+    protected virtual T Linear(TrSeq path, float deltaTime)
     {
         return Default<T>.Value;
     }
@@ -358,17 +357,17 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
         return Get(origin);
     }
 
-    public virtual void UpdateSpeed(ref Q speed, Q accelHalf, T prev, float deltaTime)
+    public virtual void UpdateSpeed(ref SpdType speed, SpdType accelHalf, T prev, float deltaTime)
     {
     }
 
     protected struct DynamicInfo
     {
-        public Q speed;
-        public Q accelHalf;
+        public SpdType speed;
+        public SpdType accelHalf;
         public T prev;
 
-        public DynamicInfo(Q speed, Q accelHalf, T prev)
+        public DynamicInfo(SpdType speed, SpdType accelHalf, T prev)
         {
             this.speed = speed;
             this.prev = prev;
@@ -382,4 +381,8 @@ public class BToTarget<T, P, Q> : DXMonoBehaviour where P : ITransformationSeque
         return name.ContentMarker(started, stopped);
     }
 #endif
+}
+
+public class BToTarget<T, TrSeq> : BToTarget<T, TrSeq, T> where TrSeq : ITransformationSequence, new()
+{
 }

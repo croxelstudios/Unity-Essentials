@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class CollisionEvents : BCollisionManager
 {
-    [MinValue(0f)]
+    [Min(0f)]
     [HorizontalGroup("maxImp")]
     [SerializeField]
     float maxImpact = 3f;

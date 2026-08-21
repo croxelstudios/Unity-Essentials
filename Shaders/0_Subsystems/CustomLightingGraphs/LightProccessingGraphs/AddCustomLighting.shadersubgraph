@@ -429,6 +429,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "2e5e07e9bef94210bd54920cc35c56fb"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "3bc22f56aa174bb096b7c3aa00a47967"
+                },
+                "m_SlotId": 1
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "323a1b6908764cc8b3ce939914119fb6"
                 },
                 "m_SlotId": 0
@@ -2406,7 +2420,7 @@
     },
     "m_Name": "Split",
     "m_DrawState": {
-        "m_Expanded": true,
+        "m_Expanded": false,
         "m_Position": {
             "serializedVersion": "2",
             "x": -802.2625732421875,
@@ -3013,8 +3027,8 @@
     "m_ObjectId": "3f932cdac7264fe19225c70f4c6f51b4",
     "m_Title": "Position",
     "m_Position": {
-        "x": -2106.0,
-        "y": 163.0
+        "x": -2106.666748046875,
+        "y": 162.66668701171876
     }
 }
 
@@ -3049,7 +3063,7 @@
     "m_ObjectId": "41486563985b439998aa408823a398e3",
     "m_Title": "Diffuse",
     "m_Position": {
-        "x": -1053.0,
+        "x": -1053.3333740234375,
         "y": -687.9999389648438
     }
 }
@@ -3944,7 +3958,7 @@
     "m_Title": "Normal Input",
     "m_Position": {
         "x": -2642.0,
-        "y": -304.9999694824219
+        "y": -305.3333435058594
     }
 }
 
@@ -4006,8 +4020,8 @@
     "m_ObjectId": "629401736fc4448f9145f1450b9d7dda",
     "m_Title": "Back Rim Light",
     "m_Position": {
-        "x": -1047.0,
-        "y": -37.99998474121094
+        "x": -1047.3333740234375,
+        "y": -38.0
     }
 }
 
@@ -4127,8 +4141,8 @@
     "m_ObjectId": "661e4d75ed3343cc8f19e8ac6622288d",
     "m_Title": "Light Alpha",
     "m_Position": {
-        "x": -827.0,
-        "y": -132.99998474121095
+        "x": -827.3333129882813,
+        "y": -133.3333282470703
     }
 }
 
@@ -5602,8 +5616,8 @@
     "m_ObjectId": "96d9fea326714d6684e2ff392da78211",
     "m_Title": "Specular",
     "m_Position": {
-        "x": -1050.0,
-        "y": -468.9999694824219
+        "x": -1050.6666259765625,
+        "y": -469.3333435058594
     }
 }
 
@@ -5613,8 +5627,8 @@
     "m_ObjectId": "96e2645da1f6411faa24f6e284ce62cc",
     "m_Title": "MainLight Processing",
     "m_Position": {
-        "x": -1914.9998779296875,
-        "y": -669.9998779296875
+        "x": -1915.3333740234375,
+        "y": -669.9999389648438
     }
 }
 
@@ -6405,8 +6419,8 @@
     "m_ObjectId": "ba925cbc1a7d4a96a573875ae2f5bac8",
     "m_Title": "Position",
     "m_Position": {
-        "x": -2629.0,
-        "y": 126.0000228881836
+        "x": -2629.333251953125,
+        "y": 126.00003051757813
     }
 }
 
@@ -7219,8 +7233,8 @@
     "m_ObjectId": "d5fb4881e63c4482a691cc46615132d9",
     "m_Title": "Rim Light",
     "m_Position": {
-        "x": -1048.9998779296875,
-        "y": -251.99996948242188
+        "x": -1049.3333740234375,
+        "y": -251.99998474121095
     }
 }
 
@@ -7281,7 +7295,7 @@
     "m_Title": "Additional Lights",
     "m_Position": {
         "x": -1686.0,
-        "y": 130.0
+        "y": 130.00003051757813
     }
 }
 
@@ -7399,7 +7413,7 @@
     "m_ObjectId": "ddc197fec4b3430f913d6c7fe201e7c0",
     "m_Title": "Specular Mask",
     "m_Position": {
-        "x": -1093.9998779296875,
+        "x": -1094.6666259765625,
         "y": 184.0
     }
 }
@@ -7816,8 +7830,8 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "eb0677e6558545dfaa19f5ea5fab6422",
-    "m_Title": "BUGGED",
-    "m_Content": "Point lights alpha is not working properly and it makes the borders of sprites flicker. Might be an issue related to UV precision inside the lighting function or the loop.",
+    "m_Title": "WARNING",
+    "m_Content": "Point lights alpha was not working properly and it made the borders of sprites flicker. Might be an issue related to UV precision inside the lighting function or the loop.\n\nSeems to be fixed but it might not be.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -8032,8 +8046,8 @@
     "m_ObjectId": "f2812e0dbbd94b96b9468cb681f4f931",
     "m_Title": "Normal",
     "m_Position": {
-        "x": -2106.0,
-        "y": -120.99996948242188
+        "x": -2106.666748046875,
+        "y": -121.33333587646485
     }
 }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BCollisionManager : BColliderInteractor
 {
-    [MinValue(0f)]
+    [Min(0f)]
     [SerializeField]
     protected float minImpact = 0f;
     [PropertyOrder(2)]

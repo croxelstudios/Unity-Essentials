@@ -18,8 +18,8 @@ public static class ComputableModule
 
     static ComputableModule()
     {
-        filtersProcessor = new MeshFilterCollection();
-        spritesProcessor = new SpriteRendererCollection();
+        filtersProcessor = new();
+        spritesProcessor = new();
     }
 
     /// <summary>
@@ -150,13 +150,11 @@ public static class ComputableModule
         if (filter == null)
             return false;
 
-        switch (filter.renType)
+        switch (filter.rendType)
         {
-            case RenType.Filter:
-                return true; //TO DO
-            case RenType.Sprite:
-                return true; //TO DO
-            case RenType.Custom:
+            case RendType.Renderer:
+                return filter.renderer.enabled;
+            case RendType.Custom:
                 return filter.customRenderer.enabled;
             default:
                 return false;
@@ -532,7 +530,7 @@ public static class ComputableModule
 
         public virtual Computable New(Value value, string name)
         {
-            return null;
+            return new ComputableBase<Value>(value, name) as Computable;
         }
 
         public bool ElementChanged(Holder holder)
@@ -753,9 +751,9 @@ public static class ComputableModule
             filter.sharedMesh = mesh;
         }
 
-        public override ComputableMesh New(Mesh mesh, string name)
+        public override ComputableMesh New(Mesh value, string name)
         {
-            return new ComputableMesh(mesh, name);
+            return new ComputableMesh(value, name);
         }
 
         public ComputableMesh Create(MeshFilter filter, Component comp, string name, int vCount, int tCount)
@@ -773,14 +771,14 @@ public static class ComputableModule
             return renderer.sprite;
         }
 
+        public override ComputableSprite New(Sprite value, string name)
+        {
+            return new ComputableSprite(value, name);
+        }
+
         protected override void SetValue(SpriteRenderer renderer, Sprite sprite)
         {
             renderer.sprite = sprite;
-        }
-
-        public override ComputableSprite New(Sprite sprite, string name)
-        {
-            return new ComputableSprite(sprite, name);
         }
     }
 }

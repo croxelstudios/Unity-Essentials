@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using static SpeedBehaviour;
 
-public class VectorToTargetEvent : BToTarget<Vector3, MovementPath, Vector3>, INavMeshAgentTypeContainer
+public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAgentTypeContainer
 {
     [PropertyOrder(-5)]
     [SerializeField]

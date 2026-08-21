@@ -24,7 +24,7 @@ public class GraphicColorShift : MonoBehaviour
     Graphic[] graphics;
 
     [ShowIf("shiftMode", ShiftMode.gradient)]
-    [SerializeField] //TO DO: Prevent color and update properties from showing
+    [SerializeField]
     public Gradient gradient = new Gradient()
     {
         colorKeys = new GradientColorKey[4] {

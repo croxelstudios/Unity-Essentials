@@ -25,7 +25,7 @@ public class BRumbleUtility : MonoBehaviour
     int priorityGroup = 0;
     [SerializeField]
     Motor motor = Motor.Both;
-    [MinValue(0f)]
+    [Min(0f)]
     [SerializeField]
     float smooth = 0f;
     [SerializeField]

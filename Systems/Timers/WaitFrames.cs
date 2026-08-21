@@ -5,7 +5,7 @@ using UnityEngine;
 public class WaitFrames : MonoBehaviour
 {
     [SerializeField]
-    [MinValue(0)]
+    [Min(0)]
     protected int frames = 1;
     [SerializeField]
     bool fixedTime = false;

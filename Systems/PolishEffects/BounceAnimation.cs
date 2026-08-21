@@ -1,17 +1,19 @@
 ﻿using System.Collections;
 using UnityEngine;
+using Sirenix.OdinInspector;
 
-public class BounceAnimation : DXMonoBehaviour
+public class BounceAnimation : BOffsetBasedTransformer<float>
 {
     [SerializeField]
-    float bounceHeight = 0.1f;
+    float bounceHeight = 1f;
+    [Min(0.001f)]
     [SerializeField]
-    float baseDuration = 0.3f;
+    float baseDuration = 0.5f;
+    [SerializeField]
+    bool local = false;
     [SerializeField]
     DXEvent touchedFloor = null;
-    [SerializeField]
-    TimeMode timeMode = TimeMode.Update;
-    public float _speed = 0f;
+    public float _speed = 1f;
     public float speed
     {
         get { return _speed; }
@@ -19,27 +21,26 @@ public class BounceAnimation : DXMonoBehaviour
     }
 
     float currentTime;
-    float currentOffset;
 
-    void Awake()
+    protected override void Awake()
     {
         currentTime = 0f;
-        currentOffset = 0f;
+        base.Awake();
     }
 
     void Update()
     {
         if (timeMode.IsSmooth())
-            DoBounce(speed, ref currentOffset, ref currentTime, timeMode.DeltaTime());
+            DoBounce(speed, ref currentTime, timeMode.DeltaTime());
     }
 
     void FixedUpdate()
     {
         if (timeMode.IsFixed())
-            DoBounce(speed, ref currentOffset, ref currentTime, Time.fixedDeltaTime);
+            DoBounce(speed, ref currentTime, timeMode.DeltaTime());
     }
 
-    void DoBounce(float speed, ref float currentOffset, ref float currentTime, float deltaTime)
+    void DoBounce(float speed, ref float currentTime, float deltaTime)
     {
         if (speed <= 0f) { if (currentTime != 0f) currentTime = 1f; }
         else currentTime += speed * deltaTime / baseDuration;
@@ -49,8 +50,18 @@ public class BounceAnimation : DXMonoBehaviour
             currentTime -= 1f;
         }
         float newOffset = (1 - Mathf.Pow((2f * currentTime) - 1f, 2f)) * bounceHeight * speed;
-        transform.Translate(Vector3.up * (newOffset - currentOffset));
-        currentOffset = newOffset;
+        SetTransformation(newOffset);
+    }
+
+    protected override void Transformation(float value)
+    {
+        transform.DXTranslate(Vector3.up * value, local ? Space.Self : Space.World);
+    }
+
+    protected override void ResetValues()
+    {
+        currentTime = 0f;
+        base.ResetValues();
     }
 
     public void DoOneBounce()
@@ -61,7 +72,6 @@ public class BounceAnimation : DXMonoBehaviour
     IEnumerator OneBounceCo()
     {
         float t = baseDuration;
-        float currentOffset = 0f;
         float currentTime = 0f;
         while (t > 0)
         {
@@ -69,8 +79,8 @@ public class BounceAnimation : DXMonoBehaviour
             float deltaTime = timeMode.DeltaTime();
             t -= deltaTime;
 
-            DoBounce(1f, ref currentOffset, ref currentTime, deltaTime);
+            DoBounce(1f, ref currentTime, deltaTime);
         }
-        transform.Translate(Vector3.up * (0f - currentOffset));
+        ResetTransform();
     }
 }

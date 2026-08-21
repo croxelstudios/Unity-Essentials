@@ -149,7 +149,7 @@ public class TransformShake : BOffsetBasedTransformer<Vector3>
         Vector3 newCurrent = Vector3.SmoothDamp(Current(), target, ref currentSpd,
             GetSmoothness(smooth, amount), Mathf.Infinity, timeMode.DeltaTime());
         newCurrent = Vector3.Lerp(Vector3.zero, newCurrent, intensity);
-        ApplyTransform(newCurrent - Current());
+        ApplyTransformation(newCurrent - Current());
     }
 
     void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)

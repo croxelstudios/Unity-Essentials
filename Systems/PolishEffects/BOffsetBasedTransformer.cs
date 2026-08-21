@@ -29,7 +29,7 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
 
     protected T Current()
     {
-        return current;
+        return Generics.Scale(current, amountMult);
     }
 
     protected virtual void Awake()
@@ -46,7 +46,11 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
 
     protected virtual void OnDisable()
     {
-        if (co != null) StopCoroutine(co);
+        if (co != null)
+        {
+            StopCoroutine(co);
+            ResetMetaCurrent();
+        }
         if (resetMode == ResetMode.OnDisable)
         {
             if (gameObject.activeInHierarchy)
@@ -57,6 +61,7 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
 
     public void GoBackToDefault()
     {
+        ResetValues();
         metaCurrent = Generics.Add(metaCurrent, current);
         current = Default<T>.Value;
         co = StartCoroutine(BackToDefault());
@@ -64,13 +69,15 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
 
     IEnumerator BackToDefault()
     {
+        T def = Default<T>.Value;
         while (Generics.HasMagnitude(metaCurrent))
         {
             yield return timeMode.WaitFor();
 
-            T newCurrent = Generics.SmoothDamp(metaCurrent, current, ref metaCurrentSpd,
+            T newCurrent = Generics.SmoothDamp(metaCurrent, def, ref metaCurrentSpd,
                 returnSmoothTime, Mathf.Infinity, timeMode.DeltaTime());
-            Transformation(Generics.Subtract(newCurrent, metaCurrent));
+            T delta = Generics.Subtract(newCurrent, metaCurrent);
+            Transformation(Generics.Scale(delta, amountMult));
             metaCurrent = newCurrent;
         }
         ResetMetaCurrent();
@@ -78,19 +85,29 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
 
     void ResetMetaCurrent()
     {
-        Transformation(Generics.Negate(metaCurrent));
+        Transformation(Generics.Scale(Generics.Negate(metaCurrent), amountMult));
         metaCurrent = Default<T>.Value;
     }
 
-    protected void ApplyTransform(T value)
+    protected void ApplyTransformation(T value)
     {
         current = Generics.Add(current, value);
         Transformation(Generics.Scale(value, amountMult));
     }
 
-    protected virtual void ResetTransform()
+    protected void SetTransformation(T value)
     {
-        ApplyTransform(Generics.Scale(Generics.Negate(current), amountMult));
+        ApplyTransformation(Generics.Subtract(value, current));
+    }
+
+    protected virtual void ResetValues()
+    {
+    }
+
+    protected void ResetTransform()
+    {
+        ResetValues();
+        ApplyTransformation(Generics.Negate(current));
     }
 
     protected virtual void Transformation(T value)
@@ -99,7 +116,7 @@ public class BOffsetBasedTransformer<T> : BOffsetBasedTransformer where T : unma
 
     protected T CurrentOffset()
     {
-        return Generics.Add(Generics.Scale(current, amountMult), metaCurrent);
+        return Generics.Scale(Generics.Add(current, metaCurrent), amountMult);
     }
 }
 

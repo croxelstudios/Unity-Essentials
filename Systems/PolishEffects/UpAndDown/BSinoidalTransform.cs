@@ -33,7 +33,7 @@ public class BSinoidalTransform : BOffsetBasedTransformer<float>
     void UpdatePosition(float deltaTime)
     {
         float dif = SineWave(ref currentAngle, deltaTime * _speed) - Current();
-        ApplyTransform(dif);
+        ApplyTransformation(dif);
     }
 
     float SineWave(ref float currentAngle, float deltaTime)
@@ -47,9 +47,9 @@ public class BSinoidalTransform : BOffsetBasedTransformer<float>
         return Mathf.Sin(currentAngle * Mathf.Deg2Rad);
     }
 
-    protected override void ResetTransform()
+    protected override void ResetValues()
     {
         currentAngle = startTime * 360f;
-        base.ResetTransform();
+        base.ResetValues();
     }
 }

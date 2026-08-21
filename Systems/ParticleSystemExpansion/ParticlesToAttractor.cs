@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -7,10 +5,7 @@ using UnityEngine;
 public class ParticlesToAttractor : MonoBehaviour
 {
     [SerializeField]
-    [TagSelector]
-    string targetTag = "";
-    [SerializeField]
-    Transform target = null;
+    ObjectRef<Transform> target = new ObjectRef<Transform>("Target", "Player");
     [SerializeField]
     [Range(0f, 1f)]
     float attractPercent = 1f;
@@ -40,7 +35,7 @@ public class ParticlesToAttractor : MonoBehaviour
 
     void DoUpdate(float deltaTime)
     {
-        if (target == null) target = FindWithTag.Transform(targetTag);
+        Transform target = this.target;
 
         if (target != null)
         {

@@ -2,7 +2,7 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using static SpeedBehaviour;
 
-public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath, Vector4>
+public class RectBoundsToTarget : BToTarget<Vector4, Movement4DPath>
 {
     [PropertyOrder(-3)]
     [SerializeField]

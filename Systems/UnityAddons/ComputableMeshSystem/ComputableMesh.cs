@@ -14,6 +14,19 @@ public class ComputableBase<T> : Wrapper, IDisposable where T : Object
     public GraphicsBuffer indexBuffer
     { get { return IndexBuffer(); } }
 
+    public ComputableBase()
+    {
+    }
+
+    public ComputableBase(T source, string name)
+    {
+    }
+
+    public virtual void Initialize(T source, string name)
+    {
+
+    }
+
     public virtual GraphicsBuffer VertexBuffer()
     {
         return null;
@@ -126,14 +139,14 @@ public class ComputableMesh : ComputableBase<Mesh>
     }
 
     #region Initialize
+    public ComputableMesh(Mesh meshToCopy, string name) : base(meshToCopy, name)
+    {
+        Initialize(meshToCopy, name);
+    }
+
     public ComputableMesh(string name, int vCount, int tCount)
     {
         Initialize(name, vCount, tCount);
-    }
-
-    public ComputableMesh(Mesh meshToCopy, string name)
-    {
-        Initialize(meshToCopy, name);
     }
 
     public ComputableMesh(NativeArray<VertexData> vertexData, NativeArray<uint>[] triangleData, string name)
@@ -154,7 +167,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         Initialize(vertexData, triangleData, name);
     }
 
-    public void Initialize(Mesh meshToCopy, string name = "")
+    public override void Initialize(Mesh meshToCopy, string name = "")
     {
         int[] tCount = new int[meshToCopy.subMeshCount];
         for (int i = 0; i < tCount.Length; i++)
@@ -1271,7 +1284,7 @@ public class ComputableSprite : ComputableBase<Sprite>
         }
     }
 
-    public ComputableSprite(Sprite spriteToCopy, string name)
+    public ComputableSprite(Sprite spriteToCopy, string name) : base(spriteToCopy, name)
     {
         Initialize(spriteToCopy, name);
     }
@@ -1291,7 +1304,7 @@ public class ComputableSprite : ComputableBase<Sprite>
         mesh.BakeToCPU();
     }
 
-    public void Initialize(Sprite spriteToCopy, string name)
+    public override void Initialize(Sprite spriteToCopy, string name)
     {
         if (sprite == null)
             Object.DestroyImmediate(sprite);

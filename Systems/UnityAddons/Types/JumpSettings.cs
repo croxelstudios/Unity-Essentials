@@ -7,19 +7,19 @@ using static UnityEngine.ParticleSystem;
 public struct JumpSettings
 {
     [SerializeField]
-    [MinValue(0f)]
+    [Min(0f)]
     [OnValueChanged("ValidateData")]
     float jumpMaxHeight;
     [SerializeField]
     [OnValueChanged("ValidateData")]
     bool variableHeight;
     [SerializeField]
-    [MinValue(0f)]
+    [Min(0f)]
     [ShowIf("variableHeight")]
     [OnValueChanged("ValidateData")]
     float jumpMinHeight;
     [SerializeField]
-    [MinValue(0f)]
+    [Min(0f)]
     [DisableIf("sameAsFallTime")]
     [OnValueChanged("ValidateData")]
     float timeToApex;
@@ -37,13 +37,13 @@ public struct JumpSettings
     [ShowIf("useGravity")]
     [EnableIf("@gravityDriver == GravityDriver.ByFallTime")]
     [OnValueChanged("ValidateData")]
-    [MinValue(0f)]
+    [Min(0f)]
     float fallTime;
     [SerializeField]
     [ShowIf("useGravity")]
     [EnableIf("@gravityDriver == GravityDriver.Manual")]
     [OnValueChanged("ValidateData")]
-    [MinValue(0f)]
+    [Min(0f)]
     float gravity;
     //[SerializeField] 
     //[ReadOnly]
