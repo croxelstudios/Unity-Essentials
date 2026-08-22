@@ -54,7 +54,7 @@ public class SortingLayerSelectorAttribute : PropertyAttribute, IEventActionAttr
         //Draw the popup box with the current selected index
         if (drawWithLabel)
             index = EditorGUI.Popup(argRect,
-                label == null ? new GUIContent(property.displayName) : label,
+                label == null ? new GUIContent(property.GetLabel()) : label,
                 index, sortingLayersArray);
         else index = EditorGUI.Popup(argRect, index, sortingLayersArray);
 

@@ -1,6 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEngine.Events;
+using Sirenix.OdinInspector;
+
+using Sirenix.OdinInspector.Editor;
+using System.Reflection;
+using System.Linq;
+
+
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -90,7 +98,7 @@ public class DXEventDrawer : DXDrawerBase
 
                 Rect childRect = new Rect(eventRect.min, new Vector2(eventRect.width, height));
 
-                EditorGUI.PropertyField(childRect, child, new GUIContent(property.displayName + " Override " + index));
+                EditorGUI.PropertyField(childRect, child, new GUIContent(property.GetLabel() + " Override " + index));
                 eventRect.y += height;
             }
             index++;
@@ -199,7 +207,7 @@ public class DXDrawerBase : PropertyDrawer
             property.FindPropertyRelative(unityEventName);
         Rect eventRect = position;
         CustomEventDrawer(eventRect, unityEventProperty,
-            new GUIContent(property.displayName));
+            new GUIContent(property.GetLabel()));
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -305,7 +313,7 @@ public class DXDrawerBase : PropertyDrawer
         Rect labelRect =
             new Rect(new Vector2(position.xMin + 3f, position.yMin - 1f),
             new Vector2(position.width, EditorGUIUtility.singleLineHeight));
-        EditorGUI.LabelField(labelRect, new GUIContent(property.displayName), boxStyle);
+        EditorGUI.LabelField(labelRect, new GUIContent(property.GetLabel()), boxStyle);
         position.y += EditorGUIUtility.singleLineHeight;
     }
 
@@ -397,14 +405,14 @@ public class DXDrawerBase : PropertyDrawer
         if (unityEventProperty.isExpanded ^ defaultExpand)
         {
             if (Event.current.type == EventType.Repaint)
-                boxStyle.Draw(boxRect, new GUIContent(property.displayName), 0);
+                boxStyle.Draw(boxRect, new GUIContent(property.GetLabel()), 0);
             EditorGUI.PropertyField(eventRect, unityEventProperty, new GUIContent(name));
             position.y += height;
         }
         else
         {
             if (Event.current.type == EventType.Repaint)
-                boxStyle.Draw(lineRect, new GUIContent(property.displayName), 0);
+                boxStyle.Draw(lineRect, new GUIContent(property.GetLabel()), 0);
             Rect labelRect = lineRect;
             labelRect.x += 3f;
             labelRect.y -= 1f;

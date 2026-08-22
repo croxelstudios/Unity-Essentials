@@ -3,13 +3,23 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-//TO DO: To update this while inactive, it could maybe subscribe to EditorApplication.Update
-//on the constructor?
 [ExecuteAlways]
 public class StateMachine_ByChildren : StateMachine
 {
 #if UNITY_EDITOR
-    private void Reset()
+    public StateMachine_ByChildren()
+    {
+        OnEditorChange.PropertyModification_In(PropertyModification);
+        EditorApplication.hierarchyChanged += OnHierarchyChanged;
+    }
+
+    void OnDestroy()
+    {
+        OnEditorChange.PropertyModification_Out(PropertyModification);
+        EditorApplication.hierarchyChanged -= OnHierarchyChanged;
+    }
+
+    void Reset()
     {
         UpdateStates();
     }
@@ -17,16 +27,16 @@ public class StateMachine_ByChildren : StateMachine
     protected override void OnEnable()
     {
         UpdateStates();
-        OnEditorChange.PropertyModification_In(PropertyModification);
-        EditorApplication.hierarchyChanged += OnHierarchyChanged;
+        //OnEditorChange.PropertyModification_In(PropertyModification);
+        //EditorApplication.hierarchyChanged += OnHierarchyChanged;
         base.OnEnable();
     }
 
-    void OnDisable()
-    {
-        OnEditorChange.PropertyModification_Out(PropertyModification);
-        EditorApplication.hierarchyChanged -= OnHierarchyChanged;
-    }
+    //void OnDisable()
+    //{
+    //    OnEditorChange.PropertyModification_Out(PropertyModification);
+    //    EditorApplication.hierarchyChanged -= OnHierarchyChanged;
+    //}
 
     void UpdateStates()
     {

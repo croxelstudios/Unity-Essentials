@@ -2,14 +2,13 @@ using UnityEngine;
 
 public static class VectorExtension_InterpretVector2
 {
-    //TO DO: Theres probably a better mathematical way of doing this
     public static Vector3 InterpretVector2(this Vector2 input, Vector3 planeNormal, Vector3 planeUp)
     {
-        Quaternion rotateNormal = Quaternion.FromToRotation(Vector3.forward, planeNormal);
-        Quaternion rotateUpVector = Quaternion.AngleAxis(
-            Vector3.SignedAngle(rotateNormal * Vector3.up, planeUp, planeNormal), planeNormal);
+        planeNormal.Normalize();
+        Vector3 up = Vector3.ProjectOnPlane(planeUp, planeNormal).normalized;
+        Vector3 right = Vector3.Cross(up, planeNormal);
 
-        return rotateUpVector * rotateNormal * input;
+        return (right * input.x) + (up * input.y);
     }
 
     public static Vector3 InterpretVector2(this Vector3 input, Vector3 planeNormal, Vector3 planeUp)

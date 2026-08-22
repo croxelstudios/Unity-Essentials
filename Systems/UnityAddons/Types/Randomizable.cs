@@ -2,6 +2,7 @@ using Sirenix.OdinInspector;
 using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
+
 #if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
 using System.Reflection;
@@ -17,12 +18,10 @@ public struct Randomizable
     public string name;
     float randomizedValue;
     bool wasRandomized;
-    [HideIf("@true")]
-    public float min;
     [SerializeField]
     [HorizontalGroup]
     [LabelText("@GetValueLabel()")]
-    [OnValueChanged("ApplyMin")] //TO DO: Remove min variable and detect Min attributes in root object
+    [OnValueChanged("ApplyMin")]
     float value;
     [SerializeField]
     [HorizontalGroup(LabelWidth = 30f)]
@@ -40,18 +39,6 @@ public struct Randomizable
         this.name = name;
         randomizedValue = value;
         wasRandomized = false;
-        min = -Mathf.Infinity;
-        this.value = value;
-        randomize = false;
-        max = value;
-    }
-
-    public Randomizable(float minAtr, string name, float value)
-    {
-        this.name = name;
-        randomizedValue = value;
-        wasRandomized = false;
-        min = minAtr;
         this.value = value;
         randomize = false;
         max = value;
@@ -62,7 +49,6 @@ public struct Randomizable
         this.name = name;
         randomizedValue = min;
         wasRandomized = false;
-        this.min = -Mathf.Infinity;
         value = min;
         randomize = true;
         this.max = max;
@@ -73,7 +59,6 @@ public struct Randomizable
         this.name = name;
         randomizedValue = min;
         wasRandomized = false;
-        this.min = minAtr;
         value = min;
         randomize = true;
         this.max = max;
@@ -86,7 +71,7 @@ public struct Randomizable
 
     public void ApplyMin()
     {
-        value = Mathf.Max(min, value);
+        //value = Mathf.Max(min, value);
         max = Mathf.Max(value, max);
     }
 
@@ -124,6 +109,48 @@ public struct Randomizable
 #if UNITY_EDITOR
 public class RandomizableAttributeProcessor : OdinAttributeProcessor<Randomizable>
 {
+    Dictionary<InspectorProperty, List<Attribute>> toChildren;
+
+    public override void ProcessSelfAttributes(InspectorProperty parentProperty, List<Attribute> attributes)
+    {
+        toChildren = toChildren.CreateIfNull();
+        toChildren.TryAdd(parentProperty, new List<Attribute>());
+        toChildren[parentProperty] = toChildren[parentProperty].ClearOrCreate();
+
+        List<Attribute> att = new List<Attribute>();
+        att.Add(FindType(attributes, typeof(MinAttribute)));
+        att.Add(FindType(attributes, typeof(MinValueAttribute)));
+        att.Add(FindType(attributes, typeof(MaxValueAttribute)));
+        att.Add(FindType(attributes, typeof(RangeAttribute)));
+        DeleteNulls(att);
+
+        if (!att.IsNullOrEmpty())
+            foreach (Attribute a in att)
+            {
+                Attribute add;
+                if (a is MinAttribute min) //Apparently Odin can't add Unity attributes dynamically
+                    add = new MinValueAttribute(min.min);
+                else add = a;
+                toChildren[parentProperty].Add(add);
+                attributes.Remove(a);
+            }
+    }
+
+    Attribute FindType(List<Attribute> attributes, Type type)
+    {
+        return attributes.Find(a => a.GetType() == type);
+    }
+
+    void DeleteNulls(List<Attribute> attributes)
+    {
+        if (!attributes.IsNullOrEmpty())
+            for (int i = attributes.Count - 1; i >= 0; i--)
+            {
+                if (attributes[i] == null)
+                    attributes.RemoveAt(i);
+            }
+    }
+
     public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
     {
         if (member.Name == "value")
@@ -132,6 +159,14 @@ public class RandomizableAttributeProcessor : OdinAttributeProcessor<Randomizabl
             string label = myProp.name + " Min";
             float width = GetValueLabelSize(label);
             attributes.Add(new LabelWidthAttribute(width));
+            if (!toChildren.IsNullOrEmpty())
+                attributes.AddRange(toChildren[parentProperty]);
+        }
+
+        if (member.Name == "max")
+        {
+            if (!toChildren.IsNullOrEmpty())
+                attributes.AddRange(toChildren[parentProperty]);
         }
     }
 

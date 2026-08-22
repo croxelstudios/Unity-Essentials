@@ -34,7 +34,7 @@ public class TagSelectorAttribute : PropertyAttribute, IEventActionAttribute
         if (UseDefaultTagFieldDrawer)
         {
             if (drawWithLabel)
-                property.stringValue = EditorGUI.TagField(argRect, property.displayName, property.stringValue);
+                property.stringValue = EditorGUI.TagField(argRect, property.GetLabel(), property.stringValue);
             else property.stringValue = EditorGUI.TagField(argRect, property.stringValue);
         }
         else
@@ -70,7 +70,7 @@ public class TagSelectorAttribute : PropertyAttribute, IEventActionAttribute
             //Draw the popup box with the current selected index
             if (drawWithLabel)
                 index = EditorGUI.Popup(argRect,
-                    label == null ? new GUIContent(property.displayName) : label,
+                    label == null ? new GUIContent(property.GetLabel()) : label,
                     index, tagArray.ToGUIContent<GUIContent[]>());
             else index = EditorGUI.Popup(argRect, index, tagArray);
 

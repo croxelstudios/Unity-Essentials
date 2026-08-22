@@ -1,28 +1,41 @@
-using Sirenix.OdinInspector;
-using UnityEngine;
-
-public class Animator_SetTriggerParameter : MonoBehaviour
+public class Animator_SetTriggerParameter : BAnimator_SetParameter
 {
-    [SerializeField]
-    bool useAvailableChildAnimator = false;
-    [SerializeField]
-    [EnableIf("@useAvailableChildAnimator == false")]
-    Animator animator = null;
-    
-    public void SetTrigger(string trigger)
+    public void ResetTrigger()
     {
-        if (useAvailableChildAnimator && ((animator == null) || animator.isActiveAndEnabled == false))
-            animator = GetComponentInChildren<Animator>();
-        if ((animator != null) && animator.isActiveAndEnabled)
-        {
-            animator.ResetTrigger(trigger);
-            animator.SetTrigger(trigger);
-        }
+        ResetTrigger(parameter);
     }
 
-    void Reset()
+    public void TrySetTrigger()
     {
-        animator = GetComponentInParent<Animator>();
-        if (animator == null) animator = GetComponentInChildren<Animator>();
+        TrySetTrigger(parameter);
+    }
+
+    public void SetTrigger()
+    {
+        SetTrigger(parameter);
+    }
+
+    public void ResetTrigger(string parameter)
+    {
+        UpdateNullAnimator();
+        if (AnimatorIsValid())
+            animator.ResetTrigger(parameter);
+    }
+
+    public void TrySetTrigger(string parameter)
+    {
+        UpdateNullAnimator();
+        if (AnimatorIsValid())
+            animator.SetTrigger(parameter);
+    }
+
+    public void SetTrigger(string parameter)
+    {
+        UpdateNullAnimator();
+        if (AnimatorIsValid())
+        {
+            animator.ResetTrigger(parameter);
+            animator.SetTrigger(parameter);
+        }
     }
 }

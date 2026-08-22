@@ -1,21 +1,29 @@
 ﻿using UnityEngine;
 
-public class Animator_SetIntParameter : MonoBehaviour
+public class Animator_SetIntParameter : BAnimator_SetParameter<int>
 {
-    [SerializeField]
-    Animator animator = null;
-    [SerializeField]
-    string parameter = "State";
-
-    public void SetInteger(int input)
+    public void SetInt(float value)
     {
-        if ((animator != null) && animator.isActiveAndEnabled)
-            animator.SetInteger(parameter, input);
+        UpdateNullAnimator();
+        if (AnimatorIsValid())
+            InternalSet(parameter, Mathf.FloorToInt(value));
     }
 
-    void Reset()
+    public void SetInt(int value)
     {
-        animator = GetComponentInParent<Animator>();
-        if (animator == null) animator = GetComponentInChildren<Animator>();
+        UpdateNullAnimator();
+        if (AnimatorIsValid())
+            InternalSet(parameter, value);
+    }
+
+    protected override void InternalSet(string parameter, int value)
+    {
+        animator.SetInteger(parameter, value);
+    }
+
+    protected override void Reset()
+    {
+        base.Reset();
+        parameter = "State";
     }
 }

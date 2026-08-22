@@ -80,8 +80,6 @@ public class BCollisionManager : BColliderInteractor
         }
     }
 
-    //TO DO: Collison trigger is called even when impact is greater than maxImpact.
-    //This was intended at first but makes no sense in retrospect
     public void CollisionStay(NDCollision collision)
     {
         if (IsThisEnabled() /*&& (minImpact > Mathf.Epsilon)*/ &&

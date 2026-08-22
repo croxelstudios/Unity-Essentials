@@ -13,10 +13,10 @@ public class Flag : ValueSignal<bool> //Change type here
     [SerializeField]
     bool checkMultipleConditions = false;
 
+    [LabelText("When True")]
     [FoldoutGroup("Before Calls")]
-    // TO DO: Display name should not be this one (should not show the "_").
-    //LabelText attribute does not work because the property inspector of DXEvents is a custom inspector
     public DXEvent whenTrue_ = null;
+    [LabelText("When False")]
     [FoldoutGroup("Before Calls")]
     public DXEvent whenFalse_ = null;
 

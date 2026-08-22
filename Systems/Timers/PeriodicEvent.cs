@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class PeriodicEvent : MonoBehaviour
 {
+    [Min(0.02f)]
     [SerializeField]
-    Randomizable secs = new Randomizable(0.02f, "Seconds", 0.02f);
+    Randomizable secs = new Randomizable("Seconds", 0.02f);
     [SerializeField]
     [ShowIf("@secs.randomize")]
     bool randomizeOnlyOnEnable = false;

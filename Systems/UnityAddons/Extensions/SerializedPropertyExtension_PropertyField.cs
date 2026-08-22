@@ -18,7 +18,7 @@ public static class SerializedPropertyExtension_PropertyField
         EditorGUI.PropertyField(
                        new Rect(rect.x + 10, y,
                        (rect.width * widthMult) + widthSum, EditorGUIUtility.singleLineHeight),
-                       element, new GUIContent(element.displayName), true);
+                       element, new GUIContent(element.GetLabel()), true);
     }
 
     public static void PropertyField(this SerializedProperty element, string displayName, Rect rect, float widthSum = -10f, float widthMult = 1f)
@@ -34,7 +34,7 @@ public static class SerializedPropertyExtension_PropertyField
         EditorGUI.PropertyField(
                        new Rect(rect.x + 10, rect.y,
                        (rect.width * widthMult) + widthSum, EditorGUIUtility.singleLineHeight),
-                       element, new GUIContent(element.displayName), true);
+                       element, new GUIContent(element.GetLabel()), true);
     }
 }
 #endif

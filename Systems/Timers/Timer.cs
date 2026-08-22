@@ -3,8 +3,9 @@ using UnityEngine;
 
 public class Timer : MonoBehaviour
 {
+    [Min(0f)]
     [SerializeField]
-    Randomizable secs = new Randomizable(0f, "Seconds", 1f);
+    Randomizable secs = new Randomizable("Seconds", 1f);
     public float seconds
     {
         get { return secs.GetValue(); }

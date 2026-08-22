@@ -635,6 +635,19 @@ public static class ReflectionTools
         return fieldPath.Split('.');
     }
 
+    public static T Clone<T>(T original)
+    {
+        if (original == null)
+            return default;
+
+        return (T)original.GetType()
+        .GetMethod(
+            "MemberwiseClone",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        )
+        .Invoke(original, null);
+    }
+
 #if UNITY_EDITOR
     public static T GetValue<T>(SerializedProperty property)
     {

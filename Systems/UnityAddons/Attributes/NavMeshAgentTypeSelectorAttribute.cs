@@ -36,7 +36,7 @@ public class NavMeshAgentTypeSelectorAttribute : PropertyAttribute
 
     public static void AgentTypePopup(SerializedProperty agentTypeID, Rect rect)
     {
-        AgentTypePopup(agentTypeID.displayName, agentTypeID, rect);
+        AgentTypePopup(agentTypeID.GetLabel(), agentTypeID, rect);
     }
 
     public static void AgentTypePopup(string labelName, SerializedProperty agentTypeID)

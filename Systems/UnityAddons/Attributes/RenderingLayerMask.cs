@@ -12,7 +12,7 @@ public class RenderingLayerMaskAttribute : PropertyAttribute, IEventActionAttrib
     {
         if (argument.propertyType == SerializedPropertyType.Integer)
         {
-            argument.intValue = LayerMaskField(argRect, argument.displayName, argument.intValue);
+            argument.intValue = LayerMaskField(argRect, argument.GetLabel(), argument.intValue);
             return true;
         }
         else return false;

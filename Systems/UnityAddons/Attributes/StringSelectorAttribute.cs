@@ -106,7 +106,7 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
                     argRect.y, argRect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, argRect.height);
 
                 EditorGUI.LabelField(labelPosition,
-                    label == null ? new GUIContent(property.displayName) : label,
+                    label == null ? new GUIContent(property.GetLabel()) : label,
                     labelStyle);
                 intValue = EditorGUI.Popup(fieldPosition, intValue, optionsArray);
             }

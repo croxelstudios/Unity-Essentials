@@ -55,7 +55,7 @@ public class InputPrompt : ScriptableObject
         }
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            GUIContent guiContent = new GUIContent(property.displayName);
+            GUIContent guiContent = new GUIContent(property.GetLabel());
             Rect foldoutRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
 
             property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, guiContent, true);
@@ -82,7 +82,7 @@ public class InputPrompt : ScriptableObject
                 {
                     do
                     {
-                        float height = EditorGUI.GetPropertyHeight(prop, new GUIContent(prop.displayName), true);
+                        float height = EditorGUI.GetPropertyHeight(prop, new GUIContent(prop.GetLabel()), true);
                         EditorGUI.PropertyField(new Rect(position.x, y, position.width, height), prop, true);
                         y += height + EditorGUIUtility.standardVerticalSpacing;
                     }

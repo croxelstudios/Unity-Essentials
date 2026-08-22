@@ -467,7 +467,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         void DrawListHeader(Rect rect)
         {
             if (list.headerHeight > 0f)
-                EditorGUI.LabelField(rect, array.displayName);
+                EditorGUI.LabelField(rect, array.GetLabel());
         }
 
         private float ElementHeightCallback(int index)
@@ -535,7 +535,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
                     foreach (SerializedProperty child in element.GetChildren())
                     {
                         child.PropertyField(y, rect, widthSum, widthMult);
-                        y += EditorGUI.GetPropertyHeight(child, new GUIContent(child.displayName), true);
+                        y += EditorGUI.GetPropertyHeight(child, new GUIContent(child.GetLabel()), true);
                         count++;
                     }
                     if (count <= 0)

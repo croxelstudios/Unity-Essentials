@@ -1,38 +1,42 @@
 ﻿using UnityEngine;
-using Sirenix.OdinInspector;
 
-public class Animator_SetFloatParameter : MonoBehaviour
+public class Animator_SetFloatParameter : BAnimator_SetParameter<float>
 {
-    [SerializeField]
-    bool useAvailableChildAnimator = false;
-    [SerializeField]
-    [EnableIf("@useAvailableChildAnimator == false")]
-    Animator animator = null;
-    [SerializeField]
-    string parameter = "Speed";
     [SerializeField]
     bool clampAnimationTime = true;
 
-    public void SetFloat(float input)
+    public void SetFloat(int value)
     {
-        if (useAvailableChildAnimator && ((animator == null) || animator.isActiveAndEnabled == false))
-            animator = GetComponentInChildren<Animator>();
-        if ((animator != null) && animator.isActiveAndEnabled)
-        {
-            if (clampAnimationTime)
-                for (int i = 0; i < animator.layerCount; i++)
-                {
-                    AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(i);
-                    animator.Play(stateInfo.shortNameHash, i, Mathf.Clamp01(stateInfo.normalizedTime));
-                }
+        UpdateNullAnimator();
+        if (AnimatorIsValid())
+            InternalSet(parameter, value);
+    }
 
-            animator.SetFloat(parameter, input);
+    public void SetFloat(float value)
+    {
+        UpdateNullAnimator();
+        if (AnimatorIsValid())
+            InternalSet(parameter, value);
+    }
+
+    protected override void InternalSet(string parameter, float value)
+    {
+        if (clampAnimationTime) ClampAnimationTime();
+        animator.SetFloat(parameter, value);
+    }
+
+    void ClampAnimationTime()
+    {
+        for (int i = 0; i < animator.layerCount; i++)
+        {
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(i);
+            animator.Play(stateInfo.shortNameHash, i, Mathf.Clamp01(stateInfo.normalizedTime));
         }
     }
 
-    void Reset()
+    protected override void Reset()
     {
-        animator = GetComponentInParent<Animator>();
-        if (animator == null) animator = GetComponentInChildren<Animator>();
+        base.Reset();
+        parameter = "Speed";
     }
 }

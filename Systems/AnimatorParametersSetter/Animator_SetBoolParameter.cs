@@ -1,43 +1,35 @@
-﻿using Sirenix.OdinInspector;
-using UnityEngine;
-using UnityEngine.Windows;
-
-public class Animator_SetBoolParameter : MonoBehaviour
+﻿public class Animator_SetBoolParameter : BAnimator_SetParameter<bool>
 {
-    [SerializeField]
-    bool useAvailableChildAnimator = false;
-    [SerializeField]
-    [EnableIf("@useAvailableChildAnimator == false")]
-    Animator animator = null;
-    [SerializeField]
-    string parameter = "Bool";
-
     public void SwitchBool()
     {
+        SwitchBool(parameter);
+    }
+
+    public void SwitchBool(string parameter)
+    {
         UpdateNullAnimator();
-        if ((animator != null) && animator.isActiveAndEnabled)
+        if (AnimatorIsValid())
         {
-            bool input = !animator.GetBool(parameter);
-            animator.SetBool(parameter, input);
+            bool value = !animator.GetBool(parameter);
+            InternalSet(parameter, value);
         }
     }
 
-    public void SetBool(bool input)
+    public void SetBool(bool value)
     {
         UpdateNullAnimator();
-        if ((animator != null) && animator.isActiveAndEnabled)
-            animator.SetBool(parameter, input);
+        if (AnimatorIsValid())
+            InternalSet(parameter, value);
     }
 
-    void UpdateNullAnimator()
+    protected override void InternalSet(string parameter, bool value)
     {
-        if (useAvailableChildAnimator && ((animator == null) || animator.isActiveAndEnabled == false))
-            animator = GetComponentInChildren<Animator>();
+        animator.SetBool(parameter, value);
     }
 
-    void Reset()
+    protected override void Reset()
     {
-        animator = GetComponentInParent<Animator>();
-        if (animator == null) animator = GetComponentInChildren<Animator>();
+        base.Reset();
+        parameter = "Bool";
     }
 }
