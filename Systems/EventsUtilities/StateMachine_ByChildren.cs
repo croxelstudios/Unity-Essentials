@@ -51,7 +51,8 @@ public class StateMachine_ByChildren : StateMachine
 
     void PropertyModification(PropertyModification pm)
     {
-        if (pm.target is GameObject go)
+        //TO DO: Apparently OnDestroy is not correctly unsubscribing the events
+        if ((this != null) && (pm.target is GameObject go))
         {
             if ((go.transform.parent == transform) &&
                 (pm.propertyPath == "m_Name"))
@@ -61,7 +62,8 @@ public class StateMachine_ByChildren : StateMachine
 
     void OnHierarchyChanged()
     {
-        if ((states == null) || (states.Length != transform.childCount))
+        //TO DO: Apparently OnDestroy is not correctly unsubscribing the events
+        if ((this != null) && ((states == null) || (states.Length != transform.childCount)))
             UpdateStates();
     }
 #endif

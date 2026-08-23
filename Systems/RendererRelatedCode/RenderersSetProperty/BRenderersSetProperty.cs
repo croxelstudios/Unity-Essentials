@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.Events;
 
 [ExecuteAlways]
 public class BRenderersSetProperty : DXMonoBehaviour
@@ -48,8 +49,10 @@ public class BRenderersSetProperty : DXMonoBehaviour
 
     protected virtual void Init()
     {
+        bool wasInit = true;
         if (!isInitialized)
         {
+            wasInit = false;
             if (usePropertyBlock
 #if UNITY_EDITOR
                     || !Application.isPlaying
@@ -60,6 +63,8 @@ public class BRenderersSetProperty : DXMonoBehaviour
         }
         if (ShouldUpdateRenderersOnEnable())
             UpdateRenderersInternal();
+        else if (!wasInit)
+            SubscribeToMaterialsChange(SetBlocksProperty);
         SetBlocksProperty();
     }
 
@@ -70,6 +75,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
 
     protected virtual void UpdateRenderersInternal()
     {
+        UnsubscribeToMaterialsChange(SetBlocksProperty);
         if (affectsChildren)
         {
             Renderizable[] rends = Renderizable.GetAll(gameObject, Scope.inChildren, true);
@@ -103,6 +109,21 @@ public class BRenderersSetProperty : DXMonoBehaviour
             RenderersSetProperty_Exclude e = GetComponent<RenderersSetProperty_Exclude>();
             if ((r != null) && (e == null)) rend = new Renderizable[] { r };
         }
+        SubscribeToMaterialsChange(SetBlocksProperty);
+    }
+
+    void SubscribeToMaterialsChange(UnityAction action)
+    {
+        if (!rend.IsNullOrEmpty())
+            foreach (Renderizable r in rend)
+                r.SubscribeToMaterialsChange(action);
+    }
+
+    void UnsubscribeToMaterialsChange(UnityAction action)
+    {
+        if (!rend.IsNullOrEmpty())
+            foreach (Renderizable r in rend)
+                r.UnsubscribeToMaterialsChange(action);
     }
 
     bool ShouldUpdateRenderersOnEnable()
@@ -151,6 +172,7 @@ public class BRenderersSetProperty : DXMonoBehaviour
     {
         SetBlocksProperty(true);
         isInitialized = false;
+        UnsubscribeToMaterialsChange(SetBlocksProperty);
     }
 
     protected virtual bool ShouldUpdate()
@@ -169,7 +191,12 @@ public class BRenderersSetProperty : DXMonoBehaviour
         if (isInitialized) SetBlocksProperty();
     }
 
-    void SetBlocksProperty(bool reset = false)
+    void SetBlocksProperty()
+    {
+        SetBlocksProperty(false);
+    }
+
+    void SetBlocksProperty(bool reset)
     {
         OnUpdatingProperty();
         if (!rend.IsNullOrEmpty())

@@ -1,6 +1,9 @@
+using Steamworks.Data;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Renderizable : Wrapper
 {
@@ -68,6 +71,9 @@ public class Renderizable : Wrapper
     public bool internalIsVisible { get { isVisibleTracker.rend = renderer; return isVisibleTracker.Get(); } }
     IsVisibleTracker isVisibleTracker;
 
+    //Events
+    UnityEvent materialsChanged;
+
     //Material access
     public Material[] sharedMaterials
     {
@@ -86,10 +92,18 @@ public class Renderizable : Wrapper
             switch (rendType)
             {
                 case RendType.Custom:
-                    customRenderer.sharedMaterials = value;
+                    if (!customRenderer.sharedMaterials.IsEqual_Refs(value))
+                    {
+                        customRenderer.sharedMaterials = value;
+                        MaterialsWereChanged();
+                    }
                     break;
                 default:
-                    renderer.sharedMaterials = value;
+                    if (!renderer.sharedMaterials.IsEqual_Refs(value))
+                    {
+                        renderer.sharedMaterials = value;
+                        MaterialsWereChanged();
+                    }
                     break;
             }
         }
@@ -98,13 +112,17 @@ public class Renderizable : Wrapper
     {
         get
         {
+            Material[] result;
             switch (rendType)
             {
                 case RendType.Custom:
-                    return customRenderer.instMaterials;
+                    result = customRenderer.instMaterials;
+                    break;
                 default:
-                    return renderer.materials;
+                    result = renderer.materials;
+                    break;
             }
+            return result;
         }
         set
         {
@@ -117,8 +135,29 @@ public class Renderizable : Wrapper
                     renderer.materials = value;
                     break;
             }
+            MaterialsWereChanged();
         }
     }
+
+    public void SubscribeToMaterialsChange(UnityAction action)
+    {
+        if (materialsChanged == null)
+            materialsChanged = new UnityEvent();
+        materialsChanged.RemoveListener(action);
+        materialsChanged.AddListener(action);
+    }
+
+    public void UnsubscribeToMaterialsChange(UnityAction action)
+    {
+        if (materialsChanged != null)
+            materialsChanged.RemoveListener(action);
+    }
+
+    public void MaterialsWereChanged()
+    {
+        materialsChanged?.Invoke();
+    }
+
     protected override bool IsNull()
     {
         isNullTracker.obj = nullableObject;

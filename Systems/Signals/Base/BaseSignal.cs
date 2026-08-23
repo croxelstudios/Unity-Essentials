@@ -483,9 +483,7 @@ class BaseSignalManager : IDisposable
                 {
                     string path = GetNewSignalPath(type.Name);
                     if (!string.IsNullOrEmpty(path))
-                        signalAsset = CreateSignalAssetInstance(type, path); //TO DO: It doesn't auto select it. 
-                                                                             //Maybe it doesn't register it properly until next frame?
-                    GUIUtility.ExitGUI();
+                        signalAsset = CreateSignalAssetInstance(type, path);
                 }
                 else
                     signalAsset = assets[selected - 1];
