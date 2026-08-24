@@ -10,6 +10,7 @@ public class CreativeFlyMovement : DXMonoBehaviour
     Vector3 downNormal = Vector3.down;
     [SerializeField]
     Vector3 planeForward = Vector3.forward;
+    [SerializeField]
     TimeMode timeMode = TimeMode.FixedUpdate;
 
     public void Move(Vector2 input)

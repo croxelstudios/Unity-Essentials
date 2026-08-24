@@ -150,6 +150,7 @@ public static class Generics
         table_Dot[typeof(Vector3)] = new DotImpl<Vector3>(Dot_Vector3);
         table_Dot[typeof(Vector4)] = new DotImpl<Vector4>(Dot_Vector4);
         table_Dot[typeof(Color)] = new DotImpl<Color>(Dot_Color);
+        table_Dot[typeof(Quaternion)] = new DotImpl<Quaternion>(Dot_Quaternion);
 
         // Lerp
         table_Lerp[typeof(float)] = new LerpImpl<float>(Lerp_Float);
@@ -814,6 +815,12 @@ public static class Generics
     public static float Dot_Color(Color a, Color b)
     {
         return Vector4.Dot(a, b);
+    }
+
+    public static float Dot_Quaternion(Quaternion a, Quaternion b)
+    {
+        //TO DO: Generics Quaternion Dot is not equivalent to vector's Dot.
+        return Quaternion.Dot(a, b);
     }
     #endregion
 

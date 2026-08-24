@@ -88,7 +88,8 @@ public class SaveSignals : BSaver
         foreach (string signal in data.Split(','))
         {
             string[] signalData = signal.Split('=');
-            signals.First(x => x.name == signalData[0]).SetValueParse(signalData[1]);
+            ValueSignal s = signals.FirstOrDefault(x => x.name == signalData[0]);
+            if (s != null) s.SetValueParse(signalData[1]);
         }
     }
 

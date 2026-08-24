@@ -3,6 +3,8 @@ using System;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+//TO DO: Custom inspector that automatically uses the name of the parent
+//property instead of passing the label as data
 [Serializable]
 [HideLabel]
 [InlineProperty]
