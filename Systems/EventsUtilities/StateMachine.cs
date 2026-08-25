@@ -15,6 +15,8 @@ public class StateMachine : MonoBehaviour
     [SerializeField]
     bool lastLinkedObjectsRemain = false;
     [SerializeField]
+    bool eventsCheckEnabled = true;
+    [SerializeField]
     [StringSelector("stateNames")]
     [OnValueChanged("UpdateState")]
     int _currentState = 0;
@@ -143,7 +145,7 @@ public class StateMachine : MonoBehaviour
     [StringSelector("eventNames")]
     public void LaunchEvent(string name)
     {
-        if (this.IsActiveAndEnabled())
+        if ((!eventsCheckEnabled) || this.IsActiveAndEnabled())
         {
             int index = Array.IndexOf(eventNames, name);
             states[currentState].events[index]?.Invoke();
