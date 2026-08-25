@@ -19,12 +19,7 @@ public class CentralizedSettings : MonoBehaviour
     [SerializeField]
     protected VariableReference[] variables = new VariableReference[1];
     [SerializeField]
-    Holder holder = new();
-
-    void OnEnable()
-    {
-        holder.source = this;
-    }
+    protected Holder holder = new();
 
     [Serializable]
     public struct VariableReference
@@ -42,15 +37,7 @@ public class CentralizedSettings : MonoBehaviour
     }
 
     [Serializable]
-    public struct Holder
-    {
-        public CentralizedSettings source;
-
-        public Holder(CentralizedSettings source)
-        {
-            this.source = source;
-        }
-    }
+    public struct Holder { }
 #endif
 }
 
@@ -59,13 +46,12 @@ public class CentralizedSettings : MonoBehaviour
 public class CentralizedSettingsDrawer : PropertyDrawer
 {
     const float EXTRASIZE = 5f;
-    const string sourceName = "source";
     const string variablesName = "variables";
     const string componentName = "component";
     const string displayName = "displayName";
     const string nameName = "name";
 #if ODIN_INSPECTOR
-    static Dictionary<Object, PropertyTree> odinTrees;
+    static Dictionary<PropertyTreeKey, PropertyTree> odinTrees;
 #endif
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -101,14 +87,14 @@ public class CentralizedSettingsDrawer : PropertyDrawer
             if (prop != null)
             {
 #if ODIN_INSPECTOR
-                RemoveAddAttributes.Remove(prop,
+                RemoveAddAttributes.Remove(
                     typeof(HideLabelAttribute),
                     typeof(LabelTextAttribute),
                     typeof(HorizontalGroupAttribute),
                     typeof(IndentAttribute),
                     typeof(LabelWidthAttribute));
                 {
-                    PropertyTree tree = GetTree(property, prop.serializedObject);
+                    PropertyTree tree = GetTree(prop.serializedObject);
                     {
                         tree.BeginDraw(true);
                         {
@@ -119,7 +105,7 @@ public class CentralizedSettingsDrawer : PropertyDrawer
                     }
                     tree.ApplyChanges();
                 }
-                RemoveAddAttributes.Restore(prop);
+                RemoveAddAttributes.Restore();
 
 #else
                 position.height = EditorGUI.GetPropertyHeight(prop, lb, true);
@@ -160,10 +146,11 @@ public class CentralizedSettingsDrawer : PropertyDrawer
 
     SerializedProperty GetReferenceValueProperty(SerializedProperty refProp, out GUIContent label)
     {
-        Component comp = refProp.FindPropertyRelative(componentName).objectReferenceValue
-            as Component;
+        SerializedProperty compProp = refProp.FindPropertyRelative(componentName);
+        SerializedProperty nameProp = refProp.FindPropertyRelative(nameName);
 
-        string propName = refProp.FindPropertyRelative(nameName).stringValue;
+        string propName = nameProp.stringValue;
+
         string dispName = refProp.FindPropertyRelative(displayName).stringValue;
 
         if (string.IsNullOrEmpty(dispName))
@@ -171,14 +158,33 @@ public class CentralizedSettingsDrawer : PropertyDrawer
         else dispName = dispName.ToDisplayName();
         label = new GUIContent(dispName);
 
-        if (comp == null)
-        {
-            if (!string.IsNullOrEmpty(propName))
-                label = null;
+        if (nameProp.hasMultipleDifferentValues)
             return null;
+
+        if (string.IsNullOrEmpty(propName))
+            return null;
+
+        Object[] comps = new Object[refProp.serializedObject.targetObjects.Length];
+        for (int i = 0; i < comps.Length; i++)
+        {
+            SerializedObject obj =
+                new SerializedObject(compProp.serializedObject.targetObjects[i]);
+
+            SerializedProperty prop = obj.FindProperty(refProp.propertyPath);
+
+            comps[i] = prop.FindPropertyRelative(componentName).objectReferenceValue;
+
+            if (comps[i] == null)
+            {
+                if (!string.IsNullOrEmpty(propName))
+                    label = null;
+                return null;
+            }
         }
 
-        return comp.GetSerializedProperty(propName);
+        SerializedObject compsObject = new SerializedObject(comps);
+
+        return compsObject.FindProperty(propName);
     }
 
     SerializedProperty ProcessProperty(SerializedProperty property, out SerializedProperty[] children,
@@ -186,12 +192,11 @@ public class CentralizedSettingsDrawer : PropertyDrawer
     {
         if (getVariables)
         {
-            property = property.FindPropertyRelative(sourceName);
-            SerializedObject obj = new SerializedObject(property.objectReferenceValue);
+            SerializedObject obj = property.serializedObject;
             property = obj.FindProperty(variablesName);
         }
 
-        children = new SerializedProperty[property.arraySize];
+        children = new SerializedProperty[property.minArraySize];
         for (int i = 0; i < children.Length; i++)
             children[i] = property.GetArrayElementAtIndex(i);
 
@@ -199,25 +204,64 @@ public class CentralizedSettingsDrawer : PropertyDrawer
     }
 
 #if ODIN_INSPECTOR
-    PropertyTree GetTree(SerializedProperty property, SerializedObject obj)
+    PropertyTree GetTree(SerializedObject obj)
     {
-        if (!odinTrees.NotNullContainsKey(obj.targetObject))
+        odinTrees = odinTrees.CreateIfNull();
+        PropertyTreeKey key = new(obj);
+        if (!odinTrees.ContainsKey(key))
         {
-            odinTrees = new Dictionary<Object, PropertyTree>();
-            property = ProcessProperty(property, out SerializedProperty[] children, false);
-            for (int i = 0; i < children.Length; i++)
-            {
-                SerializedProperty prop = GetReferenceValueProperty(children[i], out GUIContent lb);
-                if (prop != null)
-                {
-                    SerializedObject sObj = prop.serializedObject;
-                    odinTrees.TryAdd(sObj.targetObject, PropertyTree.Create(sObj));
-                }
-            }
+            odinTrees.TryAdd(new PropertyTreeKey(obj), PropertyTree.Create(obj));
             Selection.selectionChanged -= ShouldDisposeTrees;
             Selection.selectionChanged += ShouldDisposeTrees;
+            AssemblyReloadEvents.beforeAssemblyReload -= DisposeTrees;
+            AssemblyReloadEvents.beforeAssemblyReload += DisposeTrees;
+            EditorApplication.quitting -= DisposeTrees;
+            EditorApplication.quitting += DisposeTrees;
         }
-        return odinTrees[obj.targetObject];
+        return odinTrees[key];
+    }
+
+    struct PropertyTreeKey : IEquatable<PropertyTreeKey>
+    {
+        Type t;
+        int[] ids;
+
+        public PropertyTreeKey(SerializedObject serializedObject)
+        {
+            Object[] targets = serializedObject.targetObjects;
+            ids = new int[targets.Length];
+
+            t = targets[0].GetType();
+            for (int i = 0; i < ids.Length; i++)
+                ids[i] = targets[i].GetInstanceID();
+
+            Array.Sort(ids);
+        }
+
+        public bool Equals(PropertyTreeKey other)
+        {
+            if (t != other.t)
+                return false;
+
+            return ids.AsSpan().SequenceEqual(other.ids);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is PropertyTreeKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+
+            hash.Add(t);
+
+            for (int i = 0; i < ids.Length; i++)
+                hash.Add(ids[i]);
+
+            return hash.ToHashCode();
+        }
     }
 
     static void ShouldDisposeTrees()
@@ -229,11 +273,13 @@ public class CentralizedSettingsDrawer : PropertyDrawer
     {
         if (odinTrees != null)
         {
-            foreach (var tree in odinTrees.Values)
+            foreach (PropertyTree tree in odinTrees.Values)
                 tree.Dispose();
             odinTrees = null;
         }
         Selection.selectionChanged -= ShouldDisposeTrees;
+        AssemblyReloadEvents.beforeAssemblyReload -= DisposeTrees;
+        EditorApplication.quitting -= DisposeTrees;
     }
 #endif
 }

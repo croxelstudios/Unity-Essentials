@@ -66,18 +66,24 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
     public bool DrawIntOrStringProperty(SerializedProperty property,
         Rect argRect, bool drawWithLabel = false, GUIContent label = null)
     {
-        object obj = GetSubObject(property.serializedObject.targetObject, property);
+        object[] obj = GetSubObjects(property.serializedObject.targetObjects, property);
         return DrawIntOrStringProperty(obj, property, argRect, drawWithLabel, label);
     }
 
     public bool DrawIntOrStringProperty(object targetObj, SerializedProperty property,
         Rect argRect, bool drawWithLabel = false, GUIContent label = null)
     {
-        string[] optionsArray = GetStringArray(targetObj);
+        return DrawIntOrStringProperty(new object[] { targetObj }, property, argRect, drawWithLabel, label);
+    }
+
+    public bool DrawIntOrStringProperty(object[] targetObjs, SerializedProperty property,
+        Rect argRect, bool drawWithLabel = false, GUIContent label = null)
+    {
+        string[] optionsArray = GetStringArray(targetObjs[0]);
 
         int sipIndex = -1;
-        UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier(property.serializedObject.targetObject, property.propertyPath);
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, serializedPopupDataArray, propPath, ref sipIndex);
+        UnityEventPropertyIdentifier eventIdentifier = new(property.serializedObject.targetObject, property.propertyPath);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObjs[0], eventIdentifier, serializedPopupDataArray, propPath, ref sipIndex);
 
         if (PropertyIsValidForPopup(property, optionsArray))
         {
@@ -94,15 +100,15 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
             }
             else
             {
-                string pastName = (popupDataArray != null) ? popupDataArray[sipIndex].text : null;
+                string pastName = popupDataArray?[sipIndex].text;
                 intValue = ProccessStringIntPair(property.intValue, pastName, optionsArray);
             }
 
             //DropDown
             if (drawWithLabel)
             {
-                Rect labelPosition = new Rect(argRect.x + EditorGUI.indentLevel, argRect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, argRect.height);
-                Rect fieldPosition = new Rect(argRect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
+                Rect labelPosition = new(argRect.x + EditorGUI.indentLevel, argRect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, argRect.height);
+                Rect fieldPosition = new(argRect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
                     argRect.y, argRect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, argRect.height);
 
                 EditorGUI.LabelField(labelPosition,
@@ -125,21 +131,21 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
                     property.intValue = Convert.ToInt32(intValue);
             }
 
-            SetNewValue(targetObj, serializedPopupDataArray,
+            SetNewValue(targetObjs, serializedPopupDataArray,
                 popupDataArray, sipIndex, stringValue, intValue);
             return true;
         }
         else return false;
     }
 
-    public void UpdateStringPopupData(Object targetObj, SerializedProperty property)
+    public void UpdateStringPopupData(Object[] targetObjs, SerializedProperty property)
     {
-        string[] optionsArray = GetStringArray(targetObj);
+        string[] optionsArray = GetStringArray(targetObjs[0]);
 
         string popupDataArrayName = serializedPopupDataArray;
         int sipIndex = -1;
-        UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier(property.serializedObject.targetObject, property.propertyPath);
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, popupDataArrayName, propPath, ref sipIndex);
+        UnityEventPropertyIdentifier eventIdentifier = new(property.serializedObject.targetObject, property.propertyPath);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObjs[0], eventIdentifier, popupDataArrayName, propPath, ref sipIndex);
 
         if (PropertyIsValidForPopup(property, optionsArray) && (popupDataArray != null))
         {
@@ -165,18 +171,19 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
             }
 
             popupDataArray = popupDataArray.Where(x => x.sourceEventCall.sourceComponent != null).ToArray();
-            ReflectionTools.SetValue(targetObj, serializedPopupDataArray, popupDataArray);
+            for (int i = 0; i < targetObjs.Length; i++)
+                ReflectionTools.SetValue(targetObjs[i], serializedPopupDataArray, popupDataArray);
         }
     }
 
-    public static int IntPopup(int current, object targetObj, StringSelectorAttribute attr,
+    public static int IntPopup(int current, object[] targetObjs, StringSelectorAttribute attr,
         string label, Rect argRect, SerializedProperty propertyPrefabOverrideData = null)
     {
-        string[] optionsArray = attr.GetStringArray(targetObj);
+        string[] optionsArray = attr.GetStringArray(targetObjs[0]);
 
         int sipIndex = -1;
-        UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier((Object)targetObj, label);
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
+        UnityEventPropertyIdentifier eventIdentifier = new((Object)targetObjs[0], label);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObjs[0], eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
 
         if ((!optionsArray.IsNullOrEmpty()) && (current >= 0) && (current < optionsArray.Length))
         {
@@ -186,21 +193,21 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
             DrawPopup(argRect, optionsArray, intValue, label, propertyPrefabOverrideData);
             string stringValue = optionsArray[intValue];
 
-            SetNewValue(targetObj, attr.serializedPopupDataArray,
+            SetNewValue(targetObjs, attr.serializedPopupDataArray,
                 popupDataArray, sipIndex, stringValue, intValue);
             return intValue;
         }
         else return EditorGUI.IntField(argRect, label, current);
     }
 
-    public static string StringPopup(string current, object targetObj, StringSelectorAttribute attr,
+    public static string StringPopup(string current, object[] targetObjs, StringSelectorAttribute attr,
         string label, Rect argRect, SerializedProperty propertyPrefabOverrideData = null)
     {
-        string[] optionsArray = attr.GetStringArray(targetObj);
+        string[] optionsArray = attr.GetStringArray(targetObjs[0]);
 
         int sipIndex = -1;
-        UnityEventPropertyIdentifier eventIdentifier = new UnityEventPropertyIdentifier((Object)targetObj, label);
-        StringPopupData[] popupDataArray = GetStringPopupData(targetObj, eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
+        UnityEventPropertyIdentifier eventIdentifier = new((Object)targetObjs[0], label);
+        StringPopupData[] popupDataArray = GetStringPopupData(targetObjs[0], eventIdentifier, attr.serializedPopupDataArray, attr.propPath, ref sipIndex);
 
         if ((!optionsArray.IsNullOrEmpty()) && optionsArray.Contains(current))
         {
@@ -210,14 +217,14 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
             DrawPopup(argRect, optionsArray, intValue, label, propertyPrefabOverrideData);
             string stringValue = optionsArray[intValue];
 
-            SetNewValue(targetObj, attr.serializedPopupDataArray,
+            SetNewValue(targetObjs, attr.serializedPopupDataArray,
                 popupDataArray, sipIndex, stringValue, intValue);
             return stringValue;
         }
         else return EditorGUI.TextField(argRect, label, current);
     }
 
-    static void SetNewValue(object targetObj, string serializedPopupDataArray, 
+    static void SetNewValue(object[] targetObjs, string serializedPopupDataArray, 
         StringPopupData[] popupDataArray, int sipIndex, string stringValue, int intValue)
     {
         if (popupDataArray != null)
@@ -225,7 +232,8 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
             popupDataArray[sipIndex].text = stringValue;
             popupDataArray[sipIndex].value = intValue;
             popupDataArray = popupDataArray.Where(x => x.sourceEventCall.sourceComponent != null).ToArray();
-            ReflectionTools.SetValue(targetObj, serializedPopupDataArray, popupDataArray);
+            for (int i = 0; i < targetObjs.Length; i++)
+                ReflectionTools.SetValue(targetObjs[i], serializedPopupDataArray, popupDataArray);
         }
     }
 
@@ -235,8 +243,8 @@ public class StringSelectorAttribute : BasePropertyRefAttribute, IEventActionAtt
         if (label != "")
         {
             GUIStyle labelStyle = propertyPrefabOverrideData.PrefabOverrideRendering(rect);
-            Rect labelPosition = new Rect(rect.x + EditorGUI.indentLevel, rect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, rect.height);
-            Rect fieldPosition = new Rect(rect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
+            Rect labelPosition = new(rect.x + EditorGUI.indentLevel, rect.y, EditorGUIUtility.labelWidth - EditorGUI.indentLevel, rect.height);
+            Rect fieldPosition = new(rect.x + EditorGUIUtility.labelWidth + GUIInternalConstants.kPrefixPaddingRight,
                 rect.y, rect.width - EditorGUIUtility.labelWidth - GUIInternalConstants.kPrefixPaddingRight, rect.height);
 
             EditorGUI.LabelField(labelPosition, label, labelStyle);

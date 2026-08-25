@@ -17,6 +17,23 @@ public class BasePropertyRefAttribute : PropertyAttribute
 #if UNITY_EDITOR
     public object GetSubObject(Object targetObj, SerializedProperty property)
     {
+        string path = PreparePath(property);
+        return (path != "") ? ReflectionTools.GetFieldValue(targetObj, path, false) : targetObj;
+    }
+
+    public object[] GetSubObjects(Object[] targetObjs, SerializedProperty property)
+    {
+        string path = PreparePath(property);
+
+        object[] result = new object[targetObjs.Length];
+        for (int i = 0; i < targetObjs.Length; i++)
+            result[i] = (path != "") ? ReflectionTools.GetFieldValue(targetObjs[i], path, false) : targetObjs[i];
+
+        return result;
+    }
+
+    string PreparePath(SerializedProperty property)
+    {
         string[] pathSegments = property.propertyPath.Split(".");
         string path = "";
         int stop;
@@ -28,7 +45,7 @@ public class BasePropertyRefAttribute : PropertyAttribute
             if (i != 0) path += ".";
             path += pathSegments[i];
         }
-        return (path != "") ? ReflectionTools.GetFieldValue(targetObj, path, false) : targetObj;
+        return path;
     }
 
     public T GetValue<T>(Object targetObj, SerializedProperty property) where T : class
