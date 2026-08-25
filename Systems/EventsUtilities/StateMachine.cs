@@ -40,7 +40,7 @@ public class StateMachine : MonoBehaviour
         set
         {
             if ((_currentState != value) && (value < states.Length) && (value >= 0))
-                    SwitchState(value);
+                SwitchState(value);
         }
     }
 
@@ -211,6 +211,9 @@ public class StateMachine : MonoBehaviour
 
     public void UpdateState()
     {
+        if (!_currentState.IsBetween(0, states.Length))
+            _currentState = Mathf.Clamp(_currentState, 0, states.Length - 1);
+
         int value = _currentState;
         _currentState = prevState;
         SwitchState(value);
