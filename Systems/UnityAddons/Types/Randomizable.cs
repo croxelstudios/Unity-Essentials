@@ -107,50 +107,9 @@ public struct Randomizable
 }
 
 #if UNITY_EDITOR
-public class RandomizableAttributeProcessor : OdinAttributeProcessor<Randomizable>
+#if ODIN_INSPECTOR
+public class RandomizableAttributeProcessor : AttributeToChildrenProcessor<Randomizable>
 {
-    Dictionary<InspectorProperty, List<Attribute>> toChildren;
-
-    public override void ProcessSelfAttributes(InspectorProperty parentProperty, List<Attribute> attributes)
-    {
-        toChildren = toChildren.CreateIfNull();
-        toChildren.TryAdd(parentProperty, new List<Attribute>());
-        toChildren[parentProperty] = toChildren[parentProperty].ClearOrCreate();
-
-        List<Attribute> att = new List<Attribute>();
-        att.Add(FindType(attributes, typeof(MinAttribute)));
-        att.Add(FindType(attributes, typeof(MinValueAttribute)));
-        att.Add(FindType(attributes, typeof(MaxValueAttribute)));
-        att.Add(FindType(attributes, typeof(RangeAttribute)));
-        DeleteNulls(att);
-
-        if (!att.IsNullOrEmpty())
-            foreach (Attribute a in att)
-            {
-                Attribute add;
-                if (a is MinAttribute min) //Apparently Odin can't add Unity attributes dynamically
-                    add = new MinValueAttribute(min.min);
-                else add = a;
-                toChildren[parentProperty].Add(add);
-                attributes.Remove(a);
-            }
-    }
-
-    Attribute FindType(List<Attribute> attributes, Type type)
-    {
-        return attributes.Find(a => a.GetType() == type);
-    }
-
-    void DeleteNulls(List<Attribute> attributes)
-    {
-        if (!attributes.IsNullOrEmpty())
-            for (int i = attributes.Count - 1; i >= 0; i--)
-            {
-                if (attributes[i] == null)
-                    attributes.RemoveAt(i);
-            }
-    }
-
     public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
     {
         if (member.Name == "value")
@@ -159,21 +118,25 @@ public class RandomizableAttributeProcessor : OdinAttributeProcessor<Randomizabl
             string label = myProp.name + " Min";
             float width = GetValueLabelSize(label);
             attributes.Add(new LabelWidthAttribute(width));
-            if (!toChildren.IsNullOrEmpty())
-                attributes.AddRange(toChildren[parentProperty]);
         }
 
-        if (member.Name == "max")
-        {
-            if (!toChildren.IsNullOrEmpty())
-                attributes.AddRange(toChildren[parentProperty]);
-        }
+        base.ProcessChildMemberAttributes(parentProperty, member, attributes);
     }
 
-    public float GetValueLabelSize(string text)
+    protected override string[] InheritableChildren()
+    {
+        return new string[]
+        {
+            "value",
+            "max"
+        };
+    }
+
+    float GetValueLabelSize(string text)
     {
         GUIStyle labelStyle = GUI.skin.label;
         return labelStyle.CalcSize(new GUIContent(text)).x;
     }
 }
+#endif
 #endif

@@ -69,7 +69,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         //    propertyHeight = EditorGUI.GetPropertyHeight(name);
 
         //    if ((property.type == typeof(UnityEvent).Name) ||
-        //        (property.type == typeof(DXEvent).Name)) //TO DO: Very crappy
+        //        (property.type == typeof(DXEvent).Name)) //Very crappy
         //        propertyHeight += EditorGUI.GetPropertyHeight(property, true);
         //    else
         //    {
@@ -129,7 +129,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
 
         //    float y = rect.y + EditorGUI.GetPropertyHeight(name) + 2;
         //    if ((property.type == typeof(UnityEvent).Name) ||
-        //        (property.type == typeof(DXEvent).Name)) //TO DO: Very crappy
+        //        (property.type == typeof(DXEvent).Name)) //Very crappy
         //        property.PropertyField(elementTitle, y, rect, widthSum, widthMult);
         //    else
         //    {
@@ -278,7 +278,7 @@ public class NamedListAttribute_Drawer : PropertyDrawer
         return names;
     }
 
-    //TO DO: Use reflection to skip non-serialized fields?
+    //NOTE: Use reflection to skip non-serialized fields?
     //static string[] GetNameProps(SerializedProperty property, string propPath, out ReflectionTools.ObjectInfo namesArray)
     //{
     //    SerializedProperty obj = property.GetParent();

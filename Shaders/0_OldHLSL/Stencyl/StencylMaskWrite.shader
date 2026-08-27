@@ -11,16 +11,14 @@ Shader "Custom/StencilMaskWrite"
 
 	SubShader
 	{
-		Stencil
+		Tags
 		{
-			Ref[_StencilRef]
-			Comp Always
-			Pass Replace
+			"RenderPipeline" = "UniversalPipeline"
+			"RenderType" = "Opaque"
 		}
 
 		Lighting Off
 		Cull[_Cull]
-		ZWrite[_zWrite]
 		ZTest[_zTest]
 		Blend Zero One
 
@@ -30,7 +28,6 @@ Shader "Custom/StencilMaskWrite"
             Tags { "LightMode" = "DepthOnly" }
 			
 			ZWrite[_zWrite]
-			ZTest[_zTest]
             ColorMask 0
 
 			CGPROGRAM
@@ -63,6 +60,15 @@ Shader "Custom/StencilMaskWrite"
 
 		Pass
 		{
+			Name "Forward"
+			Tags { "LightMode" = "UniversalForward" }
+			Stencil
+			{
+				Ref[_StencilRef]
+				Comp Always
+				Pass Replace
+			}
+
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag

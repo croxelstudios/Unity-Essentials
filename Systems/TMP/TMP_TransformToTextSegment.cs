@@ -75,7 +75,7 @@ public class TMP_TransformToTextSegment : DXMonoBehaviour, ITextReplacer
                 if (((max - min).sqrMagnitude > Mathf.Epsilon) && ch.isVisible)
                     characterVisible = true;
 
-                //Original min max, to do correct scaling
+                //Original min max, for correct scaling
                 bottomLeft = ch.bottomLeft;
                 topRight = ch.topRight;
                 oMin = oMin.Min(bottomLeft);

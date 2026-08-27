@@ -970,8 +970,9 @@ public class EasyEventDrawer : PropertyDrawer
                         {
                             if (oldComponentList[i] == oldTargetObject)
                                 break;
-
-                            if (oldComponentList[i].GetType() == oldTargetObject.GetType()) // Only take exact matches for component type since I don't want to do redo the reflection to find the methods at the moment.
+                            // Only take exact matches for component type since I don't want to redo the reflection
+                            // to find the methods at the moment.
+                            if (oldComponentList[i].GetType() == oldTargetObject.GetType())
                                 componentLocationOffset++;
                         }
 

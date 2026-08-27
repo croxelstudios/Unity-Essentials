@@ -18,13 +18,13 @@ public static class ProcMesh
         triangles.Add(v2);
     }
 
-    public static void RegisterQuad(uint bl, uint tl, uint tr, uint br, int index, ref NativeArray<uint> triangles)
+    public static void RegisterQuad(uint br, uint bl, uint tr, uint tl, int index, ref NativeArray<uint> triangles)
     {
         RegisterTriangle(bl, tl, br, index, ref triangles);
         RegisterTriangle(br, tl, tr, index + 3, ref triangles);
     }
 
-    public static void RegisterQuad(int bl, int tl, int tr, int br, ref List<int> triangles)
+    public static void RegisterQuad(int br, int bl, int tr, int tl, ref List<int> triangles)
     {
         RegisterTriangle(bl, tl, br, ref triangles);
         RegisterTriangle(br, tl, tr, ref triangles);
@@ -356,7 +356,7 @@ public static class ProcMesh
         mesh.SetVertices(vertices);
         mesh.SetNormals(normals);
         List<int> triangles = new List<int>();
-        RegisterQuad(0, 3, 2, 1, ref triangles); // TO DO: Order is different for this function??
+        RegisterQuad(3, 0, 2, 1, ref triangles);
         mesh.SetTriangles(triangles, 0);
         Vector2[] uvs = new Vector2[4];
         MapQuadUVs(3, 0, 2, 1, ref uvs);

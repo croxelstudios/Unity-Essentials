@@ -1120,10 +1120,11 @@ public class ComputableMesh : ComputableBase<Mesh>
 
     void Compute_ClearMask(ComputeBuffer mask)
     {
-        int ki = _genericCompute.FindKernel(clearMaskKernel);
-        _genericCompute.SetBuffer(ki, "mask", mask);
+        int ki = genericCompute.FindKernel(clearMaskKernel);
+        genericCompute.SetBuffer(ki, "mask", mask);
+        genericCompute.SetInt("vertexCount", mask.count);
 
-        _genericCompute.Dispatch(ki, Mathf.CeilToInt(
+        genericCompute.Dispatch(ki, Mathf.CeilToInt(
             vertexCount / Numthreads_Small), 1, 1);
     }
 
@@ -1131,6 +1132,7 @@ public class ComputableMesh : ComputableBase<Mesh>
     {
         int ki = genericCompute.FindKernel(fillMaskKernel);
         genericCompute.SetBuffer(ki, "mask", mask);
+        genericCompute.SetInt("vertexCount", mask.count);
 
         genericCompute.Dispatch(ki, Mathf.CeilToInt(
             vertexCount / Numthreads_Small), 1, 1);

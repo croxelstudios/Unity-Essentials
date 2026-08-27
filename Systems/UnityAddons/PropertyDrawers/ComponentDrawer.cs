@@ -12,9 +12,38 @@ public class ComponentDrawer : PropertyDrawer
     static Dictionary<string, Object> selectedSources;
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        Type type = FieldType();
         SerializedObject obj = property.serializedObject;
+        Object current;
+        Component component = null;
+        GameObject go;
+        Component[] components;
+
+        bool drawComplexField = true;
+        Type type = FieldType();
         if (type.DisallowsMultiple())
+            drawComplexField = false;
+
+        if (drawComplexField)
+        {
+            current = property.objectReferenceValue;
+            go = current as GameObject;
+            if (go == null)
+            {
+                component = current as Component;
+                if (component == null)
+                    drawComplexField = false;
+                else go = component.gameObject;
+            }
+
+            if (drawComplexField)
+            {
+                components = go.GetComponents(type);
+                if ((components == null) || (components.Length <= 1))
+                    drawComplexField = false;
+            }
+        }
+
+        if (!drawComplexField)
         {
             EditorGUI.PropertyField(position, property, label);
             obj.ApplyModifiedProperties();
@@ -22,130 +51,129 @@ public class ComponentDrawer : PropertyDrawer
         }
 
         EditorGUI.BeginProperty(position, label, property);
-
-        // Draw label
-        Rect valueRect = EditorGUI.PrefixLabel(position, label);
-
-        // Don't inherit indentation
-        int indent = EditorGUI.indentLevel;
-        EditorGUI.indentLevel = 0;
-
-        // Two halves
-        Rect leftRect = valueRect;
-        leftRect.width = (valueRect.width - 2) * 0.5f;
-
-        Rect rightRect = valueRect;
-        rightRect.x = leftRect.xMax + 2;
-        rightRect.width = valueRect.width - 2 - leftRect.width;
-
-        // Game Object
-        selectedSources = selectedSources.CreateIfNull();
-        string key = property.serializedObject.targetObject.GetInstanceID() +
-            "/" + property.propertyPath;
-        Component component = property.objectReferenceValue as Component;
-        Object oldSource;
-        if (component != null)
         {
-            oldSource = component.gameObject;
-            selectedSources.Set(key, oldSource);
-        }
-        else selectedSources.TryGetValue(key, out oldSource);
-        bool redoFoldout = false;
-        EditorGUI.BeginChangeCheck();
-        Object newSource = EditorGUI.ObjectField(
-            leftRect, GUIContent.none, oldSource, typeof(Object), true);
-        if (EditorGUI.EndChangeCheck())
-        {
-            if (newSource == null)
+            // Draw label
+            Rect valueRect = EditorGUI.PrefixLabel(position, label);
+
+            // Don't inherit indentation
+            int indent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            // Two halves
+            Rect leftRect = valueRect;
+            leftRect.width = (valueRect.width - 2) * 0.5f;
+
+            Rect rightRect = valueRect;
+            rightRect.x = leftRect.xMax + 2;
+            rightRect.width = valueRect.width - 2 - leftRect.width;
+
+            // Game Object
+            selectedSources = selectedSources.CreateIfNull();
+            string key = property.serializedObject.targetObject.GetInstanceID() +
+                "/" + property.propertyPath; //TO DO: Lacks multi-selection support?
+            Object oldSource;
+            if (component != null)
             {
-                property.objectReferenceValue = null;
-                obj.ApplyModifiedProperties();
+                oldSource = component.gameObject;
+                selectedSources.Set(key, oldSource);
             }
-            else if (newSource is Component newComponent)
+            else selectedSources.TryGetValue(key, out oldSource);
+            bool redoFoldout = false;
+            EditorGUI.BeginChangeCheck();
+            Object newSource = EditorGUI.ObjectField(
+                leftRect, GUIContent.none, oldSource, typeof(Object), true);
+            if (EditorGUI.EndChangeCheck())
             {
-                newSource = newComponent.gameObject;
-                if (newComponent.GetType().IsOrInheritsFrom(type))
+                if (newSource == null)
                 {
-                    property.objectReferenceValue = newComponent;
+                    property.objectReferenceValue = null;
                     obj.ApplyModifiedProperties();
                 }
-            }
-            else redoFoldout = true;
-            selectedSources.Set(key, newSource);
-        }
-
-        // Component foldout
-        if (redoFoldout && (newSource != null))
-        {
-            if (property.objectReferenceValue == null)
-                property.objectReferenceValue = newSource.GetComponent(type);
-            else if (oldSource != null)
-            {
-                // Attempt to maintain the function pointer and
-                // component pointer if someone changes
-                // the target object and it has the correct component type on it.
-
-                GameObject oldSrc = (GameObject)oldSource;
-                GameObject newSrc = (GameObject)newSource;
-
-                Type refType = property.objectReferenceValue.GetType();
-
-                Component[] oldComponentList = oldSrc.GetComponents(refType);
-
-                int componentLocationOffset = 0;
-                for (int i = 0; i < oldComponentList.Length; ++i)
+                else if (newSource is Component newComponent)
                 {
-                    if (oldComponentList[i] == property.objectReferenceValue)
-                        break;
-
-                    // Only take exact matches for component type
-                    if (oldComponentList[i].GetType() == refType)
-                        componentLocationOffset++;
-                }
-
-                Component[] newComponentList = newSrc.GetComponents(refType);
-
-                int newComponentIndex = 0;
-                int componentCount = -1;
-                for (int i = 0; i < newComponentList.Length; ++i)
-                {
-                    if (componentCount == componentLocationOffset)
-                        break;
-
-                    if (newComponentList[i].GetType() == refType)
+                    newSource = newComponent.gameObject;
+                    if (newComponent.GetType().IsOrInheritsFrom(type))
                     {
-                        newComponentIndex = i;
-                        componentCount++;
+                        property.objectReferenceValue = newComponent;
+                        obj.ApplyModifiedProperties();
                     }
                 }
-
-                if ((newComponentList.Length > 0) &&
-                    (newComponentList[newComponentIndex].GetType() == refType))
-                    property.objectReferenceValue = newComponentList[newComponentIndex];
-                else property.objectReferenceValue = newSource.GetComponent(type);
+                else redoFoldout = true;
+                selectedSources.Set(key, newSource);
             }
-            
-            obj.ApplyModifiedProperties();
-        }
-        EditorGUI.BeginDisabledGroup(newSource == null);
-        {
-            GUIContent buttonContent;
 
-            if (EditorGUI.showMixedValue)
-                buttonContent = new GUIContent("\u2014", "Mixed Values");
-            else
+            // Component foldout
+            if (redoFoldout && (newSource != null))
             {
                 if (property.objectReferenceValue == null)
-                    buttonContent = new GUIContent("None");
-                else buttonContent = new GUIContent(GetComponentDisplayName(property));
+                    property.objectReferenceValue = newSource.GetComponent(type);
+                else if (oldSource != null)
+                {
+                    // Attempt to maintain the function pointer and
+                    // component pointer if someone changes
+                    // the target object and it has the correct component type on it.
+
+                    GameObject oldSrc = (GameObject)oldSource;
+                    GameObject newSrc = (GameObject)newSource;
+
+                    Type refType = property.objectReferenceValue.GetType();
+
+                    Component[] oldComponentList = oldSrc.GetComponents(refType);
+
+                    int componentLocationOffset = 0;
+                    for (int i = 0; i < oldComponentList.Length; ++i)
+                    {
+                        if (oldComponentList[i] == property.objectReferenceValue)
+                            break;
+
+                        // Only take exact matches for component type
+                        if (oldComponentList[i].GetType() == refType)
+                            componentLocationOffset++;
+                    }
+
+                    Component[] newComponentList = newSrc.GetComponents(refType);
+
+                    int newComponentIndex = 0;
+                    int componentCount = -1;
+                    for (int i = 0; i < newComponentList.Length; ++i)
+                    {
+                        if (componentCount == componentLocationOffset)
+                            break;
+
+                        if (newComponentList[i].GetType() == refType)
+                        {
+                            newComponentIndex = i;
+                            componentCount++;
+                        }
+                    }
+
+                    if ((newComponentList.Length > 0) &&
+                        (newComponentList[newComponentIndex].GetType() == refType))
+                        property.objectReferenceValue = newComponentList[newComponentIndex];
+                    else property.objectReferenceValue = newSource.GetComponent(type);
+                }
+
+                obj.ApplyModifiedProperties();
             }
-            if (GUI.Button(rightRect, buttonContent, EditorStyles.popup))
-                BuildPopupMenu(newSource, property).DropDown(rightRect);
+            EditorGUI.BeginDisabledGroup(newSource == null);
+            {
+                GUIContent buttonContent;
+
+                if (EditorGUI.showMixedValue)
+                    buttonContent = new GUIContent("\u2014", "Mixed Values");
+                else
+                {
+                    if (property.objectReferenceValue == null)
+                        buttonContent = new GUIContent("None");
+                    else buttonContent = new GUIContent(GetComponentDisplayName(property));
+                }
+                if (GUI.Button(rightRect, buttonContent, EditorStyles.popup))
+                    BuildPopupMenu(newSource, property).DropDown(rightRect);
+            }
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUI.indentLevel = indent;
         }
-        EditorGUI.EndDisabledGroup();
-
-        EditorGUI.indentLevel = indent;
-
         EditorGUI.EndProperty();
     }
 

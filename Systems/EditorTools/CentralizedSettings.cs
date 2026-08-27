@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
+using UnityEngine.ProBuilder.MeshOperations;
+
 
 #if UNITY_EDITOR
 #if ODIN_INSPECTOR
@@ -45,7 +47,6 @@ public class CentralizedSettings : MonoBehaviour
 [CustomPropertyDrawer(typeof(CentralizedSettings.Holder))]
 public class CentralizedSettingsDrawer : PropertyDrawer
 {
-    const float EXTRASIZE = 5f;
     const string variablesName = "variables";
     const string componentName = "component";
     const string displayName = "displayName";
@@ -56,66 +57,49 @@ public class CentralizedSettingsDrawer : PropertyDrawer
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-#if ODIN_INSPECTOR
         return 0f;
-#else
-        property = ProcessProperty(property, out SerializedProperty[] children);
-
-        float res = EditorGUIUtility.singleLineHeight * 1f;
-
-        for (int i = 0; i < children.Length; i++)
-        {
-            SerializedProperty prop = GetReferenceValueProperty(children[i], out GUIContent lb);
-            if (prop != null)
-                res += EditorGUI.GetPropertyHeight(prop, lb, true);
-            else res += EditorGUIUtility.singleLineHeight;
-            res += EXTRASIZE;
-        }
-        return res;
-#endif
     }
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         property = ProcessProperty(property, out SerializedProperty[] children);
 
-        EditorGUI.BeginProperty(position, label, property);
-
         for (int i = 0; i < children.Length; i++)
         {
             SerializedProperty prop = GetReferenceValueProperty(children[i], out GUIContent lb);
             if (prop != null)
             {
 #if ODIN_INSPECTOR
-                RemoveAddAttributes.Remove(
-                    typeof(HideLabelAttribute),
-                    typeof(LabelTextAttribute),
-                    typeof(HorizontalGroupAttribute),
-                    typeof(IndentAttribute),
-                    typeof(LabelWidthAttribute));
+                if (prop.name == "m_Enabled")
+                    prop.OnGUIChildDraw(lb);
+                else
                 {
-                    PropertyTree tree = GetTree(prop.serializedObject);
+                    RemoveAddAttributes.Remove(
+                        typeof(HideLabelAttribute),
+                        typeof(LabelTextAttribute),
+                        typeof(HorizontalGroupAttribute),
+                        typeof(IndentAttribute),
+                        typeof(LabelWidthAttribute));
                     {
-                        tree.BeginDraw(true);
+                        PropertyTree tree = GetTree(prop.serializedObject);
                         {
-                            InspectorProperty odinProp = tree.GetPropertyAtUnityPath(prop.propertyPath);
-                            odinProp.Draw(lb);
+                            tree.BeginDraw(true);
+                            {
+                                InspectorProperty odinProp = tree.GetPropertyAtUnityPath(prop.propertyPath);
+                                odinProp.Draw(lb);
+                            }
+                            tree.EndDraw();
                         }
-                        tree.EndDraw();
+                        tree.ApplyChanges();
                     }
-                    tree.ApplyChanges();
+                    RemoveAddAttributes.Restore();
                 }
-                RemoveAddAttributes.Restore();
-
 #else
-                position.height = EditorGUI.GetPropertyHeight(prop, lb, true);
-                EditorGUI.PropertyField(position, prop, lb, true);
-                prop.serializedObject.ApplyModifiedProperties();
+                prop.OnGUIChildDraw(lb);
 #endif
             }
             else
             {
-                position.height = EditorGUIUtility.singleLineHeight;
                 if ((lb == null) || (lb.text == ""))
                 {
                     string content = "*empty*";
@@ -123,7 +107,7 @@ public class CentralizedSettingsDrawer : PropertyDrawer
                     SirenixEditorGUI.BeginVerticalPropertyLayout(new GUIContent(content), out position);
                     SirenixEditorGUI.EndVerticalPropertyLayout();
 #else
-                    EditorGUI.LabelField(position, content);
+                    EditorGUILayout.LabelField(content);
 #endif
                 }
                 else
@@ -132,16 +116,13 @@ public class CentralizedSettingsDrawer : PropertyDrawer
                     position = SirenixEditorGUI.BeginVerticalPropertyLayout(GUIContent.none, out Rect labelRect);
                     position.height = EditorGUIUtility.singleLineHeight;
 #endif
-                    EditorGUI.DropShadowLabel(position, lb);
+                    EditorGUI.DropShadowLabel(EditorGUILayout.GetControlRect(), lb);
 #if ODIN_INSPECTOR
                     SirenixEditorGUI.EndVerticalPropertyLayout();
 #endif
                 }
             }
-            position.y += position.height + EXTRASIZE;
         }
-
-        EditorGUI.EndProperty();
     }
 
     SerializedProperty GetReferenceValueProperty(SerializedProperty refProp, out GUIContent label)
@@ -163,6 +144,8 @@ public class CentralizedSettingsDrawer : PropertyDrawer
 
         if (string.IsNullOrEmpty(propName))
             return null;
+
+        if (propName == "enabled") propName = "m_Enabled";
 
         Object[] comps = new Object[refProp.serializedObject.targetObjects.Length];
         for (int i = 0; i < comps.Length; i++)

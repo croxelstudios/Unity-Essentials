@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class MeshExtension_ApplyMatrix //TO DO: Would be a lot faster if using ComputableMesh.
+public static class MeshExtension_ApplyMatrix
 {
     public static void ApplyMatrix(this Mesh mesh, Matrix4x4 matrix)
     {

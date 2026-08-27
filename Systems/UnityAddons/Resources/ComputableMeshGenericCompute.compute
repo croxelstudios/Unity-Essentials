@@ -38,7 +38,8 @@ RWStructuredBuffer<uint> mask;
 [numthreads(128, 1, 1)]
 void ClearMask(uint id : SV_DispatchThreadID)
 {
-    mask[id] = 0;
+    if (id < vertexCount)
+        mask[id] = 0;
 }
 
 #pragma kernel FillMask
@@ -46,7 +47,8 @@ void ClearMask(uint id : SV_DispatchThreadID)
 [numthreads(128, 1, 1)]
 void FillMask(uint id : SV_DispatchThreadID)
 {
-    mask[id] = 1;
+    if (id < vertexCount)
+        mask[id] = 1;
 }
 
 #pragma kernel GetSubmeshMask
@@ -58,8 +60,6 @@ void GetSubmeshMask(uint id : SV_DispatchThreadID)
         mask[ExtractIndex(indexStart + id)] = 1;
 }
 
-//TO DO: Some functions are not being filtered by buffer size,
-//that might be causing the issues on Lovecraftify.cs
 #pragma kernel GetEdges
 
 [numthreads(128, 1, 1)]

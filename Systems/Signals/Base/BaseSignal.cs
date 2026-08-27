@@ -397,7 +397,7 @@ class BaseSignalManager : IDisposable
             if (m_Instance == null)
             {
                 m_Instance = new BaseSignalManager();
-                m_Instance.Refresh(); //TO DO: Could this system be used to solve the StringPupupData problems?
+                m_Instance.Refresh(); //TO DO: Could this system be used to solve the StringPopupData problems?
             }
 
             return m_Instance;

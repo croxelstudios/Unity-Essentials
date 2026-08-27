@@ -6,6 +6,7 @@ using System.Reflection;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine;
 using Object = UnityEngine.Object;
 #endif
 
@@ -646,6 +647,29 @@ public static class ReflectionTools
             BindingFlags.Instance | BindingFlags.NonPublic
         )
         .Invoke(original, null);
+    }
+
+    public static int GetSettingsHash<T>(T component, bool includePropertyInfos = false) where T : Component
+    {
+        if (component == null)
+            return 0;
+
+        Type type = component.GetType();
+        MemberInfo[] members = type.GetMembers();
+        List<object> values = new();
+        foreach (MemberInfo member in members)
+        {
+            object value;
+            if (member is FieldInfo field)
+                value = field.GetValue(component);
+            else if (includePropertyInfos && (member is PropertyInfo property))
+                value = property.GetValue(component);
+            else continue;
+
+            if (value != null)
+                values.Add(value);
+        }
+        return HashMaker.Elements(values.ToArray());
     }
 
 #if UNITY_EDITOR

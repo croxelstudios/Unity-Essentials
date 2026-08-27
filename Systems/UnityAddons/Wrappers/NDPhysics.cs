@@ -907,9 +907,8 @@ public class NDCollider : Wrapper
         Vector3 center = transform.position;
         if (is3D)
         {
-            BoxCollider boxCol = col3 as BoxCollider;
             //TO DO: Other types of 3D colliders
-            if (boxCol != null)
+            if (col3 is BoxCollider boxCol)
             {
                 Vector3 offset = boxCol.center;
                 offset.Scale(transform.lossyScale);

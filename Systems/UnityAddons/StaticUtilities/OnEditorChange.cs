@@ -6,11 +6,13 @@ using Object = UnityEngine.Object;
 
 public static class OnEditorChange
 {
-    public static void PropertyModification_In(OnPropertyModification action)
+    public static void PropertyModification_In(OnPropertyModification action, bool allowDuplicates = false)
     {
         Undo.postprocessModifications -= OnPostprocess;
         Undo.postprocessModifications += OnPostprocess;
 
+        if (!allowDuplicates)
+            onPropertyModification -= action;
         onPropertyModification += action;
     }
 
@@ -22,16 +24,28 @@ public static class OnEditorChange
     public delegate void OnPropertyModification(PropertyModification pm);
     static event OnPropertyModification onPropertyModification;
 
+    static List<ModificationData> aux;
+
     static UndoPropertyModification[] OnPostprocess(UndoPropertyModification[] modifications)
     {
         foreach (UndoPropertyModification m in modifications)
         {
             PropertyModification pm = m.currentValue;
+            aux = aux.ClearOrCreate();
             if (!actions.IsNullOrEmpty())
+            {
                 foreach (KeyValuePair<ModificationData, List<Action>> kvp in actions)
-                    if (kvp.Key.Matches(pm))
+                {
+                    ModificationData data = kvp.Key;
+                    if (data.target == null)
+                        aux.Add(data);
+                    else if (data.Matches(pm))
                         foreach (Action a in kvp.Value)
                             a?.Invoke();
+                }
+                foreach (ModificationData data in aux)
+                    actions.Remove(data);
+            }
             onPropertyModification?.Invoke(pm);
         }
 

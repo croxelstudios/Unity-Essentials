@@ -11,10 +11,13 @@ using UnityEditor;
 
 public class SaveStringLists : BSaver
 {
-    [SerializeField]
-    string substring = "";
+    [PropertyOrder(-1)]
     [SerializeField]
     bool autoSave = false;
+    [PropertyOrder(-1)]
+    [HorizontalGroup(DisableAutomaticLabelWidth = true)]
+    [SerializeField]
+    string substring = "";
     [SerializeField]
     StringList[] lists = null;
 
@@ -39,8 +42,10 @@ public class SaveStringLists : BSaver
     }
 #endif
 
-    [ShowIf("@HasSubstring()")]
-    [Button]
+    [EnableIf("@HasSubstring()")]
+    [PropertyOrder(-1)]
+    [HorizontalGroup(DisableAutomaticLabelWidth = true, Width = 100f)]
+    [Button("Find Lists")]
     public void UpdateLists()
     {
         if (HasSubstring())

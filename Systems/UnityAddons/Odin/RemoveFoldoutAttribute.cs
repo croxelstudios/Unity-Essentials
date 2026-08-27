@@ -12,6 +12,7 @@ public class RemoveFoldoutAttribute : PropertyAttribute
     {
     }
 
+#if ODIN_INSPECTOR
     public static void DrawSubfields(InspectorProperty property)
     {
         PropertyChildren children = property.Children;
@@ -19,9 +20,11 @@ public class RemoveFoldoutAttribute : PropertyAttribute
             children[i].Draw();
     }
 #endif
+#endif
 }
 
 #if UNITY_EDITOR
+#if ODIN_INSPECTOR
 public class RemoveFoldoutAttributeDrawer<T> : OdinAttributeDrawer<RemoveFoldoutAttribute, T>
 {
     private InspectorProperty elementsProp;
@@ -42,4 +45,5 @@ public class RemoveFoldoutAttributeDrawer<T> : OdinAttributeDrawer<RemoveFoldout
         else RemoveFoldoutAttribute.DrawSubfields(prop);
     }
 }
+#endif
 #endif

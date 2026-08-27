@@ -10,6 +10,7 @@ public class StateMachine_ByChildren : StateMachine
     public StateMachine_ByChildren()
     {
         OnEditorChange.PropertyModification_In(PropertyModification);
+        EditorApplication.hierarchyChanged -= OnHierarchyChanged;
         EditorApplication.hierarchyChanged += OnHierarchyChanged;
     }
 
@@ -27,16 +28,8 @@ public class StateMachine_ByChildren : StateMachine
     protected override void OnEnable()
     {
         UpdateStates();
-        //OnEditorChange.PropertyModification_In(PropertyModification);
-        //EditorApplication.hierarchyChanged += OnHierarchyChanged;
         base.OnEnable();
     }
-
-    //void OnDisable()
-    //{
-    //    OnEditorChange.PropertyModification_Out(PropertyModification);
-    //    EditorApplication.hierarchyChanged -= OnHierarchyChanged;
-    //}
 
     void UpdateStates()
     {
@@ -51,7 +44,7 @@ public class StateMachine_ByChildren : StateMachine
 
     void PropertyModification(PropertyModification pm)
     {
-        //TO DO: Apparently OnDestroy is not correctly unsubscribing the events
+        //WARNING: OnDestroy may not correctly unsubscribe the events sometimes
         if ((this != null) && (pm.target is GameObject go))
         {
             if ((go.transform.parent == transform) &&
@@ -62,7 +55,7 @@ public class StateMachine_ByChildren : StateMachine
 
     void OnHierarchyChanged()
     {
-        //TO DO: Apparently OnDestroy is not correctly unsubscribing the events
+        //WARNING: OnDestroy may not correctly unsubscribe the events sometimes
         if ((this != null) && ((states == null) || (states.Length != transform.childCount)))
             UpdateStates();
     }

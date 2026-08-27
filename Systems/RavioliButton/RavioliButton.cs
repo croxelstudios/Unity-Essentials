@@ -9,7 +9,6 @@ using UnityEngine.Animations;
 [DefaultExecutionOrder(-1)]
 public class RavioliButton : RavioliButton_Button
 {
-    //TO DO: Add support for autocalculating direction of button from relative position to make dynamic selection systems
     [SizedFoldoutGroup("Group options")]
     public Transform buttonsParent = null;
     [SerializeField]

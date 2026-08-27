@@ -11,10 +11,13 @@ using UnityEditor;
 
 public class SaveSignals : BSaver
 {
-    [SerializeField]
-    string substring = "";
+    [PropertyOrder(-1)]
     [SerializeField]
     bool autoSave = false;
+    [PropertyOrder(-1)]
+    [HorizontalGroup(DisableAutomaticLabelWidth = true)]
+    [SerializeField]
+    string substring = "";
     [SerializeField]
     BaseSignal[] signals = null;
 
@@ -38,8 +41,10 @@ public class SaveSignals : BSaver
     }
 #endif
 
-    [ShowIf("@HasSubstring()")]
-    [Button]
+    [EnableIf("@HasSubstring()")]
+    [PropertyOrder(-1)]
+    [HorizontalGroup(DisableAutomaticLabelWidth = true, Width = 100f)]
+    [Button("Find Signals")]
     public void UpdateSignals()
     {
         if (HasSubstring())

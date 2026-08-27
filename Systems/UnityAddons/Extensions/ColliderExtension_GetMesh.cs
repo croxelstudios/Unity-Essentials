@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class ColliderExtension_GetMesh //TO DO: Should generate a ComputableMesh.
+public static class ColliderExtension_GetMesh
 {
     public static Mesh GetMesh(this Collider collider, bool applyWorldTransform = false)
     {
