@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 using UnityEngine.ProBuilder.MeshOperations;
+using System.Linq;
+
 
 
 #if UNITY_EDITOR
@@ -51,6 +53,11 @@ public class CentralizedSettingsDrawer : PropertyDrawer
     const string componentName = "component";
     const string displayName = "displayName";
     const string nameName = "name";
+
+    string[] overrideOdin = new[] {
+        "m_Enabled",
+    };
+
 #if ODIN_INSPECTOR
     static Dictionary<PropertyTreeKey, PropertyTree> odinTrees;
 #endif
@@ -69,8 +76,10 @@ public class CentralizedSettingsDrawer : PropertyDrawer
             SerializedProperty prop = GetReferenceValueProperty(children[i], out GUIContent lb);
             if (prop != null)
             {
+                SerializedObject obj = prop.serializedObject;
 #if ODIN_INSPECTOR
-                if (prop.name == "m_Enabled")
+                if ((!obj.targetObject.GetType().IsOrInheritsFrom(typeof(MonoBehaviour))) ||
+                    overrideOdin.Contains(prop.name))
                     prop.OnGUIChildDraw(lb);
                 else
                 {
@@ -81,7 +90,7 @@ public class CentralizedSettingsDrawer : PropertyDrawer
                         typeof(IndentAttribute),
                         typeof(LabelWidthAttribute));
                     {
-                        PropertyTree tree = GetTree(prop.serializedObject);
+                        PropertyTree tree = GetTree(obj);
                         {
                             tree.BeginDraw(true);
                             {

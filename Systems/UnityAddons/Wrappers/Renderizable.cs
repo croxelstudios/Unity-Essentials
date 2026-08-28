@@ -65,7 +65,6 @@ public class Renderizable : Wrapper
 
     //Nullable
     FrameNullTracker isNullTracker;
-    FrameNullTracker isNullTracker2;
 
     //Visibility
     public bool internalIsVisible { get { isVisibleTracker.rend = renderer; return isVisibleTracker.Get(); } }
@@ -160,9 +159,13 @@ public class Renderizable : Wrapper
 
     protected override bool IsNull()
     {
-        isNullTracker.obj = nullableObject;
-        isNullTracker2.obj = renderer;
-        return isNullTracker.IsNull() || ((renType == RenType.Filter) ? isNullTracker2.IsNull() : false);
+        return (nullableObject == null) || ((renType == RenType.Filter) && (renderer == null));
+    }
+
+    public bool IsNullThisFrame()
+    {
+        isNullTracker.obj = this;
+        return isNullTracker.IsNull();
     }
 
     static List<GameObject> auxGOs;
@@ -178,7 +181,6 @@ public class Renderizable : Wrapper
         rendType = RendType.Renderer;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
-        isNullTracker2 = new FrameNullTracker();
 
         if (filter != null)
             transform = filter.transform;
@@ -197,7 +199,6 @@ public class Renderizable : Wrapper
         rendType = RendType.Renderer;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
-        isNullTracker2 = new FrameNullTracker();
 
         if (renderer != null)
             transform = renderer.transform;
@@ -216,7 +217,6 @@ public class Renderizable : Wrapper
         rendType = RendType.Custom;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
-        isNullTracker2 = new FrameNullTracker();
 
         if (customRenderer != null)
             transform = customRenderer.transform;
@@ -233,7 +233,6 @@ public class Renderizable : Wrapper
         transform = gameObject.transform;
         isVisibleTracker = new IsVisibleTracker(renderer);
         isNullTracker = new FrameNullTracker();
-        isNullTracker2 = new FrameNullTracker();
 
         if (filter != null)
         {

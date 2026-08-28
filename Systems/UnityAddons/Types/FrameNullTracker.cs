@@ -5,12 +5,14 @@ public struct FrameNullTracker
     public object obj;
     PerFrameTracker tracker;
     bool last;
+    bool realNullCheck;
 
-    public FrameNullTracker(object obj)
+    public FrameNullTracker(object obj, bool realNullCheck = false)
     {
         this.obj = obj;
         tracker = new PerFrameTracker();
         last = obj == null;
+        this.realNullCheck = realNullCheck;
     }
 
     void Initialize()
@@ -23,14 +25,14 @@ public struct FrameNullTracker
     {
 #if UNITY_EDITOR
         if (!Application.isPlaying)
-            return obj is null;
+            return realNullCheck ? (obj is null) : (obj == null);
 #endif
 
         if (tracker == null)
             Initialize();
 
         if (tracker.Simple())
-            last = obj is null;
+            last = realNullCheck ? (obj is null) : (obj == null);
         return last;
     }
 }

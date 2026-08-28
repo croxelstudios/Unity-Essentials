@@ -413,7 +413,7 @@ public class BRenderersSetBlendedProperty<T> : BRenderersSetProperty<T> where T 
     protected override void Disable()
     {
         StopAllCoroutines(); //TO DO??
-        if (rend != null)
+        if (!rend.IsNullOrEmpty())
         {
             foreach (Renderizable ren in rend)
                 if (ren != null)

@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class Wrapper
 {
     protected virtual bool IsNull()

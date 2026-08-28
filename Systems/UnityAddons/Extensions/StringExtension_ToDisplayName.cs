@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using UnityEngine;
 
 public static class StringExtension_ToDisplayName
 {
@@ -25,6 +26,10 @@ public static class StringExtension_ToDisplayName
         for (int i = insertPos.Count - 1; i >= 0; i--)
             if (name[insertPos[i] - 1] != ' ')
                 name = name.Insert(insertPos[i], " ");
+        //
+
+        //Remove duplicate spaces
+        name = Regex.Replace(name, @" {2,}", " ");
         //
 
         //First letter is upper case

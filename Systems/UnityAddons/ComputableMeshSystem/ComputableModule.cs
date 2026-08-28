@@ -72,7 +72,7 @@ public static class ComputableModule
 
         Renderizable filter = Renderizable.Get(gameObject);
 
-        if (filter == null)
+        if (filter.IsNullThisFrame())
             return null;
 
         switch (filter.renType)
@@ -98,7 +98,7 @@ public static class ComputableModule
     {
         Renderizable filter = Renderizable.Get(gameObject);
 
-        if (filter != null)
+        if (!filter.IsNullThisFrame())
         {
             switch (filter.renType)
             {
@@ -147,7 +147,7 @@ public static class ComputableModule
     {
         Renderizable filter = Renderizable.Get(obj);
 
-        if (filter == null)
+        if (filter.IsNullThisFrame())
             return false;
 
         switch (filter.rendType)
@@ -178,7 +178,7 @@ public static class ComputableModule
     {
         Renderizable filter = Renderizable.Get(obj);
 
-        if (filter == null)
+        if (filter.IsNullThisFrame())
             return true;
 
         switch (filter.renType)
