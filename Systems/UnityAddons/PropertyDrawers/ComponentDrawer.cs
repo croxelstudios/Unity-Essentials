@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -103,18 +102,18 @@ public class ComponentDrawer : PropertyDrawer
             }
 
             // Component foldout
-            if (redoFoldout && (newSource != null))
+            GameObject newSrc = newSource as GameObject;
+            if (redoFoldout && (newSrc != null))
             {
                 if (property.objectReferenceValue == null)
-                    property.objectReferenceValue = newSource.GetComponent(type);
+                    property.objectReferenceValue = newSrc.GetComponent(type);
                 else if (oldSource != null)
                 {
                     // Attempt to maintain the function pointer and
                     // component pointer if someone changes
                     // the target object and it has the correct component type on it.
 
-                    GameObject oldSrc = (GameObject)oldSource;
-                    GameObject newSrc = (GameObject)newSource;
+                    GameObject oldSrc = oldSource as GameObject;
 
                     Type refType = property.objectReferenceValue.GetType();
 
@@ -150,7 +149,7 @@ public class ComponentDrawer : PropertyDrawer
                     if ((newComponentList.Length > 0) &&
                         (newComponentList[newComponentIndex].GetType() == refType))
                         property.objectReferenceValue = newComponentList[newComponentIndex];
-                    else property.objectReferenceValue = newSource.GetComponent(type);
+                    else property.objectReferenceValue = newSrc.GetComponent(type);
                 }
 
                 obj.ApplyModifiedProperties();

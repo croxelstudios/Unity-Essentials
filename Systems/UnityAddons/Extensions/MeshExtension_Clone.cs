@@ -1,5 +1,4 @@
 using UnityEngine;
-using static Unity.VisualScripting.Member;
 
 public static class MeshExtension_Clone
 {
