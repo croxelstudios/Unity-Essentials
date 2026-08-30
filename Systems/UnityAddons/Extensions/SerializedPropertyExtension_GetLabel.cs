@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using Sirenix.OdinInspector;
 using System;
 using System.Linq;
@@ -20,3 +21,4 @@ public static class SerializedPropertyExtension_GetLabel
         return label;
     }
 }
+#endif

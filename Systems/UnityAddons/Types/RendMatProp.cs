@@ -56,8 +56,8 @@ public struct RendMat : IEquatable<RendMat>
 {
     public Renderizable rend;
     public int mat;
-    public Material sharedMaterial { get { return rend.sharedMaterials[mat]; } }
-    public Material material { get { return rend.materials[mat]; } }
+    public Material sharedMaterial { get { return (rend != null) ? rend.sharedMaterials[mat] : null; } }
+    public Material material { get { return (rend != null) ? rend.materials[mat] : null; } }
 
     public RendMat(Renderizable rend, int mat)
     {

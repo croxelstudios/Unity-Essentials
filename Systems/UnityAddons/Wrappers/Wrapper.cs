@@ -18,7 +18,7 @@ public class Wrapper
     public static bool operator ==(Wrapper a, Wrapper b)
     {
         if (ReferenceEquals(a, null))
-            return ReferenceEquals(b, null);
+            return ReferenceEquals(b, null) || b.IsNull();
 
         if (ReferenceEquals(b, null))
             return a.IsNull();

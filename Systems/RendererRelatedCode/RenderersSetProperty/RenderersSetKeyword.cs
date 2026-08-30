@@ -149,7 +149,8 @@ public class RenderersSetKeyword : MonoBehaviour
     {
         int matInd = materialIndex;
         if (matInd < 0) matInd = 0;
-        return rend[0].sharedMaterials[matInd];
+        Renderizable r = rend[0];
+        return (r != null) ? r.sharedMaterials[matInd] : null;
     }
 
     void SetKeyword(Material mat, string keyword, bool value)

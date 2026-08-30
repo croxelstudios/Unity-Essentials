@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 public class Renderizable : Wrapper
 {
@@ -16,7 +17,7 @@ public class Renderizable : Wrapper
     public MeshFilter filter;
     public Renderer renderer;
     public CustomRenderer customRenderer;
-    public object nullableObject
+    public Object nullableObject
     {
         get
         {
@@ -480,8 +481,7 @@ public class Renderizable : Wrapper
 public enum RendType
 {
     Renderer,
-    Custom,
-    Null
+    Custom
 }
 
 public enum RenType
@@ -489,6 +489,5 @@ public enum RenType
     Filter,
     Sprite,
     Renderer,
-    Custom,
-    Null
+    Custom
 }
