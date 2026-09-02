@@ -138,6 +138,16 @@ public class ComputableMesh : ComputableBase<Mesh>
         BakeIndexDataToCPU();
     }
 
+    public uint GetIndexStart(int submesh)
+    {
+        return (submesh < 0) ? 0 : mesh.GetIndexStart(submesh);
+    }
+
+    public uint GetIndexCount(int submesh)
+    {
+        return (submesh < 0) ? (uint)indexCount : mesh.GetIndexCount(submesh);
+    }
+
     #region Initialize
     public ComputableMesh(Mesh meshToCopy, string name) : base(meshToCopy, name)
     {
@@ -169,6 +179,17 @@ public class ComputableMesh : ComputableBase<Mesh>
 
     public override void Initialize(Mesh meshToCopy, string name = "")
     {
+        GetDataFromCopy(meshToCopy, name);
+        original = meshToCopy;
+    }
+
+    public void InitializeFromOriginal()
+    {
+        Initialize(original);
+    }
+
+    public void GetDataFromCopy(Mesh meshToCopy, string name = "")
+    {
         int[] tCount = new int[meshToCopy.subMeshCount];
         for (int i = 0; i < tCount.Length; i++)
             tCount[i] = (int)meshToCopy.GetIndexCount(i);
@@ -177,7 +198,6 @@ public class ComputableMesh : ComputableBase<Mesh>
         Initialize(name, meshToCopy.vertexCount, tCount);
         for (int i = 0; i < meshToCopy.subMeshCount; i++)
             CopyMesh(meshToCopy, 0, 0, i, i);
-        original = meshToCopy;
     }
 
     public void Initialize(NativeArray<VertexData> vertexData, NativeArray<uint>[] triangleData, string name = "")
@@ -253,8 +273,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         UpdateVertexData();
     }
 
-    public void CopyPositionNormal(
-        Mesh meshToCopy, int vOffset, Vector3 offset, Matrix4x4 mat)
+    public void CopyPositionNormal(Mesh meshToCopy, int vOffset, Vector3 offset, Matrix4x4 mat)
     {
         Prepare_CopyPositionNormal(meshToCopy, vOffset, offset, mat);
 
@@ -338,8 +357,7 @@ public class ComputableMesh : ComputableBase<Mesh>
             tmpParticleNorm = new Vector3[vCount];
         }
 
-        ProcMesh.PositionArbitraryMesh(meshToCopy,
-                ref tmpParticleVert, ref tmpParticleNorm, offset, mat);
+        ProcMesh.PositionArbitraryMesh(meshToCopy, ref tmpParticleVert, ref tmpParticleNorm, offset, mat);
 
         for (int i = 0; i < vCount; i++)
             VData_SetPositionNormal(vOffset + i, tmpParticleVert[i], tmpParticleNorm[i]);
@@ -372,25 +390,19 @@ public class ComputableMesh : ComputableBase<Mesh>
     void SetMeshData(NativeArray<VertexData> vertexData)
     {
         mesh.SetVertexBufferParams(vertexData.Length,
-            new VertexAttributeDescriptor(
-                VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(
-                VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(
-                VertexAttribute.Tangent, VertexAttributeFormat.Float32, 4),
-            new VertexAttributeDescriptor(
-                VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
-            new VertexAttributeDescriptor(
-                VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));
-        mesh.SetVertexBufferData(
-            vertexData, 0, 0, vertexData.Length, 0, MeshUpdateFlags.DontRecalculateBounds);
+            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Tangent, VertexAttributeFormat.Float32, 4),
+            new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));
+        mesh.SetVertexBufferData(vertexData, 0, 0, vertexData.Length, 0, MeshUpdateFlags.DontRecalculateBounds);
         mesh.RecalculateTangents();
         mesh.RecalculateBounds();
 
         vertexBuf = null;
     }
 
-    void SetTriangles(NativeArray<uint>[] triangles)
+    public void SetTriangles(NativeArray<uint>[] triangles)
     {
         int subMeshCount = triangles.Length;
 
@@ -519,489 +531,6 @@ public class ComputableMesh : ComputableBase<Mesh>
         SetVertexColors(0, vertexCount, Color.white);
     }
 
-    #region Complex compute operations
-    const string getEdgesKernel = "GetEdges";
-    const string proccessEdgesKernel = "ProccessDuplicateEdges";
-
-    void Compute_GetEdges(ComputeBuffer edgesDataBuff, int submesh)
-    {
-        int indexStart = (int)mesh.GetIndexStart(submesh);
-        int indexCount = (int)mesh.GetIndexCount(submesh);
-
-        int ki = genericCompute.FindKernel(getEdgesKernel);
-        genericCompute.SetInt("indexStart", indexStart);
-        genericCompute.SetInt("indexCount", indexCount);
-        genericCompute.SetInt("indexStride", indexBuffer.stride);
-        genericCompute.SetBuffer(ki, "indices", indexBuffer);
-        genericCompute.SetBuffer(ki, "edges", edgesDataBuff);
-
-        genericCompute.Dispatch(ki, Mathf.CeilToInt(
-            (indexCount / 3f) / Numthreads_Small), 1, 1);
-    }
-
-    void Compute_ProccessEdges(ComputeBuffer edgesDataBuff)
-    {
-        int ki = genericCompute.FindKernel(proccessEdgesKernel);
-        genericCompute.SetBuffer(ki, "edges", edgesDataBuff);
-
-        int threadGroups = Mathf.CeilToInt(edgesDataBuff.count / Numthreads_2D);
-        genericCompute.Dispatch(ki, threadGroups, threadGroups, 1);
-    }
-    #endregion
-
-    #region Cut mesh
-    static ComputeShader cuttingCompute;
-    const string cutMeshComputeShaderName = "CutMeshCompute";
-    const string getIntersectionsKernel = "GetIntersections";
-    const string getTriangleCutDataKernel = "GetTriangleCutData";
-    const string getTriangleCutDataSquareKernel = "GetTriangleCutData_SquareCut";
-    const string cleanNullAreaTrianglesInIntersectionKernel = "CleanNullAreaTrianglesInIntersection";
-    const float Numthreads_Large = 512;
-    const float Numthreads_Small = 128;
-    const float Numthreads_2D = 16;
-
-    struct TriangleCutProperties
-    {
-        public int triCount;
-        public int cutPoint1;
-        public int cutPoint2;
-        public Vector3Int newTri1;
-        public Vector3Int newTri2;
-        public Vector3Int newTri3;
-        public Vector3Int newTri4;
-
-        public static int Size()
-        {
-            return
-                sizeof(int) +
-                sizeof(int) + // cutPoint1;
-                sizeof(int) + // cutPoint2;
-                sizeof(int) * 3 + // Triangle1;
-                sizeof(int) * 3 + // Triangle2;
-                sizeof(int) * 3 + // Triangle3;
-                sizeof(int) * 3; // Triangle4;
-        }
-
-        public Vector3Int[] InterpretIndexes(Intersection[] intersections)
-        {
-            Vector3Int[] result;
-            switch (triCount)
-            {
-                case 3:
-                    result = new Vector3Int[3];
-                    result[0].x = InterpretTriValue(newTri1.x, intersections);
-                    result[0].y = InterpretTriValue(newTri1.y, intersections);
-                    result[0].z = InterpretTriValue(newTri1.z, intersections);
-
-                    result[1].x = InterpretTriValue(newTri2.x, intersections);
-                    result[1].y = InterpretTriValue(newTri2.y, intersections);
-                    result[1].z = InterpretTriValue(newTri2.z, intersections);
-
-                    result[2].x = InterpretTriValue(newTri3.x, intersections);
-                    result[2].y = InterpretTriValue(newTri3.y, intersections);
-                    result[2].z = InterpretTriValue(newTri3.z, intersections);
-                    break;
-                case 4:
-                    result = new Vector3Int[4];
-                    result[0].x = InterpretTriValue(newTri1.x, intersections);
-                    result[0].y = InterpretTriValue(newTri1.y, intersections);
-                    result[0].z = InterpretTriValue(newTri1.z, intersections);
-
-                    result[1].x = InterpretTriValue(newTri2.x, intersections);
-                    result[1].y = InterpretTriValue(newTri2.y, intersections);
-                    result[1].z = InterpretTriValue(newTri2.z, intersections);
-
-                    result[2].x = InterpretTriValue(newTri3.x, intersections);
-                    result[2].y = InterpretTriValue(newTri3.y, intersections);
-                    result[2].z = InterpretTriValue(newTri3.z, intersections);
-
-                    result[3].x = InterpretTriValue(newTri4.x, intersections);
-                    result[3].y = InterpretTriValue(newTri4.y, intersections);
-                    result[3].z = InterpretTriValue(newTri4.z, intersections);
-                    break;
-                default:
-                    result = new Vector3Int[4];
-                    result[0] = newTri1;
-                    result[1] = newTri2;
-                    result[2] = newTri3;
-                    result[3] = newTri4;
-                    break;
-            }
-            return result;
-        }
-
-        int InterpretTriValue(int value, Intersection[] intersections)
-        {
-            switch (value)
-            {
-                case -1:
-                    return intersections[cutPoint1].info;
-                case -2:
-                    return intersections[cutPoint1].info + 1;
-                case -3:
-                    return intersections[cutPoint2].info;
-                case -4:
-                    return intersections[cutPoint2].info + 1;
-                default:
-                    return value;
-            }
-        }
-    }
-
-    struct Edge
-    {
-        public int v1;
-        public int v2;
-        public int index1;
-        public int index2;
-
-        public Vector3Int triangle1
-        {
-            get { return new Vector3Int(index1, index1 + 1, index1 + 2); }
-        }
-
-        public Vector3Int triangle2
-        {
-            get { return new Vector3Int(index2, index2 + 1, index2 + 2); }
-        }
-
-        public static int Size()
-        {
-            return
-                sizeof(int) + // v1
-                sizeof(int) + // v2;
-                sizeof(int) + // index1;
-                sizeof(int); // index2;
-        }
-    }
-
-    struct Intersection
-    {
-        public int info;
-        public int leftIndex;
-        public VertexData point;
-        public VertexData extraPoint;
-
-        public static int Size()
-        {
-            return
-                sizeof(int) +
-                sizeof(uint) +
-                VertexData.Size() +
-                VertexData.Size();
-        }
-    };
-
-    public void CutMesh(Vector3 planeNormal, Vector3 planePoint, int submesh = -1)
-    {
-        CutMesh(planeNormal, planePoint, out int[] side1, out int[] side2, out int[] extremes,
-            -1, submesh);
-    }
-
-    public void CutMesh(Vector3 planeNormal, Vector3 planePoint, float minArea, int submesh = -1)
-    {
-        CutMesh(planeNormal, planePoint, out int[] side1, out int[] side2, out int[] extremes,
-            minArea, submesh);
-    }
-
-    public void CutMesh(Vector3 planeNormal, Vector3 planePoint,
-        out int[] side1, out int[] side2, out int[] extremes, int submesh = -1)
-    {
-        CutMesh(planeNormal, planePoint, out side1, out side2, out extremes,
-            -1, submesh);
-    }
-
-    public void CutMesh(Vector3 planeNormal, Vector3 planePoint,
-        out int[] side1, out int[] side2, out int[] extremes, float minArea, int submesh = -1)
-    {
-        if (cuttingCompute == null)
-            cuttingCompute = (ComputeShader)Resources.Load(cutMeshComputeShaderName);
-
-        if (submesh < 0)
-        {
-            List<int> side1l = new List<int>();
-            List<int> side2l = new List<int>();
-            List<int> extremesl = new List<int>();
-            for (int i = 0; i < subMeshCount; i++)
-            {
-                CutMesh_Internal(planeNormal, planePoint,
-                    out side1, out side2, out extremes, i, minArea);
-                side1l.AddRange(side1);
-                side2l.AddRange(side2);
-                extremesl.AddRange(extremes);
-            }
-            side1 = side1l.ToArray();
-            side2 = side2l.ToArray();
-            extremes = extremesl.ToArray();
-        }
-        else CutMesh_Internal(planeNormal, planePoint,
-            out side1, out side2, out extremes, submesh, minArea);
-    }
-
-    void CutMesh_Internal(Vector3 planeNormal, Vector3 planePoint,
-        out int[] side1, out int[] side2, out int[] extremes, int submesh, float minArea = -1f)
-    {
-        GetPlaneCutData(planeNormal, planePoint, submesh,
-            out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
-
-        //
-        //
-
-        if (minArea > 0f)
-            Compute_CleanNullAreaTriangles(intersectionsBuff, cutsDataBuff,
-                minArea, (int)mesh.GetIndexCount(submesh));
-
-        RebuildMeshFromCutData(intersectionsBuff, cutsDataBuff, submesh,
-            out side1, out side2, out extremes);
-    }
-
-    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint, Vector3 upDirection,
-        float squareSize, int submesh = -1)
-    {
-        CutMesh_Square(planeNormal, planePoint, upDirection, squareSize,
-            out int[] side1, out int[] side2, out int[] extremes, -1, submesh);
-    }
-
-    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint, Vector3 upDirection,
-        float squareSize, float minArea, int submesh = -1)
-    {
-        CutMesh_Square(planeNormal, planePoint, upDirection, squareSize,
-            out int[] side1, out int[] side2, out int[] extremes, minArea, submesh);
-    }
-
-    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint,
-        Vector3 upDirection, float squareSize, out int[] side1, out int[] side2,
-        out int[] extremes, int submesh = -1)
-    {
-        CutMesh_Square(planeNormal, planePoint, upDirection, squareSize,
-            out side1, out side2, out extremes, -1, submesh);
-    }
-
-    public void CutMesh_Square(Vector3 planeNormal, Vector3 planePoint,
-        Vector3 upDirection, float squareSize, out int[] side1, out int[] side2,
-        out int[] extremes, float minArea, int submesh = -1)
-    {
-        if (cuttingCompute == null)
-            cuttingCompute = (ComputeShader)Resources.Load(cutMeshComputeShaderName);
-
-        if (submesh < 0)
-        {
-            List<int> side1l = new List<int>();
-            List<int> side2l = new List<int>();
-            List<int> extremesl = new List<int>();
-            for (int i = 0; i < subMeshCount; i++)
-            {
-                CutMesh_Square_Internal(planeNormal, planePoint, upDirection, squareSize,
-                    out side1, out side2, out extremes, i, minArea);
-                side1l.AddRange(side1);
-                side2l.AddRange(side2);
-                extremesl.AddRange(extremes);
-            }
-            side1 = side1l.ToArray();
-            side2 = side2l.ToArray();
-            extremes = extremesl.ToArray();
-        }
-        else CutMesh_Square_Internal(planeNormal, planePoint, upDirection, squareSize,
-            out side1, out side2, out extremes, submesh, minArea);
-    }
-
-    public void CutMesh_Square_Internal(Vector3 planeNormal, Vector3 planePoint,
-        Vector3 upDirection, float squareSize, out int[] side1, out int[] side2,
-        out int[] extremes, int submesh, float minArea = -1f)
-    {
-        GetPlaneCutData(planeNormal, planePoint, submesh,
-            out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
-
-        //
-        if (squareSize > 0f)
-            Compute_GetTriangleCutDatas_SquareCut(intersectionsBuff, cutsDataBuff,
-                upDirection, squareSize, submesh);
-        //
-
-        if (minArea > 0f)
-            Compute_CleanNullAreaTriangles(intersectionsBuff, cutsDataBuff,
-                minArea, (int)mesh.GetIndexCount(submesh));
-
-        RebuildMeshFromCutData(intersectionsBuff, cutsDataBuff, submesh,
-            out side1, out side2, out extremes);
-    }
-
-    void GetPlaneCutData(Vector3 planeNormal, Vector3 planePoint, int submesh,
-        out ComputeBuffer intersectionsBuff, out ComputeBuffer triangleCutsDataBuff)
-    {
-        int indexCount = (int)mesh.GetIndexCount(submesh);
-
-        //Get edges
-        ComputeBuffer edgesBuff = new ComputeBuffer(indexCount, Edge.Size());
-        Compute_GetEdges(edgesBuff, submesh);
-        Compute_ProccessEdges(edgesBuff);
-
-        //Get intersections
-        intersectionsBuff = new ComputeBuffer(indexCount, Intersection.Size());
-        Compute_GetIntersections(edgesBuff, intersectionsBuff,
-            planeNormal, planePoint, indexCount);
-
-        triangleCutsDataBuff = new ComputeBuffer(
-            indexCount / 3, TriangleCutProperties.Size());
-        Compute_GetTriangleCutDatas(intersectionsBuff, triangleCutsDataBuff, submesh);
-    }
-
-    void RebuildMeshFromCutData(ComputeBuffer intersectionsBuff, ComputeBuffer triangleCutsDataBuff,
-        int submesh, out int[] side1, out int[] side2, out int[] extremes)
-    {
-        Intersection[] interArr = new Intersection[intersectionsBuff.count];
-        intersectionsBuff.GetData(interArr);
-        TriangleCutProperties[] cutsArr = new TriangleCutProperties[triangleCutsDataBuff.count];
-        triangleCutsDataBuff.GetData(cutsArr);
-
-        //Structure vertices to add
-        List<int> side1l = new List<int>();
-        List<int> side2l = new List<int>();
-        List<int> extremesl = new List<int>();
-        List<VertexData> verticesToAdd = new List<VertexData>();
-        for (int i = 0; i < interArr.Length; i++)
-            if (interArr[i].info == -1)
-            {
-                int vertexID = vertexCount + verticesToAdd.Count;
-
-                interArr[i].info = vertexID;
-                verticesToAdd.Add(interArr[i].point);
-                verticesToAdd.Add(interArr[i].point);
-
-                side1l.Add(vertexID);
-                side2l.Add(vertexID + 1);
-            }
-            else if (interArr[i].info == -2)
-            {
-                int vertexID = vertexCount + verticesToAdd.Count;
-
-                interArr[i].info = vertexID;
-                verticesToAdd.Add(interArr[i].extraPoint);
-
-                extremesl.Add(vertexID);
-            }
-        side1 = side1l.ToArray();
-        side2 = side2l.ToArray();
-        extremes = extremesl.ToArray();
-
-        //Structure indices to add
-        List<uint> indicesToAdd = new List<uint>();
-        List<uint> trianglesToRemove = new List<uint>();
-        for (int i = 0; i < cutsArr.Length; i++)
-        {
-            Vector3Int[] tris;
-            if (cutsArr[i].triCount > 1)
-            {
-                trianglesToRemove.Add((uint)i * 3);
-                tris = cutsArr[i].InterpretIndexes(interArr);
-                for (int j = 0; j < tris.Length; j++)
-                    if (tris[j].x >= 0)
-                    {
-                        indicesToAdd.Add((uint)tris[j].x);
-                        indicesToAdd.Add((uint)tris[j].y);
-                        indicesToAdd.Add((uint)tris[j].z);
-                    }
-            }
-        }
-
-        //Add vertices
-        AddVertices(verticesToAdd);
-
-        //Replace triangles
-        for (int i = 0; i < indicesToAdd.Count; i += 3)
-        {
-            if (trianglesToRemove.Count > 0)
-            {
-                int ind = (int)trianglesToRemove[0];
-                trianglesToRemove.RemoveAt(0);
-                triangleData[submesh][ind] = indicesToAdd[i];
-                indicesToAdd.RemoveAt(i);
-                triangleData[submesh][ind + 1] = indicesToAdd[i];
-                indicesToAdd.RemoveAt(i);
-                triangleData[submesh][ind + 2] = indicesToAdd[i];
-                indicesToAdd.RemoveAt(i);
-                i -= 3;
-            }
-            else break;
-        }
-
-        //Add triangles
-        AddIndices(indicesToAdd, submesh);
-    }
-
-    void Compute_GetIntersections(
-        ComputeBuffer edgesDataBuff, ComputeBuffer intersectionsBuff,
-        Vector3 planeNormal, Vector3 planePoint, int indexCount)
-    {
-        cuttingCompute.SetVector("planeNormal", planeNormal);
-        cuttingCompute.SetVector("planePoint", planePoint);
-
-        int ki = cuttingCompute.FindKernel(getIntersectionsKernel);
-        cuttingCompute.SetInt("vertexStride", vertexBuffer.stride);
-        cuttingCompute.SetBuffer(ki, "vertices", vertexBuffer);
-        cuttingCompute.SetBuffer(ki, "edges", edgesDataBuff);
-        cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
-
-        cuttingCompute.Dispatch(ki, Mathf.CeilToInt(
-            indexCount / Numthreads_Large), 1, 1);
-    }
-
-    void Compute_GetTriangleCutDatas(
-        ComputeBuffer intersectionsBuff, ComputeBuffer cutsDataBuff, int submesh)
-    {
-        int indexStart = (int)mesh.GetIndexStart(submesh);
-        int indexCount = (int)mesh.GetIndexCount(submesh);
-
-        int ki = cuttingCompute.FindKernel(getTriangleCutDataKernel);
-        cuttingCompute.SetInt("indexStart", indexStart);
-        cuttingCompute.SetInt("indexCount", indexCount);
-        cuttingCompute.SetInt("indexStride", indexBuffer.stride);
-        cuttingCompute.SetBuffer(ki, "indices", indexBuffer);
-        cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
-        cuttingCompute.SetBuffer(ki, "cutsData", cutsDataBuff);
-
-        cuttingCompute.Dispatch(ki, Mathf.CeilToInt(
-            (indexCount / 3f) / Numthreads_Small), 1, 1);
-    }
-
-    void Compute_GetTriangleCutDatas_SquareCut(
-        ComputeBuffer intersectionsBuff, ComputeBuffer cutsDataBuff,
-        Vector3 upDirection, float size, int submesh)
-    {
-        int indexStart = (int)mesh.GetIndexStart(submesh);
-        int indexCount = (int)mesh.GetIndexCount(submesh);
-
-        cuttingCompute.SetVector("upDirection", upDirection);
-        cuttingCompute.SetFloat("size", size);
-
-        int ki = cuttingCompute.FindKernel(getTriangleCutDataSquareKernel);
-        cuttingCompute.SetInt("indexStart", indexStart);
-        cuttingCompute.SetInt("indexCount", indexCount);
-        cuttingCompute.SetInt("indexStride", indexBuffer.stride);
-        cuttingCompute.SetBuffer(ki, "indices", indexBuffer);
-        cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
-        cuttingCompute.SetBuffer(ki, "cutsData", cutsDataBuff);
-
-        cuttingCompute.Dispatch(ki, Mathf.CeilToInt(
-            (indexCount / 3f) / Numthreads_Small), 1, 1);
-    }
-
-    void Compute_CleanNullAreaTriangles(ComputeBuffer intersectionsBuff,
-        ComputeBuffer cutsDataBuff, float minArea, int indexCount)
-    {
-        cuttingCompute.SetFloat("minArea", minArea);
-
-        int ki = cuttingCompute.FindKernel(cleanNullAreaTrianglesInIntersectionKernel);
-        cuttingCompute.SetInt("vertexStride", vertexBuffer.stride);
-        cuttingCompute.SetBuffer(ki, "vertices", vertexBuffer);
-        cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
-        cuttingCompute.SetBuffer(ki, "cutsData", cutsDataBuff);
-
-        cuttingCompute.Dispatch(ki, Mathf.CeilToInt(
-            (indexCount / 3f) / Numthreads_Small), 1, 1);
-    }
-    #endregion
-
     #region Utilities
     public void CleanNullAreaTriangles(float minArea)
     {
@@ -1055,13 +584,15 @@ public class ComputableMesh : ComputableBase<Mesh>
         genericCompute.SetBuffer(ki, "toClean", toClean);
 
         genericCompute.Dispatch(ki, Mathf.CeilToInt(
-            (indexCount / 3f) / Numthreads_Small), 1, 1);
+            (indexCount / 3f) / Computables.Numthreads_Small), 1, 1);
     }
 
     public void BakeVertexDataToCPU()
     {
         VertexData[] vertices = new VertexData[vertexCount];
         vertexBuffer.GetData(vertices);
+        if (!vertexData.IsCreated)
+            vertexData = new NativeArray<VertexData>(vertexCount, Allocator.Persistent);
         for (int i = 0; i < vertices.Length; i++)
             vertexData[i] = vertices[i];
         UpdateVertexData();
@@ -1125,7 +656,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         genericCompute.SetInt("vertexCount", mask.count);
 
         genericCompute.Dispatch(ki, Mathf.CeilToInt(
-            vertexCount / Numthreads_Small), 1, 1);
+            vertexCount / Computables.Numthreads_Small), 1, 1);
     }
 
     void Compute_FillMask(ComputeBuffer mask)
@@ -1135,7 +666,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         genericCompute.SetInt("vertexCount", mask.count);
 
         genericCompute.Dispatch(ki, Mathf.CeilToInt(
-            vertexCount / Numthreads_Small), 1, 1);
+            vertexCount / Computables.Numthreads_Small), 1, 1);
     }
 
     void Compute_SubmeshVertexMask(ComputeBuffer mask, int submesh)
@@ -1151,12 +682,12 @@ public class ComputableMesh : ComputableBase<Mesh>
         genericCompute.SetBuffer(ki, "mask", mask);
 
         genericCompute.Dispatch(ki, Mathf.CeilToInt(
-            indexCount / Numthreads_Small), 1, 1);
+            indexCount / Computables.Numthreads_Small), 1, 1);
     }
     #endregion
 
     #region Addition
-    void AddVertices<T>(T vertices) where T : IEnumerable<VertexData>
+    public void AddVertices<T>(T vertices) where T : IEnumerable<VertexData>
     {
         VertexData[] v = vertices.ToArray();
         NativeArray<VertexData> newVertexData = new NativeArray<VertexData>(
@@ -1171,7 +702,7 @@ public class ComputableMesh : ComputableBase<Mesh>
         UpdateVertexData();
     }
 
-    void AddIndices<T>(T indices, int submesh = 0) where T : IEnumerable<uint>
+    public void AddIndices<T>(T indices, int submesh = 0) where T : IEnumerable<uint>
     {
         uint[] t = indices.ToArray();
         int indexCount = (int)mesh.GetIndexCount(submesh);
@@ -1185,6 +716,11 @@ public class ComputableMesh : ComputableBase<Mesh>
         triangleData[submesh] = newIndexData;
 
         UpdateTrianglesData();
+    }
+
+    public void ReplaceIndex(int place, uint newIndex, int submesh = 0)
+    {
+        triangleData[submesh][place] = newIndex;
     }
     #endregion
 
@@ -1272,9 +808,6 @@ public class ComputableSprite : ComputableBase<Sprite>
     const string genericComputeShaderName = "ComputableMeshGenericCompute";
     const string constructVertexDataKernel = "ConstructVertexDataBuffer";
     const string extractVertexDataKernel = "ExtractVertexDataBuffers";
-    const float Numthreads_Large = 512;
-    const float Numthreads_Small = 128;
-    const float Numthreads_2D = 16;
 
     public string name
     {
@@ -1470,7 +1003,7 @@ public class ComputableSprite : ComputableBase<Sprite>
         genericCompute.SetBuffer(ki, "uvs", uvs);
 
         genericCompute.Dispatch(ki, Mathf.CeilToInt(
-            vertexCount / Numthreads_Small), 1, 1);
+            vertexCount / Computables.Numthreads_Small), 1, 1);
     }
 
     protected void Compute_ExtractVertexData(
@@ -1493,7 +1026,7 @@ public class ComputableSprite : ComputableBase<Sprite>
         genericCompute.SetBuffer(ki, "uvs", uvs);
 
         genericCompute.Dispatch(ki, Mathf.CeilToInt(
-            vertexCount / Numthreads_Small), 1, 1);
+            vertexCount / Computables.Numthreads_Small), 1, 1);
     }
 
     public override Sprite GetValue()

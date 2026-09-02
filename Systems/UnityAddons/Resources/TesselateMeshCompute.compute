@@ -20,6 +20,18 @@ void ResetDivisions(uint id : SV_DispatchThreadID)
         divisions[id] = -1;
 }
 
+#pragma kernel SetDivisionsToOne
+
+[numthreads(128, 1, 1)]
+void SetDivisionsToOne(uint id : SV_DispatchThreadID)
+{
+    if (id < indexCount)
+    {
+        if (!edges[id].IsDupe())
+            divisions[id] = 1;
+    }
+}
+
 float4x4 objectToWorld;
 float areaThreshold;
 
