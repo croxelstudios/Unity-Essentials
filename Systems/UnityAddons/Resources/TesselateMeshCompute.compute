@@ -25,24 +25,26 @@ void ResetDivisions(uint id : SV_DispatchThreadID)
 [numthreads(128, 1, 1)]
 void SetDivisionsToOne(uint id : SV_DispatchThreadID)
 {
-    if (id < indexCount)
-    {
-        if (!edges[id].IsDupe())
-            divisions[id] = 1;
-    }
+    if ((id < indexCount) && (!edges[id].IsDupe()))
+        divisions[id] = 1;
 }
 
 float4x4 objectToWorld;
-float areaThreshold;
+float threshold;
 
-#pragma kernel GetEdgeDivisions
+#pragma kernel GetEdgeDivisionsByArea
 
 [numthreads(128, 1, 1)]
-void GetEdgeDivisions(uint id : SV_DispatchThreadID)
+void GetEdgeDivisionsByArea(uint id : SV_DispatchThreadID)
 {
     if (id < (indexCount / 3))
 	{
-        uint index = indexStart + (id * 3);
+        uint eIndex = id * 3;
+        uint index = indexStart + eIndex;
+        
+        uint e1 = eIndex;
+        uint e2 = eIndex + 1;
+        uint e3 = eIndex + 2;
 
         uint i1 = index;
         uint i2 = index + 1;
@@ -62,12 +64,34 @@ void GetEdgeDivisions(uint id : SV_DispatchThreadID)
 
         float area = length(cross(p2 - p1, p3 - p1)) * 0.5;
 
-        if (area > areaThreshold)
+        if (area > threshold)
         {
-            divisions[Edge_GetOriginal(i1)] = 1;
-            divisions[Edge_GetOriginal(i2)] = 1;
-            divisions[Edge_GetOriginal(i3)] = 1;
+            divisions[Edge_GetOriginal(e1)] = 1;
+            divisions[Edge_GetOriginal(e2)] = 1;
+            divisions[Edge_GetOriginal(e3)] = 1;
         }
+	}
+}
+
+#pragma kernel GetEdgeDivisionsByLength
+
+[numthreads(128, 1, 1)]
+void GetEdgeDivisionsByLength(uint id : SV_DispatchThreadID)
+{
+    if ((id < indexCount) && (!edges[id].IsDupe()))
+	{
+        uint index = Edge_GetOriginal(id);
+
+        VertexData v1 = ExtractVertexData(edges[index].v1);
+        VertexData v2 = ExtractVertexData(edges[index].v2);
+
+        float3 p1 = mul(objectToWorld, float4(v1.position, 1)).xyz;
+        float3 p2 = mul(objectToWorld, float4(v2.position, 1)).xyz;
+
+        float l = length(p2 - p1);
+
+        if (l > threshold)
+            divisions[index] = 1;
 	}
 }
 
@@ -232,10 +256,11 @@ void SubdivideTriangles(uint id : SV_DispatchThreadID)
 {
     if (id < (indexCount / 3))
     {
-        uint index = indexStart + (id * 3);
-        int edge1Div = divisions[Edge_GetOriginal(index)];
-        int edge2Div = divisions[Edge_GetOriginal(index + 1)];
-        int edge3Div = divisions[Edge_GetOriginal(index + 2)];
+        uint eIndex = id * 3;
+        uint index = indexStart + eIndex;
+        int edge1Div = divisions[Edge_GetOriginal(eIndex)];
+        int edge2Div = divisions[Edge_GetOriginal(eIndex + 1)];
+        int edge3Div = divisions[Edge_GetOriginal(eIndex + 2)];
         uint i1 = ExtractIndex(index);
         uint i2 = ExtractIndex(index + 1);
         uint i3 = ExtractIndex(index + 2);

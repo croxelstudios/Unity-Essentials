@@ -39,10 +39,12 @@ void ProccessDuplicateEdges(uint2 id : SV_DispatchThreadID)
             ((edges[id.x].v1 == edges[id.y].v2) &&
             (edges[id.x].v2 == edges[id.y].v1)))
         {
+            uint idx = id.x + indexStart;
+            uint idy = id.y + indexStart;
             // Duplicated edge triangle gets registered in the original edge
-            edges[id.x].index2 = edges[id.y].index1;
+            edges[idx].index2 = edges[idy].index1;
             // Duplicated edge triangle's second value is marked as negative and
             // stores the codified value of original edge. Data is centralized in original edge.
-            edges[id.y].index2 = -int(id.x) - 2;
+            edges[idy].index2 = -int(idx) - 2;
         }
 }

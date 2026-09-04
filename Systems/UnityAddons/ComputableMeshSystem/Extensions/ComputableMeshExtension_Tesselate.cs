@@ -20,31 +20,53 @@ public static class ComputableMeshExtension_Tesselate
     const string copyOldVertices = "CopyOldVertices";
     const string writeNewVertices = "WriteNewVertices";
     const string subdivideTriangles = "SubdivideTriangles";
-    const string getEdgeDivisions = "GetEdgeDivisions";
+    const string getEdgeDivisionsByArea = "GetEdgeDivisionsByArea";
+    const string getEdgeDivisionsByLength = "GetEdgeDivisionsByLength";
 
     public static void Tesselate(this ComputableMesh mesh, int submesh = -1)
     {
+        int indexCount = (int)mesh.GetIndexCount(submesh);
         ComputeBuffer edges = mesh.GetEdges(submesh);
-        ComputeBuffer divisions = new(mesh.indexCount, sizeof(int), ComputeBufferType.Structured);
+        ComputeBuffer divisions = new(indexCount, sizeof(int), ComputeBufferType.Structured);
         Compute_ResetDivisions(mesh, divisions, submesh);
         Compute_SetDivisionsToOne(mesh, edges, divisions, submesh);
-        ComputeBuffer divEdgesIds = DivEdgesIds(mesh.indexCount);
+        ComputeBuffer divEdgesIds = DivEdgesIds(indexCount);
         TesselateInternal(mesh, edges, divisions, divEdgesIds, mesh.indexCount, submesh);
     }
 
-    public static void Tesselate(this ComputableMesh mesh, float maxTriSize, int submesh = -1)
+    public static void Tesselate(this ComputableMesh mesh, float maxEdgeSize, int submesh = -1)
     {
-        mesh.Tesselate(maxTriSize, Matrix4x4.identity, submesh);
+        mesh.Tesselate(maxEdgeSize, Matrix4x4.identity, submesh);
     }
 
-    public static void Tesselate(this ComputableMesh mesh, float maxTriSize, Matrix4x4 objectToWorld, int submesh = -1)
+    public static void Tesselate(this ComputableMesh mesh, float maxEdgeSize, Matrix4x4 objectToWorld, int submesh = -1)
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            ComputeBuffer edges = mesh.GetEdges(submesh);
+            ComputeBuffer divisions = new((int)mesh.GetIndexCount(submesh), sizeof(int), ComputeBufferType.Structured);
+            Compute_ResetDivisions(mesh, divisions, submesh);
+            Compute_GetEdgeDivisionsByLength(mesh, edges, divisions, maxEdgeSize, objectToWorld, submesh);
+            ComputeBuffer divEdgesIds = DivEdgesIds(divisions, out int extraVertices);
+            if (extraVertices > 0)
+                TesselateInternal(mesh, edges, divisions, divEdgesIds, extraVertices, submesh);
+            else break;
+        }
+    }
+
+    public static void TesselateByArea(this ComputableMesh mesh, float maxTriSize, int submesh = -1)
+    {
+        mesh.TesselateByArea(maxTriSize, Matrix4x4.identity, submesh);
+    }
+
+    public static void TesselateByArea(this ComputableMesh mesh, float maxTriSize, Matrix4x4 objectToWorld, int submesh = -1)
     {
         for (int i = 0; i < 100; i++)
         {
             ComputeBuffer edges = mesh.GetEdges(submesh);
             ComputeBuffer divisions = new(mesh.indexCount, sizeof(int), ComputeBufferType.Structured);
             Compute_ResetDivisions(mesh, divisions, submesh);
-            Compute_GetEdgeDivisions(mesh, edges, divisions, maxTriSize, objectToWorld, submesh);
+            Compute_GetEdgeDivisionsByArea(mesh, edges, divisions, maxTriSize, objectToWorld, submesh);
             ComputeBuffer divEdgesIds = DivEdgesIds(divisions, out int extraVertices);
             if (extraVertices > 0)
                 TesselateInternal(mesh, edges, divisions, divEdgesIds, extraVertices, submesh);
@@ -87,30 +109,30 @@ public static class ComputableMeshExtension_Tesselate
                     Triangle t = triDivision.tri1;
                     if (t.v1 >= 0)
                     {
-                        ind.Add(t.v1);
-                        ind.Add(t.v2);
-                        ind.Add(t.v3);
+                        ind.Add((uint)t.v1);
+                        ind.Add((uint)t.v2);
+                        ind.Add((uint)t.v3);
                     }
                     t = triDivision.tri2;
                     if (t.v1 >= 0)
                     {
-                        ind.Add(t.v1);
-                        ind.Add(t.v2);
-                        ind.Add(t.v3);
+                        ind.Add((uint)t.v1);
+                        ind.Add((uint)t.v2);
+                        ind.Add((uint)t.v3);
                     }
                     t = triDivision.tri3;
                     if (t.v1 >= 0)
                     {
-                        ind.Add(t.v1);
-                        ind.Add(t.v2);
-                        ind.Add(t.v3);
+                        ind.Add((uint)t.v1);
+                        ind.Add((uint)t.v2);
+                        ind.Add((uint)t.v3);
                     }
                     t = triDivision.tri4;
                     if (t.v1 >= 0)
                     {
-                        ind.Add(t.v1);
-                        ind.Add(t.v2);
-                        ind.Add(t.v3);
+                        ind.Add((uint)t.v1);
+                        ind.Add((uint)t.v2);
+                        ind.Add((uint)t.v3);
                     }
                 }
 
@@ -135,7 +157,7 @@ public static class ComputableMeshExtension_Tesselate
     static ComputeBuffer DivEdgesIds(int size)
     {
         uint[] ids = new uint[size];
-        for (uint i = 0; i < ids.Length; i++)
+        for (uint i = 0; i < ids.Length; i++) //TO DO: Make it a compute shader in a same-size buffer with negative ids for non-id data.
             ids[i] = i;
 
         ComputeBuffer buff = new(size, sizeof(uint), ComputeBufferType.Structured);
@@ -149,7 +171,7 @@ public static class ComputableMeshExtension_Tesselate
         divisionsBuff.GetData(divs);
 
         List<uint> ids = new List<uint>();
-        for (uint i = 0; i < divs.Length; i++)
+        for (uint i = 0; i < divs.Length; i++) //TO DO: Make it a compute shader in a same-size buffer with negative ids for non-id data.
             if (divs[i] > 0)
                 ids.Add(i);
 
@@ -174,7 +196,7 @@ public static class ComputableMeshExtension_Tesselate
         tesselateCompute.SetBuffer(ki, "divisions", divisionsBuff);
 
         tesselateCompute.Dispatch(ki, Mathf.CeilToInt(
-            (indexCount / 3f) / Computables.Numthreads_Small), 1, 1);
+            indexCount / Computables.Numthreads_Small), 1, 1);
     }
 
     static void Compute_SetDivisionsToOne(ComputableMesh mesh, ComputeBuffer edges, ComputeBuffer divisionsBuff, int submesh)
@@ -190,17 +212,17 @@ public static class ComputableMeshExtension_Tesselate
             (indexCount / 3f) / Computables.Numthreads_Small), 1, 1);
     }
 
-    static void Compute_GetEdgeDivisions(ComputableMesh mesh, ComputeBuffer edges, ComputeBuffer divisionsBuff,
+    static void Compute_GetEdgeDivisionsByArea(ComputableMesh mesh, ComputeBuffer edges, ComputeBuffer divisionsBuff,
         float maxArea, Matrix4x4 objectToWorld, int submesh)
     {
         int indexCount = (int)mesh.GetIndexCount(submesh);
 
-        int ki = tesselateCompute.FindKernel(getEdgeDivisions);
+        int ki = tesselateCompute.FindKernel(getEdgeDivisionsByArea);
         tesselateCompute.SetInt("indexStart", (int)mesh.GetIndexStart(submesh));
         tesselateCompute.SetInt("indexCount", indexCount);
         tesselateCompute.SetInt("indexStride", mesh.indexBuffer.stride);
         tesselateCompute.SetInt("vertexStride", mesh.vertexBuffer.stride);
-        tesselateCompute.SetFloat("areaThreshold", maxArea);
+        tesselateCompute.SetFloat("threshold", maxArea);
         tesselateCompute.SetMatrix("objectToWorld", objectToWorld);
         tesselateCompute.SetBuffer(ki, "edges", edges);
         tesselateCompute.SetBuffer(ki, "divisions", divisionsBuff);
@@ -209,6 +231,24 @@ public static class ComputableMeshExtension_Tesselate
 
         tesselateCompute.Dispatch(ki, Mathf.CeilToInt(
             (indexCount / 3f) / Computables.Numthreads_Small), 1, 1);
+    }
+
+    static void Compute_GetEdgeDivisionsByLength(ComputableMesh mesh, ComputeBuffer edges, ComputeBuffer divisionsBuff,
+        float maxLength, Matrix4x4 objectToWorld, int submesh)
+    {
+        int indexCount = (int)mesh.GetIndexCount(submesh);
+
+        int ki = tesselateCompute.FindKernel(getEdgeDivisionsByLength);
+        tesselateCompute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        tesselateCompute.SetInt("indexCount", indexCount);
+        tesselateCompute.SetFloat("threshold", maxLength);
+        tesselateCompute.SetMatrix("objectToWorld", objectToWorld);
+        tesselateCompute.SetBuffer(ki, "edges", edges);
+        tesselateCompute.SetBuffer(ki, "divisions", divisionsBuff);
+        tesselateCompute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
+
+        tesselateCompute.Dispatch(ki, Mathf.CeilToInt(
+            indexCount / Computables.Numthreads_Small), 1, 1);
     }
 
     static void Compute_CopyOldVertices(ComputableMesh mesh, ComputableMesh newMesh)
@@ -242,11 +282,11 @@ public static class ComputableMeshExtension_Tesselate
 
     struct Triangle
     {
-        public uint v1;
-        public uint v2;
-        public uint v3;
+        public int v1;
+        public int v2;
+        public int v3;
 
-        public Triangle(uint v1, uint v2, uint v3)
+        public Triangle(int v1, int v2, int v3)
         {
             this.v1 = v1;
             this.v2 = v2;
@@ -255,7 +295,7 @@ public static class ComputableMeshExtension_Tesselate
 
         public static int Size()
         {
-            return sizeof(uint) * 3;
+            return sizeof(int) * 3;
         }
     }
 
