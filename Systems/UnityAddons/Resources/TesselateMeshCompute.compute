@@ -20,13 +20,13 @@ void ResetDivisions(uint id : SV_DispatchThreadID)
         divisions[id] = -1;
 }
 
-#pragma kernel SetDivisionsToOne
+#pragma kernel SetDivisionsToId
 
 [numthreads(128, 1, 1)]
-void SetDivisionsToOne(uint id : SV_DispatchThreadID)
+void SetDivisionsToId(uint id : SV_DispatchThreadID)
 {
     if ((id < indexCount) && (!edges[id].IsDupe()))
-        divisions[id] = 1;
+        divisions[id] = id;
 }
 
 float4x4 objectToWorld;
@@ -66,9 +66,12 @@ void GetEdgeDivisionsByArea(uint id : SV_DispatchThreadID)
 
         if (area > threshold)
         {
-            divisions[Edge_GetOriginal(e1)] = 1;
-            divisions[Edge_GetOriginal(e2)] = 1;
-            divisions[Edge_GetOriginal(e3)] = 1;
+            uint index = Edge_GetOriginal(e1);
+            divisions[index] = index;
+            index = Edge_GetOriginal(e2);
+            divisions[index] = index;
+            index = Edge_GetOriginal(e3);
+            divisions[index] = index;
         }
 	}
 }
@@ -91,7 +94,7 @@ void GetEdgeDivisionsByLength(uint id : SV_DispatchThreadID)
         float l = length(p2 - p1);
 
         if (l > threshold)
-            divisions[index] = 1;
+            divisions[index] = index;
 	}
 }
 
@@ -157,7 +160,7 @@ void CopyOldVertices(uint id : SV_DispatchThreadID)
 //	Save the new IDs in an info buffer [Same size as the edges buffer, or reuse same]
 //	All data in new vertex is an average of the two edge extremes.
 
-RWStructuredBuffer<uint> divisionEdgesIds;
+RWStructuredBuffer<int> divisionEdgesIds;
 uint divEdgesSize;
 uint oldSize;
 
@@ -169,6 +172,9 @@ void WriteNewVertices(uint id : SV_DispatchThreadID)
     if (id < divEdgesSize)
     {
         int edgeId = divisionEdgesIds[id];
+        if (edgeId < 0)
+            return;
+        
         Edge edge = edges[edgeId];
 
         VertexData v1 = ExtractVertexData(edge.v1);

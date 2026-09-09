@@ -574,15 +574,9 @@ public class BRendererDuplicator : MonoBehaviour
         }
         public Dictionary<Transform, BRenderersSetProperty[]> setProperties;
         SkinnedMeshRenderer[] _skinnedRends;
-        public SkinnedMeshRenderer[] skinnedRends
-        {
-            get
-            {
-                if (_skinnedRends == null)
-                    _skinnedRends = gameObject?.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-                return _skinnedRends;
-            }
-        }
+        public SkinnedMeshRenderer[] skinnedRends =>
+            _skinnedRends ??= (gameObject == null) ? null :
+                        gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         int _largestHierarchy;
         public int largestHierarchy
         {

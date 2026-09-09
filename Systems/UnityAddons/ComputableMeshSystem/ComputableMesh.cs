@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
@@ -145,7 +146,7 @@ public class ComputableMesh : ComputableBase<Mesh>
 
     public uint GetIndexCount(int submesh)
     {
-        return (submesh < 0) ? (uint)indexCount : mesh.GetIndexCount(submesh);
+        return (submesh < 0) ? (uint)totalIndexCount : mesh.GetIndexCount(submesh);
     }
 
     #region Initialize
@@ -202,6 +203,12 @@ public class ComputableMesh : ComputableBase<Mesh>
 
     public void Initialize(NativeArray<VertexData> vertexData, NativeArray<uint>[] triangleData, string name = "")
     {
+        this.vertexData = vertexData;
+        this.triangleData = triangleData;
+
+        SceneManager.sceneUnloaded -= SceneUnloaded;
+        SceneManager.sceneUnloaded += SceneUnloaded;
+
         mesh = mesh.ClearOrCreate();
 
         mesh.name = name;
@@ -213,6 +220,15 @@ public class ComputableMesh : ComputableBase<Mesh>
 
         //Triangles
         SetTriangles(triangleData);
+
+        if (auxBuffers == null)
+            auxBuffers = new CBuffersCollection();
+        else auxBuffers.Release();
+    }
+
+    void SceneUnloaded(Scene scene)
+    {
+        Dispose();
     }
     #endregion
 
@@ -420,6 +436,8 @@ public class ComputableMesh : ComputableBase<Mesh>
         for (int i = 0; i < subMeshCount; i++)
         {
             count = triangles[i].Length;
+            if (count <= 0)
+                continue;
 
             MeshUpdateFlags updateFlags = MeshUpdateFlags.DontRecalculateBounds;
             if (count < mesh.GetIndexCount(i))
@@ -436,11 +454,12 @@ public class ComputableMesh : ComputableBase<Mesh>
             count = triangles[i].Length;
             if (count != mesh.GetIndexCount(i))
             {
-                SubMeshDescriptor submesh = new SubMeshDescriptor(offset, count);
+                SubMeshDescriptor submesh = new(offset, count);
                 mesh.SetSubMesh(i, submesh);
             }
             offset += count;
         }
+        mesh.RecalculateTangents();
 
         indexBuf = null;
     }
@@ -630,7 +649,7 @@ public class ComputableMesh : ComputableBase<Mesh>
     /// <returns></returns>
     public ComputeBuffer SubmeshVertexMask(int submesh)
     {
-        ComputeBuffer mask = new ComputeBuffer(vertexCount, sizeof(uint));
+        ComputeBuffer mask = new(vertexCount, sizeof(uint));
         if (submesh < 0)
         {
             Compute_FillMask(mask);
@@ -690,8 +709,7 @@ public class ComputableMesh : ComputableBase<Mesh>
     public void AddVertices<T>(T vertices) where T : IEnumerable<VertexData>
     {
         VertexData[] v = vertices.ToArray();
-        NativeArray<VertexData> newVertexData = new NativeArray<VertexData>(
-            vertexCount + v.Length, Allocator.Persistent);
+        NativeArray<VertexData> newVertexData = new(vertexCount + v.Length, Allocator.Persistent);
         for (int i = 0; i < vertexCount; i++)
             newVertexData[i] = vertexData[i];
         for (int i = 0; i < v.Length; i++)
@@ -706,8 +724,7 @@ public class ComputableMesh : ComputableBase<Mesh>
     {
         uint[] t = indices.ToArray();
         int indexCount = (int)mesh.GetIndexCount(submesh);
-        NativeArray<uint> newIndexData = new NativeArray<uint>(
-            indexCount + t.Length, Allocator.Persistent);
+        NativeArray<uint> newIndexData = new(indexCount + t.Length, Allocator.Persistent);
         for (int i = 0; i < indexCount; i++)
             newIndexData[i] = triangleData[submesh][i];
         for (int i = 0; i < t.Length; i++)

@@ -47,48 +47,52 @@ public struct LayerTagFilter : IObjectFilter, IEquatable<LayerTagFilter>
         return PassesTagsFilter(go) && PassesLayersFilter(go);
     }
 
-    public T FindObject<T>() where T : Object
+    public T FindObject<T>(FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        T[] objs = FindObjectsByTags<T>();
+        T[] objs = FindObjectsByTags<T>(findInactive);
         return GetFirstFilteredByLayers(objs);
     }
 
-    public T[] FindObjects<T>() where T : Object
+    public T[] FindObjects<T>(FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        T[] objs = FindObjectsByTags<T>();
+        T[] objs = FindObjectsByTags<T>(findInactive);
         return GetFilteredByLayers(objs);
     }
 
-    public T FindObjectInChildren<T>(GameObject parent) where T : Object
+    public T FindObjectInChildren<T>(GameObject parent,
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        T[] objs = FindObjectsByTags<T>();
+        T[] objs = FindObjectsByTags<T>(findInactive);
         return GetFirstFilteredByLayers(objs);
     }
 
-    public T[] FindObjectsInChildren<T>(GameObject parent) where T : Object
+    public T[] FindObjectsInChildren<T>(GameObject parent,
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        T[] objs = FindObjectsByTags<T>();
+        T[] objs = FindObjectsByTags<T>(findInactive);
         return GetFilteredByLayers(objs);
     }
 
-    public T FindObjectByTags<T>() where T : Object
+    public T FindObjectByTags<T>(FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        return tagsFilter.FindObject<T>();
+        return tagsFilter.FindObject<T>(findInactive);
     }
 
-    public T[] FindObjectsByTags<T>() where T : Object
+    public T[] FindObjectsByTags<T>(FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        return tagsFilter.FindObjects<T>();
+        return tagsFilter.FindObjects<T>(findInactive);
     }
 
-    public T FindObjectByTagsInChildren<T>(GameObject parent) where T : Object
+    public T FindObjectByTagsInChildren<T>(GameObject parent,
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        return tagsFilter.FindObjectInChildren<T>(parent);
+        return tagsFilter.FindObjectInChildren<T>(parent, findInactive);
     }
 
-    public T[] FindObjectsByTagsInChildren<T>(GameObject parent) where T : Object
+    public T[] FindObjectsByTagsInChildren<T>(GameObject parent,
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
-        return tagsFilter.FindObjectsInChildren<T>(parent);
+        return tagsFilter.FindObjectsInChildren<T>(parent, findInactive);
     }
 
     public T GetFirstFiltered<T>(IEnumerable<T> list) where T : Object
@@ -290,7 +294,8 @@ public struct TagsFilter : IObjectFilter, IEquatable<TagsFilter>
         return filteredObjs.ToArray();
     }
 
-    public T FindObject<T>() where T : Object
+    public T FindObject<T>(
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
         T[] objs;
         if (whitelist)
@@ -302,50 +307,55 @@ public struct TagsFilter : IObjectFilter, IEquatable<TagsFilter>
         }
     }
 
-    public T[] FindObjects<T>() where T : Object
+    public T[] FindObjects<T>(
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
         T[] objs;
-        if (whitelist)
+        if (whitelist && (findInactive == FindObjectsInactive.Exclude))
             objs = FindWithTag.Anys<T>(tags);
         else
         {
-            objs = Object.FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            objs = Object.FindObjectsByType<T>(findInactive, FindObjectsSortMode.None);
             objs = GetFiltered(objs);
         }
 
         return objs;
     }
 
-    public T FindObjectInChildren<T>(GameObject parent) where T : Object
+    public T FindObjectInChildren<T>(GameObject parent,
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
         T[] objs;
-        if (whitelist)
+        if (whitelist && (findInactive == FindObjectsInactive.Exclude))
             return FindWithTag.AnyInChildren<T>(parent, tags);
         else
         {
             if (typeof(T) == typeof(GameObject))
             {
-                Transform[] trs = parent.GetComponentsInChildren<Transform>();
+                Transform[] trs = parent.GetComponentsInChildren<Transform>(
+                    findInactive == FindObjectsInactive.Include);
                 objs = trs.Select(t => t.gameObject).OfType<T>().ToArray();
             }
-            else objs = parent.GetComponentsInChildren<T>();
+            else objs = parent.GetComponentsInChildren<T>(findInactive == FindObjectsInactive.Include);
             return GetFirstFiltered(objs);
         }
     }
 
-    public T[] FindObjectsInChildren<T>(GameObject parent) where T : Object
+    public T[] FindObjectsInChildren<T>(GameObject parent,
+        FindObjectsInactive findInactive = FindObjectsInactive.Exclude) where T : Object
     {
         T[] objs;
-        if (whitelist)
+        if (whitelist && (findInactive == FindObjectsInactive.Exclude))
             return FindWithTag.AnysInChildren<T>(parent, tags);
         else
         {
             if (typeof(T) == typeof(GameObject))
             {
-                Transform[] trs = parent.GetComponentsInChildren<Transform>();
+                Transform[] trs = parent.GetComponentsInChildren<Transform>(
+                    findInactive == FindObjectsInactive.Include);
                 objs = trs.Select(t => t.gameObject).OfType<T>().ToArray();
             }
-            else objs = parent.GetComponentsInChildren<T>();
+            else objs = parent.GetComponentsInChildren<T>(findInactive == FindObjectsInactive.Include);
             return GetFiltered(objs);
         }
     }

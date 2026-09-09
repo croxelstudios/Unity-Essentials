@@ -1,0 +1,51 @@
+uint count;
+
+RWStructuredBuffer<float> source_float;
+RWStructuredBuffer<float> target_float;
+
+#pragma kernel CopyBuffer_float
+
+[numthreads(128, 1, 1)]
+void CopyBuffer_float(uint id : SV_DispatchThreadID)
+{
+    if (id < count)
+        target_float[id] = source_float[id];
+}
+
+RWStructuredBuffer<float2> source_float2;
+RWStructuredBuffer<float2> target_float2;
+
+#pragma kernel CopyBuffer_float2
+
+[numthreads(128, 1, 1)]
+void CopyBuffer_float2(uint id : SV_DispatchThreadID)
+{
+    if (id < count)
+        target_float2[id] = source_float2[id];
+}
+
+RWStructuredBuffer<float3> source_float3;
+RWStructuredBuffer<float3> target_float3;
+
+#pragma kernel CopyBuffer_float3
+
+[numthreads(128, 1, 1)]
+void CopyBuffer_float3(uint id : SV_DispatchThreadID)
+{
+    if (id < count)
+        target_float3[id] = source_float3[id];
+}
+
+RWStructuredBuffer<float4> source_float4;
+RWStructuredBuffer<float4> target_float4;
+
+#pragma kernel CopyBuffer_float4
+
+[numthreads(128, 1, 1)]
+void CopyBuffer_float4(uint id : SV_DispatchThreadID)
+{
+    if (id < count)
+        target_float4[id] = source_float4[id];
+}
+
+//TO DO: RWByteAccessBuffer

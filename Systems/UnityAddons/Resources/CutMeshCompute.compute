@@ -71,30 +71,33 @@ VertexData CalculateIntersectionVertexData(VertexData v1, VertexData v2,
 [numthreads(512, 1, 1)]
 void GetIntersections(uint id : SV_DispatchThreadID)
 {
-    VertexData v1 = ExtractVertexData(edges[id].v1);
-    VertexData v2 = ExtractVertexData(edges[id].v2);
-
-    float dot1 = sign(dot(v1.position - planePoint, planeNormal));
-    float dot2 = sign(dot(v2.position - planePoint, planeNormal));
-
-    int i1 = id % 3;
-    int i2 = (i1 == 2) ? 0 : i1 + 1;
-    intersections[id].leftIndex = (dot1 < 0) ? i1 : i2;
-
-    if (edges[id].IsDupe())
-        intersections[id].info = edges[id].GetOriginal();
-    else
+    if (id < indexCount)
     {
-        if (dot1 != dot2)
-        {
-            intersections[id].info = -1;
+        VertexData v1 = ExtractVertexData(edges[id].v1);
+        VertexData v2 = ExtractVertexData(edges[id].v2);
 
-            float dist;
-            intersections[id].vertex =
-                            CalculateIntersectionVertexData(v1, v2,
-                                planePoint, planeNormal, dist);
-        } 
-        else intersections[id].info = -3;
+        float dot1 = sign(dot(v1.position - planePoint, planeNormal));
+        float dot2 = sign(dot(v2.position - planePoint, planeNormal));
+
+        int i1 = id % 3;
+        int i2 = (i1 == 2) ? 0 : i1 + 1;
+        intersections[id].leftIndex = (dot1 < 0) ? i1 : i2;
+
+        if (edges[id].IsDupe())
+            intersections[id].info = edges[id].GetOriginal();
+        else
+        {
+            if (dot1 != dot2)
+            {
+                intersections[id].info = -1;
+
+                float dist;
+                intersections[id].vertex =
+                                CalculateIntersectionVertexData(v1, v2,
+                                    planePoint, planeNormal, dist);
+            } 
+            else intersections[id].info = -3;
+        }
     }
 }
 
@@ -252,7 +255,7 @@ void RegisterExtraCutTriangle(uint index, bool c12, bool c23, bool c31,
 [numthreads(128, 1, 1)]
 void GetTriangleCutData_SquareCut(uint id : SV_DispatchThreadID)
 {
-    if (id < indexCount)
+    if (id < (indexCount / 3))
     {
         uint index = indexStart + (id * 3);
 
@@ -402,17 +405,20 @@ bool IsNullAreaTriangle(float3 point1, float3 point2, int3 tri, float min)
 [numthreads(128, 1, 1)]
 void CleanNullAreaTrianglesInIntersection(uint id : SV_DispatchThreadID)
 {
-    Intersection inter1 = intersections[cutsData[id].cutPoint1];
-    Intersection inter2 = intersections[cutsData[id].cutPoint2];
-    float3 point1 = (inter1.info < -1) ? inter1.extraVertex.position : inter1.vertex.position;
-    float3 point2 = (inter2.info < -1) ? inter2.extraVertex.position : inter2.vertex.position;
+    if (id < (indexCount / 3))
+    {
+        Intersection inter1 = intersections[cutsData[id].cutPoint1];
+        Intersection inter2 = intersections[cutsData[id].cutPoint2];
+        float3 point1 = (inter1.info < -1) ? inter1.extraVertex.position : inter1.vertex.position;
+        float3 point2 = (inter2.info < -1) ? inter2.extraVertex.position : inter2.vertex.position;
 
-    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri1, minArea))
-        cutsData[id].newTri1 = float3(-5, -5, -5);
-    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri2, minArea))
-        cutsData[id].newTri2 = float3(-5, -5, -5);
-    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri3, minArea))
-        cutsData[id].newTri3 = float3(-5, -5, -5);
-    if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri4, minArea))
-        cutsData[id].newTri4 = float3(-5, -5, -5);
+        if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri1, minArea))
+            cutsData[id].newTri1 = float3(-5, -5, -5);
+        if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri2, minArea))
+            cutsData[id].newTri2 = float3(-5, -5, -5);
+        if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri3, minArea))
+            cutsData[id].newTri3 = float3(-5, -5, -5);
+        if (IsNullAreaTriangle(point1, point2, cutsData[id].newTri4, minArea))
+            cutsData[id].newTri4 = float3(-5, -5, -5);
+    }
 }

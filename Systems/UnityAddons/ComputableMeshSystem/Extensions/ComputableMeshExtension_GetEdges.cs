@@ -82,10 +82,6 @@ struct CompMesh_Edge
 
     public static int Size()
     {
-        return
-            sizeof(int) + // v1
-            sizeof(int) + // v2;
-            sizeof(int) + // index1;
-            sizeof(int); // index2;
+        return sizeof(int) * 4;
     }
 }

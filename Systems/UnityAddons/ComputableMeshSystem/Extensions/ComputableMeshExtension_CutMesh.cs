@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
+using Unity.Collections;
+using UnityEngine;
 
 public static class ComputableMeshExtension_CutMesh
 {
@@ -134,6 +135,63 @@ public static class ComputableMeshExtension_CutMesh
             -1, submesh);
     }
 
+    //TO DO: Can be optimized if I reconstruct the two meshes from the
+    //data directly without replacing data in original mesh.
+    public static void CutMesh(this ComputableMesh mesh, Vector3 planeNormal, Vector3 planePoint,
+        out ComputableMesh side1, out ComputableMesh side2, int submesh = -1)
+    {
+        CutMesh(mesh, planeNormal, planePoint, out int[] side1v, out int[] side2v, out int[] extremes, submesh);
+        ComputableMesh.VertexData[] v = new ComputableMesh.VertexData[mesh.vertexCount];
+        mesh.vertexBuffer.GetData(v);
+
+        List<int> side1All = new();
+        side1All.AddRange(side1v);
+
+        List<int> side2All = new();
+        side2All.AddRange(side2v);
+
+        for (int i = 0; i < v.Length; i++)
+            if (Vector3.Dot(v[i].position - planePoint, planeNormal) < 0)
+                side1All.TryAdd(i);
+            else side2All.TryAdd(i);
+
+        NativeArray<ComputableMesh.VertexData> vertexData1 = new(side1All.Count, Allocator.Persistent);
+        for (int i = 0; i < side1All.Count; i++)
+            vertexData1[i] = v[side1All[i]];
+
+        NativeArray<ComputableMesh.VertexData> vertexData2 = new(side2All.Count, Allocator.Persistent);
+        for (int i = 0; i < side2All.Count; i++)
+            vertexData2[i] = v[side2All[i]];
+
+        int submeshCount = (submesh < 0) ? mesh.subMeshCount : 1;
+        NativeArray<uint>[] triangleData1 = new NativeArray<uint>[submeshCount];
+        NativeArray<uint>[] triangleData2 = new NativeArray<uint>[submeshCount];
+        List<int> triangles1 = new();
+        List<int> triangles2 = new();
+        for (int i = 0; i < submeshCount; i++)
+        {
+            int[] originals = mesh.mesh.GetIndices(i);
+            for (int j = 0; j < mesh.GetIndexCount(i); j++)
+                if (side1All.Contains(originals[j]))
+                    triangles1.Add(side1All.IndexOf(originals[j]));
+                else if (side2All.Contains(originals[j]))
+                    triangles2.Add(side2All.IndexOf(originals[j]));
+
+            triangleData1[i] = new NativeArray<uint>(triangles1.Count, Allocator.Persistent);
+            for (int j = 0; j < triangles1.Count; j++)
+                triangleData1[i][j] = (uint)triangles1[j];
+            triangles1.Clear();
+
+            triangleData2[i] = new NativeArray<uint>(triangles2.Count, Allocator.Persistent);
+            for (int j = 0; j < triangles2.Count; j++)
+                triangleData2[i][j] = (uint)triangles2[j];
+            triangles2.Clear();
+        }
+
+        side1 = (vertexData1.Length > 0) ? new ComputableMesh(vertexData1, triangleData1, mesh.name + "_side1") : null;
+        side2 = (vertexData2.Length > 0) ? new ComputableMesh(vertexData2, triangleData2, mesh.name + "_side2") : null;
+    }
+
     public static void CutMesh(this ComputableMesh mesh, Vector3 planeNormal, Vector3 planePoint,
         out int[] side1, out int[] side2, out int[] extremes, float minArea, int submesh = -1)
     {
@@ -142,9 +200,9 @@ public static class ComputableMeshExtension_CutMesh
 
         if (submesh < 0)
         {
-            List<int> side1l = new List<int>();
-            List<int> side2l = new List<int>();
-            List<int> extremesl = new List<int>();
+            List<int> side1l = new();
+            List<int> side2l = new();
+            List<int> extremesl = new();
             for (int i = 0; i < mesh.subMeshCount; i++)
             {
                 CutMesh_Internal(mesh, planeNormal, planePoint,
@@ -209,9 +267,9 @@ public static class ComputableMeshExtension_CutMesh
 
         if (submesh < 0)
         {
-            List<int> side1l = new List<int>();
-            List<int> side2l = new List<int>();
-            List<int> extremesl = new List<int>();
+            List<int> side1l = new();
+            List<int> side2l = new();
+            List<int> extremesl = new();
             for (int i = 0; i < mesh.subMeshCount; i++)
             {
                 CutMesh_Square_Internal(mesh, planeNormal, planePoint, upDirection, squareSize,
@@ -247,6 +305,9 @@ public static class ComputableMeshExtension_CutMesh
 
         RebuildMeshFromCutData(mesh, intersectionsBuff, cutsDataBuff, submesh,
             out side1, out side2, out extremes);
+
+        intersectionsBuff.Dispose();
+        cutsDataBuff.Dispose();
     }
 
     static void GetPlaneCutData(ComputableMesh mesh, Vector3 planeNormal, Vector3 planePoint, int submesh,
@@ -262,6 +323,8 @@ public static class ComputableMeshExtension_CutMesh
         Compute_GetIntersections(mesh, edgesBuff, intersectionsBuff,
             planeNormal, planePoint, indexCount);
 
+        edgesBuff.Dispose();
+
         triangleCutsDataBuff = new ComputeBuffer(
             indexCount / 3, TriangleCutProperties.Size());
         Compute_GetTriangleCutDatas(mesh, intersectionsBuff, triangleCutsDataBuff, submesh);
@@ -276,10 +339,10 @@ public static class ComputableMeshExtension_CutMesh
         triangleCutsDataBuff.GetData(cutsArr);
 
         //Structure vertices to add
-        List<int> side1l = new List<int>();
-        List<int> side2l = new List<int>();
-        List<int> extremesl = new List<int>();
-        List<ComputableMesh.VertexData> verticesToAdd = new List<ComputableMesh.VertexData>();
+        List<int> side1l = new();
+        List<int> side2l = new();
+        List<int> extremesl = new();
+        List<ComputableMesh.VertexData> verticesToAdd = new();
         for (int i = 0; i < interArr.Length; i++)
             if (interArr[i].info == -1)
             {
@@ -306,8 +369,8 @@ public static class ComputableMeshExtension_CutMesh
         extremes = extremesl.ToArray();
 
         //Structure indices to add
-        List<uint> indicesToAdd = new List<uint>();
-        List<uint> trianglesToRemove = new List<uint>();
+        List<uint> indicesToAdd = new();
+        List<uint> trianglesToRemove = new();
         for (int i = 0; i < cutsArr.Length; i++)
         {
             Vector3Int[] tris;
@@ -359,6 +422,7 @@ public static class ComputableMeshExtension_CutMesh
 
         int ki = cuttingCompute.FindKernel(getIntersectionsKernel);
         cuttingCompute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        cuttingCompute.SetInt("indexCount", indexCount);
         cuttingCompute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
         cuttingCompute.SetBuffer(ki, "edges", edgesDataBuff);
         cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
@@ -414,6 +478,7 @@ public static class ComputableMeshExtension_CutMesh
 
         int ki = cuttingCompute.FindKernel(cleanNullAreaTrianglesInIntersectionKernel);
         cuttingCompute.SetInt("vertexStride", mesh.vertexBuffer.stride);
+        cuttingCompute.SetInt("indexCount", indexCount);
         cuttingCompute.SetBuffer(ki, "vertices", mesh.vertexBuffer);
         cuttingCompute.SetBuffer(ki, "intersections", intersectionsBuff);
         cuttingCompute.SetBuffer(ki, "cutsData", cutsDataBuff);

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct CBuffersCollection
+public class CBuffersCollection
 {
     Dictionary<string, ComputeBuffer> buffers;
 
@@ -18,6 +18,16 @@ public struct CBuffersCollection
             old.Dispose();
         buffers = buffers.CreateIfNull();
         buffers.Set(key, buffer);
+    }
+
+    public bool CreateIfInvalid(string key, int count, int stride)
+    {
+        if (!IsValid(key, count))
+        {
+            Set(key, new ComputeBuffer(count, stride));
+            return true;
+        }
+        else return false;
     }
 
     public bool Has(string key)

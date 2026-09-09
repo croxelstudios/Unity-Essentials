@@ -7,23 +7,24 @@
 [numthreads(128, 1, 1)]
 void GetEdges(uint id : SV_DispatchThreadID)
 {
-    if (id < indexCount)
+    if (id < (indexCount / 3))
     {
-        int index = indexStart + (id * 3);
-        edges[index].v1 = ExtractIndex(index);
-        edges[index].v2 = ExtractIndex(index + 1);
-        edges[index].index1 = index;
-        edges[index].index2 = -1;
+        int edgIndex = id * 3;
+        int index = indexStart + edgIndex;
+        edges[edgIndex].v1 = ExtractIndex(index);
+        edges[edgIndex].v2 = ExtractIndex(index + 1);
+        edges[edgIndex].index1 = edgIndex;
+        edges[edgIndex].index2 = -1;
     
-        edges[index + 1].v1 = ExtractIndex(index + 1);
-        edges[index + 1].v2 = ExtractIndex(index + 2);
-        edges[index + 1].index1 = index;
-        edges[index + 1].index2 = -1;
+        edges[edgIndex + 1].v1 = ExtractIndex(index + 1);
+        edges[edgIndex + 1].v2 = ExtractIndex(index + 2);
+        edges[edgIndex + 1].index1 = edgIndex;
+        edges[edgIndex + 1].index2 = -1;
     
-        edges[index + 2].v1 = ExtractIndex(index + 2);
-        edges[index + 2].v2 = ExtractIndex(index);
-        edges[index + 2].index1 = index;
-        edges[index + 2].index2 = -1;
+        edges[edgIndex + 2].v1 = ExtractIndex(index + 2);
+        edges[edgIndex + 2].v2 = ExtractIndex(index);
+        edges[edgIndex + 2].index1 = edgIndex;
+        edges[edgIndex + 2].index2 = -1;
     }
 }
 
