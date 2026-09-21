@@ -2,7 +2,7 @@ using UnityEngine;
 
 public static class GameObjectExtension_DestroyOrImmediate
 {
-    public static void DestroyOrImmediate(this GameObject obj)
+    public static void DestroyOrImmediate(this Object obj)
     {
 #if UNITY_EDITOR
         if (!Application.isPlaying)

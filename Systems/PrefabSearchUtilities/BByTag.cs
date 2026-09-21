@@ -59,3 +59,5 @@ public class BByTag<T> : MonoBehaviour where T : Component
         ResetSource();
     }
 }
+
+public enum ByTagUpdateMode { DontUpdate, UpdateWhenNull, UpdateWhenNullOrInactive }

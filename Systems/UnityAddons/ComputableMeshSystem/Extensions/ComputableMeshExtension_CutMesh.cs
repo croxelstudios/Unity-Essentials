@@ -228,12 +228,20 @@ public static class ComputableMeshExtension_CutMesh
         //
         //
 
-        if (minArea > 0f)
-            Compute_CleanNullAreaTriangles(mesh, intersectionsBuff, cutsDataBuff,
-                minArea, (int)mesh.GetIndexCount(submesh));
+        try
+        {
+            if (minArea > 0f)
+                Compute_CleanNullAreaTriangles(mesh, intersectionsBuff, cutsDataBuff,
+                    minArea, (int)mesh.GetIndexCount(submesh));
 
-        RebuildMeshFromCutData(mesh, intersectionsBuff, cutsDataBuff, submesh,
-            out side1, out side2, out extremes);
+            RebuildMeshFromCutData(mesh, intersectionsBuff, cutsDataBuff, submesh,
+                out side1, out side2, out extremes);
+        }
+        finally
+        {
+            intersectionsBuff.Dispose();
+            cutsDataBuff.Dispose();
+        }
     }
 
     public static void CutMesh_Square(this ComputableMesh mesh, Vector3 planeNormal, Vector3 planePoint, Vector3 upDirection,
@@ -293,21 +301,26 @@ public static class ComputableMeshExtension_CutMesh
         GetPlaneCutData(mesh, planeNormal, planePoint, submesh,
             out ComputeBuffer intersectionsBuff, out ComputeBuffer cutsDataBuff);
 
-        //
-        if (squareSize > 0f)
-            Compute_GetTriangleCutDatas_SquareCut(mesh, intersectionsBuff, cutsDataBuff,
-                upDirection, squareSize, submesh);
-        //
+        try
+        {
+            //
+            if (squareSize > 0f)
+                Compute_GetTriangleCutDatas_SquareCut(mesh, intersectionsBuff, cutsDataBuff,
+                    upDirection, squareSize, submesh);
+            //
 
-        if (minArea > 0f)
-            Compute_CleanNullAreaTriangles(mesh, intersectionsBuff, cutsDataBuff,
-                minArea, (int)mesh.GetIndexCount(submesh));
+            if (minArea > 0f)
+                Compute_CleanNullAreaTriangles(mesh, intersectionsBuff, cutsDataBuff,
+                    minArea, (int)mesh.GetIndexCount(submesh));
 
-        RebuildMeshFromCutData(mesh, intersectionsBuff, cutsDataBuff, submesh,
-            out side1, out side2, out extremes);
-
-        intersectionsBuff.Dispose();
-        cutsDataBuff.Dispose();
+            RebuildMeshFromCutData(mesh, intersectionsBuff, cutsDataBuff, submesh,
+                out side1, out side2, out extremes);
+        }
+        finally
+        {
+            intersectionsBuff.Dispose();
+            cutsDataBuff.Dispose();
+        }
     }
 
     static void GetPlaneCutData(ComputableMesh mesh, Vector3 planeNormal, Vector3 planePoint, int submesh,

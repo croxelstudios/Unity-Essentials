@@ -675,5 +675,3 @@ public static class FindWithTag
     }
     #endregion
 }
-
-public enum ByTagUpdateMode { DontUpdate, UpdateWhenNull, UpdateWhenNullOrInactive }

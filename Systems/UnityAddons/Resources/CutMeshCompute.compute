@@ -2,8 +2,6 @@
 #include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMeshGeneric.cginc"
 #include "Assets/Utilities - AstrophelMoore/Essentials/Systems/UnityAddons/Resources/ComputableMesh_Edges.cginc"
 
-//TO DO: Some functions are not being filtered by buffer size,
-//that might be causing the issues on Lovecraftify.cs
 #pragma kernel GetIntersections
 
 struct Intersection
@@ -162,7 +160,7 @@ void GetTriangleCutData(uint id : SV_DispatchThreadID)
 {
     if (id < (indexCount / 3))
     {
-        uint index = indexStart + (id * 3);
+        uint index = id * 3;
 
         uint i1 = index;
         uint i2 = index + 1;
@@ -185,7 +183,7 @@ void GetTriangleCutData(uint id : SV_DispatchThreadID)
             if (c12) leftIndex = intersections[index].leftIndex;
             else leftIndex = intersections[index + 1].leftIndex;
 
-            RegisterFullCutTriangles(index, c12, c23, c31, leftIndex, cutsData[id]);
+            RegisterFullCutTriangles(indexStart + index, c12, c23, c31, leftIndex, cutsData[id]);
         
             cutsData[id].triCount = 3;
         }
@@ -257,7 +255,7 @@ void GetTriangleCutData_SquareCut(uint id : SV_DispatchThreadID)
 {
     if (id < (indexCount / 3))
     {
-        uint index = indexStart + (id * 3);
+        uint index = id * 3;
 
         uint oi1 = index;
         uint oi2 = index + 1;
@@ -270,9 +268,9 @@ void GetTriangleCutData_SquareCut(uint id : SV_DispatchThreadID)
 
         if (cutsData[id].triCount > 1)
         {
-            uint ti1 = ExtractIndex(oi1);
-            uint ti2 = ExtractIndex(oi2);
-            uint ti3 = ExtractIndex(oi3);
+            uint ti1 = ExtractIndex(indexStart + oi1);
+            uint ti2 = ExtractIndex(indexStart + oi2);
+            uint ti3 = ExtractIndex(indexStart + oi3);
             bool c12, c23, c31;
             c12 = c23 = c31 = false;
             if (cutsData[id].newTri1.x == (int)ti3) c23 = c31 = true;
@@ -356,7 +354,7 @@ void GetTriangleCutData_SquareCut(uint id : SV_DispatchThreadID)
                             intersections[oPoint1].extraVertex = vertex;
                         }
                 
-                        RegisterExtraCutTriangle(index, c12, c23, c31, v1IsValid, cutsData[id]);
+                        RegisterExtraCutTriangle(indexStart + index, c12, c23, c31, v1IsValid, cutsData[id]);
                 
                         cutsData[id].triCount = 4;
                         break;
