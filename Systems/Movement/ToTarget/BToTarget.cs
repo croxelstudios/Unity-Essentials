@@ -155,6 +155,14 @@ public class BToTarget<T, TrSeq, SpdType> : DXMonoBehaviour where TrSeq : ITrans
 
     void Execute(float deltaTime)
     {
+        if ((timeMode != TimeModeOrOnEnable.Unscaled) &&
+            (timeMode != TimeModeOrOnEnable.OnEnable) &&
+            (Time.timeScale <= 0f))
+        {
+            Execute(Default<T>.Value, Mathf.Infinity);
+            return;
+        }
+
         float inverseDeltaTime = deltaTime.Reciprocal();
 
         TrSeq path = GetPath();

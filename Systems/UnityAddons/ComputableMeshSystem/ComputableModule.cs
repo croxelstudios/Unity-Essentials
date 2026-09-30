@@ -496,7 +496,15 @@ public static class ComputableModule
                     reusable = reusable.CreateAdd(key, computable);
                     uses = uses.CreateAdd(key, 1);
                 }
-                else uses[key]++;
+                else
+                {
+                    if (computable == null)
+                    {
+                        computable = New(value, name);
+                        reusable.Set(key, computable);
+                    }
+                    uses[key]++;
+                }
                 keys.Set(holder, key);
             }
             else computable = New(value, name);

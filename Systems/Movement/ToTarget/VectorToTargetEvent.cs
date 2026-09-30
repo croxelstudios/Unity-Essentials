@@ -267,7 +267,7 @@ public class VectorToTargetEvent : BToTarget<Vector3, MovementPath>, INavMeshAge
 
     public override Vector3 GetGlobal(Transform tr)
     {
-        return tr.position;
+        return tr.Position(false);
     }
 
     public override Vector3 ToLocal(Vector3 value)
