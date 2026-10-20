@@ -10,6 +10,7 @@ public class LayerSwitch : MonoBehaviour
     string newLayer = "";
 
     Dictionary<Transform, int> oldLayers;
+    public static event LayerSwitchDelegate SwitchedParentLayer = null;
     public static event LayerSwitchDelegate SwitchedLayer = null;
     public delegate void LayerSwitchDelegate(GameObject go, int oldLayer, int newLayer);
 
@@ -21,14 +22,12 @@ public class LayerSwitch : MonoBehaviour
 
     public void SwitchLayer()
     {
-        oldLayers = oldLayers.CreateIfNull();
-        SwitchLayer(inObject, LayerMask.NameToLayer(newLayer));
+        SwitchLayer(newLayer);
     }
 
     public void SwitchLayer_ThisOnly()
     {
-        oldLayers = oldLayers.CreateIfNull();
-        SwitchLayer_ThisOnly(inObject, LayerMask.NameToLayer(newLayer));
+        SwitchLayer_ThisOnly(newLayer);
     }
 
     public void SwitchLayer(string layer)
@@ -45,23 +44,42 @@ public class LayerSwitch : MonoBehaviour
 
     public void RevertLayer()
     {
-        SwitchLayer(inObject, ref oldLayers, -1);
+        GameObject go = inObject.gameObject;
+        int l = go.layer;
+
+        SwitchLayer_Recursive(inObject, ref oldLayers, -1);
+
+        int newLayer = -1;
+        if ((oldLayers != null) && oldLayers.ContainsKey(inObject))
+            newLayer = oldLayers[inObject];
+
+        SwitchedParentLayer?.Invoke(go, l, newLayer);
     }
 
     void SwitchLayer(Transform tr, int layer)
     {
-        SwitchLayer(tr, ref oldLayers, layer, IsNotEditor());
+        GameObject go = tr.gameObject;
+        int l = go.layer;
+
+        SwitchLayer_Recursive(tr, ref oldLayers, layer, IsNotEditor());
+
+        SwitchedParentLayer?.Invoke(go, l, layer);
     }
 
     void SwitchLayer_ThisOnly(Transform tr, int layer)
     {
+        GameObject go = tr.gameObject;
+        int l = go.layer;
+
         SwitchLayer_ThisOnly(tr, ref oldLayers, layer, IsNotEditor());
+
+        SwitchedParentLayer?.Invoke(go, l, layer);
     }
 
-    void SwitchLayer(Transform tr, ref Dictionary<Transform, int> dic, int newLayer, bool registerDic = false)
+    void SwitchLayer_Recursive(Transform tr, ref Dictionary<Transform, int> dic, int newLayer, bool registerDic = false)
     {
         for (int i = 0; i < tr.childCount; i++)
-            SwitchLayer(tr.GetChild(i), ref dic, newLayer, registerDic);
+            SwitchLayer_Recursive(tr.GetChild(i), ref dic, newLayer, registerDic);
         SwitchLayer_ThisOnly(tr, ref dic, newLayer, registerDic);
     }
 
