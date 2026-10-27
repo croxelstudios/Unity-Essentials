@@ -529,8 +529,25 @@ public class BaseSignalPropertyDrawer : PropertyDrawer
         if (typeof(BaseSignal).Name == t)
             EditorGUI.PropertyField(position, property);
         else
+        {
+            float subSize = 0.15f;
+
+            float prevMax = position.xMax;
+            position.xMax -= subSize * position.width;
             property.objectReferenceValue = BaseSignalManager.DrawSignalNames(Type.GetType(t),
                 property.objectReferenceValue, position, label, false);
+            position.xMin = position.xMax;
+            position.xMax = prevMax;
+            EditorGUI.PropertyField(position, property, new GUIContent(""));
+
+            //float prevMax = position.xMax;
+            //position.xMax -= (1f - subSize) * position.width;
+            //EditorGUI.PropertyField(position, property, label);
+            //position.xMin = position.xMax;
+            //position.xMax = prevMax;
+            //property.objectReferenceValue = BaseSignalManager.DrawSignalNames(Type.GetType(t),
+            //    property.objectReferenceValue, position, new GUIContent(""), false);
+        }
         EditorGUI.EndProperty();
     }
 }
