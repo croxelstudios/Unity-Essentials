@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 public static class UnityEventExtension_GetRuntimeEventCount
 {
@@ -10,7 +11,7 @@ public static class UnityEventExtension_GetRuntimeEventCount
 
     public static int GetTotalEventCount(this UnityEventBase unityEvent)
     {
-        return ReflectionTools.InvokePrivateMethod<int>(unityEvent, "GetCallsCount");
+        return ReflectionTools.InvokePrivateMethod<System.Collections.ICollection>(unityEvent, "PrepareInvoke").Count;
         //return unityEvent.GetRuntimeEventCount() + unityEvent.GetPersistentEventCount();
     }
 }
