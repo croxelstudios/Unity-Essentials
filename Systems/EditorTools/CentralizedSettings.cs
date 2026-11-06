@@ -155,27 +155,9 @@ public class CentralizedSettingsDrawer : PropertyDrawer
 
         if (propName == "enabled") propName = "m_Enabled";
 
-        Object[] comps = new Object[refProp.serializedObject.targetObjects.Length];
-        for (int i = 0; i < comps.Length; i++)
-        {
-            SerializedObject obj =
-                new SerializedObject(compProp.serializedObject.targetObjects[i]);
+        SerializedObject compsObject = compProp.SerializedObjectFromReference();
 
-            SerializedProperty prop = obj.FindProperty(refProp.propertyPath);
-
-            comps[i] = prop.FindPropertyRelative(componentName).objectReferenceValue;
-
-            if (comps[i] == null)
-            {
-                if (!string.IsNullOrEmpty(propName))
-                    label = null;
-                return null;
-            }
-        }
-
-        SerializedObject compsObject = new SerializedObject(comps);
-
-        return compsObject.FindProperty(propName);
+        return compsObject.DXFindProperty(propName);
     }
 
     SerializedProperty ProcessProperty(SerializedProperty property, out SerializedProperty[] children,

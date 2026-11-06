@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 using UnityEditor;
 #endif
 
+//TO DO: Some methods don't use the 'bindings' parameter
 public static class ReflectionTools
 {
     static Dictionary<object, Dictionary<string, ObjectInfo>> cachedObjectInfo;
@@ -94,7 +95,7 @@ public static class ReflectionTools
         if (cachedObjectInfo.SmartGetValue(inObj, fieldPath, out ObjectInfo result))
             return result;
 
-        string[] fieldStructure = GetFieldStructure(fieldPath);
+        string[] fieldStructure = fieldPath.PathSteps();
 
         if (TryGetObjectInfo(ref inObj, ref fieldStructure, out result, bindings))
             return result;
@@ -183,7 +184,7 @@ public static class ReflectionTools
             return tupla.Item2;
         }
 
-        string[] fieldStructure = GetFieldStructure(fieldPath);
+        string[] fieldStructure = fieldPath.PathSteps();
 
         bool completedPath = TryGetObjectInfo(ref inObj, ref fieldStructure, out arraySource);
         if (arraySource.Type().IsOrInheritsFrom(typeof(ICollection)))
@@ -284,7 +285,7 @@ public static class ReflectionTools
 
     public static Type GetType(object inObj, string fieldPath)
     {
-        string[] fieldStructure = GetFieldStructure(fieldPath);
+        string[] fieldStructure = fieldPath.PathSteps();
         Type type = null;
         for (int i = 0; i < fieldStructure.Length; i++)
         {
@@ -628,12 +629,6 @@ public static class ReflectionTools
         }
 
         return method;
-    }
-
-    static string[] GetFieldStructure(string fieldPath)
-    {
-        fieldPath = fieldPath.Replace(".Array.data[", "[");
-        return fieldPath.Split('.');
     }
 
     public static T Clone<T>(T original)

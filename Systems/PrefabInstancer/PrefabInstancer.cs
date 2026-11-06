@@ -19,7 +19,19 @@ public class PrefabInstancer : DXMonoBehaviour
     [SerializeField]
     Vector3 rotationVariation = Vector3.zero;
     [SerializeField]
+    SpreadMode spreadMode = SpreadMode.Box;
+    [SerializeField]
+    [Indent]
+    [ShowIf("@spreadMode == SpreadMode.Collider")]
+    Collider spreadArea = null;
+    [SerializeField]
+    [Indent]
+    [ShowIf("@spreadMode == SpreadMode.Box")]
     Vector3 randomSpread = Vector3.zero;
+    [SerializeField]
+    [Indent]
+    [ShowIf("@spreadMode == SpreadMode.Radius")]
+    float spreadRadius = 0f;
     [SerializeField]
     SpawnMode spawnMode = SpawnMode.World;
     [SerializeField]
@@ -35,6 +47,8 @@ public class PrefabInstancer : DXMonoBehaviour
     [ShowIf("trackEntities")]
     [SerializeField]
     TimeMode momentumTimeMode = TimeMode.FixedUpdate;
+
+    enum SpreadMode { Radius, Box, Collider }
 
     WeightedPrefab[] wPrefabs;
     public List<SpawnedEntity> entities;
@@ -286,8 +300,41 @@ public class PrefabInstancer : DXMonoBehaviour
 
     GameObject InstantiateWithMode(GameObject prefab, SpawnMode spawnMode)
     {
+        Vector3 spawnPosition = transform.position;
         Vector3 random = Vector3.one.GetRandom();
-        Vector3 spawnPosition = transform.position + Vector3.Scale(random, randomSpread);
+
+        switch (spreadMode)
+        {
+            case SpreadMode.Box:
+                spawnPosition += Vector3.Scale(random, randomSpread);
+                break;
+            case SpreadMode.Collider:
+                if (spreadArea != null)
+                {
+                    Bounds bounds = spreadArea.bounds;
+                    Transform tr = spreadArea.transform;
+                    spawnPosition = bounds.center;
+                    switch (spreadArea)
+                    {
+                        case BoxCollider bc:
+                            spawnPosition += tr.TransformVector(Vector3.Scale(random, bc.size * 0.5f));
+                            break;
+                        case SphereCollider sc:
+                            Vector3 dir = Quaternion.Euler(random * 180f) * Vector3.forward;
+                            spawnPosition += dir * Random.Range(0f, sc.radius);
+                            break;
+                        default:
+                            spawnPosition += Vector3.Scale(random, bounds.size);
+                            break;
+                    }
+                }
+                break;
+            default:
+                Vector3 direction = Quaternion.Euler(random * 180f) * Vector3.forward;
+                spawnPosition += direction * Random.Range(0f, spreadRadius);
+                break;
+        }
+
         GameObject instance;
         switch (spawnMode)
         {

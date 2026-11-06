@@ -7,11 +7,13 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 #endif
 
-public class BColliderInteractor : MonoBehaviour
+public class BColliderInteractor : DXMonoBehaviour
 {
     //[SerializeField]
     //[Tooltip("Determines if it should also check the tag of the attached rigidbody")]
     bool checkRigidbodyTag = false;
+    [SerializeField]
+    protected Transform inObject = null;
     [SerializeField]
     protected LayerMask layerMask = -1;
     [SerializeField]
@@ -59,6 +61,9 @@ public class BColliderInteractor : MonoBehaviour
 
     bool CheckCollisionBase(NDCollider other)
     {
+        if ((inObject != null) && (!other.transform.IsChildOf(inObject)))
+            return false;
+
         if ((tagsNullOrEmpty || detectionTags.Contains(other.tag))
             && layerMask.ContainsLayer(other.layer))
             return true;
